@@ -1,5 +1,5 @@
 ---
-description: Setup project ใหม่ (Aaron) — Docker-first, CI/CD, ready-to-code
+description: "[shode-house] Setup project ใหม่ (Aaron) — Docker-first, CI/CD, ready-to-code"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 argument-hint: [stack, e.g. "FastAPI + Postgres + Redis"]
 ---

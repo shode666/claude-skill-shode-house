@@ -1,5 +1,5 @@
 ---
-description: ทำ spec อย่างเดียว (BA + SA + Domain) ไม่ implement — เหมาะกับ proposal/estimation
+description: "[shode-house] ทำ spec อย่างเดียว (BA + SA + Domain) ไม่ implement — เหมาะกับ proposal/estimation"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob
 argument-hint: [system description]
 ---

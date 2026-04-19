@@ -1,5 +1,5 @@
 ---
-description: Full design pipeline ของ shode-house (BA → Domain → SA → Oliver summary)
+description: "[shode-house] Full design pipeline (BA → Domain → SA → Oliver summary)"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob
 argument-hint: [system description]
 ---

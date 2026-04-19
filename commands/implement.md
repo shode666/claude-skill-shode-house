@@ -1,5 +1,5 @@
 ---
-description: Implement feature code (Dave) + Chris review/unit test + Quinn integration
+description: "[shode-house] Implement feature code (Dave) + Chris review/unit test + Quinn integration"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 argument-hint: [feature description or spec path]
 ---
