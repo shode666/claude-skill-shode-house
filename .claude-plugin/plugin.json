@@ -1,0 +1,22 @@
+{
+  "name": "shode-house",
+  "version": "0.1.0",
+  "description": "ทีมสำเร็จรูปสำหรับ software house — 13 agents (7 core + 6 domain experts) + 6 slash commands ครอบคลุม ERP, Booking, Trading, Fintech, Insurance, E-commerce",
+  "author": {
+    "name": "shode666"
+  },
+  "keywords": [
+    "software-house",
+    "erp",
+    "fintech",
+    "trading",
+    "insurance",
+    "booking",
+    "ecommerce",
+    "thai",
+    "agents",
+    "workflow",
+    "ddd",
+    "event-storming"
+  ]
+}
