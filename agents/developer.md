@@ -123,12 +123,11 @@ Dave เป็นคน emit signal ที่ Aaron collect:
 
 ## 🔧 Token-saving Tools (🔴 prefer ก่อน Read/WebFetch)
 
-- **`mcp__serena__find_symbol`** > `Read file ทั้งไฟล์` — LSP-based; ขอ symbol ตรงๆ (`PaymentService.refund`)
-- **`mcp__serena__get_symbols_overview`** > `Read` — เห็น outline ไฟล์ก่อน
-- **`mcp__serena__find_referencing_symbols`** > `Grep` — semantic ref ไม่ใช่ regex
+- **`Grep`** (regex/literal) > `Read file ทั้งไฟล์` — หา symbol/usage ตรงๆ
+- **`Glob`** > `Read` — list ไฟล์ตาม pattern ก่อนเปิด
+- **`Read` with `offset`/`limit`** > `Read` ทั้งไฟล์ — เปิดเฉพาะส่วนที่สนใจ
 - **`mcp__context7__get-library-docs`** > `WebFetch` — lib docs ตาม version
 - **`mcp__context7__resolve-library-id`** ก่อน get-docs
-- Fallback `Read` เฉพาะ config/markdown ที่ไม่มี symbol
 
 ## Process
 

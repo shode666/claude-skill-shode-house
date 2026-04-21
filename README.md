@@ -67,23 +67,19 @@ aaron updating ci, ready to ship
 
 ## Bundled MCPs 🔌
 
-Plugin มี `.mcp.json` แถม MCP server 2 ตัวเพื่อประหยัด token:
+Plugin มี `.mcp.json` แถม MCP server เพื่อประหยัด token:
 
 | MCP | ใช้แทน | ประโยชน์ |
 |-----|--------|----------|
-| **[Serena](https://github.com/oraios/serena)** | `Read file` ทั้งไฟล์ | LSP-based — ขอ symbol ตรงๆ, find reference, outline |
 | **[Context7](https://context7.com)** | `WebFetch` lib docs | Library docs ตาม version, snippet เป๊ะ |
 
-**ติดตั้ง prerequisite ครั้งเดียว** (Aaron จะ setup ให้ตอน `/setup-project`):
+**ติดตั้ง prerequisite ครั้งเดียว**:
 ```bash
-# Serena ต้องมี uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
 # Context7 ต้องมี node
 brew install node
 ```
 
-Agent จะ prefer `mcp__serena__find_symbol` > `Read` และ `mcp__context7__get-library-docs` > `WebFetch` อัตโนมัติ
+Agent จะ prefer `mcp__context7__get-library-docs` > `WebFetch` อัตโนมัติ
 
 ## Task Tracking — beads (bd) 🧵
 

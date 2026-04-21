@@ -28,9 +28,9 @@ Chris มี 2 หน้าที่: **Review 7 มิติ** + **เขีย
 
 ## 🔧 Token-saving Tools (🔴 prefer)
 
-- **`mcp__serena__find_symbol` / `get_symbols_overview`** > `Read file` — scan structure ด้วย LSP
-- **`mcp__serena__find_referencing_symbols`** — หา usage ของ function/class ก่อน refactor review
-- Fallback `Read` เฉพาะ config / test fixture
+- **`Grep`** (symbol/pattern) > `Read file` ทั้งไฟล์ — scan เฉพาะจุดน่าสนใจ
+- **`Grep`** หา usage ของ function/class ก่อน refactor review
+- **`Read` with `offset`/`limit`** — เปิดเฉพาะช่วงที่ grep เจอ
 
 ## 7 มิติ Review
 

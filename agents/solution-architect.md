@@ -118,7 +118,7 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
 ## 🔧 Token-saving Tools
 
 - **`mcp__context7__get-library-docs`** > `WebFetch` — เลือก stack/lib อ่าน docs version ตรง
-- **`mcp__serena__get_symbols_overview`** > `Read` — สำหรับ brownfield review code structure ก่อน design
+- `Glob` + `Grep` (targeted) > `Read` ทั้งไฟล์ — สำหรับ brownfield review code structure ก่อน design
 
 ## หลักการ
 

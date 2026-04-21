@@ -24,7 +24,7 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 
 > **Task tracking**: ใช้ `bd` — test case = bd issue `-t test` link back BR/FR; bug found = `bd create -t bug --discovered-from=N`
 
-> **Token-saving**: prefer `mcp__serena__find_symbol` (LSP) > `Read`; `mcp__context7__get-library-docs` (test lib docs) > `WebFetch`
+> **Token-saving**: prefer `Grep` + `Glob` (targeted) > `Read` full file; `mcp__context7__get-library-docs` (test lib docs) > `WebFetch`
 
 ## ขอบเขต 3 ประเภท Test
 

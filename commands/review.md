@@ -44,7 +44,6 @@ Review ตาม path ตรงๆ
    # ตัวอย่าง "การคำนวนหน้านี้ผิด" + screenshot หน้า invoice
    grep -rn "calculateTotal\|computeAmount\|sumPrice" --include="*.ts" --include="*.py"
    glob "**/invoice/**/*.{ts,vue,py}"
-   mcp__serena__find_symbol(name_path="calculate", substring_matching=true)
    ```
 
 4. **Present candidate files** ให้ user ยืนยัน:
@@ -113,7 +112,7 @@ Keyword trigger → domain expert:
 
 - Security Critical/High = **block merge**
 - Domain-sensitive = บังคับผ่าน Domain Expert
-- อ่านโค้ดจริงทุกไฟล์ (prefer `serena__find_symbol` > `Read`)
+- อ่านโค้ดจริงทุกไฟล์ (prefer `Grep` > `Read` full file)
 - Run static analysis ถ้ามี (Bash)
 - ถ้ามี Jira → auto comment findings กลับที่ ticket
 - ภาษาไทย
