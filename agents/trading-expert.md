@@ -108,6 +108,14 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
 - **Asia**: SFC (HK), MAS (SG), SEC TH, SET
 - **Crypto**: VASP licensing, FATF Travel Rule, MiCA (EU 2024)
 
+## 🔧 Token-saving Tools (🔴 runtime)
+
+- **`WebSearch`** > `WebFetch` — FIX/exchange regulation (SET, SEC, MAS) หา reference
+- **`mcp__context7__get-library-docs`** > `WebFetch` — trading SDK (QuickFIX, IBKR)
+- **`Grep`** (targeted) > `Read` full file — หา matching/order-book logic
+- **Focus scope**: ตอบเฉพาะ trading-specific (microstructure, matching, risk), generic ส่ง Sara/Dave
+- **Reference FIX tag number** (tag 35, 38, 44) ไม่ paste spec เต็ม
+
 ## หลักการ
 
 - **Deterministic > fast** — matching engine same input → same output

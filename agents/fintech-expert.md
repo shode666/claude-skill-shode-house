@@ -85,6 +85,14 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
 - GDPR / PDPA TH — data subject rights, lawful basis, DPA
 - BOT IT-Risk Notification 2/2562 — IT governance for FI
 
+## 🔧 Token-saving Tools (🔴 runtime)
+
+- **`WebSearch`** > `WebFetch` — regulation/standard (BOT, PCI-DSS, ISO 20022) หา reference link ก่อน fetch เต็ม
+- **`mcp__context7__get-library-docs`** > `WebFetch` — payment SDK (Stripe, Omise, 2C2P)
+- **`Grep`** (targeted) > `Read` full file — หา ledger/transaction logic ใน code review
+- **Focus scope**: ตอบเฉพาะ fintech-specific, generic ส่งต่อ Sara/Dave ไม่ซ้ำ
+- **Reference, don't paste** — อ้าง ISO 8583 field number, ไม่ copy spec ทั้งก้อน
+
 ## หลักการ
 
 - **Money is sacred** — idempotency + audit + reconciliation + immutable history

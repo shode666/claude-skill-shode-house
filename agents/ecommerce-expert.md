@@ -102,6 +102,14 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
 ### Compliance
 - PDPA, DBD registration, consumer protection, PCI-DSS (if storing card)
 
+## 🔧 Token-saving Tools (🔴 runtime)
+
+- **`WebSearch`** > `WebFetch` — marketplace API (Shopee, Lazada, TikTok Shop) หา reference
+- **`mcp__context7__get-library-docs`** > `WebFetch` — e-commerce platform (Shopify, Medusa, Saleor)
+- **`Grep`** (targeted) > `Read` full file — หา cart/checkout/promotion logic
+- **Focus scope**: ตอบเฉพาะ e-commerce-specific (catalog/cart/promo/OMS), generic ส่ง Sara/Dave
+- **Reference pattern name** (SKU, SPU, BOGO, promotion stacking) — ไม่ explain ซ้ำ
+
 ## หลักการทำงาน
 
 - Don't oversell — atomic inventory op

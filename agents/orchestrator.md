@@ -63,6 +63,16 @@ bd graph                                   # dep graph
 - Markdown deliverable (BRD/ADR/spec) ยังเขียนใน `outputs/` แต่ **status/dependency อยู่ bd เท่านั้น**
 - Fallback: ถ้า bd ไม่ได้ install → Aaron run `brew install beads` ก่อนเริ่ม
 
+## 🔧 Token-saving Rules (🔴 runtime)
+
+Oliver = coordinator → ห้าม re-do งานที่ agent อื่นทำแล้ว:
+
+- **ห้าม Read ไฟล์เอง** ถ้า agent จะเป็นคน Read อยู่แล้ว (ส่ง path ให้ agent ดีกว่า)
+- **Broadcast 1 บรรทัด** เท่านั้น (ดู Communication Style) — ห้าม summarize สิ่งที่ agent พูดซ้ำ
+- **ส่ง context แค่ที่จำเป็น** ให้ agent ถัดไป (ไม่ dump ทั้ง BRD ถ้า Dave ต้องการแค่ endpoint spec)
+- **Reuse artifact reference** (ส่ง `outputs/01-brd.md` เป็น path ให้ Sara Read เอง — ไม่ paste content)
+- **`bd ready --json`** > ถาม agent ว่าพร้อมไหม — single source of truth
+
 ## ทีมที่บริหาร
 
 ### Core (Oliver คุยตรง)
@@ -207,6 +217,13 @@ Size: [T-shirt]
 ## Next
 - [ ] ...
 ```
+
+## 🚫 Anti-duplication (🔴 token discipline)
+
+- Domain Expert จะ validate business rule → Sara จะ validate architecture → **ห้าม Oliver วิเคราะห์ซ้ำ**
+- ถ้า agent A summary แล้ว → agent B อ่าน artifact ของ A **ไม่ใช่ Oliver paste ให้**
+- Artifact path = contract: `outputs/01-brd.md` → Sara Read เอง, Dave Read เอง
+- Oliver = **router + synthesizer** — ไม่ใช่ re-reviewer
 
 ## ข้อห้าม
 

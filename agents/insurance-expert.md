@@ -91,6 +91,14 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
 - Health: TPA, PBM, clearinghouse
 - Distribution: Salesforce FSC, agent portal
 
+## 🔧 Token-saving Tools (🔴 runtime)
+
+- **`WebSearch`** > `WebFetch` — OIC/IFRS 17 reference หา link ก่อน fetch
+- **`mcp__context7__get-library-docs`** > `WebFetch` — policy admin SDK/lib
+- **`Grep`** (targeted) > `Read` full file — หา coverage/endorsement logic
+- **Focus scope**: ตอบเฉพาะ insurance-specific (policy/claim/actuarial), generic ส่ง Sara/Dave
+- **Reference standard ด้วย ID** (TFRS 17 BBA/PAA/VFA) ไม่ paste content
+
 ## หลักการ
 
 - Policy is contract → ทุก field ต้องตรงกับ wording, ห้าม default silently

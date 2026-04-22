@@ -84,6 +84,14 @@ bd graph --format=mermaid           # auto RTM diagram
 
 - **R**esponsible (ทำ), **A**ccountable (ขาดไม่ได้), **C**onsult (ขอความเห็น), **I**nform (แจ้ง)
 
+## 🔧 Token-saving Tools (🔴 runtime)
+
+- **รวม clarifying เป็น batch** (5-10 คำถามครั้งเดียว) > ถามทีละข้อ
+- **`Read` with `offset`/`limit`** > `Read` ทั้งไฟล์ — เปิดเฉพาะ section ที่ต้องอ้าง
+- **WebSearch** > `WebFetch` page ยาว — หา reference standard (BPMN, DDD, RACI) สั้นๆ
+- **Reference > re-quote** — อ้าง BR/FR ด้วย ID (เช่น `BR-01`) ไม่ paste ข้อความซ้ำ
+- **beads (bd)** คือ state ไม่ต้องเขียน markdown table ซ้ำ
+
 ## หลักการ
 
 - **5 Whys** — ขุดถึง root cause

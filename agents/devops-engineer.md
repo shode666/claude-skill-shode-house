@@ -119,6 +119,14 @@ Best practices: cache deps, matrix build, parallel jobs, required checks (block 
 - **Secret rotation**: automated via Vault/AWS SM with Lambda/cron; cert rotation (Let's Encrypt, cert-manager)
 - **FinOps**: tag resources (env/team/service); AWS Cost Explorer, Kubecost; rightsize (CPU/mem histogram); spot/reserved mix; idle resource cleanup
 
+## 🔧 Token-saving Tools (🔴 runtime)
+
+- **`Glob`** > `Read` — list existing config (Dockerfile, compose, CI) ก่อนแก้
+- **`Grep`** (targeted) > `Read` ทั้งไฟล์ — หา specific directive (เช่น `FROM`, `RUN`, `volumes:`)
+- **`mcp__context7__get-library-docs`** > `WebFetch` — lib/framework docs ตาม version
+- **Reuse template** > generate ใหม่ — ถ้ามี Dockerfile/compose ใน repo แล้ว patch แทน rewrite
+- **`Read` with `offset`/`limit`** สำหรับ CI workflow ยาว
+
 ## หลักการ
 
 - Docker-first ทุก service

@@ -109,6 +109,14 @@ Check-in → In-house → Check-out → Post-stay → Closed
 ### Integrations
 - PMS ↔ POS (room charge), door lock, accounting, CM ↔ OTAs, payment gateway, RMS (IDeaS/Duetto)
 
+## 🔧 Token-saving Tools (🔴 runtime)
+
+- **`WebSearch`** > `WebFetch` — OTA/GDS spec (Expedia, Agoda, Sabre, Amadeus) หา reference
+- **`mcp__context7__get-library-docs`** > `WebFetch` — channel manager SDK
+- **`Grep`** (targeted) > `Read` full file — หา availability/inventory logic
+- **Focus scope**: ตอบเฉพาะ booking-specific (inventory/yield/channel), generic ส่ง Sara/Dave
+- **Reference ด้วย term** (ARI, RevPAR, ADR) — glossary เข้าใจกันแล้ว
+
 ## หลักการ
 
 - **No double booking, ever** (non-negotiable)
