@@ -93,7 +93,8 @@ Output: findings by severity 🔴 Critical / 🟠 High / 🟡 Medium / 🔵 Low 
 
 Keyword trigger → domain expert:
 - payment/ledger/money → **Felix**
-- accounting/journal/inventory → **Elena**
+- accounting/journal/inventory (generic) → **Elena**
+- SAP/ABAP/Fiori/BAPI/IDoc/S4HANA/ECC/CDS/RAP → **Sam**
 - order/market/matching → **Tara**
 - policy/claim/premium → **Iris**
 - booking/rate (hotel/airline) → **Brooke**

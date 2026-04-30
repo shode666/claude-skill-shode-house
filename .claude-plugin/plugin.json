@@ -1,7 +1,7 @@
 {
   "name": "sd",
-  "version": "0.2.0",
-  "description": "ทีมสำเร็จรูปสำหรับ software house — 13 agents (7 core + 6 domain experts) + 6 slash commands ครอบคลุม ERP, Booking, Trading, Fintech, Insurance, E-commerce",
+  "version": "0.6.0",
+  "description": "ทีมสำเร็จรูปสำหรับ software house — 15 agents (8 core + 7 domain experts) + 6 slash commands ครอบคลุม ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI",
   "author": {
     "name": "shode666"
   },
@@ -13,6 +13,13 @@
     "insurance",
     "booking",
     "ecommerce",
+    "sap",
+    "abap",
+    "s4hana",
+    "ux",
+    "ui",
+    "design-system",
+    "accessibility",
     "thai",
     "agents",
     "workflow",

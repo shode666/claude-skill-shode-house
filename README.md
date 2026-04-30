@@ -1,15 +1,15 @@
 # shode-house
 
-ทีมสำเร็จรูปสำหรับ software house — 13 agents (7 core + 6 domain experts) + 6 slash commands
-ครอบคลุม ERP, Booking, Trading, Fintech, Insurance, E-commerce
+ทีมสำเร็จรูปสำหรับ software house — 15 agents (8 core + 7 domain experts) + 6 slash commands
+ครอบคลุม ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI
 
 ออกแบบเน้น **SOLID, clean code, non over-engineering, keep it simple** + **domain-driven** + ภาษาไทย
 
 ---
 
-## ทีม (13 agents)
+## ทีม (15 agents)
 
-### Core team (7)
+### Core team (8)
 
 | Key | ชื่อ | Role |
 |-----|------|------|
@@ -20,13 +20,22 @@
 | Cr | **Chris** | Code Reviewer + Unit Test — review 7 มิติ + test doubles + mutation testing |
 | Qa | **Quinn** | QA Engineer — integration, E2E, contract, perf, chaos, security |
 | Do | **Aaron** | DevOps Engineer — Docker, CI/CD, K8s, SRE, observability, Caddy/Traefik |
+| Ux | **Uma** | UX/UI Designer — research, IA, wireframe, visual, design system, a11y (WCAG), Figma handoff |
 
-### Domain Experts (6)
+### Model Strategy (per agent)
+
+| Model | Agents | เหตุผล |
+|-------|--------|--------|
+| **Opus** | Sara, Felix, Sam, Iris, Tara | Strategic decision + complex domain (architecture, money, SAP, insurance reg, trading microstructure) |
+| **Sonnet** | Oliver, Bella, Dave, Chris, Quinn, Aaron, Uma, Elena, Brooke, Emma | Balanced execution — capable + fast |
+
+### Domain Experts (7)
 
 | Key | ชื่อ | Domain |
 |-----|------|--------|
 | Fe | **Felix** | Fintech/Banking — payment, ledger, ISO 8583/20022, PCI-DSS, tokenization, chargeback, KYC/AML |
-| Ee | **Elena** | ERP/Accounting — GL, AR/AP, inventory, MRP, IFRS 15/16, consolidation |
+| Ee | **Elena** | ERP/Accounting (generic) — GL, AR/AP, inventory, MRP, IFRS 15/16, consolidation |
+| Sm | **Sam** | SAP (ECC + S/4HANA) — ABAP, Fiori, BTP, BAPI/IDoc/RFC, FI/CO/MM/SD/PP/HR, S/4 migration |
 | Te | **Tara** | Trading — OMS, matching, order types, clearing (T+0/T+1/T+2), corporate actions |
 | Ie | **Iris** | Insurance — policy admin, underwriting, claim, IFRS 17, reinsurance |
 | Bk | **Brooke** | Booking/Reservation — PMS, channel manager, yield/RM, overbooking strategy |
