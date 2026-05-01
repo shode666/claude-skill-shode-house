@@ -1,7 +1,7 @@
 {
   "name": "sd",
-  "version": "0.6.0",
-  "description": "ทีมสำเร็จรูปสำหรับ software house — 15 agents (8 core + 7 domain experts) + 6 slash commands ครอบคลุม ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI",
+  "version": "1.0.0",
+  "description": "ทีมสำเร็จรูปสำหรับ software house — 15 expert agents + 1 skill (sd foundation: 5 philosophy + workflow + clarifying option-style) + 6 slash commands + polyglot Dave (14 languages, lazy-load reference). Quality + token-saving + modular + production-ready",
   "author": {
     "name": "shode666"
   },

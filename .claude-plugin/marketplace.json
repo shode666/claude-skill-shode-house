@@ -8,8 +8,8 @@
     {
       "name": "sd",
       "source": ".",
-      "description": "ทีมสำเร็จรูปสำหรับ software house — 15 agents (8 core + 7 domain experts) + 6 slash commands ครอบคลุม ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI",
-      "version": "0.6.0",
+      "description": "ทีมสำเร็จรูปสำหรับ software house — 15 expert agents (deep best practices + self-routing + quality commitment) + 6 slash commands + 1 skill (sd workflow) — polyglot, ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI",
+      "version": "1.0.0",
       "category": "agents",
       "tags": ["agents", "thai", "erp", "fintech", "booking", "insurance", "trading", "ecommerce", "sap", "ux-ui", "design-system"]
     }

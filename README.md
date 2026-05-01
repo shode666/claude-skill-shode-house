@@ -22,6 +22,12 @@
 | Do | **Aaron** | DevOps Engineer — Docker, CI/CD, K8s, SRE, observability, Caddy/Traefik |
 | Ux | **Uma** | UX/UI Designer — research, IA, wireframe, visual, design system, a11y (WCAG), Figma handoff |
 
+### Skill (1) — `/skills/sd/`
+
+**`sd`** — entry-point ของระบบ shode-house. รวม team workflow + clarifying style (option-style) + routing logic + conflict resolution + bd tracking + universal rules. Trigger เมื่อ user mention "shode-house", "/sd", "Oliver", หรือเริ่ม engagement multi-agent
+
+> Workflow discipline inspired by [mattpocock/skills](https://github.com/mattpocock/skills) (grill-me + caveman concept) — adapted
+
 ### Model Strategy (per agent)
 
 | Model | Agents | เหตุผล |
