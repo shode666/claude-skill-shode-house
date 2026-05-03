@@ -1,144 +1,255 @@
 # shode-house
 
-ทีมสำเร็จรูปสำหรับ software house — 15 agents (8 core + 7 domain experts) + 6 slash commands
-ครอบคลุม ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI
+> Multi-agent ทีม software house สำเร็จรูป — 15 expert agents + workflow discipline
 
-ออกแบบเน้น **SOLID, clean code, non over-engineering, keep it simple** + **domain-driven** + ภาษาไทย
+ครอบคลุม **ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI** + polyglot 14 languages
+
+ออกแบบเน้น: **lean • token-optimized • production-ready • domain-driven • ภาษาไทย**
+
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
 
-## ทีม (15 agents)
+## 🚀 Install
 
-### Core team (8)
+### Claude Code (CLI/terminal)
+```bash
+/plugin marketplace add shode666/claude-skill-shode-house
+/plugin install shode-house@shode-house
+```
 
-| Key | ชื่อ | Role |
-|-----|------|------|
-| Or | **Oliver** | Orchestrator — engagement lead, triage, coordination, brief status broadcast |
-| Ba | **Bella** | Business Analyst — BRD/FRD, user stories, Event Storming, RTM |
-| Sa | **Sara** | Solution Architect — C4, ADR, NFR, threat model (STRIDE), migration, DR/BCP |
-| Dv | **Dave** | Developer (minion-style, parallelizable) — feature code, refactor, integrate |
-| Cr | **Chris** | Code Reviewer + Unit Test — review 7 มิติ + test doubles + mutation testing |
-| Qa | **Quinn** | QA Engineer — integration, E2E, contract, perf, chaos, security |
-| Do | **Aaron** | DevOps Engineer — Docker, CI/CD, K8s, SRE, observability, Caddy/Traefik |
-| Ux | **Uma** | UX/UI Designer — research, IA, wireframe, visual, design system, a11y (WCAG), Figma handoff |
+### Cowork (desktop app)
+- Drag & drop `.plugin` file → Cowork window
+- หรือ Settings → Plugins → Install from file
 
-### Skill (1) — `/skills/sd/`
+### Update (เครื่องอื่น)
+```bash
+/plugin marketplace update shode-house
+/plugin install shode-house@shode-house
+```
 
-**`sd`** — entry-point ของระบบ shode-house. รวม team workflow + clarifying style (option-style) + routing logic + conflict resolution + bd tracking + universal rules. Trigger เมื่อ user mention "shode-house", "/sd", "Oliver", หรือเริ่ม engagement multi-agent
+---
 
-> Workflow discipline inspired by [mattpocock/skills](https://github.com/mattpocock/skills) (grill-me + caveman concept) — adapted
+## 🧭 5 Core Philosophy
 
-### Model Strategy (per agent)
+ทุก agent ยึดเป็นอันดับหนึ่ง:
 
-| Model | Agents | เหตุผล |
-|-------|--------|--------|
-| **Opus** | Sara, Felix, Sam, Iris, Tara | Strategic decision + complex domain (architecture, money, SAP, insurance reg, trading microstructure) |
-| **Sonnet** | Oliver, Bella, Dave, Chris, Quinn, Aaron, Uma, Elena, Brooke, Emma | Balanced execution — capable + fast |
+1. **NO MAGIC** — ห้ามเดา. Path/service ไม่รู้ → `Glob`/`Grep` หาก่อน. Assumption explicit + risk
+2. **VERIFY BEFORE DONE** — Edit + show test/curl/screenshot. ห้าม "should work"
+3. **DISSENT** — ก่อน major change: blast radius / assumption / reversibility / momentum
+4. **SCOPE DRIFT** — track stated vs actual. "ทำเพิ่มนิดนึง" = warning
+5. **R0/R1/R2** — R0 (irreversible) STOP+ask | R1 (costly) inform+rollback | R2 (easy) just do
+
+---
+
+## 👥 ทีม (15 agents)
+
+### Core (8)
+| Key | ชื่อ | Model | Role |
+|-----|------|-------|------|
+| Or | **Oliver** | sonnet | Orchestrator — engagement lead, triage, broadcast, approval gates |
+| Ba | **Bella** | sonnet | BA — BRD/FRD, Event Storming, RTM (bd) |
+| Sa | **Sara** | **opus** | SA — C4, ADR, NFR, threat model (STRIDE), DR/BCP |
+| Dv | **Dave** | sonnet | Polyglot Dev (parallelizable, 14 languages, lazy-load refs) |
+| Cr | **Chris** | sonnet | Code Review (7 มิติ) + Unit Test + mutation testing |
+| Qa | **Quinn** | sonnet | QA — Integration/E2E/Pen test, contract, perf, chaos |
+| Do | **Aaron** | sonnet | DevOps — Docker, CI/CD, K8s, observability, worktree pattern |
+| Ux | **Uma** | sonnet | UX/UI + Design System + a11y (WCAG) + Figma handoff |
 
 ### Domain Experts (7)
+| Key | ชื่อ | Model | Domain |
+|-----|------|-------|--------|
+| Fe | **Felix** | **opus** | Fintech — payment, ledger, ISO 8583/20022, PCI-DSS, KYC/AML |
+| Ee | **Elena** | sonnet | ERP/Accounting — GL, AR/AP, MRP, IFRS 15/16, consolidation |
+| Sm | **Sam** | **opus** | SAP — ECC + S/4HANA, ABAP, Fiori, BTP, BAPI/IDoc, S/4 migration |
+| Te | **Tara** | **opus** | Trading — OMS, matching, FIX, microstructure, clearing |
+| Ie | **Iris** | **opus** | Insurance — policy, claim, IFRS 17, reinsurance, OIC |
+| Bk | **Brooke** | sonnet | Booking — PMS, channel manager, yield, overbooking |
+| Ec | **Emma** | sonnet | E-commerce — catalog, cart, promo, marketplace, fraud |
 
-| Key | ชื่อ | Domain |
-|-----|------|--------|
-| Fe | **Felix** | Fintech/Banking — payment, ledger, ISO 8583/20022, PCI-DSS, tokenization, chargeback, KYC/AML |
-| Ee | **Elena** | ERP/Accounting (generic) — GL, AR/AP, inventory, MRP, IFRS 15/16, consolidation |
-| Sm | **Sam** | SAP (ECC + S/4HANA) — ABAP, Fiori, BTP, BAPI/IDoc/RFC, FI/CO/MM/SD/PP/HR, S/4 migration |
-| Te | **Tara** | Trading — OMS, matching, order types, clearing (T+0/T+1/T+2), corporate actions |
-| Ie | **Iris** | Insurance — policy admin, underwriting, claim, IFRS 17, reinsurance |
-| Bk | **Brooke** | Booking/Reservation — PMS, channel manager, yield/RM, overbooking strategy |
-| Ec | **Emma** | E-commerce — catalog, cart, promo, subscription, fraud, marketplace |
+### Model Strategy
+- **Opus** (5): judgment-critical (architecture, money, SAP, insurance reg, trading microstructure)
+- **Sonnet** (10): execution + structured patterns (capable + fast)
 
 ---
 
-## Slash Commands (6)
+## ⚡ Slash Commands (6)
 
 | Command | ใช้เมื่อ |
 |---------|----------|
-| `/consult [คำถาม]` | ปรึกษาด่วน — route ไป agent ตัวเดียว |
-| `/spec-only [ระบบ]` | ทำ spec อย่างเดียว — proposal/estimation (ไม่ implement) |
-| `/design-system [ระบบ]` | Full design pipeline — BA → Domain → SA → summary |
-| `/implement [feature]` | Implement — Dave coding + Chris review/unit + Quinn integration |
-| `/review [path]` | Code review — Chris 7 มิติ + Quinn security + Domain Expert |
-| `/setup-project [stack]` | Aaron setup — Docker-first, CI/CD, observability, ready-to-code |
+| `/shode-house:consult [คำถาม]` | ปรึกษาด่วน — route ไป agent ตัวเดียว |
+| `/shode-house:spec-only [ระบบ]` | Spec อย่างเดียว — proposal/estimation (ไม่ implement) |
+| `/shode-house:design-system [ระบบ]` | Full design — BA → Domain → SA → summary |
+| `/shode-house:implement [feature]` | Implement — Dave + Chris review/unit + Quinn integration |
+| `/shode-house:review [path\|jira\|bug]` | Code review — Chris 7 มิติ + Quinn security + Domain |
+| `/shode-house:setup-project [stack]` | Aaron setup — Docker-first, CI/CD, observability |
 
 ---
 
-## Communication Rules
+## 🎯 meeting Skill (Foundation)
 
-**Oliver**: คุย Core เท่านั้น → Bella/Sara ปรึกษา Domain Expert เอง
-**ทุก design** ต้องมี domain input ≥ 1 domain
-**Conflict resolution**: Domain > Architecture > Security > Simple
+**`/shode-house:meeting`** — entry-point "ประชุมทีม shode-house"
 
-**Oliver speaks brief status lines** (ไม่เขียน paragraph):
-```
-sara and bella working on requirement
-bella done → sara reviewing
-sara done → dave coding
-dave#1 + dave#2 parallel on payment endpoints
-chris reviewing, quinn writing integration
-aaron updating ci, ready to ship
-```
+รวม: 5 Philosophy + clarifying (option-style) + routing + conflict resolution + bd tracking + workflow discipline + safety + universal rules
+
+Trigger เมื่อ user mention "shode-house", "ประชุมทีม", "Oliver", หรือชื่อ agent อื่น
 
 ---
 
-## Bundled MCPs 🔌
+## 🔁 Workflow Discipline (Archon-inspired)
 
-Plugin มี `.mcp.json` แถม MCP server เพื่อประหยัด token:
+| Concept | Implementation |
+|---------|----------------|
+| **Phase Contract** | Oliver enforce ห้าม jump phase (clarify → design → impl → review → integration → deploy) |
+| **Loop with Exit** | Dave/Quinn — max 5 iter, binary pass/fail, fail max → escalate Sara |
+| **Approval Gates** | 6 standard gates: pre-merge, pre-deploy-{staging,uat,prod}, pre-data-migration, pre-destructive |
+| **Worktree Isolation** | Aaron Makefile pattern สำหรับ parallel-safe dev |
+
+---
+
+## 💬 Clarifying Style
+
+ทุก agent ใช้ **`AskUserQuestion` tool ก่อนเสมอ** (Cowork + Claude Code):
+
+```
+Q: ใช้ database อะไร?
+A) PostgreSQL (Recommended — relational + JSON)
+B) MySQL (familiar)
+C) MongoDB (document)
+D) อื่นๆ
+```
+
+- 2-4 options + Recommend ตัวแรก + reason 1 บรรทัด
+- Batch ≤ 4 คำถามต่อ call → ลด round-trip
+- ห้ามคำถามเปิด
+
+---
+
+## 🌐 Polyglot Dave — 14 Languages (lazy-load)
+
+Dave อ่าน best practice **เฉพาะภาษาที่ใช้** จาก `references/languages/<lang>.md` → ประหยัด token
+
+### Startup tier (modern)
+TypeScript, Python, JavaScript, Go, SQL, Kotlin, Swift, Rust, PHP, Dart
+
+### Enterprise tier (business)
+Java, C#, C++, COBOL/PL-SQL/VBA
+
+### Generic Patterns
+- `references/patterns/general.md` — DB/API/Observability/FeatureFlag/AI integration
+- `references/modern-stack.md` — 2025+ tech recommendation (Edge/Serverless/RAG/Drizzle/Bun/Biome)
+
+---
+
+## 🔌 Bundled MCPs
 
 | MCP | ใช้แทน | ประโยชน์ |
 |-----|--------|----------|
-| **[Context7](https://context7.com)** | `WebFetch` lib docs | Library docs ตาม version, snippet เป๊ะ |
+| **[Context7](https://context7.com)** | `WebFetch` lib docs | Library docs ตาม version, snippet เป๊ะ — token-saving |
 
-**ติดตั้ง prerequisite ครั้งเดียว**:
-```bash
-# Context7 ต้องมี node
-brew install node
-```
+Prerequisite: `brew install node` (Context7 ใช้ npx)
 
-Agent จะ prefer `mcp__context7__get-library-docs` > `WebFetch` อัตโนมัติ
+---
 
-## Task Tracking — beads (bd) 🧵
+## 🧵 Task Tracking — beads (bd)
 
-ทีมใช้ **[beads](https://github.com/steveyegge/beads) (`bd`)** เป็น single source of truth แทน markdown TODO list:
+ทีมใช้ **[beads](https://github.com/steveyegge/beads)** เป็น single source of truth (ไม่ใช่ markdown TODO):
 
 ```bash
 brew install beads
 cd your-project && bd init
 bd create "FR-101: POST /refund" -t functional-req --blocked-by 1
-bd ready --json    # next unblocked tasks (agent query)
+bd ready --json    # next unblocked tasks
 bd graph --format=mermaid    # auto dep diagram
 ```
 
-- RTM (BR → FR → US → ADR → Test → Code) ทั้งหมดอยู่ใน `bd`
-- ทุก agent claim task ด้วย `bd ready` → close เมื่อเสร็จ
-- Commit message reference `[bd:N]`
-- Markdown artifact (BRD/ADR/spec) save ที่ `outputs/` แต่ **status/dependency = bd เท่านั้น**
-
-## Principles
-
-- **SOLID + clean code** — ทุก agent enforce
-- **Keep it simple** — ไม่ over-engineer
-- **Domain-first** — business rule ชนะ tech เสมอ
-- **Money = Decimal** — ห้าม float
-- **Test coverage ≥ 80%** critical path 100%
-- **Observability from day 1** — log/metric/trace
-- **Feature flag** สำหรับ risky feature
-- **Compliance-first** สำหรับ regulated domain (Fintech/Insurance)
-- **beads > markdown** สำหรับ task/dependency
-- **ภาษาไทย** สำหรับคำอธิบาย (code ตาม convention)
+- RTM (BR → FR → US → ADR → Test → Code) อยู่ใน bd
+- Agent claim ด้วย `bd ready` → close เมื่อเสร็จ
+- Commit message ref `[bd:N]`
+- Markdown artifact (BRD/ADR/spec) save `outputs/` แต่ status = bd
 
 ---
 
-## Install
+## 🛡️ Safety Discipline
 
-```bash
-# ใน Claude Code
-/plugin install shode-house
+**Destructive actions** ขออนุญาตเสมอ (R0):
+- `git push --force` (main), `git reset --hard`
+- `DROP TABLE`, `DELETE without WHERE`
+- `rm -rf` กว้าง, delete prod resource
+- Edit migration ที่ apply prod แล้ว
+- Modify auth/IAM permission
+
+Pattern: ระบุ action + impact + rollback → ขอ confirm → execute
+
+---
+
+## 🎨 Output Format Standard
+
+```markdown
+# [Agent prefix] Title
+
+## ความเข้าใจ / Context
+## [main content]
+## ⚠️ Risks / Edge Cases
+## 🔗 Hand-off
+## 📦 Artifacts
+## ❓ Open Questions
 ```
 
-หรือ double-click ไฟล์ `.plugin` ใน Cowork
+---
+
+## 🏛️ Principles
+
+- **Right answer > first answer** — ห้าม "พอใช้ได้"
+- **Evidence-based** — quote ID/version (ISO/IFRS/OWASP/PCI)
+- **Domain-aware vocabulary**
+- **Test before claim "done"**
+- **Reproducible** — git clone → run = work
+- **Money = Decimal** — ห้าม float
+- **Lazy-load reference** สำหรับ token-saving
+- **Modular** — เพิ่ม/ลด agent ง่าย (drop file + update routing table)
 
 ---
 
-## License
+## 📁 Architecture
 
-MIT — use freely, improve freely
+```
+shode-house/
+├── .claude-plugin/         manifest + marketplace
+├── skills/sd/              foundation (5 philosophy + workflow + routing)
+├── agents/                 15 expert agents (lean, focus expertise)
+├── commands/               6 slash commands (workflow templates)
+└── references/
+    ├── modern-stack.md     2025+ tech (Sara/Aaron lazy-load)
+    ├── patterns/
+    │   └── general.md      DB/API/Observability (Dave lazy-load)
+    └── languages/
+        └── <14 files>      per-language best practice (Dave lazy-load)
+```
+
+---
+
+## 🤝 Adding/Removing Agent
+
+**Add new domain expert**:
+1. Drop `agents/<name>.md` (ตาม template ของ agent ที่มีอยู่)
+2. Update routing table ใน `skills/sd/SKILL.md`
+3. Bump version, repackage
+
+**Remove agent**: ลบไฟล์ + remove จาก routing table
+
+---
+
+## 🔗 Inspirations
+
+- **Workflow discipline**: [Archon](https://github.com/coleam00/archon) (phase contract + loop + approval gates + worktree)
+- **Productivity skills**: [mattpocock/skills](https://github.com/mattpocock/skills) (caveman/grill-me concept)
+- **Issue tracker**: [beads](https://github.com/steveyegge/beads)
+- **Domain knowledge**: real-world projects (Thai banking, ERP, insurance, hospitality)
+
+---
+
+## 📜 License
+
+MIT — use freely, improve freely, contribute back welcome

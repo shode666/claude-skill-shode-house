@@ -1,10 +1,10 @@
 ---
-name: sd
+name: meeting
 description: |
-  ใช้เมื่อ user mention "shode-house", "ทีม sd", "/shode-house:sd", "Oliver" หรือชื่อ agent อื่น (Bella/Sara/Dave/Chris/Quinn/Aaron/Uma/Felix/Elena/Sam/Tara/Iris/Brooke/Emma), หรือเริ่ม engagement multi-agent — discipline foundation: 5 philosophy + clarifying + routing + safety + token-saving
+  ใช้เมื่อ user เริ่ม engagement กับทีม shode-house, mention "shode-house", "ประชุมทีม", "/shode-house:meeting", "Oliver" หรือชื่อ agent อื่น (Bella/Sara/Dave/Chris/Quinn/Aaron/Uma/Felix/Elena/Sam/Tara/Iris/Brooke/Emma) — entry-point + discipline foundation: 5 philosophy + clarifying + routing + workflow discipline + safety + token-saving
 ---
 
-# shode-house — Foundation (v1.1)
+# shode-house — Team Meeting (v2.1)
 
 ทีม software house — ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI
 

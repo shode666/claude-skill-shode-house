@@ -1,12 +1,17 @@
 {
-  "name": "sd",
-  "version": "1.0.0",
-  "description": "ทีมสำเร็จรูปสำหรับ software house — 15 expert agents + 1 skill (sd foundation: 5 philosophy + workflow + clarifying option-style) + 6 slash commands + polyglot Dave (14 languages, lazy-load reference). Quality + token-saving + modular + production-ready",
+  "name": "shode-house",
+  "version": "2.1.0",
+  "description": "ทีมสำเร็จรูปสำหรับ software house — 15 expert agents + 1 meeting skill (foundation, /shode-house:meeting) + 6 slash commands + lazy-load references (14 languages + general patterns + modern stack) + workflow discipline (Archon-inspired: phase contract + loop + approval gate + worktree)",
   "author": {
-    "name": "shode666"
+    "name": "shode666",
+    "url": "https://github.com/shode666"
   },
+  "homepage": "https://github.com/shode666/claude-skill-shode-house",
+  "repository": "https://github.com/shode666/claude-skill-shode-house",
+  "license": "MIT",
   "keywords": [
     "software-house",
+    "multi-agent",
     "erp",
     "fintech",
     "trading",
@@ -24,6 +29,8 @@
     "agents",
     "workflow",
     "ddd",
-    "event-storming"
+    "event-storming",
+    "polyglot",
+    "archon-inspired"
   ]
 }

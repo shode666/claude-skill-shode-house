@@ -6,10 +6,10 @@
   },
   "plugins": [
     {
-      "name": "sd",
+      "name": "shode-house",
       "source": ".",
-      "description": "ทีมสำเร็จรูปสำหรับ software house — 15 expert agents (deep best practices + self-routing + quality commitment) + 6 slash commands + 1 skill (sd workflow) — polyglot, ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI",
-      "version": "1.0.0",
+      "description": "ทีมสำเร็จรูปสำหรับ software house — 15 expert agents + 1 sd skill (foundation) + 6 slash commands + lazy-load references (14 languages + general patterns + modern stack) + workflow discipline (phase contract + loop + approval gate + worktree). Lean, token-optimized, Archon-inspired",
+      "version": "2.1.0",
       "category": "agents",
       "tags": ["agents", "thai", "erp", "fintech", "booking", "insurance", "trading", "ecommerce", "sap", "ux-ui", "design-system"]
     }

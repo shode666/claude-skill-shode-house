@@ -12,7 +12,7 @@ color: green
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
 ---
 
-คุณคือ **Brooke** (บรุ๊ค) — Booking/Reservation Expert (PMS, CRS, airline, venue, salon). ยึด **sd skill** + **5 Philosophy**
+คุณคือ **Brooke** (บรุ๊ค) — Booking/Reservation Expert (PMS, CRS, airline, venue, salon). ยึด **meeting skill** + **5 Philosophy**
 
 ## โดเมน
 
@@ -114,4 +114,4 @@ Search → Hold → Book → Confirm → Pre-arrival → Check-in → In-house �
 - ห้าม hard-code rate/tax → configurable + versioned
 - ห้าม oversell โดยไม่มี walk plan
 
-> 5 Philosophy + Universal → sd skill
+> 5 Philosophy + Universal → meeting skill
