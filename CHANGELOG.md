@@ -3,6 +3,57 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [2.6.0] — Lean Credibility Edition
+
+จาก realworld feedback — domain expert (Felix/Iris/Tara/Elena/Sam) confident แต่ผิดบ่อย; persona "Senior Expert" overpromise. Root cause: agent file = persona prompt only, knowledge = Claude training (cutoff May 2025), ไม่มี citation discipline สำหรับ domain claim. **Fix lean (~+1500 tokens, ~+1%)** ก่อน RAG/eval
+
+### Added
+
+- **⚠️ AI Persona Disclaimer** (universal ใน meeting skill — apply ทุก domain expert)
+  - Agent = AI persona based on Claude training (cutoff May 2025), อาจ outdated
+  - ระบุชัด: provide structured thinking/framework/checklist; ไม่ provide professional advice/legal opinion/audit sign-off
+  - บังคับ disclaimer 1 บรรทัดเริ่มทุก engagement: "⚠️ AI persona, training cutoff May 2025 — validate critical claims with [domain expert / official source]"
+  - Money / regulation / safety / compliance decision ต้อง validate กับ certified pro + official source + internal SME
+
+- **📚 Domain Evidence Protocol** (extension ของ Project Evidence — meeting skill)
+  - Domain claim (regulation/standard/protocol/spec) ต้อง cite เหมือน project fact
+  - Format: `<Standard> <Version> <Clause/Section> [<Date>] — <Claim>`
+    - ✅ "PCI-DSS v4.0 Req 3.5.1 (effective Mar 2024) — store PAN encrypted at rest"
+    - ✅ "BOT notice 12/2566 ข้อ 4 — KYC ระดับ enhanced สำหรับ PEP"
+    - ✅ "IFRS 17 para 32-39 — General Measurement Model"
+    - ❌ "ตาม PCI-DSS ต้อง encrypt PAN" (no version, no clause)
+  - cite ไม่ได้ → mark explicit "⚠️ General guidance from training memory — must validate กับ official document version ปัจจุบัน"
+  - Apply ทุก: regulation, standard, protocol, industry spec, tax/accounting rule
+
+### Changed
+
+- **Honest Persona Reframe** — 5 domain agents เปลี่ยน persona intro line จาก "Senior Expert" → "AI Co-pilot literate" (scope/expertise list/อื่นๆ คงเดิม)
+  - Felix: "Senior Fintech Expert" → "Fintech AI Co-pilot (Banking, Payment, KYC/AML literate)"
+  - Iris: "Senior Insurance Expert" → "Insurance Domain AI Co-pilot (Life/Health/Motor/Property literate)"
+  - Tara: "Senior Trading Expert" → "Trading Microstructure AI Co-pilot (OMS/EMS/Matching literate)"
+  - Elena: "Senior ERP/Accounting Expert" → "ERP/Accounting AI Co-pilot (GL/AR-AP/MRP literate)"
+  - Sam: "Senior SAP Expert" → "SAP AI Co-pilot (ECC/S4HANA/ABAP/Fiori literate)"
+  - All 5 agents inherit AI Persona Disclaimer + Domain Evidence Protocol จาก meeting skill
+
+### Skip / Backlog (need engagement evidence ก่อน — ห้าม build > use repeat)
+
+- **#3 RAG Knowledge Skills** (fintech-knowledge / insurance-knowledge / trading-knowledge / sap-knowledge) — +30-60% token cost; revisit after 2-3 real engagements + evidence "Claude memory ผิด version X / regulation Y ซ้ำๆ"
+- **#4 Eval Harness** (golden Q&A per domain) — 0 production cost แต่ต้อง domain expert review answers; revisit when CPA/actuary/SAP consultant พร้อม validate
+- **FS Idea 1 Guardrails Architecture** (subagent role split) — structural change ขัด lean
+- **FS Idea 3 5-Phase Operational Flow** (per-agent workflow) — per-agent deep change
+- **FS Idea 4 Steering Examples** — file proliferation; use เป็น test fixture เมื่อ eval harness setup
+
+### Token cost
+
+- meeting skill: +~900 tokens (Disclaimer + Domain Evidence)
+- 5 agent files: +~50 tokens each (persona reframe + 2 inheritance refs)
+- **Total**: ~+1500 tokens upfront (~+1% of plugin)
+
+### Lesson reinforced
+
+- v2.5.0 → v2.6.0 ไม่ผ่าน real engagement → keep changes lean (Disclaimer + citation discipline เท่านั้น)
+- ห้าม adopt RAG/eval/role-split จนกว่าจะมี evidence ว่า lean fix ไม่พอ
+
 ## [2.5.1] — Cowork Validator Fix
 
 จาก realworld pain — Claude for Mac drag-drop install fail "Plugin validation failed" ตั้งแต่ v2.4.1 (v2.4.0 ผ่าน). Binary search ผ่าน 7 builds (FIX-A ถึง FIX-G) → root cause = **plugin description ยาวเกิน Cowork validator limit** (CLI `claude plugin validate` ผ่าน, Cowork stricter)
