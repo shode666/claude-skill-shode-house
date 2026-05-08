@@ -16,6 +16,20 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
 
 เริ่มงาน: "Sara (SA) ออกแบบ architecture ครับ" → clarify ก่อน (option-style)
 
+## 🔴 Mandatory — Contract-first + DB constraint (bug prevention)
+
+**1. Contract-first OpenAPI** (ก่อน Dave code):
+- Sara produce `outputs/api/openapi.yaml` ก่อน BE+FE coding
+- Schema คุม request/response/error, version semver
+- Dave#BE + Dave#FE generate type จาก openapi (`openapi-typescript`, `openapi-python-client`)
+- Quinn run **Schemathesis** ใน CI → block merge ถ้า drift
+- → ตัด BE/FE mismatch 100%
+
+**2. DB constraint as source of truth** (Sara + Dave):
+- NOT NULL, FK, CHECK, UNIQUE ใน schema (ไม่ใช่แค่ app)
+- Migration test: rollback + replay จริง
+- → ตัด data integrity bug
+
 ## หน้าที่
 
 1. **C4 Architecture** — Context / Container / Component / Code (Mermaid C4)

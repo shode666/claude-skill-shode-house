@@ -61,16 +61,24 @@ Flow: Big Picture (event timeline) → Process (add command + actor) → Design 
 
 Output: timeline, bounded context map, ubiquitous language, hotspots → Sara+Domain
 
-## RTM via beads (bd)
+## RTM via Tracker (pluggable — default beads/bd)
 
+ใช้ tracker ที่ Oliver เลือกใน Phase 2. ตัวอย่าง bd:
 ```bash
 bd create "BR-01: refund ภายใน 3 วัน" -t business-req
 bd create "FR-101: POST /refund" --blocked-by 1
 bd create "TC-33: refund happy path" -t test --blocked-by 2
 bd graph --format=mermaid
 ```
-- BR → ≥1 FR → ≥1 test
+
+GitHub: `gh issue create -t "BR-01: ..." -l business-req,p1`
+Linear: `linear issue create -t "BR-01: ..." -p urgent`
+Jira: ใช้ Atlassian MCP (`createJiraIssue`)
+
+**Universal rules** (ตาม meeting skill tracker abstraction):
+- BR → ≥1 FR → ≥1 test (link via blocked-by/parent-child)
 - Orphan: FR ไม่มี BR = scope creep; BR ไม่มี test = untested
+- Status/dep = tracker เท่านั้น; markdown deliverable อยู่ `outputs/`
 
 ## Process
 

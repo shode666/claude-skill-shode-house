@@ -6,7 +6,7 @@
 
 ออกแบบเน้น: **lean • token-optimized • production-ready • domain-driven • ภาษาไทย**
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
+[![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -74,10 +74,11 @@
 
 ---
 
-## ⚡ Slash Commands (6)
+## ⚡ Slash Commands (7)
 
 | Command | ใช้เมื่อ |
 |---------|----------|
+| `/shode-house:init [project-name]` 🆕 | **Init wizard** — interactive scaffold (option-style 6 ข้อ + Aaron+Bella+Oliver setup) |
 | `/shode-house:consult [คำถาม]` | ปรึกษาด่วน — route ไป agent ตัวเดียว |
 | `/shode-house:spec-only [ระบบ]` | Spec อย่างเดียว — proposal/estimation (ไม่ implement) |
 | `/shode-house:design-system [ระบบ]` | Full design — BA → Domain → SA → summary |
@@ -97,14 +98,19 @@ Trigger เมื่อ user mention "shode-house", "ประชุมทีม
 
 ---
 
-## 🔁 Workflow Discipline (Archon-inspired)
+## 🔁 Workflow Discipline (Archon + Sandcastle inspired)
 
 | Concept | Implementation |
 |---------|----------------|
 | **Phase Contract** | Oliver enforce ห้าม jump phase (clarify → design → impl → review → integration → deploy) |
+| **Lifecycle Hooks** 🆕 | pre/post hook ทุก phase — Aaron auto-trigger (lint/test/scan) |
 | **Loop with Exit** | Dave/Quinn — max 5 iter, binary pass/fail, fail max → escalate Sara |
 | **Approval Gates** | 6 standard gates: pre-merge, pre-deploy-{staging,uat,prod}, pre-data-migration, pre-destructive |
 | **Worktree Isolation** | Aaron Makefile pattern สำหรับ parallel-safe dev |
+| **Engagement Mode** 🆕 | AFK / Interactive / Hybrid (default) — เลือกใน Phase 2 |
+| **Pluggable Tracker** 🆕 | beads (default) / GitHub / Linear / Jira / Asana |
+| **UI Test Hard Gate** 🆕 v2.4 | Quinn trigger condition + evidence template + Aaron auto-scaffold + `pre-merge-ui` gate |
+| **Project Evidence Protocol** 🆕 v2.4 | NO MAGIC ext — ห้ามเดาจาก real-world; cite `[file:line]` หรือ `[output: cmd]` |
 
 ---
 

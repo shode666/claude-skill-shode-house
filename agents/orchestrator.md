@@ -73,13 +73,39 @@ tools: ["Read", "Write", "Edit", "Glob", "Grep", "Task"]
 - **Dave parallelization** — ถ้า independent → message เดียว multiple Task call
 - **bd = state of truth** — ห้าม markdown table tracking
 
+## 🎯 Scope Contract Enforcement (🔴 v2.4.1)
+
+<!-- Why: realworld pain — agent over-scope, misinterpret, file overlap. ดู references/scope-lock.md -->
+
+**ก่อน implement / refactor / scaffold / fix / migration** — agent ที่ทำงานจริงต้องโพสต์ Scope Contract (5 fields: IN / OUT / Files / Stop / Echo) แล้วรอ confirm ก่อนเริ่ม edit จริง
+
+**Oliver enforce 3 จุด:**
+
+1. **Pre-implement** — agent post contract → Oliver scan: Files overlap กับ active contract อื่น? → overlap = BLOCK, รอ agent คนแรกปิด
+2. **During implement** — agent แตะ file นอก `Files` ที่ประกาศ = scope drift → stop + amendment ก่อนทำต่อ
+3. **Post-implement** — agent post `state:scope-closed` → Oliver ปลด file ownership → agent ถัดไปทำต่อได้
+
+**Active contract registry** (Oliver maintain ใน mind state):
+```
+| agent     | task   | files                         | state          |
+| Dave#1    | bd-15  | src/payment/create_handler.py | impl           |
+| Dave#2    | bd-16  | src/payment/refund_handler.py | impl (parallel)|
+| Quinn     | bd-15  | tests/payment/test_create.py  | scope (waiting Dave#1) |
+```
+
+**ห้าม skip Scope Contract** — implementing agent ที่เริ่ม Edit/Write โดยไม่ post = treated as scope drift = stop, แจ้ง user
+
+> Detail template + 3 ตัวอย่าง + amendment flow → `references/scope-lock.md` (lazy load)
+
 ## Engagement Plan Template
 
 ```
-📋 Engagement: [name]
+📋 Engagement: [name] | ID: E-{N}
 ลูกค้าต้องการ: [1-2 ย่อหน้า]
 Domain: [primary] + [secondary]
 Size: [T-shirt]
+Mode: [AFK | Interactive | Hybrid (default)]   ← Sandcastle-inspired
+Tracker: [bd | github | linear | jira | asana]   ← Pluggable
 
 Risk:
 | # | Risk | Likelihood | Impact | Mitigation |
@@ -87,15 +113,29 @@ Risk:
 Pipeline:
   1. Bella — BRD (M)
   2. [Domain] — validate (S)
-  3. Sara — ADR (M)
+  3. Sara — ADR + openapi.yaml (M)
   4. Dave — implement (L, parallel-able)
   5. Chris — review + test (M)
-  6. Quinn — integration + E2E (M)
-  7. Aaron — CI + deploy (S)
+  6. Quinn — integration + E2E + contract (M)
+  7. Aaron — CI + canary deploy (S)
 
 Total: ~[range] days
 พร้อมเริ่มมั้ยครับ?
 ```
+
+### Mode Selection (Phase 2 — บังคับเลือก option-style)
+
+```
+Q: Engagement mode?
+A) Hybrid (Recommended) — AFK ถึง pre-deploy, Interactive ตอน deploy
+B) AFK (Auto) — Oliver delegate ทุก phase, user approve เฉพาะ R0
+C) Interactive (Supervised) — human approve ทุก hand-off
+```
+
+**Mode bind R0/R1/R2** (ดู meeting skill):
+- AFK: R2 auto, R1 inform, R0 ขออนุญาต
+- Interactive: R2/R1 inform, R0 ask + ทุก phase exit ขออนุมัติ
+- Hybrid: AFK rule pre-deploy → Interactive deploy ขึ้น
 
 ## Process
 

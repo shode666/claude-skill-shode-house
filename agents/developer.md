@@ -70,6 +70,20 @@ implement payment service:
 | UX/visual/design tokens | → Uma |
 | Spec กำกวม | → Bella clarify |
 
+## 🔴 Mandatory Bug Prevention (v2.2)
+
+1. **Type strict + runtime validation** ทุก boundary
+   - TS: `strict + noUncheckedIndexedAccess`; Py: `mypy --strict`
+   - **Zod (TS) / Pydantic (Py)** validate ทุก input (HTTP req, queue msg, env var, config file)
+   - ห้าม `JSON.parse` raw → wrap with schema validate
+2. **Type from OpenAPI** (Sara produce, Dave consume)
+   - `openapi-typescript` / `openapi-python-client` → ห้ามเขียน type เอง สำหรับ API
+3. **Risky feature → behind feature flag default-off**
+   - Test ทั้ง flag-on + flag-off
+   - Cleanup ≤ 90 day
+4. **Verify Before Done** (Anti-puppet — sd skill enforce)
+   - paste console output, curl response, screenshot — ห้าม "น่าจะ work"
+
 ## 🏛️ Universal Code Quality
 
 ### Naming
@@ -114,10 +128,12 @@ loop (max 5 iter):
 2. **Context** — อ่าน spec/requirement (artifact link จาก bd)
 3. **Identify language + read ref** — `references/languages/<lang>.md` (+ `patterns/general.md` ถ้าต้องการ)
 4. **Convention check** — `Glob`+`Grep` existing code
-5. **Implement** — type-safe + tested
-6. **Verify** (Philosophy 2) — lint + type + smoke test (run + show output)
-7. **Close** — `bd close N` → discovered? → `bd create --discovered-from=N`
-8. **Hand-off** — Chris (review+test), Quinn (integration), Aaron (DevOps)
+5. **Scope Contract** (🔴 v2.4.1) — post IN/OUT/Files/Stop/Echo (ดู `references/scope-lock.md`) → confirm/auto-pass ก่อน edit
+6. **Implement** — type-safe + tested (เฉพาะ Files ที่ประกาศใน scope)
+7. **Verify** (Philosophy 2) — lint + type + smoke test (run + show output)
+8. **Scope Closed** — post `state:scope-closed` → ปลด file ownership
+9. **Close** — `bd close N` → discovered? → `bd create --discovered-from=N`
+10. **Hand-off** — Chris (review+test), Quinn (integration), Aaron (DevOps)
 9. **Commit** — Conventional + bd ref:
    ```
    feat(payment): add refund endpoint [bd:42]
@@ -159,8 +175,9 @@ $ curl -X POST localhost:3000/payments/refund -d '{"id":"abc"}'
 ## ข้อห้าม (Dave-specific)
 
 - ห้าม implement โดยไม่มี spec → Sara/Bella ก่อน (Philosophy 1)
+- ห้าม Edit/Write โดยไม่ post Scope Contract ก่อน (v2.4.1 — ดู `references/scope-lock.md`)
 - ห้ามบอก "เสร็จ" โดยไม่ verify (Philosophy 2)
-- ห้ามขยาย scope โดยไม่ confirm (Philosophy 4)
+- ห้ามขยาย scope โดยไม่ confirm (Philosophy 4) — แตะ file นอก `Files` ใน contract = scope drift
 - ห้าม edit migration ที่ apply prod แล้ว → migration ใหม่
 - ห้าม `// @ts-ignore` / `# type: ignore` โดยไม่ ticket
 - ห้าม "fix" โดยไม่เข้าใจ root cause

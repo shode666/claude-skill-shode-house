@@ -1,0 +1,203 @@
+# Changelog
+
+All notable changes to shode-house plugin.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
+
+## [2.5.0] — FS-Inspired Discipline
+
+จาก audit `anthropics/financial-services` repo (May 2026) — adopt 3 patterns ที่ map กับ shode-house lean philosophy. **Universal patterns ใน meeting skill** ไม่แตะ agent files (single source of truth, agent inherit)
+
+### Added
+
+- **🔐 Input Trust Levels** (FS Idea 2 — Untrusted Input Threat Modeling)
+  - 5 levels: Canonical / Operational / User-supplied / External / Untrusted
+  - Required handling per level (use as fact / trust+cite / clarify / validate / treat as hypothesis)
+  - **Trust cascade rule**: agent B อ้าง agent A → trust = min(A's level, A's output level), ห้าม upgrade chain (กัน hallucination cascade — risk #4 ใน handoff)
+  - Pattern: ก่อน claim → state `[source: <level> / <evidence>]`
+
+- **📦 Standard Output Deliverables** (FS Idea 6 — Output Format Specificity)
+  - Universal template (3-4 named deliverables/agent)
+  - Examples สำหรับ 5 domain agents (Felix/Elena/Iris/Tara/Sam)
+    - Felix: Ledger model + Compliance gap + Reg cite + Risk register
+    - Elena: TB extract + Accrual schedule + Roll-forward + Variance
+    - Iris: Policy state machine + Reserve calc + IFRS 17 model + Reinsurance
+    - Tara: Order lifecycle + Pre-trade risk + Matching priority + Clearing
+    - Sam: Customizing config + ABAP/CDS + Integration + S/4 migration
+  - Agent inherit ผ่าน meeting skill (ไม่ duplicate ใน agent file)
+
+- **🚫 "I Never Do" Pattern** (FS Idea 9 — Explicit Prohibition + Evidence)
+  - Universal template + examples ทั้ง 5 domain agents
+    - Felix: ห้าม post ledger ตรง / make KYC decision / approve payment / update rate table
+    - Iris: ห้าม approve payout / set reserve final / issue policy / authorize ex gratia
+    - Tara: ห้าม execute trade / override risk block / modify priority / cancel client order
+    - Elena: ห้าม post journal / close period / approve payment run / modify CoA
+    - Sam: ห้าม transport to PRD / modify standard SAP / open prod debug / disable auth
+  - Audit-ready guardrail visible to user/auditor
+
+### Skip (need engagement evidence ก่อน)
+
+- FS Idea 1 Guardrails Architecture (subagent split — structural change, ขัด lean)
+- FS Idea 3 5-Phase Operational Flow (per-agent deep — รอ engagement พิสูจน์ pain)
+- FS Idea 4 Steering Examples (file proliferation — รอจำเป็นจริง)
+- FS Idea 10 Specialist Subagent Dispatch (ซ้ำกับ Idea 1)
+
+### Why universal in meeting skill ไม่แก้ agent files
+
+- Single source of truth — agents inherit, ไม่ duplicate
+- ลด context cost (1 edit แทน 5 edits)
+- Agent-specific refinement ทำใน engagement ถัดไป — after using → know what to refine
+- ตรงกับ design constraint v2.4.1: token-net ≤ 0 ใน main context
+
+## [2.4.1] — Token-Lean + Anti-Sprawl
+
+จาก realworld pain (May 2026 engagement): (1) test pass แต่ UI ใช้จริงไม่ได้ — เคส edit screen validate `input == current_state` → save ไม่ได้ตลอด, (2) agent ทำเกิน scope / ตีความผิดทิศ / overlap แก้ file เดียวกัน, (3) plugin sprawl เริ่มเสี่ยง — patch ใส่ rule ทับโดยไม่ trace origin
+
+**Design constraints**: token-net ≤ 0 ใน main context (zero meeting skill change), 1 mechanism = ครอบหลาย painpoint, ทุก rule ต้อง trace origin ได้
+
+### Added
+
+- **🎯 Scope Contract** (pre-implement gate, lazy load)
+  - 5 fields: `IN` / `OUT` / `Files` / `Stop` / `Echo` — 1 template ครอบ scope creep + misinterpretation + agent overlap + token waste
+  - `Files` field = natural file ownership lock — Oliver scan active contracts, overlap = block + wait
+  - `Echo` field = confirm understanding 1 บรรทัดก่อน implement → จับ misinterpretation ก่อน work
+  - **Location**: `references/scope-lock.md` (lazy, 0 main-context cost) + `agents/orchestrator.md` § Scope Contract Enforcement (Oliver enforce) + `agents/developer.md` § Process step 5 (Dave trigger)
+  - **Token impact**: 0 in meeting skill, +250 in orchestrator (lazy), +50 in developer (lazy), +250 in references (lazy when triggered)
+
+- **🔄 Mutation Evidence** (Quinn — state-changing flow)
+  - Trigger: edit/update/create/delete/toggle/submit/save/transfer/approve/cancel
+  - บังคับ: pre-state + action (NEW value, not equal current) + post-state (must differ) + backend verify + no-op safety check
+  - ห้าม test แบบ no-op (submit ค่าเดิม) → จับ tautology test
+  - **Location**: `agents/qa-engineer.md` § Mutation Evidence (lazy)
+  - **Catches**: edit-validation-contradiction, optimistic update rollback, cache stale, wrong row update
+
+- **📋 Failure-mode Catalog** (data-driven rule evolution)
+  - `docs/failure-modes/<NNN>-<slug>.md` — ทุก realworld failure = 1 entry
+  - Format: summary / symptom / root cause (ตาม pipeline layer) / pattern / mechanism ที่จับ / mechanism ที่ยังไม่จับ / status
+  - **Seed**: `001-edit-validation-contradiction.md`
+  - **Why**: kill "ผมว่าน่ามี" rule patching → rule ทุกข้อในอนาคตต้อง trace กลับ catalog entry หรือ external authority
+
+- **📜 Why Provenance Convention** (anti-sprawl)
+  - ทุก rule section ใหม่ต้องมี comment `<!-- Why: failure-modes/<id> | engagement: <id> | external: <ref> -->`
+  - Rule ที่ไม่มี Why = candidate ลบใน periodic audit
+  - **Already applied**: Mutation Evidence (link to failure-mode 001), Scope Contract (link to realworld pain)
+
+### Changed
+
+- `agents/qa-engineer.md`: เพิ่ม § Mutation Evidence ใต้ UI Test Evidence Template; provenance comment link to failure-mode 001
+- `agents/orchestrator.md`: เพิ่ม § Scope Contract Enforcement (Oliver registry + 3 enforcement points)
+- `agents/developer.md`: Process step ปรับจาก 8 → 10 (เพิ่ม Scope Contract pre + close); ข้อห้าม เพิ่ม "ห้าม Edit/Write โดยไม่ post Scope Contract"
+- `.claude-plugin/plugin.json`, `marketplace.json`: version bump 2.4.0 → 2.4.1 + describe ใหม่
+
+### Token economy
+
+| File | Cost type | Δ tokens |
+|------|-----------|----------|
+| `skills/meeting/SKILL.md` | main context (every engagement) | **0** (no change — patched in lazy load files only) |
+| `agents/orchestrator.md` | lazy (Oliver active) | +250 |
+| `agents/qa-engineer.md` | lazy (Quinn active) | +180 (Mutation Evidence) + 30 (provenance) |
+| `agents/developer.md` | lazy (Dave active) | +50 |
+| `references/scope-lock.md` | lazy (when triggered) | +900 (new file, used on demand) |
+| `docs/failure-modes/001-*.md` | not loaded by agent | +0 (reference for human + future Devil's Advocate) |
+
+**Net effect on baseline engagement** (no implement work): 0 token added
+**Net effect on engagement with implement** (load Dave + Oliver + scope-lock once): ~+1200 token, but offsets rework cost (Echo field alone saves 1 misinterpretation → typically saves 5000+ tokens of wrong work)
+
+## [2.4.0] — Enforcement Edition
+
+จากปัญหาจริง: agent (1) ไม่ค่อยทำ UI test แม้มี rule, (2) ยืนยัน fact ตาม real-world แต่ไม่ตรง project นี้ → เพิ่ม hard gate + evidence protocol
+
+### Added
+
+- **🎬 UI Test Hard Gate** (combo C — trigger + anti-puppet + scaffold + CI block)
+  - **Trigger condition** (Quinn): Mandatory ถ้าไฟล์เปลี่ยนใน `frontend/`/`ui/`/`components/`/`pages/`/`views/` หรือ `*.vue`/`*.tsx`/`*.jsx`/`*.svelte`/`*.html` หรือ Uma involved หรือ AC pattern "When user clicks/sees/types..."
+  - **Evidence template** (Quinn): Playwright console + visual diff path + axe critical/serious/total + trace path + 5 critical screen screenshots — incomplete = block PR
+  - **Auto-scaffold** (Aaron): Web project type → pre-install `@playwright/test` + `@axe-core/playwright` + visual baseline (Chromatic/Percy/Loki) + folder convention `tests/{e2e,visual,a11y,fixtures}` + Makefile targets (`ui-test/ui-test-ui/ui-baseline/ui-codegen`) + parallel CI job
+  - **Approval Gate `pre-merge-ui`** (7th gate, added to standard 6): block merge ถ้า UI changed but no Playwright/visual/axe evidence
+  - **DoD updated**: visual+a11y entry → conditional UI test + evidence requirement
+
+- **🔍 Project Evidence Protocol** (NO MAGIC philosophy extension)
+  - **Strengthened Philosophy 1**: "real-world knowledge ≠ project's fact"
+  - **Forbidden phrase list**: "usually" / "by default" / "typically" / "standard practice" / "should support" / "in most cases" — ใช้ = ต้อง cite project evidence ทันที
+  - **Required evidence types**: runtime version (`node -v`), framework (`Read package.json:N`), config format (`Glob '**/application.*'`), dependency (`pnpm list`), feature (Bash output), file (`Glob` first), convention (CLAUDE.md), DB version (`SELECT version()`)
+  - **Anti-puppet extended**: ❌/✅ pattern สำหรับ real-world guess vs project evidence
+  - **Format**: ทุก factual claim cite `[<file>:<line>]` หรือ `[output: <command>]`
+  - **Universal Rules**: เพิ่ม "ห้าม claim project fact จาก real-world knowledge"
+
+### Changed
+
+- meeting skill: NO MAGIC philosophy strengthened, Approval Gates 6 → 7 (added pre-merge-ui), DoD checklist UI test entry conditional, Anti-puppet extended with real-world-guess section
+- Quinn (qa-engineer): Mandatory Pre-merge Gates + UI Test Trigger Condition + Evidence Template
+- Aaron (devops-engineer): New section 2.5 UI Test Scaffold (Web project default)
+- init.md: Aaron Phase 2 auto-trigger UI scaffold for Q1=Web app/Full-stack monorepo, Phase 3 Verify paste UI test output
+
+## [2.3.0] — Sandcastle-Inspired Edition
+
+Inspired by [mattpocock/sandcastle](https://github.com/mattpocock/sandcastle) ([video](https://www.youtube.com/watch?v=E5-QK3CDVQM)).
+
+### Added
+
+- **AFK / Interactive / Hybrid mode** (Oliver Phase 2 — บังคับเลือก option-style)
+  - AFK = auto delegate, R0 only ask
+  - Interactive = human approve ทุก hand-off
+  - Hybrid (default) = AFK pre-deploy → Interactive deploy ขึ้น
+  - Mode binds R0/R1/R2 enforcement
+
+- **Pluggable Tracker** (replace hardcoded beads)
+  - Support: beads (bd), GitHub Issues, Linear, Jira, Asana
+  - Universal abstraction: `tracker.create/ready/close/link`
+  - Bella + Oliver use tracker abstraction
+
+- **Structured Tag Prefix** (extend `[agent]`)
+  - Format: `[name|state:..|task:..|finding:..]`
+  - Standard keys: state/task/engagement/file/finding/pass/fail/env/health/mode
+  - Default human-readable; structured สำหรับ pipeline parser
+
+- **`/shode-house:init` wizard** (interactive scaffold)
+  - 6 option-style clarifying (project type/stack/domain/tracker/mode/sandbox)
+  - Aaron scaffold + Bella seed + Oliver config (`.shode-house/config.yaml`)
+  - Verify anti-puppet protocol (Phase 3)
+
+- **Lifecycle Hooks** (per Phase Contract)
+  - pre/post hook ทุก phase (clarify/design/implement/review/integration/deploy)
+  - Aaron auto-trigger via Makefile/CI
+
+- **Prompt Template Substitution** (commands convention)
+  - Static: `{{PROJECT_NAME}} {{STACK}} {{DOMAIN}} {{TRACKER}} {{ENV}} {{ENGAGEMENT_ID}}`
+  - Shell eval: `` {{!`bash command`}} ``
+
+- **Sandbox Provider Table** (Aaron — Docker/Podman/Devcontainer/Codespaces/Vercel/Local)
+
+- **Provider-agnostic agent note** (meeting skill intro)
+  - Default: Claude. Portable to OpenCode/Codex via prompt structure
+
+### Changed
+
+- Engagement Plan template เพิ่ม `Mode` + `Tracker` field
+- Bella RTM section เปลี่ยนจาก bd-only → tracker abstraction
+- meeting skill: Tracking section restructure (table + selection)
+
+## [2.2.1] — Agent Tag Prefix
+- Mandatory `[agent]` prefix ทุก message สำหรับ visibility
+
+## [2.2.0] — Bug Slayer Edition
+- 13 mandatory layers (contract-first, type strict, mutation+property test, pre-merge integration smoke, visual+a11y block, canary+auto-rollback)
+- 3 mandatory mechanisms (DoD checklist, Anti-puppet rule, Postmortem template, Docker verify protocol)
+
+## [2.1.0]
+- Skill rename: sd → meeting (`/shode-house:meeting`)
+
+## [2.0.0]
+- Plugin rename: sd → shode-house
+- Commands: `/sd:*` → `/shode-house:*`
+
+## [1.2.0]
+- Adopt 4 Archon concepts (Phase Contract, Loop with Exit, Approval Gates, Worktree Isolation)
+
+## [1.1.0]
+- Lean audit: sd skill -44%, Dave -27%
+
+## [1.0.0]
+- Optimal Edition: consolidate, modernize, lazy-load references
+
+## [0.x]
+- Initial development (15 agents + 6 commands + 1 skill)

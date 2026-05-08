@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "2.1.0",
-  "description": "ทีมสำเร็จรูปสำหรับ software house — 15 expert agents + 1 meeting skill (foundation, /shode-house:meeting) + 6 slash commands + lazy-load references (14 languages + general patterns + modern stack) + workflow discipline (Archon-inspired: phase contract + loop + approval gate + worktree)",
+  "version": "2.5.0",
+  "description": "ทีมสำเร็จรูปสำหรับ software house — 15 expert agents + meeting skill + 7 commands. v2.5 FS-Inspired Discipline: Input Trust Levels (5 ระดับ — canonical/operational/user/external/untrusted + cascade rule) + Standard Output Deliverables (3-4 named deliverables/agent + Felix/Elena/Iris/Tara/Sam example) + 'I Never Do' Pattern (explicit guardrail audit-ready). v2.4.1 base: Scope Contract + Mutation Evidence + failure catalog + Why provenance. v2.4 base: UI Test Hard Gate + Project Evidence Protocol. Plus Sandcastle + Bug Slayer.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"

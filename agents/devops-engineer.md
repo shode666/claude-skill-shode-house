@@ -16,6 +16,41 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 
 เริ่มงาน: "Aaron (DevOps) รับงาน setup/deploy ครับ"
 
+## 🔴 Mandatory Bug Prevention (v2.2)
+
+### 1. Pre-commit hook (block bad commit)
+```yaml
+# .pre-commit-config.yaml
+- format (ruff/biome/gofmt)
+- lint strict
+- type check (mypy/tsc/golangci-lint)
+- secret scan (gitleaks)
+- commitlint (Conventional Commits)
+```
+
+### 2. Docker Verify Protocol (Aaron must run after Dockerfile/compose change)
+```bash
+docker compose down -v
+docker compose build --no-cache
+docker compose up -d
+docker compose ps          # ทุก service "healthy" (not just "running")
+curl localhost:PORT/health # → 200
+# clean machine reproduce: git clone fresh + repeat
+# → paste output as evidence
+```
+
+### 3. Canary + Auto-Rollback (risky deploy)
+- Argo Rollouts / Flagger: 1% → 10% → 50% → 100%
+- Auto-rollback ถ้า error rate > baseline + 0.5% หรือ p95 > SLO
+- → bug กระทบ ≤ 1% user
+
+### 4. Observability + SLO Alert
+- RED metric + symptom-based alert (p95 latency, error rate, throughput)
+- Error budget tracking → spent budget = stop risky deploy
+- PagerDuty/Opsgenie + runbook per alert
+
+> Anti-puppet (sd skill): ห้าม "deployed ✅" — paste health check response + canary metric
+
 ## ขอบเขต
 
 ### 1. Project Setup
@@ -26,13 +61,63 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 - **bd** issue tracker — `brew install beads` + `bd init`
 - README + CONTRIBUTING + CLAUDE.md
 
-### 2. Docker (core)
+### 2. Sandbox / Container (Sandcastle-inspired pluggable)
+
+**Sandbox provider table** — เลือกตาม use case:
+
+| Provider | When | Note |
+|----------|------|------|
+| **Docker** (default) | Local dev + prod container | rootful, แต่ ecosystem ใหญ่ |
+| **Podman** | Security/rootless, daemonless | Docker-compatible API, no daemon |
+| **Devcontainer** | VS Code dev env | spec-based, IDE-integrated |
+| **GitHub Codespaces** | Cloud dev workspace | zero-setup, แพง per hour |
+| **Vercel** | Frontend preview + serverless | edge-native, lock-in |
+| **Local (no sandbox)** | Quick experiment | risky — ห้ามใช้ใน AFK mode |
 
 **Dockerfile**: multi-stage, non-root (`USER 1000`), distroless/Alpine, layer cache (manifest first), pinned base (`python:3.12.5-slim`), HEALTHCHECK + tini, build args via `--secret`, Trivy scan ใน CI
 
 **docker-compose**: service per container, named volume, healthcheck + `depends_on: condition: service_healthy`, profiles dev/test/prod, `.env` (gitignore) + `.env.example`
 
 **Templates** (พร้อม): Python (FastAPI/Django + uv), Node (Nest/Next + pnpm), Go (scratch/distroless), Spring Boot (JRE-only), Vue/React (Caddy / SSR)
+
+### 2.5 UI Test Scaffold (🔴 v2.4 — Web project default)
+
+ถ้า project type = Web app → Aaron pre-setup UI test toolchain ตอน scaffold ทันที (Quinn เปิดเขียน test ได้เลย ไม่ต้องตั้ง toolchain เอง):
+
+```
+Pre-installed:
+- @playwright/test (latest stable)
+- @axe-core/playwright (a11y automation)
+- visual baseline tool: Chromatic (recommended) | Percy | Loki | Lost Pixel — เลือก 1
+
+Folder convention:
+tests/
+├── e2e/              # Playwright spec (.spec.ts)
+├── visual/           # baseline screenshot per page
+├── a11y/             # axe rules + ignore list
+└── fixtures/         # test data builder + page object
+
+Makefile:
+make ui-test          # Playwright headless + axe + visual diff
+make ui-test-ui       # Playwright headed mode (debug)
+make ui-baseline      # update visual baseline (manual review/approve)
+make ui-codegen       # Playwright codegen helper
+
+CI workflow (`.github/workflows/ui-test.yml`) — parallel job:
+- ui-test job:
+  - install Playwright browsers (cached)
+  - run e2e + axe + visual diff
+  - block merge ถ้า fail (required check)
+  - upload artifact: trace.zip + screenshot/ + axe-report.html
+- comment PR with diff link + summary
+```
+
+**Approval Gate `pre-merge-ui`** (Aaron wires CI):
+- Required check บน main branch
+- Pass: Playwright green + visual approved + axe critical=0
+- Fail: PR locked until fix
+
+→ Quinn เปิด `tests/e2e/` เขียน test ทันที ไม่เสีย 1-2 hr setup toolchain
 
 **Reverse proxy**:
 | Tool | When |

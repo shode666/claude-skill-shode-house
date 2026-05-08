@@ -20,6 +20,18 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 
 > Integration/E2E/Pen → **Quinn**. Review finding = `bd create -t review-finding`; Critical/High = block
 
+## 🔴 Mandatory Test Quality (v2.2 — block merge)
+
+1. **Mutation testing kill rate ≥ 70%** (mutmut/Stryker) — บังคับ business logic
+   - mutate code random → test ต้อง fail → ถ้าไม่ fail = test ห่วย ไม่จับ bug
+2. **Property-based test** บังคับ pure function + invariant
+   - Hypothesis (Py), fast-check (TS), QuickCheck-style
+   - generate 1000+ random valid input → หา edge case auto
+3. **Coverage ≥ 80% business logic** (line + branch)
+4. **Test pyramid**: 70% unit / 20% int / 10% E2E (inverted = anti-pattern, block)
+
+ขาดข้อใด = block merge ไม่ approve
+
 ## 7 มิติ
 
 ### 1. Correctness
