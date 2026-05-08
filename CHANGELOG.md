@@ -3,6 +3,26 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [2.5.1] — Cowork Validator Fix
+
+จาก realworld pain — Claude for Mac drag-drop install fail "Plugin validation failed" ตั้งแต่ v2.4.1 (v2.4.0 ผ่าน). Binary search ผ่าน 7 builds (FIX-A ถึง FIX-G) → root cause = **plugin description ยาวเกิน Cowork validator limit** (CLI `claude plugin validate` ผ่าน, Cowork stricter)
+
+### Fixed
+
+- **plugin.json description**: 530 → 179 chars, ASCII only, ตัด em-dash + Thai
+- **marketplace.json top-level description**: 206 → 51 chars
+- **marketplace.json plugin description**: 301 → 85 chars
+- ทั้งหมด ASCII safe, no em-dash, no Thai mix
+- Cowork drag-drop install ผ่านแล้ว ✅ (ทั้ง content unchanged from v2.5.0)
+
+### Lesson learned (เพิ่มใน meeting skill ว่าควร)
+
+- Cowork validator มี description length cap ที่เข้มกว่า CLI
+- ทุกครั้งที่ bump version: keep all descriptions **≤ 200 chars, ASCII safe**
+- Detail / feature list / marketing copy → README.md (ไม่ใช่ description)
+- Pre-release: `claude plugin validate` ผ่าน CLI ≠ install ผ่าน Cowork. ทดสอบ drag-drop จริงก่อน push
+- `docs/`, `CHANGELOG.md`, `.mcp.json` — ปลอดภัย ไม่ใช่ culprit (testing ผ่าน FIX-C/D/E)
+
 ## [2.5.0] — FS-Inspired Discipline
 
 จาก audit `anthropics/financial-services` repo (May 2026) — adopt 3 patterns ที่ map กับ shode-house lean philosophy. **Universal patterns ใน meeting skill** ไม่แตะ agent files (single source of truth, agent inherit)

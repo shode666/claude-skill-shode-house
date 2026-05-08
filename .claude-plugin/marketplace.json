@@ -1,6 +1,6 @@
 {
   "name": "shode-house",
-  "description": "Multi-agent ทีม software house สำเร็จรูป — 15 expert agents (8 core + 7 domain) + meeting skill + 7 slash commands + lazy-load references. ครอบคลุม Fintech/ERP/SAP/Trading/Insurance/Booking/E-commerce/UX-UI",
+  "description": "Multi-agent software house team plugin marketplace.",
   "owner": {
     "name": "shode666",
     "url": "https://github.com/shode666"
@@ -9,8 +9,8 @@
     {
       "name": "shode-house",
       "source": "./",
-      "description": "ทีมสำเร็จรูปสำหรับ software house — 15 expert agents + meeting skill + 7 slash commands + lazy-load references. v2.5 FS-Inspired Discipline: Input Trust Levels + Standard Output Deliverables + 'I Never Do' Pattern (audit-ready guardrail). Lean, token-optimized, Archon+Sandcastle+Anthropic-FS-inspired",
-      "version": "2.5.0",
+      "description": "Multi-agent software house team: 15 expert agents + meeting skill + 7 slash commands.",
+      "version": "2.5.1",
       "category": "agents",
       "tags": ["agents", "thai", "erp", "fintech", "booking", "insurance", "trading", "ecommerce", "sap", "ux-ui", "design-system"]
     }
