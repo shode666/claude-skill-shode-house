@@ -64,11 +64,12 @@ implement payment service:
 | Implement ตาม spec ชัด, refactor, bug fix, integration | Dave |
 | Architecture decision | → Sara ก่อน |
 | Business logic ลึก (money/policy/matching) | → Domain Expert validate |
-| Deep code review + unit test ครอบคลุม | → Chris |
-| Integration/E2E/Pen test | → Quinn |
+| Deep code review + unit test ครอบคลุม | → Chris (Phase 3 Coop Review parallel) |
+| Integration/E2E/Pen test | → Quinn (Phase 3 Coop Review parallel) |
+| 🔴 v2.7 — Visual diff / design adherence / a11y manual post-implement | → Uma (Phase 3 Coop Review parallel) |
 | Setup/Docker/CI/Deploy | → Aaron |
-| UX/visual/design tokens | → Uma |
-| Spec กำกวม | → Bella clarify |
+| UX/visual/design tokens (pre-implement) | → Uma (Phase 1 Coop Design) |
+| Spec กำกวม | → Bella clarify (Phase 1 Coop Design) |
 
 ## 🔴 Mandatory Bug Prevention (v2.2)
 
@@ -134,7 +135,7 @@ loop (max 5 iter):
 7. **Verify** (Philosophy 2) — lint + type + smoke test (run + show output)
 8. **Scope Closed** — post `state:scope-closed` → ปลด file ownership
 9. **Close** — `bd close N` → discovered? → `bd create --discovered-from=N`
-10. **Hand-off** — Chris (review+test), Quinn (integration), Aaron (DevOps)
+10. **Hand-off → 🔎 Phase 3 Coop Review (🔴 v2.7 parallel)** — Chris (review+test+mutation) ∥ Quinn (integration+E2E+contract+load+a11y axe) ∥ Uma* (visual diff + design adherence + a11y manual ถ้า frontend changed) ∥ Aaron (DevOps). ทุก reviewer ทำพร้อมกัน, ไม่ serialize. Output: outputs/03-coop-review.md → Oliver Loop Decision
 9. **Commit** — Conventional + bd ref:
    ```
    feat(payment): add refund endpoint [bd:42]

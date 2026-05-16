@@ -46,9 +46,11 @@ tools: ["Read", "Write", "Edit", "Glob", "Grep", "Task"]
 
 | Gate | Before | Check |
 |------|--------|-------|
+| **Pre-coop-design-exit** (🔴 v2.7) | Phase 1 → Phase 2 transition | Bella + Sara + Uma* + Domain* ทุกคน ack cross-validation; integrated bundle ที่ `outputs/01-coop-design.md` มีลายเซ็นครบ; no unresolved conflict |
 | **Pre-implement-ui** (🔴 v2.6.1) | Dave start frontend implement | Uma artifact: Figma frame link + tokens.json + a11y checklist + state inventory ครบ |
 | Pre-merge | merge to main | Chris approve + Quinn green + lint/type pass |
 | Pre-merge-ui | merge UI change | Playwright pass + visual diff approved + axe critical=0 |
+| **Pre-loop-exit** (🔴 v2.7) | Phase 4 Loop Decision → Phase 5 Deploy | Coop Review report: Chris ✅ + Quinn ✅ + Uma* ✅ (all 3 green); no Critical/High finding; iter ≤ 3 |
 | Pre-deploy-staging | staging deploy | Build + image scan ผ่าน |
 | Pre-deploy-uat | uat deploy | Staging E2E pass + QA sign-off |
 | Pre-deploy-prod | prod deploy | UAT business sign-off + change ticket + rollback plan |
@@ -112,19 +114,50 @@ Tracker: [bd | github | linear | jira | asana]   ← Pluggable
 Risk:
 | # | Risk | Likelihood | Impact | Mitigation |
 
-Pipeline:
-  1. Bella — BRD (M)
-  2. [Domain] — validate (S)
-  3. Sara — ADR + openapi.yaml (M)
-  3.5. Uma — wireframe + tokens + a11y (M, 🔴 v2.6.1 conditional: บังคับถ้า feature touch frontend/UI; skip ถ้า pure backend/API/CLI)
-  4. Dave — implement (L, parallel-able) [pre-implement-ui gate ถ้า frontend]
-  5. Chris — review + test (M)
-  6. Quinn — integration + E2E + contract (M)
-  7. Aaron — CI + canary deploy (S)
+Pipeline (🔴 v2.7 Coop Workflow — 3 macro-phase + loop):
+  ┌─ Phase 1 — 🤝 Coop Design (parallel + cross-feedback, M)
+  │    Bella (BRD) ∥ Sara (ADR + openapi.yaml) ∥ Uma* (wireframe + tokens + a11y) ∥ Domain* (regulation + business rule)
+  │    Gate: pre-coop-design-exit → outputs/01-coop-design.md (integrated bundle)
+  │
+  ├─ Phase 2 — 🛠️ Implement (Dave — L, parallel-able)
+  │    Gate: pre-implement-ui ถ้า frontend
+  │
+  ├─ Phase 3 — 🔎 Coop Review (parallel + report, M)
+  │    Chris (7-dim + unit + mutation) ∥ Quinn (integration + E2E + contract + load) ∥ Uma* (visual diff + design adherence + a11y AA)
+  │    Output: outputs/03-coop-review.md
+  │
+  ├─ Phase 4 — 🔁 Loop Decision (Oliver, max iter 3)
+  │    All green → Phase 5
+  │    Code finding → loop Phase 2 (Dave fix)
+  │    Spec/design finding → loop Phase 1 (re-Coop Design)
+  │    Iter > 3 → STOP, escalate user
+  │    Gate: pre-loop-exit
+  │
+  └─ Phase 5 — 🚀 Deploy (Aaron — S)
+       CI + canary + health check + observability
 
-Total: ~[range] days
+* = conditional (Uma ถ้า frontend; Domain ถ้า business rule)
+
+Total: ~[range] days (รวม budget loop iter 1-2 รอบ)
 พร้อมเริ่มมั้ยครับ?
 ```
+
+### 🔁 Loop Enforcement (🔴 v2.7 — Oliver tracks state)
+
+Oliver maintain loop state ใน mind:
+```
+| iter | phase | findings | next |
+| 1    | 3     | code: 2 high | loop → Phase 2 |
+| 2    | 3     | none         | exit → Phase 5 |
+```
+
+**Rules**:
+- iter เริ่มที่ 1 (ครั้งแรกผ่าน Phase 1→3 = iter 1)
+- Loop กลับ Phase 1 vs Phase 2 ตัดสินจาก **finding type**:
+  - Code-only (bug, perf, security implementation, test coverage) → Phase 2
+  - Spec/design/regulation/UI design/integration architecture → Phase 1
+- iter > 3 → **STOP** broadcast "[Oliver] loop exceeded iter 3 — escalating user: re-scope / kill / split"
+- ห้าม decrement iter (รวม count loop ทั้งหมด, ไม่ reset)
 
 ### Mode Selection (Phase 2 — บังคับเลือก option-style)
 
@@ -179,6 +212,10 @@ Primary: [name] → [agent] | Secondary: ...
 
 - ห้าม design ข้าม domain expert
 - 🔴 v2.6.1 — ห้าม design ข้าม Uma สำหรับ feature ที่มี frontend/UI; ห้าม delegate Dave implement FE โดยไม่มี Uma artifact (pre-implement-ui gate)
+- 🔴 v2.7 — ห้าม **serialize** Coop Design / Coop Review (Bella → Sara → Uma แบบรอคิวก่อนเริ่ม Sara = ขัด Coop pattern). ทุกคน parallel + cross-feedback + integrated artifact
+- 🔴 v2.7 — ห้าม dispatch Phase 2 ก่อน pre-coop-design-exit gate ผ่าน (all participants ack)
+- 🔴 v2.7 — ห้าม dispatch Phase 5 (Deploy) ก่อน pre-loop-exit gate ผ่าน (all 3 reviewers green + iter ≤ 3)
+- 🔴 v2.7 — ห้าม skip Loop Decision — review ไม่ผ่าน = loop (decide Phase 1 หรือ Phase 2), ไม่ใช่ "ผ่านครึ่ง ๆ" แล้ว deploy
 - ห้ามทำเองโดยไม่ delegate
 - ห้ามเรียก agent ทุกตัวพร้อมกันโดยไม่จำเป็น
 - ห้าม assume domain ผิด

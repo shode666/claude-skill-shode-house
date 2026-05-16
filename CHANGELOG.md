@@ -3,6 +3,60 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [2.7.0] — Coop Workflow (Minor — structural workflow refactor)
+
+ปรับ workflow discipline ให้ตรง user mental model: **3 macro-phase + loop** แทน sequential 7 phases. Design + Review เป็น Coop (parallel + cross-feedback + integrated artifact) ไม่ใช่ serialize hand-off
+
+### Added
+
+- **Phase Contract — 3 macro-phase + loop** (meeting skill)
+  - Phase 1 🤝 Coop Design (parallel): Bella + Sara + Uma* + Domain* — output `outputs/01-coop-design.md` integrated bundle
+  - Phase 2 🛠️ Implement: Dave (sequential or parallel Dave#1/#2)
+  - Phase 3 🔎 Coop Review (parallel): Chris + Quinn + Uma* — output `outputs/03-coop-review.md`
+  - Phase 4 🔁 Loop Decision (Oliver): all green → Phase 5 / code finding → Phase 2 / design finding → Phase 1; max iter 3
+  - Phase 5 🚀 Deploy: Aaron
+- **Coop Phase Pattern** (meeting skill) — explicit pattern: kick-off → parallel draft → mid-checkpoint cross-read → cross-feedback (1-2 round) → integration sign-off → bundle
+- **Approval Gate `pre-coop-design-exit`** (Oliver) — Phase 1 → Phase 2 transition; ทุก participant ack cross-validation
+- **Approval Gate `pre-loop-exit`** (Oliver) — Phase 4 Loop Decision → Phase 5 Deploy; all 3 reviewers green + iter ≤ 3
+- **Loop Enforcement** (Oliver) — track iter state, decide loop target by finding type, escalate ถ้า iter > 3
+- **Uma Coop Design Participation section** — explicit cross-direction matrix (Uma ↔ Bella, Sara, Domain)
+- **Uma Coop Review Participation section** — visual diff + design adherence + a11y manual + component state + content design
+- **Chris Coop Review Participation section** — scope split (unit/7-dim Chris; visual/a11y Uma; integration/E2E Quinn)
+- **Quinn Coop Review Participation section** — scope split + automation/manual handoff to Uma
+
+### Changed
+
+- **commands/design-system.md** — refactor sequential 0/1/2/3/3.5/4 → 7-step Coop pattern (Triage → Kick-off → Parallel Draft → Mid-Checkpoint → Cross-Feedback → Integration Sign-off → Bundle → Exit Gate). Output: `outputs/01-coop-design.md` (integrated, แทน 01-brd / 02-domain / 03-arch / 04-ux)
+- **commands/implement.md** — Step 5 Hand-off เพิ่ม Uma ใน Phase 3 Coop Review parallel; Step 6 Loop Decision section ใหม่; Step 7 Domain Validation (renumber)
+- **agents/developer.md** — Process step 10 Hand-off เพิ่ม Uma; Self-Routing split Phase 1 vs Phase 3 Uma scope
+- **agents/orchestrator.md** — Engagement Plan pipeline restructure เป็น 3 macro-phase + loop; Approval Gates table เพิ่ม pre-coop-design-exit + pre-loop-exit
+- Approval Gates standard count: 8 → **10** (เพิ่ม pre-coop-design-exit + pre-loop-exit)
+- Oliver ข้อห้าม — เพิ่ม "ห้าม serialize Coop phase", "ห้าม skip Loop Decision"
+- DoD — เพิ่ม 3 บรรทัด: Coop Design checkpoint pass, Coop Review checkpoint pass, Loop iter ≤ 3
+
+### Token cost
+
+- skills/meeting/SKILL.md: +~700 tokens (Phase Contract refactor + Coop Pattern section + Lifecycle Hooks restructure + Universal rules + DoD + Approval Gates)
+- agents/orchestrator.md: +~300 tokens (Engagement Plan + Loop Enforcement section + Gates + ข้อห้าม)
+- commands/design-system.md: +~400 tokens (Coop pattern 7-step + cross-validation matrix)
+- commands/implement.md: +~120 tokens (Step 5+6 + Rule 4+6+7)
+- agents/developer.md: +~80 tokens (Process step 10 + Self-Routing)
+- agents/ux-ui-designer.md: +~280 tokens (2 sections: Coop Design + Coop Review)
+- agents/code-reviewer.md: +~80 tokens (Coop Review Participation)
+- agents/qa-engineer.md: +~100 tokens (Coop Review Participation)
+- **Total**: ~+2060 tokens (~+1.3%) — structural change ที่ตอบ user mental model
+
+### Why minor bump (2.6.x → 2.7.0)
+
+Structural workflow change: phase contract restructure จาก 7-phase linear → 3 macro-phase + loop. Backward-compatible terminology (clarify/design/ux-design/review/integration ยังใช้ภายใน macro-phase) แต่ pipeline topology เปลี่ยน → minor bump per Semver
+
+### Root cause (audit finding)
+
+Pre-v2.7 workflow ขัด user mental model 3 จุด:
+1. **Phase 1 design** = sequential Bella → Sara → Uma → Domain (serialize) → conflict discover late, rework expensive
+2. **Uma หายจาก review** (Phase 3) — Chris + Quinn ตรวจ code/test แต่ visual diff / design adherence / a11y manual ไม่มีคนทำ post-implement
+3. **ไม่มี Loop mechanic** — review fail → ไม่ชัดว่ากลับไปไหน; agent ตัดสินใจตามใจ
+
 ## [2.6.1] — UX Gate Closure (Patch)
 
 ปิด hole ใน workflow discipline: Dave (developer) เริ่ม implement frontend ได้โดยไม่ผ่าน Uma (UX/UI). Audit เจอ Uma หาย 7 จุดทั่ว pipeline — patch ทุกจุดให้บังคับ pre-implement-ui gate

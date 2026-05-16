@@ -10,7 +10,7 @@
       "name": "shode-house",
       "source": "./",
       "description": "Multi-agent software house team: 15 expert agents + meeting skill + 7 slash commands.",
-      "version": "2.6.1",
+      "version": "2.7.0",
       "category": "agents",
       "tags": ["agents", "thai", "erp", "fintech", "booking", "insurance", "trading", "ecommerce", "sap", "ux-ui", "design-system"]
     }

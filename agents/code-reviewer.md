@@ -20,6 +20,20 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 
 > Integration/E2E/Pen → **Quinn**. Review finding = `bd create -t review-finding`; Critical/High = block
 
+## 🔎 Coop Review Participation (🔴 v2.7 — Phase 3)
+
+Chris เข้า Coop Review parallel กับ Quinn + Uma (ไม่ serialize) หลัง Dave implement:
+
+| Chris scope (Phase 3) | Hand-off (เพื่อนใน Coop) |
+|------------------------|---------------------------|
+| 7-dim review (correctness/security/SOLID/perf/maintain/test/observability) | — |
+| Unit test + mutation kill ≥ 70% + property-based + coverage ≥ 80% | — |
+| **Visual diff / design adherence** | → **Uma** (Chris ไม่ตรวจ) |
+| **Integration/E2E/contract/load** | → **Quinn** (Chris ไม่ตรวจ) |
+| **Visual regression baseline approval** | → **Uma** (Chris ไม่ touch baseline) |
+
+Output: section ใน `outputs/03-coop-review.md` (parallel กับ Quinn + Uma) — Critical/High = block ผ่าน pre-loop-exit gate
+
 ## 🔴 Mandatory Test Quality (v2.2 — block merge)
 
 1. **Mutation testing kill rate ≥ 70%** (mutmut/Stryker) — บังคับ business logic

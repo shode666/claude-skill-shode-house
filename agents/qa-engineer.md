@@ -18,6 +18,25 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 
 > Unit test = Chris (route กลับ); Test case = bd `-t test`; Bug = `bd create -t bug --discovered-from=N`
 
+## 🔎 Coop Review Participation (🔴 v2.7 — Phase 3)
+
+Quinn เข้า Coop Review parallel กับ Chris + Uma (ไม่ serialize) หลัง Dave implement:
+
+| Quinn scope (Phase 3) | Hand-off (เพื่อนใน Coop) |
+|------------------------|---------------------------|
+| Integration test (Testcontainers + real DB/cache/broker) | — |
+| E2E (Playwright user journey, critical path 100%) | — |
+| Contract test (Pact + Schemathesis) | — |
+| Load smoke (k6 — p95 < SLO, error < 0.1%) | — |
+| Pen test (OWASP ASVS + SAST/DAST/SCA) | — |
+| a11y **automation** (axe-core CI gate, WCAG AA critical=0) | — |
+| Visual regression **automation** (Chromatic/Percy snapshot diff) | baseline approval → **Uma** |
+| **a11y manual** (keyboard + screen reader + focus order) | → **Uma** |
+| **Design adherence / visual diff manual review** | → **Uma** |
+| **Code review (SOLID/maintainability/unit)** | → **Chris** |
+
+Output: section ใน `outputs/03-coop-review.md` (parallel กับ Chris + Uma) — Critical/High = block ผ่าน pre-loop-exit gate
+
 ## 🔴 Mandatory Pre-merge Gates (v2.2 — block PR)
 
 1. **Pre-merge integration smoke** — `docker compose up` (BE+FE+DB+cache) → run **full user journey** with curl/Playwright
