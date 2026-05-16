@@ -3,6 +3,55 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [2.6.1] — UX Gate Closure (Patch)
+
+ปิด hole ใน workflow discipline: Dave (developer) เริ่ม implement frontend ได้โดยไม่ผ่าน Uma (UX/UI). Audit เจอ Uma หาย 7 จุดทั่ว pipeline — patch ทุกจุดให้บังคับ pre-implement-ui gate
+
+### Added
+
+- **Phase Contract — `ux-design` phase** (meeting skill, conditional)
+  - Insert ระหว่าง `design` → `implement`. Exit = wireframe (Figma link/frame ID) + tokens.json + a11y checklist
+  - Trigger: feature touch frontend/UI/component/page/view/email template/dashboard
+  - Skip: pure backend/API/data pipeline/CLI/library — Oliver confirm กับ user ถ้ากำกวม
+- **Lifecycle Hook — ux-design** (meeting skill) — Pre: BRD+ADR loaded, frontend trigger detected. Post: hand-off bundle to Dave saved
+- **Approval Gate — `pre-implement-ui`** (Oliver) — block Dave start frontend implement โดยไม่มี Uma artifact ครบ (Figma + tokens + a11y + state inventory)
+- **DoD line — UI Design pre-check** — Uma artifact ต้องมีก่อน implement; แยกจาก UI Test (post-implement) ที่มีอยู่
+- **commands/design-system.md Step 3.5** — Uma UX/UI design step (conditional หลัง Sara, ก่อน Summary) → `outputs/04-ux-ui.md`
+- **commands/implement.md Step 0** — Oliver UI Precondition Check ก่อน delegate Dave
+- **Orchestrator Engagement Plan step 3.5 Uma** — conditional ถ้า frontend; Approval Gate table มี pre-implement-ui row
+- **Dave Process step 2.5** — UI Precondition check before identify language
+- **Universal rule** (meeting skill) — "ห้าม start implement frontend โดยไม่มี Uma artifact"
+
+### Changed
+
+- Approval Gates standard count: 7 → **8** (pre-implement-ui เพิ่ม)
+- Oliver ข้อห้าม — เพิ่ม "ห้าม design ข้าม Uma สำหรับ frontend; ห้าม delegate Dave implement FE โดยไม่มี Uma artifact"
+- Dave ข้อห้าม — เพิ่ม "ห้าม implement frontend โดยไม่มี Uma artifact" + reference pre-implement-ui gate
+- commands/implement.md Rule 0 — UI artifact precondition (priority สูงสุด ก่อน spec rule)
+- commands/design-system.md Rule 6 — ห้าม skip Step 3.5 Uma ถ้า frontend
+
+### Token cost
+
+- meeting skill: +~250 tokens (Phase Contract row + Lifecycle Hook row + Gate update + DoD line + Universal rule)
+- commands/design-system.md: +~200 tokens (Step 3.5 Uma section)
+- commands/implement.md: +~150 tokens (Step 0 + Rule 0)
+- agents/orchestrator.md: +~80 tokens (gate row + pipeline step + ban)
+- agents/developer.md: +~60 tokens (ข้อห้าม + Process step 2.5)
+- **Total**: ~+740 tokens (~+0.5%) — แค่ rule update, ไม่กระทบ persona/scope/expertise
+
+### Root cause (audit finding)
+
+Pre-v2.6.1 Uma หายจาก default pipeline 7 จุด:
+1. commands/design-system.md (Triage→Bella→Domain→Sara→Summary, no Uma)
+2. commands/implement.md (allow Dave start ถ้ามี spec; spec ไม่ครอบ UI artifact)
+3. commands/init.md Phase 4 (next-step suggest /implement หลัง /design-system แม้ขาด Uma)
+4. agents/orchestrator.md Engagement Plan (Bella→Domain→Sara→Dave→Chris→Quinn→Aaron, Uma หาย)
+5. agents/developer.md ข้อห้าม (spec ก่อน — ไม่ครอบ UI artifact)
+6. skills/meeting/SKILL.md Phase Contract (design exit = ADR+diagram+threat model only)
+7. skills/meeting/SKILL.md DoD (ตรวจ UI Test post-implement; ไม่มี pre-implement design check)
+
+Real-world impact: Dave เดา UI, hardcode styling, no design tokens, retrofit a11y, visual inconsistency, pre-merge-ui gate block ที่ PR (rework cycle)
+
 ## [2.6.0] — Lean Credibility Edition
 
 จาก realworld feedback — domain expert (Felix/Iris/Tara/Elena/Sam) confident แต่ผิดบ่อย; persona "Senior Expert" overpromise. Root cause: agent file = persona prompt only, knowledge = Claude training (cutoff May 2025), ไม่มี citation discipline สำหรับ domain claim. **Fix lean (~+1500 tokens, ~+1%)** ก่อน RAG/eval

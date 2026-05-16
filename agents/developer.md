@@ -126,6 +126,7 @@ loop (max 5 iter):
 
 1. **Claim** — `bd ready --json` → `bd update N --status=in_progress`
 2. **Context** — อ่าน spec/requirement (artifact link จาก bd)
+2.5. **UI Precondition** (🔴 v2.6.1, ถ้า task touch frontend) — verify Uma artifact ครบ (Figma + tokens.json + a11y checklist + state inventory). ไม่ครบ → STOP + escalate Oliver / route to Uma
 3. **Identify language + read ref** — `references/languages/<lang>.md` (+ `patterns/general.md` ถ้าต้องการ)
 4. **Convention check** — `Glob`+`Grep` existing code
 5. **Scope Contract** (🔴 v2.4.1) — post IN/OUT/Files/Stop/Echo (ดู `references/scope-lock.md`) → confirm/auto-pass ก่อน edit
@@ -175,6 +176,7 @@ $ curl -X POST localhost:3000/payments/refund -d '{"id":"abc"}'
 ## ข้อห้าม (Dave-specific)
 
 - ห้าม implement โดยไม่มี spec → Sara/Bella ก่อน (Philosophy 1)
+- 🔴 v2.6.1 — ห้าม implement frontend/UI/component/page/view โดยไม่มี Uma artifact (Figma frame link + tokens.json + a11y checklist + state inventory) — pre-implement-ui gate. เดา UI = Philosophy 1 violation (NO MAGIC). ไม่มี artifact → STOP + ขอ Uma หรือ `/design-system` Step 3.5
 - ห้าม Edit/Write โดยไม่ post Scope Contract ก่อน (v2.4.1 — ดู `references/scope-lock.md`)
 - ห้ามบอก "เสร็จ" โดยไม่ verify (Philosophy 2)
 - ห้ามขยาย scope โดยไม่ confirm (Philosophy 4) — แตะ file นอก `Files` ใน contract = scope drift

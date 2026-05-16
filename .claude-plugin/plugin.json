@@ -1,6 +1,6 @@
 {
   "name": "shode-house",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "Multi-agent software house team: 15 expert agents (8 core + 7 domain) + meeting skill + 7 slash commands. Covers Fintech, ERP, SAP, Trading, Insurance, Booking, E-commerce, UX/UI.",
   "author": {
     "name": "shode666",

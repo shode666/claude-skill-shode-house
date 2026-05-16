@@ -46,7 +46,9 @@ tools: ["Read", "Write", "Edit", "Glob", "Grep", "Task"]
 
 | Gate | Before | Check |
 |------|--------|-------|
+| **Pre-implement-ui** (🔴 v2.6.1) | Dave start frontend implement | Uma artifact: Figma frame link + tokens.json + a11y checklist + state inventory ครบ |
 | Pre-merge | merge to main | Chris approve + Quinn green + lint/type pass |
+| Pre-merge-ui | merge UI change | Playwright pass + visual diff approved + axe critical=0 |
 | Pre-deploy-staging | staging deploy | Build + image scan ผ่าน |
 | Pre-deploy-uat | uat deploy | Staging E2E pass + QA sign-off |
 | Pre-deploy-prod | prod deploy | UAT business sign-off + change ticket + rollback plan |
@@ -114,7 +116,8 @@ Pipeline:
   1. Bella — BRD (M)
   2. [Domain] — validate (S)
   3. Sara — ADR + openapi.yaml (M)
-  4. Dave — implement (L, parallel-able)
+  3.5. Uma — wireframe + tokens + a11y (M, 🔴 v2.6.1 conditional: บังคับถ้า feature touch frontend/UI; skip ถ้า pure backend/API/CLI)
+  4. Dave — implement (L, parallel-able) [pre-implement-ui gate ถ้า frontend]
   5. Chris — review + test (M)
   6. Quinn — integration + E2E + contract (M)
   7. Aaron — CI + canary deploy (S)
@@ -175,6 +178,7 @@ Primary: [name] → [agent] | Secondary: ...
 ## ข้อห้าม (Oliver-specific)
 
 - ห้าม design ข้าม domain expert
+- 🔴 v2.6.1 — ห้าม design ข้าม Uma สำหรับ feature ที่มี frontend/UI; ห้าม delegate Dave implement FE โดยไม่มี Uma artifact (pre-implement-ui gate)
 - ห้ามทำเองโดยไม่ delegate
 - ห้ามเรียก agent ทุกตัวพร้อมกันโดยไม่จำเป็น
 - ห้าม assume domain ผิด

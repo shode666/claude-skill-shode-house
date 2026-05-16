@@ -476,6 +476,8 @@ Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly i
 □ Contract test pass (Pact/Schemathesis — BE ↔ FE align)
 □ Mutation test kill rate ≥ 70% (business logic)
 □ Pre-merge integration smoke pass (BE+FE+DB up + curl journey)
+□ UI Design (🔴 v2.6.1 — REQUIRED ถ้า frontend/UI changed): Uma wireframe (Figma link/frame ID) + tokens.json + a11y checklist (WCAG AA) attached **ก่อน** Dave start implement
+   Evidence: link หรือ path ของ Figma frame + tokens.json + a11y self-audit list
 □ UI Test (🔴 v2.4 — REQUIRED ถ้า frontend/components/pages/views/*.vue/*.tsx/*.jsx เปลี่ยน หรือ Uma involved): Playwright pass + visual diff approved + axe critical=0
    Evidence: paste Playwright console + screenshot/diff path + axe report path + trace path
 □ Load smoke: p95 < SLO, error < 0.1%
@@ -586,6 +588,7 @@ Risk: [what] | Likelihood: L/M/H | Impact: L/M/H | Mitigation: [concrete] | Owne
 - ห้าม "fix" โดยไม่เข้าใจ root cause
 - ห้าม claim project fact จาก real-world knowledge (ดู Project Evidence Protocol)
 - ห้าม merge ถ้า UI changed แต่ไม่มี Playwright/visual/axe evidence
+- ห้าม start implement frontend โดยไม่มี Uma artifact (Figma/wireframe/tokens) — pre-implement-ui gate (🔴 v2.6.1)
 
 ---
 
@@ -595,11 +598,14 @@ Risk: [what] | Likelihood: L/M/H | Impact: L/M/H | Mitigation: [concrete] | Owne
 ```
 clarify     → exit: BRD ครบทุก FR + AC
 design      → exit: ADR + diagram + threat model
+ux-design   → exit: wireframe + tokens + a11y checklist (🔴 v2.6.1 conditional — Uma; required ถ้า feature touch frontend/UI/component/page/view)
 implement   → exit: code + smoke test pass
 review      → exit: Chris approve + unit test ครอบ
 integration → exit: Quinn green
 deploy      → exit: prod health check pass
 ```
+
+> **ux-design phase trigger**: feature involve user-facing UI (web/mobile/component/page/view/email template/dashboard). Pure backend/API/data pipeline = skip. Uncertain → Oliver asks user before skipping.
 
 ### 🪝 Lifecycle Hooks (per phase — Aaron auto-trigger)
 
@@ -609,7 +615,8 @@ deploy      → exit: prod health check pass
 |-------|----------|-----------|
 | clarify | load context (CLAUDE.md, README, last engagement) | BRD saved, RTM linked |
 | design | BRD validated, ubiquitous lang loaded | ADR + openapi.yaml saved |
-| implement | spec received, worktree created | lint+type+unit pass, smoke run |
+| **ux-design** (🔴 v2.6.1, conditional) | BRD + ADR loaded, frontend trigger detected | wireframe (Figma link/frame ID) + tokens.json + a11y checklist saved, hand-off bundle to Dave |
+| implement | spec received, worktree created, **🔴 v2.6.1 UI artifact verified ถ้า feature frontend** | lint+type+unit pass, smoke run |
 | review | code merged to feature branch | Chris finding logged, mutation test |
 | integration | feature flag wired | E2E + contract + load smoke |
 | deploy | approval gate + rollback plan | health check + observability live |
@@ -648,7 +655,7 @@ loop (max 5):
 
 ### Approval Gates (⏸️ Oliver)
 ก่อน R0 (irreversible) → bullet check + ขอ approve
-**7 standard**: pre-merge, **pre-merge-ui** (🔴 v2.4 — block ถ้า UI changed but no Playwright/visual/axe evidence), pre-deploy-staging/uat/prod, pre-data-migration, pre-destructive
+**8 standard**: pre-merge, **pre-implement-ui** (🔴 v2.6.1 — block ถ้า Dave start frontend implement โดยไม่มี Uma artifact: Figma/wireframe/tokens), **pre-merge-ui** (🔴 v2.4 — block ถ้า UI changed but no Playwright/visual/axe evidence), pre-deploy-staging/uat/prod, pre-data-migration, pre-destructive
 > ดู Oliver agent file สำหรับ full table + format
 
 ### Worktree Isolation (parallel-safe — Aaron pattern)
