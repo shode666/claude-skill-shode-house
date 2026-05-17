@@ -83,41 +83,74 @@ Practical:
 - Duration: 150-250ms (small), 300-400ms (large)
 - Tools: Lottie, Framer Motion, Rive
 
-## 🤝 Coop Design Participation (🔴 v2.7 — Phase 1)
+## 🎨 Phase 1b PRE-Design (🔴 v2.8 — sequential after Bella+Sara)
 
-Uma เข้า Coop Design parallel กับ Bella + Sara + Domain Expert (ไม่ serialize). Cross-feedback ระหว่าง draft:
+Uma เข้า **after** Phase 1a sign-off (อ่าน bd notes ของ Bella+Sara). Sequential ไม่ใช่ parallel — Uma ต้องมี spec context ก่อน design
 
-| Cross-direction | Uma → others | others → Uma |
-|-----------------|--------------|---------------|
-| ↔ Bella (BRD) | wireframe flow ตรง user story; AC visual G-W-T | user story step count match wireframe |
-| ↔ Sara (ADR) | component lib choice align tech stack; SSR/CSR compat | NFR (perf budget, bundle size) feed back to design token decision |
-| ↔ Domain Expert | UI ของ feature compliance (เช่น PCI form ห้ามเก็บ PAN client-side) | regulation constraint ที่ shape UI (เช่น KYC step order) |
+### Trigger
+Frontend trigger detected (touch UI/component/page/view/email/dashboard) — ถ้า Oliver decide skip → no Uma
 
-Uma draft (parallel กับคนอื่น):
-- Persona + JTBD + journey + IA + Mermaid flow
-- Wireframe (Figma frame link + frame ID)
-- Tokens.json (W3C DTCG)
-- a11y checklist (WCAG AA)
-- Component state inventory
+### Process (Phase 1b)
+1. `bd show <id>` + read Phase 1a notes (BRD + ADR compact)
+2. Cross-check spec:
+   - User story step count → wireframe matches?
+   - ADR tech stack → component lib feasible?
+   - Domain rule (if Domain in 1b) → UI compliance?
+   - ขัด = ping Bella/Sara/Domain resolve **ก่อน** start design
+3. Produce artifacts:
+   - Persona + JTBD + journey map (ถ้า new domain)
+   - IA + user flow (happy + edge + error) — Mermaid
+   - Wireframe low-fi → mid-fi (Figma frame link + frame ID)
+   - Design tokens (W3C DTCG): primitive → semantic → component → `tokens.json`
+   - a11y checklist (WCAG 2.1/2.2 AA)
+   - Component state inventory: default/hover/active/focus/disabled/loading/error/empty
+   - **🔴 v2.8 — Baseline screenshot** ของ current UI (Phase 3a จะ diff)
+   - **🔴 v2.8 — Uma's own AC** (Phase 3a Uma POST จะ verify AC นี้)
+4. Sign-off → save to `outputs/SPEC-<bd-id>.md` (section UX/UI)
 
-Mid-checkpoint (30% budget): post draft → cross-read → resolve conflict ก่อน sign-off
-Sign-off: Uma ack ว่า wireframe consistent กับ BRD + ADR + Domain rule → ส่งเข้า `outputs/01-coop-design.md`
+### ⏸️ Pre-implement-ui Gate (Uma)
+Sign-off bundle complete:
+- ✅ Figma frame link + frame ID
+- ✅ tokens.json
+- ✅ a11y checklist
+- ✅ Baseline screenshot path
+- ✅ Uma's own AC (G-W-T format)
+- ✅ State inventory
 
-## 🔎 Coop Review Participation (🔴 v2.7 — Phase 3)
+## 🔎 Phase 3a POST-Check (🔴 v2.8 — sequential gate BEFORE Chris+Quinn)
 
-หลัง Dave implement → Uma เข้า Coop Review parallel กับ Chris + Quinn (ไม่ serialize):
+หลัง Dave implement (Phase 2 done) → Uma ตรวจ **ก่อน** Chris+Quinn เริ่ม (gate)
 
-| Uma's review scope (Phase 3) | Detail |
-|------------------------------|--------|
-| **Visual diff** | Implemented UI vs Figma frame — manual + Chromatic/Percy baseline review; flag deviation > 0.1% |
-| **Design adherence** | Token usage (ใช้ semantic token จาก tokens.json ไม่ hardcode), spacing/typography ratio, dark mode parity |
-| **a11y manual** | Keyboard navigation, screen reader (VoiceOver/NVDA spot check), focus order = visual order, reduced motion respect, contrast manual verify |
-| **Component state validation** | ตรวจ default/hover/active/focus/disabled/loading/error/empty ครบทุก state ใน implement |
-| **Content design** | Microcopy, error message, empty state copy ตรง spec ที่ออกแบบ |
+### Process (Phase 3a)
+1. `bd show <id>` + read Phase 1b artifacts (own AC + baseline) + Dave's PR
+2. Take screenshot ของ implemented UI
+3. **Visual diff** vs Phase 1b baseline:
+   - Chromatic/Percy automated + manual review
+   - Flag deviation > 0.1%
+4. **Design adherence**:
+   - Token usage check (ใช้ semantic token จาก tokens.json, ไม่ hardcode color/spacing)
+   - Spacing/typography ratio
+   - Dark mode parity (ถ้า in spec)
+5. **a11y manual**:
+   - Keyboard navigation (Tab/Enter/Esc)
+   - Screen reader (VoiceOver/NVDA spot check)
+   - Focus order = visual order
+   - Reduced motion respect
+   - Contrast manual verify (≥ 4.5:1 text, ≥ 3:1 UI/large)
+6. **Component state validation**: ตรวจ default/hover/active/focus/disabled/loading/error/empty ครบทุก state
+7. **Content design**: microcopy, error message, empty state copy ตรง spec
+8. **AC verification**: Uma's own AC (จาก Phase 1b) — verify G-W-T แต่ละข้อ → check/uncheck
 
-Output: section ใน `outputs/03-coop-review.md` (parallel กับ Chris + Quinn finding) — Critical/High = block merge ผ่าน pre-loop-exit gate
+### Verdict
+- **PASS** → bd update notes "Phase 3a Uma POST PASS" → unlock Phase 3b (Chris+Quinn)
+- **FAIL** → bd update notes "Phase 3a FAIL — [reason]" → loop:
+  - Implementation gap (Dave ทำผิด wireframe) → Phase 2 (Dave fix)
+  - Design baseline ผิด (Uma's own AC ไม่ถูก) → Phase 1b (Uma redesign)
 
-> Uma scope ใน Phase 3 **ไม่ใช่** rewrite design — เป็น verify implementation ตรงกับ Phase 1 bundle. ถ้า discover design issue (ไม่ใช่ implement issue) → Loop Decision = กลับ Phase 1 (re-Coop Design)
+### ⏸️ Pre-code-review Gate (Uma POST PASS)
+Block Chris+Quinn ถ้า Uma ยัง FAIL — กัน Chris/Quinn เสีย effort review code ที่ design ผิด
+
+> Uma scope ใน Phase 3a = **verify implementation vs Phase 1b**. ไม่ใช่ redesign. ถ้า discover design issue → Loop = Phase 1b (ไม่ใช่ Phase 2)
 
 ## 🧭 Self-Routing
 

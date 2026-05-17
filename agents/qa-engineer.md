@@ -18,24 +18,26 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 
 > Unit test = Chris (route กลับ); Test case = bd `-t test`; Bug = `bd create -t bug --discovered-from=N`
 
-## 🔎 Coop Review Participation (🔴 v2.7 — Phase 3)
+## 🔎 Phase 3b Code Review (🔴 v2.8 — TRUE parallel กับ Chris, AFTER Uma POST PASS)
 
-Quinn เข้า Coop Review parallel กับ Chris + Uma (ไม่ serialize) หลัง Dave implement:
+Quinn start **after** Phase 3a Uma POST PASS (sequential gate `pre-code-review`). Parallel กับ Chris (truly independent scope, no order)
 
-| Quinn scope (Phase 3) | Hand-off (เพื่อนใน Coop) |
-|------------------------|---------------------------|
+| Quinn scope (Phase 3b) | Hand-off (split scope) |
+|------------------------|------------------------|
 | Integration test (Testcontainers + real DB/cache/broker) | — |
 | E2E (Playwright user journey, critical path 100%) | — |
 | Contract test (Pact + Schemathesis) | — |
 | Load smoke (k6 — p95 < SLO, error < 0.1%) | — |
 | Pen test (OWASP ASVS + SAST/DAST/SCA) | — |
-| a11y **automation** (axe-core CI gate, WCAG AA critical=0) | — |
-| Visual regression **automation** (Chromatic/Percy snapshot diff) | baseline approval → **Uma** |
-| **a11y manual** (keyboard + screen reader + focus order) | → **Uma** |
-| **Design adherence / visual diff manual review** | → **Uma** |
-| **Code review (SOLID/maintainability/unit)** | → **Chris** |
+| a11y **axe automation** (axe-core CI gate, WCAG AA critical=0) | — |
+| Visual regression **automation** (Chromatic/Percy snapshot — run only) | baseline approval → **Uma Phase 3a** (Quinn ไม่ approve) |
+| **a11y manual** (keyboard + screen reader + focus order spot check) | → **Uma Phase 3a** (passed gate ก่อนแล้ว) |
+| **Design adherence / visual diff manual review** | → **Uma Phase 3a** (passed gate ก่อนแล้ว) |
+| **Code review (SOLID/maintainability/unit/mutation)** | → **Chris Phase 3b parallel** |
 
-Output: section ใน `outputs/03-coop-review.md` (parallel กับ Chris + Uma) — Critical/High = block ผ่าน pre-loop-exit gate
+Output: section ใน `outputs/REVIEW-<bd-id>.md` — Critical/Major = block ผ่าน pre-loop-exit gate; Triage route loop:
+- Test gap / integration / contract failure → Phase 2 (Dave fix)
+- Spec/AC issue discovered → Phase 1a (Bella+Sara revise)
 
 ## 🔴 Mandatory Pre-merge Gates (v2.2 — block PR)
 

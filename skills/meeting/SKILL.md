@@ -472,9 +472,11 @@ Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly i
 ## ✅ Definition of Done (🔴 verifiable — Oliver enforce ห้ามปิด task)
 
 ```
-□ 🔴 v2.7 — Phase 1 Coop Design checkpoint passed (Bella + Sara + Uma* + Domain* all ack cross-validation)
-□ 🔴 v2.7 — Phase 3 Coop Review checkpoint passed (Chris + Quinn + Uma* all approve)
-□ 🔴 v2.7 — Loop iter ≤ 3; ถ้าเข้า iter 3 + ยังไม่ผ่าน → STOP escalate user (re-scope / kill / split)
+□ 🔴 v2.8 — Phase 1a Foundation passed (Bella ∥ Sara light cross-read ok, bd notes posted)
+□ 🔴 v2.8 — Phase 1b Expand passed (Uma* sign UI accept + baseline; Domain* sign regulation/rule; integrated SPEC saved)
+□ 🔴 v2.8 — Phase 3a UI Check PASS (Uma verdict before Chris/Quinn เริ่ม)
+□ 🔴 v2.8 — Phase 3b Code Review passed (Chris ∥ Quinn parallel, 0 Critical/Major)
+□ 🔴 v2.8 — Loop iter ≤ 3 + routing precise (code→2, UI→1b, spec→1a); iter > 3 → escalate user
 □ Code merged + CI green (lint+type+unit+integration+SAST+SCA)
 □ Contract test pass (Pact/Schemathesis — BE ↔ FE align)
 □ Mutation test kill rate ≥ 70% (business logic)
@@ -592,114 +594,162 @@ Risk: [what] | Likelihood: L/M/H | Impact: L/M/H | Mitigation: [concrete] | Owne
 - ห้าม claim project fact จาก real-world knowledge (ดู Project Evidence Protocol)
 - ห้าม merge ถ้า UI changed แต่ไม่มี Playwright/visual/axe evidence
 - ห้าม start implement frontend โดยไม่มี Uma artifact (Figma/wireframe/tokens) — pre-implement-ui gate (🔴 v2.6.1)
-- 🔴 v2.7 — ห้าม serialize Coop phase agents (Phase 1 + Phase 3). Bella → Sara → Uma แบบรอคิว = ขัด Coop pattern; ทุกคน parallel + cross-feedback ก่อน sign-off
-- 🔴 v2.7 — ห้าม skip Loop Decision หลัง Phase 3. Review ผ่าน = exit; review ไม่ผ่าน = loop (Phase 1 หรือ Phase 2); ห้าม "ผ่านครึ่ง ๆ" ข้ามไป Deploy
+- 🔴 v2.8 — ห้าม serialize Phase 1a (Bella → Sara รอคิว); ห้าม parallel Phase 1b (Uma/Domain ต้องอ่าน 1a spec ก่อน design/validate)
+- 🔴 v2.8 — ห้าม skip Phase 3a Uma POST gate. Dave → Chris+Quinn ตรงเลย โดยไม่ผ่าน Uma = UI bug ลึกค่อย rework
+- 🔴 v2.8 — ห้าม serialize Phase 3b (Chris → Quinn รอคิว); parallel เท่านั้น (different scope)
+- 🔴 v2.8 — ห้าม skip Phase 4 Triage routing. Review fail → loop ไป phase ที่ตรง finding (code→2, UI→1b, spec→1a); ห้าม "ผ่านครึ่ง ๆ" ข้ามไป Deploy
 
 ---
 
 ## 🔁 Workflow Discipline (🔴 Archon-inspired)
 
-### Phase Contract — 🔴 v2.7 Coop Workflow (Oliver enforce — ห้าม jump phase, ห้าม serialize Coop)
+### Phase Contract — 🔴 v2.8 Smart Coop + Sprint (Oliver enforce)
 
-**3 macro-phase + loop + deploy:**
+**2-level loop: Outer Sprint (cadence) + Inner 5-phase (per issue)**
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│ Phase 1 — 🤝 Coop Design (parallel + cross-feedback)             │
-│   Participants: Bella + Sara + Uma* + Domain Expert*              │
-│   Exit: integrated design bundle (BRD ∪ ADR ∪ UX ∪ Domain)        │
-│         all participants acknowledge cross-validation (no silo)   │
-│                                                                    │
-│ Phase 2 — 🛠️ Implement (Dave — sequential or parallel Dave#1/#2)  │
-│   Exit: code + smoke test pass + Scope Contract closed            │
-│                                                                    │
-│ Phase 3 — 🔎 Coop Review (parallel + report)                      │
-│   Participants: Chris + Quinn + Uma*                              │
-│   Exit: all 3 approve                                              │
-│     - Chris: 7-dim + unit + mutation kill ≥ 70%                   │
-│     - Quinn: integration + E2E + contract + load smoke + a11y     │
-│     - Uma*: visual diff + design adherence + a11y AA              │
-│                                                                    │
-│ Phase 4 — 🔁 Loop Decision (Oliver)                                │
-│   All green               → Phase 5 (Deploy)                       │
-│   Code-only finding       → Loop back to Phase 2 (Dave fix)        │
-│   Spec/design finding     → Loop back to Phase 1 (re-Coop Design) │
-│   Max iter 3 → STOP, escalate user (re-scope / kill / split)      │
-│                                                                    │
-│ Phase 5 — 🚀 Deploy                                                │
-│   Exit: prod health check + observability live                    │
-└──────────────────────────────────────────────────────────────────┘
+┌─ OUTER SPRINT LOOP (bd-native, team cadence) ────────────────────┐
+│                                                                   │
+│  Pre-Sprint:  bd ready → audit → bd create P0/P1/P2 (Oliver)     │
+│  Sprint Exec: Inner loop (per issue ↓)                            │
+│  Sprint Close: bd close * → git push → bd remember → retro       │
+│  Next Sprint ↑                                                    │
+└───────────────────────────────────────────────────────────────────┘
 
-* = conditional: Uma + Domain Expert join เฉพาะที่ relevant (Uma ถ้ามี frontend; Domain ถ้า touch business rule)
+┌─ INNER PER-ISSUE LOOP (Smart Coop — parallel where independent) ─┐
+│                                                                   │
+│  PICK:        bd update <id> --claim                              │
+│     ↓                                                             │
+│  Phase 1a 🤝 Foundation (Bella ∥ Sara — TRUE parallel, no deps)   │
+│              BRD + AC ∥ ADR + risk                                │
+│              → bd update --notes (compact ref only)               │
+│     ↓                                                             │
+│  Phase 1b 🎨 Conditional Expand (sequential gate after 1a)        │
+│              Uma* reads spec → wireframe + tokens + a11y baseline │
+│              Domain* reads spec → regulation cite + business rule │
+│              → outputs/SPEC-<bd-id>.md (integrated)               │
+│              ⏸️ Gate pre-implement-ui (Uma sign UI acceptance)     │
+│     ↓                                                             │
+│  Phase 2 💻 Implement (Dave — parallel Dave#1/#2 ถ้า independent)  │
+│              Scope Contract + code + unit test                    │
+│              ⏸️ Gate: lint clean + unit green + smoke pass         │
+│     ↓                                                             │
+│  Phase 3a 🎨 UI Check (Uma* — sequential gate)                    │
+│              Screenshot diff vs baseline                          │
+│              Verify Uma own accept criteria (from 1b)             │
+│              ⏸️ Gate: visual diff + a11y manual                    │
+│     ↓                                                             │
+│  Phase 3b 🔍 Code Review (Chris ∥ Quinn — TRUE parallel)          │
+│              Chris: 7-dim + unit mutation kill ≥ 70%              │
+│              Quinn: integration + E2E + contract + load + axe     │
+│              ⏸️ Gate: 0 Critical/Major                             │
+│     ↓                                                             │
+│  Phase 4 🚦 Triage (Oliver — loop routing)                        │
+│              Critical/Major → bd create --discovered-from=N       │
+│                + loop กลับ phase ตาม finding type:                 │
+│                  ─ code/perf/security impl → Phase 2              │
+│                  ─ UI/design adherence → Phase 1b                 │
+│                  ─ spec/AC/regulation → Phase 1a                  │
+│              Minor → bd create P4 + continue                      │
+│              Clean → bd close <id>                                │
+│              Max iter 3 → STOP escalate user                      │
+│     ↓                                                             │
+│  Phase 5 🚀 Deploy (Aaron — batched, sprint-end)                  │
+│              CI + canary + health + observability                 │
+└───────────────────────────────────────────────────────────────────┘
+
+* = conditional: Uma เข้า 1b+3a เฉพาะ feature touch user-facing UI; Domain เข้า 1b เฉพาะ touch business rule
 ```
 
-**Legacy phase names** ยังใช้อ้างอิง sub-step ภายใน macro-phase ได้:
-- Phase 1 Coop Design = `clarify` (Bella) ∥ `design` (Sara) ∥ `ux-design` (Uma) ∥ `domain-validate` (Expert) — ทำ parallel, cross-feedback ระหว่างทำ, output รวมเป็น 1 bundle
-- Phase 3 Coop Review = `review` (Chris) ∥ `integration` (Quinn) ∥ `ux-review` (Uma) — ทำ parallel, report รวม
-- Phase 5 Deploy = `deploy` (Aaron)
+> **Why 1a + 1b แทน Coop 4-way parallel** (v2.8 over v2.7): Bella → Sara มี natural alignment (BRD informs ADR), Uma + Domain ต้องอ่าน spec ก่อน design/validate ฉะนั้น 4-way parallel + cross-read = ~40% redundant token. 1a (Bella ∥ Sara) + 1b (Uma + Domain sequential, read 1 spec baseline) = ได้ quality สูง ลด token
 
-> **Conditional trigger**: Uma join Phase 1+3 เฉพาะ feature touch user-facing UI. Domain Expert join Phase 1+3 เฉพาะ feature touch business rule (money/policy/matching/booking/inventory). Pure infra/CLI = Phase 1 = Bella + Sara เพียงพอ.
+> **Why 3a before 3b** (v2.8 over v2.7): UI bug ตรวจที่ Uma ก่อน — Chris/Quinn ไม่เสีย effort review code ที่ design ผิด. Chris+Quinn ทำงาน parallel ตามเดิม (different scope: static review vs runtime test)
+
+> **Phase routing precision** (v2.8 over v2.7): Triage แยก code/UI/spec → loop กลับ phase ที่เหมาะ (1a vs 1b vs 2) ไม่ใช่แค่ "Phase 1 หรือ Phase 2"
 
 ---
 
-## 🤝 Coop Phase Pattern (🔴 v2.7 — บังคับ Phase 1 + Phase 3)
+## 🤝 Smart Coop Pattern (🔴 v2.8 — parallel where independent, sequential gate where dependent)
 
-**Coop phase ≠ sequential serialize.** Agents ทำงาน **parallel + cross-feedback** ก่อน produce single integrated artifact:
+**Smart Coop ≠ everything parallel.** ใช้ parallel เฉพาะที่ agent **truly independent** (no read dependency); ใช้ sequential gate ที่มี natural dependency
 
-### Pattern
+### Parallel-vs-Sequential Matrix
+
+| สถานการณ์ | Pattern | เหตุผล |
+|-----------|---------|--------|
+| Bella ↔ Sara (Phase 1a) | **Parallel** | Different scope (BA vs SA), no read dep, align at end |
+| Bella+Sara → Uma (Phase 1a → 1b) | **Sequential gate** | Uma needs spec context to design |
+| Bella+Sara → Domain (Phase 1a → 1b) | **Sequential gate** | Domain validates spec, not design from scratch |
+| Dev → Uma POST (Phase 2 → 3a) | **Sequential gate** | UI bug = halt before deeper review |
+| Uma POST → Chris+Quinn (Phase 3a → 3b) | **Sequential gate** | UI passed first, then code/security |
+| Chris ↔ Quinn (Phase 3b) | **Parallel** | Different scope (static review vs runtime test) |
+| Dave#1 ↔ Dave#2 (Phase 2) | **Parallel** | Different files, no shared state (Scope Contract enforce) |
+
+### Phase 1a Pattern (Parallel Foundation)
 ```
-1. Kick-off (Oliver): broadcast Coop phase start + roster + shared workspace path
-2. Parallel draft (all agents): ทุกคนเริ่ม draft งานตัวเอง พร้อมกัน
-3. Cross-checkpoint (mid-phase): ทุกคน share draft ใน shared workspace + read ของคนอื่น 1 pass
-4. Cross-feedback (1-2 round): identify conflict/gap/coupling — แก้กลับ → repost
-5. Integration sign-off (all): ทุกคน acknowledge ว่า output ของตัวเองสอดคล้องของคนอื่น
-6. Bundle: Oliver compile เป็น single artifact (outputs/01-coop-design.md หรือ Coop Review Report)
+1. Oliver kick-off: broadcast roster (Bella + Sara) + bd-id
+2. Bella + Sara draft pผ่ารallel (independent scopes)
+3. Light cross-read at end (NOT mid-checkpoint — too token-heavy):
+   - Bella check FR ขัด ADR ไหม
+   - Sara check ADR support FR ครบไหม
+4. Sign-off → bd update <id> --notes (compact)
+```
+
+### Phase 1b Pattern (Sequential Expand)
+```
+1. Oliver detect: frontend trigger? business-rule trigger?
+2. Uma (if frontend): read spec → wireframe + tokens + a11y + baseline screenshot
+3. Domain (if business rule): read spec → regulation cite + business rule + compliance gap
+4. Sign-off → outputs/SPEC-<bd-id>.md integrated
+```
+
+### Phase 3a Pattern (Sequential Gate)
+```
+1. Uma read Dave's PR + own Phase 1b baseline
+2. Screenshot diff (Chromatic/Percy) + manual visual review
+3. Verify own accept criteria + a11y manual (keyboard, screen reader, focus)
+4. Verdict: PASS → Phase 3b unlocks; FAIL → loop Phase 2 (Dave fix)
+```
+
+### Phase 3b Pattern (Parallel Review)
+```
+1. Oliver kick-off: Chris + Quinn parallel (Uma POST already passed)
+2. Chris: 7-dim review + unit test gaps + mutation kill verify
+3. Quinn: integration + E2E + contract + load smoke + a11y axe automation
+4. Sign-off → outputs/REVIEW-<bd-id>.md (Chris finding + Quinn finding merged)
 ```
 
 ### ❌ Anti-pattern (จะถูก block)
-- ❌ Bella เขียน BRD เสร็จ → โยน Sara → Sara เสร็จ → โยน Uma (= serialize = ขัด Coop)
-- ❌ Agent ทำของตัวเองจบโดยไม่อ่าน draft ของคนอื่น (= silo)
-- ❌ Conflict ระหว่าง draft แต่ไม่ resolve → ส่ง user ตัดสิน (= ขาด cross-feedback round)
+- ❌ Phase 1a serialize (Bella เสร็จก่อนแล้วโยน Sara) — ขัด parallel
+- ❌ Phase 1b Uma start ก่อน 1a sign-off — Uma เดา spec
+- ❌ Phase 3a skip — Dave → Chris+Quinn ตรงไม่ผ่าน Uma → UI bug ลึก
+- ❌ Phase 3b serialize Chris → Quinn — ขัด parallel
+- ❌ Dave#1 + Dave#2 แตะ file เดียวกัน — ต้อง Scope Contract enforce
 
 ### ✅ Correct pattern
-- ✅ ทุก agent post initial draft ภายใน 30% ของ phase budget → mid-checkpoint cross-read
-- ✅ Bella เจอ FR ขัด ADR ของ Sara → ping Sara → resolve ก่อน sign-off
-- ✅ Uma เจอ flow ใน wireframe ไม่ match user story ของ Bella → cross-iterate
-- ✅ Domain Expert validate ทุก feature business-rule กับ Bella+Sara ก่อน sign-off
-
-### Coop Phase Exit Checkpoint (Oliver verify)
-```
-[Oliver|state:coop-checkpoint|phase:1] verifying Coop Design exit
-- Bella: ✅ BRD signed (FR ครบ, AC ครบ, cross-ref ADR + UX)
-- Sara:  ✅ ADR signed (NFR + threat model, cross-ref FR + UX feasibility)
-- Uma:   ✅ Wireframe + tokens + a11y signed (cross-ref BRD flow + ADR component lib)
-- Felix: ✅ Domain validated (regulation cite + money rule, cross-ref FR + ADR)
-- Integration: ✅ no unresolved conflict → bundle to outputs/01-coop-design.md
-→ Phase 2 unlock
-```
-
-> ห้าม Oliver dispatch Phase 2 ถ้า Coop checkpoint ขาด acknowledgment ของผู้เข้าร่วมคนใดคนหนึ่ง
+- ✅ Phase 1a: Bella+Sara start same kickoff, end with light cross-read (no mid-checkpoint)
+- ✅ Phase 1b: Uma+Domain read same 1a baseline (1 spec, not 2-3 drafts) → ลด token
+- ✅ Phase 3a: Uma POST = explicit gate; FAIL = loop ก่อน Chris/Quinn เริ่ม
+- ✅ Phase 3b: Chris+Quinn truly parallel (no order dep)
 
 ### 🪝 Lifecycle Hooks (per phase — Aaron auto-trigger)
 
 แต่ละ phase มี pre/post hook สำหรับ automated check:
 
-**Grouped by macro-phase (🔴 v2.7 Coop Workflow)**:
+**Grouped by phase (🔴 v2.8 Smart Coop + Sprint)**:
 
-| Macro-phase | Sub-step | Pre-hook | Post-hook |
-|-------------|----------|----------|-----------|
-| **Phase 1 Coop Design** | clarify (Bella) | load context (CLAUDE.md, README, last engagement) | BRD draft posted to shared workspace |
-| | design (Sara) | BRD draft + ubiquitous lang loaded | ADR + openapi.yaml draft posted |
-| | ux-design (Uma, conditional) | BRD draft + ADR draft loaded, frontend trigger detected | wireframe + tokens.json + a11y checklist draft posted |
-| | domain-validate (Expert, conditional) | BRD draft + ADR draft loaded, business-rule trigger detected | regulation cite + business rule validation posted |
-| | **Coop checkpoint** | all participants posted initial draft | cross-feedback complete + integrated bundle saved (outputs/01-coop-design.md) |
-| **Phase 2 Implement** | implement (Dave) | Phase 1 bundle ack, worktree created, 🔴 UI artifact verified ถ้า frontend | lint+type+unit pass, smoke run, Scope Contract closed |
-| **Phase 3 Coop Review** | review (Chris) | code merged to feature branch | finding logged + mutation kill ≥ 70% |
-| | integration (Quinn) | feature flag wired | E2E + contract + load smoke green |
-| | ux-review (Uma, conditional) | implement complete + UI changes detected | visual diff + design adherence + a11y AA report |
-| | **Coop Review report** | all 3 reviewers posted finding | integrated review report (outputs/03-coop-review.md) + Loop Decision input |
-| **Phase 4 Loop Decision** | (Oliver) | Coop Review report ready | all green → Phase 5 ∥ code finding → loop Phase 2 ∥ design finding → loop Phase 1 ∥ iter > 3 → escalate |
-| **Phase 5 Deploy** | deploy (Aaron) | approval gate + rollback plan | health check + observability live |
+| Phase | Actor | Pre-hook | Post-hook |
+|-------|-------|----------|-----------|
+| **Pre-Sprint** (outer) | Oliver | last sprint retro loaded | bd backlog audited + P0/P1/P2 created |
+| **Pick Issue** | Oliver | `bd ready --json` empty? = sprint done | `bd update <id> --claim` posted |
+| **Phase 1a Foundation** | Bella ∥ Sara | bd issue context + CLAUDE.md loaded | BRD + ADR drafts done, light cross-read pass, `bd update <id> --notes` posted |
+| **Phase 1b Expand** | Uma + Domain (conditional) | 1a sign-off + frontend/business-rule trigger detected | Uma: wireframe + tokens + a11y baseline; Domain: regulation cite + rule. Integrated `outputs/SPEC-<bd-id>.md` saved |
+| **Phase 2 Implement** | Dave | UI artifact verified (pre-implement-ui), Scope Contract posted, worktree | lint + type + unit pass, smoke green, Scope Contract closed |
+| **Phase 3a UI Check** | Uma (conditional) | implement done + frontend changed | screenshot diff approved + a11y manual pass + Uma own AC verified → PASS/FAIL verdict |
+| **Phase 3b Code Review** | Chris ∥ Quinn | Phase 3a passed (no order between Chris/Quinn) | Chris: finding + mutation kill ≥ 70%; Quinn: E2E + contract + load + axe; merged `outputs/REVIEW-<bd-id>.md` |
+| **Phase 4 Triage** | Oliver | 3a + 3b reports ready | route loop (Phase 1a/1b/2 by finding type) ∥ Clean → `bd close <id>` ∥ iter > 3 → escalate user |
+| **Phase 5 Deploy** | Aaron (batched sprint-end) | approval gate + rollback plan ready | health check + observability live |
+| **Sprint Close** (outer) | Oliver | inner loop exhausted (bd ready empty + in_progress empty + last review 0 critical) | `git push` + `bd remember <lesson>` + retro 1-pager saved |
 
 Aaron implements hooks via Makefile/CI — agent ไม่ต้อง manual
 
@@ -735,7 +785,7 @@ loop (max 5):
 
 ### Approval Gates (⏸️ Oliver)
 ก่อน R0 (irreversible) → bullet check + ขอ approve
-**10 standard**: **pre-coop-design-exit** (🔴 v2.7 — Phase 1 Coop Design checkpoint ผ่าน, all participants ack cross-validation), pre-merge, **pre-implement-ui** (🔴 v2.6.1 — block ถ้า Dave start frontend implement โดยไม่มี Uma artifact), **pre-merge-ui** (🔴 v2.4 — block ถ้า UI changed but no Playwright/visual/axe evidence), **pre-loop-exit** (🔴 v2.7 — Phase 4 Loop Decision: all 3 reviewers green → unlock Deploy), pre-deploy-staging/uat/prod, pre-data-migration, pre-destructive
+**10 standard (🔴 v2.8 phase-aligned)**: **pre-spec-expand** (🔴 v2.8 — Phase 1a → 1b: Bella+Sara sign-off ก่อน Uma/Domain expand), **pre-implement-ui** (🔴 v2.6.1 — Phase 1b → 2: Uma artifact ครบก่อน Dave start frontend), **pre-ui-check** (🔴 v2.8 — Phase 2 → 3a: lint clean + unit green + smoke pass ก่อน Uma POST), **pre-code-review** (🔴 v2.8 — Phase 3a → 3b: Uma POST PASS ก่อน Chris+Quinn เริ่ม), pre-merge, **pre-merge-ui** (🔴 v2.4 — Playwright/visual/axe evidence ก่อน merge UI change), **pre-loop-exit** (🔴 v2.7 — Phase 4 → 5: Triage clean + iter ≤ 3 → unlock Deploy), pre-deploy-staging/uat/prod, pre-data-migration, pre-destructive
 > ดู Oliver agent file สำหรับ full table + format
 
 ### Worktree Isolation (parallel-safe — Aaron pattern)

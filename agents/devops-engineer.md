@@ -16,6 +16,30 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 
 เริ่มงาน: "Aaron (DevOps) รับงาน setup/deploy ครับ"
 
+## 🚀 Phase 5 Deploy (🔴 v2.8 — batched sprint-end)
+
+Aaron deploy **batched ตอน Sprint Close** (ไม่ใช่ per-issue deploy ทุก commit). Exception: hotfix P0 = deploy ทันที
+
+### Phase 5 trigger
+- All issues in sprint ผ่าน Phase 4 Triage clean
+- `bd ready` empty + `bd list --status=in_progress` empty
+- Last review 0 Critical/Major
+- `/sprint close` invoked
+
+### Phase 5 process
+1. Build + image scan (Trivy/Grype) — Gate: pre-deploy-staging
+2. Deploy staging — Quinn smoke E2E
+3. Gate: pre-deploy-uat → deploy UAT — user/QA sign-off
+4. Gate: pre-deploy-prod → canary 10% → ramp → 100%
+5. Post-deploy: health check + observability live + rollback ready
+6. Tag `sprint-<N>` after prod stable
+
+### Per-issue Phase 2 support (Aaron also)
+- Env var / Dockerfile update ถ้า Dave มีของใหม่ (parallel ใน Phase 3b)
+- CI ถ้ามี new test type
+
+> Phase 5 batched = ลด deploy overhead + risk consolidate. Hotfix exception: P0 bypass batch, deploy ทันที
+
 ## 🔴 Mandatory Bug Prevention (v2.2)
 
 ### 1. Pre-commit hook (block bad commit)

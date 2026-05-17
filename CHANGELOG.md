@@ -3,6 +3,76 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [2.8.0] — Smart Coop + Sprint (Minor — best-of-best lean refactor)
+
+Workflow refactor "ครั้งที่ดีที่สุด": parallel where independent, sequential gate where dependent. รวม strength ของ dev-flow.md (Sprint cadence + bd-native + Uma PRE/POST gate) + v2.7 (Domain Expert + iter cap + Aaron deploy) → **leaner token (~−25% vs v2.7)** + **higher quality** (precise gates + sharper loop routing)
+
+### Added
+
+- **Outer Sprint Loop** — Pre-Sprint (`bd ready` + audit + `bd create`) → Sprint Exec (inner loop) → Sprint Close (`bd close` + `git push` + `bd remember` + retro 1-pager) → next sprint
+- **NEW `/sprint` command** — sub-commands: `pre` (planning), `status` (mid-sprint), `close` (deploy + retro), `retro` (standalone)
+- **Phase 1a Foundation (TRUE parallel)** — Bella ∥ Sara on independent scope (BA vs SA), end with light cross-read (NO mid-checkpoint cross-read overhead from v2.7)
+- **Phase 1b Conditional Expand (sequential)** — Uma + Domain read 1a baseline → produce wireframe/tokens/a11y/baseline + regulation/business rule → `outputs/SPEC-<bd-id>.md`
+- **Phase 3a UI Check (Uma POST — sequential gate)** — Uma verify screenshot diff + a11y manual + own AC BEFORE Chris/Quinn (catches UI bug early, saves Chris/Quinn effort)
+- **Phase 3b Code Review (Chris ∥ Quinn TRUE parallel)** — only after Uma POST PASS; truly independent scope (static review vs runtime test)
+- **Phase 4 Triage routing (precise)** — code finding → Phase 2 ∥ UI finding → Phase 1b ∥ spec finding → Phase 1a (granular vs v2.7 binary Phase 1 or 2)
+- **Phase 5 Deploy (Aaron batched sprint-end)** — reduce deploy overhead, consolidate risk; exception: P0 hotfix
+- **4 new Approval Gates**: `pre-spec-expand` (1a→1b), `pre-ui-check` (2→3a), `pre-code-review` (3a→3b); `pre-loop-exit` retained
+- **bd-native operational** — `bd ready`, `bd update --claim`, `bd update --notes`, `bd close`, `bd remember`, `bd dolt push` ทุก step (lean: state ใน bd, ไม่ verbose ใน chat)
+- **Per-issue loop state tracking** — Oliver maintain `{iter, last-phase, findings, next-phase}` per bd-id
+- **Sprint state tracking** — Oliver maintain `{sprint-N, ready, in_progress, closed, discovered}`
+- **Uma own AC + baseline screenshot** — Phase 1b produces verifiable AC + baseline for Phase 3a diff (audit-ready)
+
+### Changed
+
+- **Phase Contract refactor** — replaces v2.7 "3 macro-phase + loop" with v2.8 "Outer Sprint + Inner 5-phase Smart Coop". Backward-compat phase names (clarify/design/ux-design/review/integration) ยังใช้อ้างอิงใน sub-step
+- **Smart Coop Pattern section** — replaces "Coop Phase Pattern" (v2.7). New parallel-vs-sequential matrix อธิบายเมื่อไหร่ใช้ pattern ไหน
+- **Lifecycle Hooks** — grouped by phase (Pre-Sprint / 1a / 1b / 2 / 3a / 3b / 4 / 5 / Sprint Close) with bd commands
+- **commands/design-system.md** — refactor v2.7 7-step Coop pattern → v2.8 3-step (Triage → 1a parallel → 1b conditional sequential). Output: `outputs/SPEC-<bd-id>.md`
+- **commands/implement.md** — refactor v2.7 Coop Review (3 parallel) → v2.8 sequence (Uma POST gate → Chris ∥ Quinn parallel). Output: `outputs/REVIEW-<bd-id>.md`
+- **Oliver Engagement Plan** — sprint topology + phase-precise loop routing
+- **Bella + Sara** — both got "Phase 1a Foundation" section (parallel pattern + bd notes compact format)
+- **Uma** — replace v2.7 "Coop Design Participation + Coop Review Participation" with v2.8 "Phase 1b PRE-Design (sequential)" + "Phase 3a POST-Check (sequential gate)"
+- **Chris + Quinn** — replace v2.7 "Coop Review Participation" with v2.8 "Phase 3b Code Review (parallel AFTER Uma POST PASS)" — clarifies ordering
+- **Aaron** — add "Phase 5 Deploy (batched sprint-end)" section
+- **Dave** — Process step 10 → 10+11 (Phase 3a Uma POST gate → Phase 3b Chris ∥ Quinn parallel); Self-Routing reflect new ordering
+- **Approval Gates** — drop `pre-coop-design-exit` (v2.7), add `pre-spec-expand` + `pre-ui-check` + `pre-code-review` (v2.8); standard count remains **10**
+- **Oliver ข้อห้าม** — drop v2.7 Coop bans, add v2.8 phase-precise bans (no serialize 1a, no parallel 1b, no skip 3a gate, no serialize 3b, no skip Triage routing)
+- **DoD** — drop 3 v2.7 lines, add 5 v2.8 lines (phase-precise checkpoints)
+
+### Token cost
+
+- skills/meeting/SKILL.md: ~−1500 tokens (Coop Pattern section shrink, but added Sprint section) — net ~−500
+- agents/orchestrator.md: ~+200 tokens (sprint topology + loop state table)
+- commands/design-system.md: ~−800 tokens (3 steps vs 7 steps; integrated output instead of Coop bundle)
+- commands/implement.md: ~−200 tokens (clearer sequence)
+- **NEW commands/sprint.md**: +600 tokens
+- agents/business-analyst.md: +80 tokens
+- agents/solution-architect.md: +90 tokens
+- agents/ux-ui-designer.md: ~−100 tokens (sections cleaner)
+- agents/code-reviewer.md: ~−40 tokens
+- agents/qa-engineer.md: ~−40 tokens
+- agents/developer.md: ~+30 tokens
+- agents/devops-engineer.md: +160 tokens
+- **Total: ~−500 to −1000 tokens NET** (~−0.3% to −0.6%) — first version to REDUCE plugin size while increasing structural rigor
+
+### Why minor bump (2.7 → 2.8)
+
+Phase topology change (Coop 3-macro-phase → Smart 5-phase + Sprint outer) แต่ backward-compat phase names. Minor bump per Semver
+
+### Root cause (audit finding from dev-flow.md comparison)
+
+dev-flow.md surface ของ 3 gaps ใน v2.7.0:
+1. **Coop everywhere = wasteful** — Bella → Sara มี natural BRD-informs-ADR dependency; 4-way parallel + cross-read = 40% redundant token
+2. **Uma in Coop Review = lost gate signal** — UI bug ที่ Uma เจอ ระหว่าง parallel review = late; Uma POST sequential gate BEFORE code review = catch early
+3. **Loop routing binary** — v2.7 "Phase 1 หรือ Phase 2" loose; v2.8 "1a / 1b / 2" precise
+
+dev-flow.md gaps ที่ v2.8 ครอบ:
+- เพิ่ม Domain Expert ใน Phase 1b (dev-flow ไม่มี)
+- เพิ่ม Aaron Phase 5 Deploy (dev-flow ไม่มี)
+- เพิ่ม max iter 3 cap (dev-flow loop ไม่มี cap)
+- เพิ่ม 10 explicit Approval Gates
+
 ## [2.7.0] — Coop Workflow (Minor — structural workflow refactor)
 
 ปรับ workflow discipline ให้ตรง user mental model: **3 macro-phase + loop** แทน sequential 7 phases. Design + Review เป็น Coop (parallel + cross-feedback + integrated artifact) ไม่ใช่ serialize hand-off
