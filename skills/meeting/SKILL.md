@@ -78,6 +78,105 @@ description: |
 
 ---
 
+## 🎨 UX Evidence Protocol (🔴 v2.8.1 — extension of Project Evidence, สำหรับ UX/UI/a11y claim)
+
+UX claim ต้อง cite **tool output** (path/URL) — เหมือน Domain claim ต้อง cite version+clause
+
+### Required citation format
+```
+✅ "[axe report: tests/a11y/checkout-report.json] critical=0, serious=2"
+✅ "[Chromatic baseline: build/12345] diff=0.08%, threshold=0.1% → PASS"
+✅ "[Lighthouse: build/lh-report.html] a11y=98, perf=92"
+✅ "[screenshot: tests/visual/checkout-after.png] vs baseline:checkout-before.png"
+✅ "[Playwright trace: playwright-report/trace.zip] keyboard order verified"
+❌ "UI ดูดี contrast ผ่าน" (no tool output, no path)
+❌ "a11y ok" (no axe report, no manual checklist paste)
+❌ "matches Figma" (no screenshot diff, no Chromatic URL)
+```
+
+### Format: `[<tool>: <path/URL>] <metric>`
+
+### ถ้า cite ไม่ได้ — บังคับ explicit mark
+"⚠️ **Visual estimate** (no tool run, agent inference) — must run `make ui-test` / `axe-cli` / Chromatic ก่อน claim PASS"
+
+### Apply ทุกครั้งที่ UX agent claim:
+- Visual diff / design adherence (Chromatic / Percy / pixel diff)
+- a11y compliance (axe report / Pa11y / Lighthouse / manual screen reader)
+- Contrast ratio (Stark / WebAIM contrast checker output)
+- Performance (Lighthouse perf / Web Vitals)
+- Screenshot evidence (file path mandatory, "looks ok" forbidden)
+- Component state coverage (state inventory ticked from real render)
+
+---
+
+## 📝 REVIEW Report Format (🔴 v2.8.2 — bd-native primary, markdown fallback)
+
+ทุก review output (Phase 3a Uma POST + Phase 3b Chris/Quinn + Phase 4 Triage + `/review` standalone) ใช้ **structure เดียวกัน** เพื่อ consistent + audit-ready
+
+### Storage Rule (ห้ามซ้ำซ้อน)
+
+| Project state | Where to save | Why |
+|---------------|---------------|-----|
+| **bd active** (`.beads/` มี หรือ `bd ready` returns) | `bd update <id> --notes "..."` **ONLY** | bd = single source of truth; ห้ามเขียน markdown ซ้ำ |
+| **No bd** (project ยังไม่ adopt bd) | `outputs/REVIEW-<feature>.md` | audit trail file (fallback) |
+| **bd + sprint close** | bd notes + (optional) `outputs/RETRO-sprint-<N>.md` รวม findings ของทั้ง sprint (1 ไฟล์ต่อ sprint) | retrospective archive — bd ยัง primary |
+
+> Default = bd-native. Markdown = fallback เฉพาะตอนไม่มี bd. ห้ามเขียนทั้งคู่ (waste token + drift risk)
+
+### Mandatory Template (apply ทั้ง bd notes และ markdown fallback)
+
+```
+[<Agent>|state:<phase>|bd:<id>|iter:<N>] <verdict PASS/FAIL>
+
+## Summary
+- Scope: <files/components reviewed>
+- Iter: <N>/3
+- Verdict: PASS | FAIL | BLOCKED
+
+## Findings (เรียง severity)
+### 🔴 Critical (block merge)
+1. [<file>:<line>] <issue> — <why> — fix: <before/after compact>
+   - Evidence: <tool output path / paste>
+### 🟠 High (fix before merge)
+...
+### 🟡 Medium (track P2-P3)
+...
+### 🔵 Low (nitpick, optional)
+...
+
+## Coverage / Test (Chris/Quinn เท่านั้น)
+- Unit: <coverage %> | Mutation kill: <%>
+- Integration: <pass/fail counts>
+- E2E: <pass/fail> | Critical path: <covered/total>
+- Contract: <Pact/Schemathesis status>
+- a11y axe: critical=N, serious=N
+- Load: p95=<ms>, error=<%>
+
+## UX Verdict (Uma เท่านั้น)
+- Visual diff: <%> [Chromatic URL / path]
+- Token usage: <pass/fail> [Bash rg output]
+- a11y manual: keyboard/SR/contrast verdict
+- Component states: <N/8>
+- AC bullet (per AC): ✅/❌ + evidence path
+
+## Loop Routing Recommendation (Phase 4 input)
+- Critical/Major issue type: code / UI / spec
+- Recommend next phase: 2 / 1b / 1a / close
+- Discovered (P4 carry): <bd-create candidates>
+```
+
+### Compact bd notes (≤ 500 chars — ลีน)
+ถ้า findings เยอะ ใส่ **summary + count + link** ใน bd notes; full evidence (axe report json, Playwright trace, screenshot) ที่ **path** (Aaron tool scaffold) → bd note refs path เท่านั้น
+
+```bash
+bd update <id> --notes "Phase 3b: Chris finding=2🔴+3🟠; Quinn finding=0🔴+1🟠. Loop=Phase2 (code fix). Evidence: tests/a11y/*.json, playwright-report/. Iter 1/3."
+```
+
+### Markdown fallback (no bd) — `outputs/REVIEW-<feature>.md`
+Full template ที่ structured ข้างบน. Use เฉพาะ no-bd project (legacy / quick audit) — ห้ามใช้คู่กับ bd
+
+---
+
 ## 📚 Domain Evidence Protocol (🔴 v2.6 — extension of Project Evidence)
 
 Domain claim (regulation/standard/protocol/spec) ต้อง cite **เหมือน project fact**
@@ -477,6 +576,7 @@ Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly i
 □ 🔴 v2.8 — Phase 3a UI Check PASS (Uma verdict before Chris/Quinn เริ่ม)
 □ 🔴 v2.8 — Phase 3b Code Review passed (Chris ∥ Quinn parallel, 0 Critical/Major)
 □ 🔴 v2.8 — Loop iter ≤ 3 + routing precise (code→2, UI→1b, spec→1a); iter > 3 → escalate user
+□ 🔴 v2.8.2 — Review report posted (bd active → `bd update --notes` ตาม REVIEW template; no bd → `outputs/REVIEW-<feature>.md`). ห้ามเขียนคู่
 □ Code merged + CI green (lint+type+unit+integration+SAST+SCA)
 □ Contract test pass (Pact/Schemathesis — BE ↔ FE align)
 □ Mutation test kill rate ≥ 70% (business logic)
@@ -509,6 +609,42 @@ Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly i
 - ✅ "Hit endpoint → response: [paste JSON]"
 - ✅ "Open browser → screenshot: [link/path]"
 - ✅ "Docker up → `docker compose ps`: [paste status]"
+
+### 🔴 v2.8.1 — Anti-Puppet UX/UI (Uma + frontend agents)
+
+ห้าม claim UX/UI/a11y ผ่านโดยไม่มี tool evidence:
+- ❌ "UI matches Figma ครับ"
+- ❌ "Design adherence ok"
+- ❌ "Contrast ผ่าน WCAG AA"
+- ❌ "a11y ok"
+- ❌ "Token usage ถูกต้อง"
+- ❌ "Visual diff น้อย"
+
+บังคับ pattern (UX evidence):
+- ✅ "[Bash: `make ui-test`] Playwright 8/8 pass; visual diff 0.05% (Chromatic build/12345)"
+- ✅ "[Bash: `axe-cli http://localhost:3000/checkout`] critical=0, serious=2 → [report: tests/a11y/checkout.json]"
+- ✅ "[Bash: `playwright test --update-snapshots`] baseline screenshot saved: tests/visual/checkout-before.png"
+- ✅ "[screenshot diff: tests/visual/checkout-diff.png] vs baseline — alignment off-spec 4px, button width +12px → FAIL"
+- ✅ "[manual keyboard test pasted] Tab → header logo → nav → CTA → form fields in order ✅"
+
+ทำไม่ได้ = "❌ ไม่ได้รัน เพราะ [no Playwright in project / no axe installed]" — ตรงไป ห้ามแกล้งผ่าน
+
+### Mandatory paste-evidence for Uma POST (Phase 3a)
+```
+[Uma|state:phase-3a|bd:42] POST verdict
+- Visual diff: [Bash: `npx chromatic ...`] baseline build/12345 → current build/12346, diff 0.08%
+- Screenshot before: tests/visual/checkout-before.png
+- Screenshot after:  tests/visual/checkout-after.png
+- Token usage: [Grep: `grep -r 'background:' src/checkout/ | grep -v "var(--"`] 2 hardcoded → FAIL
+- a11y axe: [Bash: `axe-cli http://localhost:3000/checkout --save report.json`] critical=0
+- Contrast manual: [WebAIM check] #333 on #fff = 12.6:1 ✅; #999 on #fff = 2.85:1 ❌ FAIL
+- AC verification (bullet per AC):
+  - AC-1 user sees price: ✅ [screenshot: tests/visual/checkout-after.png frame:price]
+  - AC-2 mobile responsive 320px: ❌ [screenshot: tests/visual/mobile-320.png] overflow detected
+  - AC-3 keyboard focus order: ✅ [Playwright trace: playwright-report/trace.zip]
+  ...
+- Verdict: FAIL (2 issues: hardcoded color, mobile overflow) → loop Phase 2
+```
 
 ### 🔴 v2.4 — Anti-Real-World-Guess (extension)
 
@@ -598,6 +734,24 @@ Risk: [what] | Likelihood: L/M/H | Impact: L/M/H | Mitigation: [concrete] | Owne
 - 🔴 v2.8 — ห้าม skip Phase 3a Uma POST gate. Dave → Chris+Quinn ตรงเลย โดยไม่ผ่าน Uma = UI bug ลึกค่อย rework
 - 🔴 v2.8 — ห้าม serialize Phase 3b (Chris → Quinn รอคิว); parallel เท่านั้น (different scope)
 - 🔴 v2.8 — ห้าม skip Phase 4 Triage routing. Review fail → loop ไป phase ที่ตรง finding (code→2, UI→1b, spec→1a); ห้าม "ผ่านครึ่ง ๆ" ข้ามไป Deploy
+- 🔴 v2.8.2 — ห้าม close Phase 3 (3a/3b) ก่อน post review report. **bd active → `bd update <id> --notes` ONLY** (ห้ามเขียน markdown ซ้ำ). **No bd → `outputs/REVIEW-<feature>.md`** (markdown fallback). ใช้ template structure จาก "REVIEW Report Format" section
+- 🔴 v2.8.2 — ห้ามเขียน review เป็น markdown ถ้ามี bd. bd = single source of truth; markdown = audit redundancy + drift risk
+
+### 🔴 v2.8.1 — Universal UX/UI Quality Rules (บังคับทุก frontend agent — Uma, Dave, Quinn)
+
+- ห้าม **hardcoded color** ใน code → use semantic token (CSS var / tailwind class จาก tokens.json)
+- ห้าม **hardcoded spacing** ที่ไม่ใช่ 8-pt grid (`4px / 8px / 12px / 16px / 24px / 32px / 48px / 64px`) — token ปกติ scale 1.0 / 1.5 / 2
+- ห้าม **focus order ≠ visual order** (no `tabindex>0`; rely on DOM order)
+- ห้าม **contrast < 4.5:1** สำหรับ text หรือ **< 3:1** สำหรับ UI/large text (WCAG AA)
+- ห้าม **color เดี่ยวสื่อ status** (ต้องคู่กับ icon/label/pattern)
+- ห้าม **fixed-pixel layout** ที่ไม่ responsive — mobile-first 320px expand
+- ห้าม **missing focus indicator** (default browser outline ok; ห้าม `outline: none` without alternative)
+- ห้าม **missing aria-label/role** บน interactive element (button/input/link)
+- ห้าม **touch target < 44×44** (iOS HIG) / < 48dp (Material)
+- ห้าม **component state ขาด** — ทุก interactive component ต้องมี default/hover/active/focus/disabled/loading/error/empty (atomic 7 state)
+- ห้าม **heading skip level** (h1→h3 ห้าม; ต้อง h1→h2→h3)
+- ห้าม **flash/auto-play motion** ที่ไม่ respect `prefers-reduced-motion`
+- ห้าม **i18n text overflow** — design text expand 30% (ภาษาเยอรมัน/ไทย ยาวกว่าอังกฤษ)
 
 ---
 
@@ -805,3 +959,343 @@ Use case: parallel Dave, hotfix-while-feature, A/B
 - `references/modern-stack.md` — 2025+ tech recommendation (Sara/Aaron/Dave)
 - `references/patterns/general.md` — DB/API/Observability/FF/AI patterns (Dave)
 - `references/languages/<lang>.md` — language best practice (Dave — 14 ภาษา)
+
+---
+
+# 🆕 v3.0 SECTIONS — Teams, Handoff, Drift Defense, New Phases
+
+---
+
+## 👥 Team Structure (🔴 v3.0)
+
+7 teams ที่ทำงาน **parallel ภายในทีม + sequential ระหว่างทีม** (cross-team handoff = phase gate)
+
+| Team (short) | Agents | Phase ที่ active | Deliverable |
+|--------------|--------|------------------|-------------|
+| 🧭 **Lead** | Oliver + Stan | ทุก phase (orchestrate) | Workflow state + tech depth |
+| 🔍 **Discover** | Patrick + Domain SME | Phase 0 | OKR + opportunity + domain validation |
+| 📐 **Design** | Bella + Sara + Uma | Phase 1a/1b/3a | Spec + Architecture + UI artifacts |
+| 🎓 **Domain** | Felix/Elena/Sam/Tara/Iris/Brooke/Emma | Phase 0/1b/3b (pluggable) | Regulation cite + business rule |
+| 🛠 **Dev** | Dave (parallel Dave#N) + Devon + Mason | Phase 2 | Production code + data + ML |
+| ✅ **Verify** | Chris + Quinn + Sentinel | Phase 3b | Code review + Test + Security |
+| 🚀 **Ops** | Aaron + Reggie | Phase 5/6 | Deploy + SLO + Incident |
+
+### Single-owner capability matrix (🔴 zero overlap)
+
+| Capability | Sole Owner | ห้ามทับโดย |
+|------------|------------|------------|
+| User research, OKR, RICE/WSJF priority | **Patrick** | Bella |
+| BRD / FRD / AC G-W-T / RTM | **Bella** | Patrick (input only) |
+| C4 / ADR / NFR / tech stack | **Sara** | Stan, Aaron |
+| Cross-team consistency, tech radar, polyglot review | **Stan** | Sara (per-project only) |
+| Wireframe / design tokens / a11y design / visual baseline | **Uma** | Quinn (axe automation only) |
+| Domain regulation cite, business rule | **Domain SME** | ทุกคน |
+| Production code (BE/FE/integration) | **Dave** (Dave#N parallel) | Chris (test only) |
+| Data pipeline / ETL / CDC / Kafka / dbt | **Devon** (opt) | Dave (collab) |
+| ML model / RAG / vector / prompt eval | **Mason** (opt) | Dave (collab) |
+| 7-dim review + Unit + Mutation ≥ 70% | **Chris** | Quinn (ห้าม unit) |
+| Integration + E2E + Contract + Load + axe auto | **Quinn** | Chris (ห้าม integ), Uma (ห้าม automation) |
+| STRIDE / SAST / DAST / Secrets / Pen test / CSP | **Sentinel** | Sara, Chris, Quinn (handoff in v3.0) |
+| Dockerfile / CI/CD / IaC / Deploy build | **Aaron** | Reggie (ห้าม build) |
+| SLO / SLI / Error budget / Incident / Runbook | **Reggie** | Aaron (ห้าม SLO) |
+| Workflow orchestration / state / delegation | **Oliver** | Patrick |
+| API docs / Developer portal / Release notes | **Tex** (opt) | Bella (BRD only) |
+
+> Rule: ทุก agent ก่อน accept งานต้องประกาศ "ผมรับ capability X" — ถ้าไม่ใช่ sole owner = reroute
+
+---
+
+## 🤝 Handoff Broadcast Protocol (🔴 v3.0 — caveman 1-line)
+
+### Format มาตรฐาน
+```
+[<from>] ▸ [<to>] : <what> (bd-<id>)
+```
+
+### Agent-to-agent
+```
+Bella ▸ Dave   : impl bd-42
+Dave  ▸ Verify : CR + test + sec (bd-42)
+Verify ▸ Oliver : 2 Major, 1 Minor
+Oliver ▸ Dave   : fix M (bd-42, iter 2)
+Oliver ▸ Ops    : deploy bd-42
+Ops    ▸ ✓      : prod stable, SLO green
+```
+
+### Team-level (whole team activates)
+```
+Design  ▸ Dev    : spec done (bd-42)
+Dev     ▸ Verify : impl done
+Verify  ▸ Lead   : triage
+Lead    ▸ Ops    : ship it
+```
+
+### กติกา 4 ข้อ
+1. **1 บรรทัด** เท่านั้น (รายละเอียดที่ bd notes)
+2. **bd-id บังคับ** ถ้า inner-loop; team-level ไม่ต้อง
+3. **Arrow** = `▸` (ใช้ consistent ทั้ง project)
+4. **State explicit** สั้น: `impl / CR / test / sec / fix / retest / clean / deploy / ✓`
+
+---
+
+## 📋 RACI per Phase (🔴 v3.0)
+
+> R = Responsible (does) | A = Accountable (one sign-off) | C = Consulted | I = Informed
+
+| Phase | R | A | C | I |
+|-------|---|---|---|---|
+| **0 Discover** | Patrick, Domain SME | **Patrick** | Bella, Sara, Stan | Oliver |
+| **1a Foundation** | Bella, Sara | **Oliver** (gate) | Stan, Domain SME, Patrick | Uma, Dave |
+| **1b Pre-Design** | Uma, Domain SME | **Uma** | Sara, Bella | Dave, Quinn |
+| **1c Threat Model** | Sentinel | **Sentinel** | Sara, Domain SME | Chris, Quinn |
+| **2 Implement** | Dave (parallel) | **Oliver** (scope enforce) | Chris, Stan | Uma, Quinn, Sentinel |
+| **3a UI Check** | Uma | **Uma** | Dave | Chris, Quinn |
+| **3b Quality Coop** | Chris, Quinn, Sentinel, Aaron | **Oliver** (triage) | Stan, Domain SME | Dave, Uma |
+| **4 Triage** | Oliver | **Oliver** | Chris, Quinn, Sentinel | Dave, Patrick |
+| **5 Deploy** | Aaron, Reggie | **Aaron** (build) + **Reggie** (SLO) | Quinn, Sentinel | All |
+| **6 Operate** | Reggie | **Reggie** | Aaron, Oliver, Patrick | Dave |
+| **7 Learn** | Patrick, Oliver | **Patrick** (OKR) + **Oliver** (process) | All | Stakeholder |
+
+---
+
+## 🆕 New Phases (🔴 v3.0)
+
+### Phase 0 — Discovery (NEW)
+- **Owner**: 🔍 Discover Team (Patrick + Domain SME)
+- **Trigger**: Pre-sprint, new initiative, no bd issue yet
+- **Output**: OKR + opportunity sizing + RICE/WSJF priority + Domain pain validation
+- **Gate**: `pre-spec` — sign-off ก่อน Phase 1a Foundation
+- **Why**: ก่อน v3.0 กระโดดเข้า BRD ทันที → 30% งานถูก kill ภายหลัง
+
+### Phase 1c — Threat Model (NEW)
+- **Owner**: ✅ Sentinel (lead) + Sara (architecture context)
+- **Trigger**: feature touching auth / PII / money / external integration / file upload / AI agent
+- **Output**: STRIDE + abuse case + security AC injected into Phase 1a
+- **Gate**: `pre-implement` — สิทธิ์ block Phase 2 ถ้าไม่ผ่าน
+- **Note**: ขนาน parallel กับ 1b ได้ ถ้า scope independent
+
+### Phase 6 — Operate (NEW — continuous post-deploy)
+- **Owner**: 🚀 Reggie (lead) + Aaron (infra) + Oliver (escalation routing)
+- **Trigger**: post-deploy continuous
+- **Output**: SLO burn rate watch + incident response + blameless postmortem + runbook update
+- **Escalation**: error budget < 0 → ping Patrick (PM) for feature freeze conversation
+
+### Phase 7 — Learn (NEW — sprint retro / monthly)
+- **Owner**: 🧭 Lead Team (Patrick + Oliver)
+- **Trigger**: Sprint close / monthly retro
+- **Output**: OKR review + kill decision + tech debt RICE prioritization + capacity recalibration
+- **Why**: ก่อน v3.0 `/sprint close retro` ทำ implicit — promote เป็น explicit ownership PM+EM
+
+---
+
+## 🛡️ Workflow Drift Defense (🔴 v3.0 — 7 Mechanisms)
+
+แก้ปัญหา **agent หลุด workflow ใน follow-up message** — Dave บอก "เสร็จแล้ว" โดยไม่ผ่าน Verify, fix ตรงโดยไม่ผ่าน Phase 1a
+
+### M1 — Ingress Guard (🔴 บังคับ ก่อน respond ทุก message)
+
+ทุก agent ก่อนตอบ user message ใน active engagement:
+```
+1. bd show <id>   → no bd-id → STOP, route Oliver triage
+2. read state     → state ∈ {pick|impl|ui-check|review|triage|done}
+3. classify msg   → {new-task|fix|spec-change|question|done-claim|cancel}
+4. route check    → message type × current state = valid? FAIL → STOP, explicit reroute
+```
+
+### M2 — Follow-up Classifier (Oliver auto-triage ทุก user message)
+
+```
+User message → Oliver classify (1-line caveman):
+  "ลองใหม่ / ไม่ work"   → fix     → reopen bd, iter+1, Phase 2
+  "เปลี่ยน X"             → spec    → reopen bd, Phase 1a (Bella/Sara redo)
+  "ทำไม Y / ที่นี่ทำไม"   → quest   → answer, no phase change
+  "OK / ผ่าน / approve"   → approve → bd close gate check
+  "เพิ่ม Z"               → new     → bd create child issue
+  "เสร็จยัง"              → status  → bd show, no action
+```
+
+ห้าม Dave/Chris/Quinn proceed ก่อน Oliver classify
+
+### M3 — Anti-Puppet "Done" (extend v2.8.1 Anti-Puppet)
+
+| Agent | Can say | Can NOT say |
+|-------|---------|-------------|
+| Dave | "code edited", "smoke ✓" | "feature done", "ready merge" |
+| Chris | "7-dim clean", "unit ≥ 80%" | "ready merge", "ready prod" |
+| Quinn | "E2E green", "load p95 ok" | "ready prod" |
+| Sentinel | "STRIDE pass", "0 critical" | "secure" (without observability proof) |
+| Uma | "UI verdict PASS" | "shipped" |
+| **Oliver** | "ready merge" — ต้องมี Chris+Quinn+Sentinel(+Uma) bd notes ครบ | — |
+| **Reggie** | "✓ prod stable" — ต้อง SLO 2hr observed | — |
+
+### M4 — User Comment = FAIL by default
+
+```
+User comments on agent claim ("ยังไม่ดี" / "ลองใหม่" / "เพิ่มอันนี้"):
+  → bd update <id> --notes "user-feedback: <quote>"
+  → iter++
+  → reopen Phase ที่ feedback ชี้ไป (default = Phase 2)
+  → ห้าม close bd ในรอบเดียวกัน
+```
+
+ห้าม Dave "OK เพิ่มให้ครับ" → fix ตรง ๆ โดยไม่ผ่าน iter counter
+
+### M5 — Spec change = mandatory bd revision
+
+```
+User: "เปลี่ยน amount เป็น decimal"
+  ❌ WRONG: Dave fix code ตรง
+  ✅ RIGHT:
+     Oliver  ▸ Bella  : spec change request
+     Bella   → bd create bd-42-r2 (revision)
+     Bella ∥ Sara : Phase 1a redo (delta only — light)
+     Gate: pre-spec-expand
+     Phase 1b → 1c → 2 → 3 → propagate
+```
+
+### M6 — Conversation State pin (persistent)
+
+ไฟล์ `outputs/SESSION-STATE.md` (Oliver maintain) — สำคัญสำหรับ warm follow-up:
+```
+Active Engagement: E-1 "Refund flow"
+Active bd issues:
+  - bd-42 : state:review-pending  iter:2  last:Chris-3b
+  - bd-43 : state:impl             iter:1  last:Dave#2
+
+Last handoff:
+  Dave ▸ Verify (bd-42, iter:2)
+
+Pending gates:
+  - pre-loop-exit (bd-42) : waiting Quinn + Sentinel notes
+```
+
+ทุก agent **read SESSION-STATE first** → ห้าม respond ก่อน
+
+### M7 — Direct-to-agent block
+
+```
+User direct ping → Dave (bypass Oliver):
+  ❌ WRONG: Dave "OK ครับ" ทำ
+  ✅ RIGHT: Dave ▸ "ผมต้อง escalate Oliver ก่อน — message นอก phase context
+                   (bd-42 state:review-pending). Classify ก่อน"
+  → Oliver ingest, re-classify (M2)
+```
+
+ทุก agent ที่ไม่ใช่ Oliver ห้าม accept direct-from-user ใน active engagement — ส่งกลับ Oliver
+
+---
+
+## 🆕 Skills (v3.0 — short names + lazy-load)
+
+| Skill | Char | Owner | Trigger |
+|-------|------|-------|---------|
+| `meeting` | 7 | ALL | Engagement entry — discipline foundation |
+| `dev-gate` | 8 | Dave + Chris | Production code, TDD, refactor |
+| `ci-test` (was automate-test) | 7 | Quinn + Chris + Aaron | CI test pyramid + gate |
+| `ui-test` | 7 | Quinn + Uma + Dave | Playwright + axe + visual regression |
+| `debug` (was diagnose) | 5 | Chris + Quinn + Dave | Bug + perf root cause |
+| `caveman` | 7 | Oliver + ALL | Compressed output mode |
+| `web-q` (NEW) | 5 | Uma + Dave + Quinn + Aaron | Core Web Vitals + SEO + security headers |
+| `secure` (NEW) | 6 | Sentinel | STRIDE + CSP + Trusted Types + SAST/DAST |
+| `slo` (NEW) | 3 | Reggie | SLI / SLO / error budget |
+| `incident` (NEW) | 8 | Reggie + Oliver | Runbook + on-call + postmortem |
+| `data-eng` (NEW, opt) | 8 | Devon | ETL/CDC/Kafka/dbt/lakehouse |
+| `ml-eng` (NEW, opt) | 6 | Mason | RAG + vector + prompt eval |
+| `mobile` (NEW, opt) | 6 | Dave + Uma | App Store / Play / Fastlane / deep link |
+
+**Removed in v3.0** (apply-v3.0.sh): `sd`, `do` (identical to meeting v1.1), `tdd` + `code-quality` (merged → `dev-gate`), `grill-me` (merged → `meeting` Clarifying), `triage`, `to-prd`, `to-issues`, `zoom-out` (empty stubs)
+
+---
+
+## 🧪 Clarifying — option-style v3.0 (was `grill-me`)
+
+> Merged from `grill-me` skill into meeting foundation
+
+### หลักการ
+**ห้ามเดา → ห้ามทำ** ก่อน confirm ทุก ambiguity. ตัวเลือก > คำถามเปิด
+
+### Format (🔴 บังคับ)
+```
+Q: [คำถาม]
+  A) [option] (Recommended — เหตุผลสั้น)
+  B) [option]
+  C) [option]
+  D) อื่นๆ (ระบุ)
+```
+
+- 2-4 options + "อื่นๆ" เสมอ
+- Recommend ตัวแรก + เหตุผล 1 บรรทัด
+- Label ≤ 5 คำ + คำอธิบาย 1 บรรทัด
+- Batch 3-7 คำถามรอบเดียว → ลด round-trip
+
+### 6 Patterns
+
+**Stack**:
+```
+Q: Backend framework?
+  A) FastAPI (Recommended — type + async + OpenAPI)
+  B) NestJS (TS)
+  C) Spring Boot (JVM)
+```
+
+**Scope**:
+```
+Q: รวม authentication?
+  A) ใช่ (built-in)
+  B) ไม่ — assume มี SSO
+  C) optional (flag)
+```
+
+**Severity**:
+```
+Q: Severity?
+  A) 🔴 Critical (prod block / security / money)
+  B) 🟠 High (visible bug, data loss risk)
+  C) 🟡 Medium (workaround มี)
+  D) 🔵 Low (UX nitpick)
+```
+
+**Auth method**:
+```
+Q: Auth?
+  A) OAuth 2.1 + PKCE (Recommended — modern, SPA-safe)
+  B) Session cookie + CSRF
+  C) JWT bearer (with refresh)
+```
+
+**Tracker**:
+```
+Q: Tracker?
+  A) bd (Recommended — bd-native v3.0)
+  B) GitHub Issues
+  C) Linear
+  D) Jira
+```
+
+**Deployment target**:
+```
+Q: Deploy target?
+  A) Docker + K8s (Recommended — portable)
+  B) Vercel / Netlify (serverless)
+  C) Bare metal / VM
+  D) Edge (Cloudflare Workers)
+```
+
+### เมื่อไหร่ NOT to grill
+- User ระบุชัดอยู่แล้ว
+- ตอบเองได้จาก context (อ่าน file/code ดู)
+- Low-stakes (ทำผิดเปลี่ยนได้ง่าย)
+- Tactical work ไม่กำหนด direction
+
+---
+
+## 📐 Universal v3.0 Quality Rules — summary
+
+Adds to existing Universal UX/UI Rules (v2.8.1):
+
+1. **Zero overlap rule** — ทุก capability มี sole owner (single-owner matrix); agent อื่น ห้ามผลิต deliverable
+2. **Handoff broadcast rule** — ทุก phase transition ต้อง broadcast 1-line caveman pattern `[from] ▸ [to] : <what> (bd-id)`
+3. **Ingress Guard rule** — agent ก่อน respond ใน active engagement: bd show → read state → classify msg → route check
+4. **Anti-Puppet Done rule** — Dave/Chris/Quinn/Sentinel/Uma ห้าม claim "done"; only Oliver after multi-sig
+5. **User Comment = FAIL rule** — feedback ใด ๆ = re-open bd + iter++
+6. **Spec change = bd revision rule** — verbal change ห้าม fix ตรง → ผ่าน Bella/Sara Phase 1a redo

@@ -100,14 +100,35 @@ Keyword trigger → domain expert:
 - booking/rate (hotel/airline) → **Brooke**
 - cart/checkout/promotion → **Emma**
 
-## Step 4 — Consolidated Report
+## Step 4 — Consolidated Report (🔴 v2.8.2 — bd-native primary, markdown fallback)
 
-- Action items by severity
-- Recommendation priority
-- Block merge / Fix before merge / Backlog
-- **ถ้า Jira**: `addCommentToJiraIssue(issueIdOrKey, comment=สรุป findings)` + link report
+Format ตาม **REVIEW Report Format** (meeting skill): Summary / Findings by severity / Coverage / UX Verdict (ถ้ามี) / Loop Routing Recommendation
 
-→ `outputs/review-{KJERP-402 | path | bug-YYYYMMDD}.md`
+**Storage rule** (ห้ามซ้ำซ้อน):
+```bash
+# Detect storage:
+if [ -d ".beads" ] || bd ready --json >/dev/null 2>&1; then
+  # bd active → bd notes ONLY
+  if [ -n "$BD_ID" ]; then
+    bd update "$BD_ID" --notes "<compact REVIEW template, refs evidence paths>"
+  else
+    bd create -t review-finding "$ARGUMENTS" --notes "<full REVIEW template>"
+  fi
+else
+  # No bd → markdown fallback
+  SLUG="${KJERP_KEY:-${BUG_DATE:-$(echo "$ARGUMENTS" | tr -cd '[:alnum:]-' | cut -c1-40)}}"
+  cat > "outputs/REVIEW-$SLUG.md" <<EOF
+  <full REVIEW template>
+  EOF
+fi
+
+# Always: link to external tracker if applicable
+if [ -n "$KJERP_KEY" ]; then
+  addCommentToJiraIssue(issueIdOrKey="$KJERP_KEY", comment="สรุป findings + bd link หรือ md path")
+fi
+```
+
+→ ห้ามเขียนทั้ง bd + markdown — เลือกตาม project state
 
 ## ⚠️ Rules
 

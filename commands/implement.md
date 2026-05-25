@@ -8,13 +8,34 @@ Implement: **$ARGUMENTS** (bd-id หรือ feature description)
 
 ## Pipeline (Phase 2 → 3a → 3b → 4)
 
-### 0. UI Precondition Check (Oliver — 🔴 v2.6.1)
+### 0. UI Precondition Check (Oliver — 🔴 v2.6.1 + v2.8.1 auto-trigger)
 
 ก่อน delegate ไป Dave — Oliver ตรวจ:
-- bd issue มี SPEC-<bd-id>.md ที่ Phase 1b ส่งมาไหม?
-- Feature touch frontend? → บังคับมี Uma artifact (Figma + tokens + a11y + baseline + Uma's AC)
-- ไม่มี Uma artifact + frontend = **STOP**, route to `/design-system` Phase 1b
-- Pure backend? → proceed without Uma
+
+**🔴 v2.8.1 — Auto-trigger Phase 3a detection (บังคับ Bash check)**:
+```bash
+# Detect frontend trigger จาก spec scope (Dave's planned Files):
+echo "$DAVE_PLANNED_FILES" | grep -qE "\.(vue|tsx|jsx|svelte|html|css|scss|sass|less)$|/(frontend|components|pages|views|app)/" \
+  && export FRONTEND_TRIGGER=1 \
+  || export FRONTEND_TRIGGER=0
+```
+
+- ถ้า `FRONTEND_TRIGGER=1`:
+  - bd issue มี SPEC-<bd-id>.md ที่ Phase 1b ส่งมาไหม?
+  - มี Uma artifact (Figma + tokens + a11y + baseline + Uma's AC) ครบไหม?
+  - ไม่มี = **STOP**, route to `/design-system` Phase 1b
+  - **🔴 v2.8.1 — บังคับ invoke Uma POST (Phase 3a) ก่อน Chris+Quinn** — ห้าม Oliver "decide skip เพราะ minor change"; auto-detected = auto-required
+- ถ้า `FRONTEND_TRIGGER=0` (pure backend/API/data/CLI): proceed without Uma; Phase 3a skip ผ่าน gate อัตโนมัติ
+
+**Detection หลังจาก Dave Phase 2 done** (re-check ก่อน Step 5):
+```bash
+# git diff ของ Dave's commit → frontend triggered ไหม
+git diff --name-only HEAD~1 HEAD | grep -qE "\.(vue|tsx|jsx|svelte|html|css|scss|sass|less)$|/(frontend|components|pages|views|app)/" \
+  && echo "FRONTEND CHANGED — Phase 3a Uma POST MANDATORY" \
+  || echo "no frontend — skip Phase 3a"
+```
+
+ถ้า frontend detected แต่ Phase 1b ไม่มี Uma artifact = Dave touch UI โดยไม่ผ่าน design = scope drift = STOP + escalate
 
 ### 1. Context (Dave)
 
@@ -41,32 +62,48 @@ Implement: **$ARGUMENTS** (bd-id หรือ feature description)
 - Parallel Dave#1/#2 ถ้า truly independent files (Scope Contract enforce no overlap)
 - Commit: Conventional Commits + bd ref (`feat(...): ... [bd:42]`)
 
-### 4. Smoke Test (Dave)
+### 4. Smoke Test (Dave) — 🔴 v2.8.1 screenshot mandatory ถ้า frontend
 
-- Start server + curl happy path
-- Lint + type + unit pass
-- `bd update <id> --notes "Phase 2 done: smoke ok, files: [...]"`
+- Start server + curl happy path → paste 200
+- Lint + type + unit pass → paste output
+- **🔴 v2.8.1 — ถ้า frontend changed (touch *.vue/*.tsx/*.jsx/*.svelte/*.html/css/scss/components/pages/views/frontend/)**:
+  ```bash
+  # MUST capture screenshot:
+  pnpm exec playwright screenshot --viewport-size=1440,900 http://localhost:3000/<route> tests/visual/<feature>-after.png
+  pnpm exec playwright screenshot --viewport-size=375,812 http://localhost:3000/<route> tests/visual/<feature>-mobile-after.png
+  ls -lh tests/visual/<feature>-*.png    # paste paths
+  ```
+  ห้าม hand-off Uma POST ถ้าไม่ paste screenshot path — Uma มี baseline แล้ว ต้องการ "after" เพื่อ diff
+- `bd update <id> --notes "Phase 2 done: smoke ok, files: [...], screenshot: [paths ถ้า frontend]"`
 
-⏸️ **Gate: pre-ui-check** — lint clean + unit green + smoke pass → unlock Phase 3a
+⏸️ **Gate: pre-ui-check** — lint clean + unit green + smoke pass + screenshot evidence (ถ้า frontend) → unlock Phase 3a
 
-### 5. UI Check (Uma — Phase 3a, conditional — sequential gate 🔴 v2.8)
+### 5. UI Check (Uma — Phase 3a, sequential gate 🔴 v2.8 + v2.8.1 auto-trigger)
 
-ถ้า frontend changed:
-- Uma reads Dave's PR + Phase 1b baseline + Uma's own AC
-- Screenshot ตอนนี้ vs baseline (Chromatic/Percy หรือ manual)
-- Manual a11y: keyboard, screen reader (VoiceOver/NVDA spot check), focus order, reduced motion, contrast
-- Component state validation: ตรวจ default/hover/active/focus/disabled/loading/error/empty ครบไหม
-- Content design: microcopy, error message, empty state copy ตรง spec
-- Verdict: **PASS** → unlock Phase 3b ∥ **FAIL** → loop Phase 2 (Dave fix) หรือ Phase 1b (Uma redesign baseline)
+**🔴 v2.8.1 — Auto-trigger** (จาก Step 0 detection): ถ้า frontend changed (git diff match `.vue/.tsx/.jsx/.svelte/.html/.css/.scss` หรือ `frontend/components/pages/views/`) = **MANDATORY**. ห้าม Oliver/Uma "skip เพราะ minor"
 
-```bash
-# Uma post finding:
-bd update <id> --notes "Phase 3a Uma POST: PASS (visual diff 0.05%, a11y 0 critical, AC 7/7)"
-# หรือ
-bd update <id> --notes "Phase 3a Uma POST: FAIL — visual diff 2.3% (button spacing off-spec), loop Phase 2"
-```
+Uma เข้า Phase 3a ทำตาม **mandatory Bash invocation pattern** ใน `agents/ux-ui-designer.md` Phase 3a Process (11 steps):
+1. Read context (bd show + SPEC-id)
+2. Spin up app (docker compose / make dev + curl /health)
+3. Capture current screenshot (Playwright Bash)
+4. Visual diff (Chromatic / pixel diff Bash)
+5. Design adherence (rg hardcoded color + off-grid spacing Bash)
+6. a11y axe (axe-cli Bash + jq violations)
+7. a11y manual (keyboard + screen reader + paste observations)
+8. Contrast verify (wcag-contrast-checker Bash)
+9. Component state (Playwright tests/states/ Bash)
+10. Content design (manual paste vs spec)
+11. AC verification (bullet per AC + evidence path)
 
-⏸️ **Gate: pre-code-review** — Uma POST PASS → unlock Phase 3b. ถ้า pure backend skip Phase 3a → ผ่าน gate อัตโนมัติ
+**🔴 v2.8.1 — Anti-Puppet UX/UI (meeting skill บังคับ)**: ห้าม claim PASS โดยไม่ paste tool output. Verdict format ดู `agents/ux-ui-designer.md`
+
+Verdict:
+- **PASS** → `bd update <id> --notes "Phase 3a Uma POST PASS — evidence: [Chromatic build/N, axe report path, AC bullets]"` → unlock Phase 3b
+- **FAIL** → `bd update <id> --notes "Phase 3a FAIL — [specific issues + paths]"` → Triage routing:
+  - Implementation gap (Dave ทำผิด wireframe) → loop Phase 2
+  - Design baseline ผิด (Uma's own AC ไม่ถูก) → loop Phase 1b
+
+⏸️ **Gate: pre-code-review** — Uma POST PASS → unlock Phase 3b. Pure backend (no frontend trigger) skip Phase 3a → ผ่าน gate อัตโนมัติ
 
 ### 6. Code Review (Chris ∥ Quinn — Phase 3b, TRUE parallel 🔴 v2.8)
 

@@ -28,16 +28,20 @@ Quinn start **after** Phase 3a Uma POST PASS (sequential gate `pre-code-review`)
 | E2E (Playwright user journey, critical path 100%) | — |
 | Contract test (Pact + Schemathesis) | — |
 | Load smoke (k6 — p95 < SLO, error < 0.1%) | — |
-| Pen test (OWASP ASVS + SAST/DAST/SCA) | — |
+| Pen test (OWASP ASVS + SAST/DAST/SCA) | → **Sentinel Phase 3b parallel** (🔴 v3.0 handoff) |
 | a11y **axe automation** (axe-core CI gate, WCAG AA critical=0) | — |
 | Visual regression **automation** (Chromatic/Percy snapshot — run only) | baseline approval → **Uma Phase 3a** (Quinn ไม่ approve) |
 | **a11y manual** (keyboard + screen reader + focus order spot check) | → **Uma Phase 3a** (passed gate ก่อนแล้ว) |
 | **Design adherence / visual diff manual review** | → **Uma Phase 3a** (passed gate ก่อนแล้ว) |
 | **Code review (SOLID/maintainability/unit/mutation)** | → **Chris Phase 3b parallel** |
 
-Output: section ใน `outputs/REVIEW-<bd-id>.md` — Critical/Major = block ผ่าน pre-loop-exit gate; Triage route loop:
-- Test gap / integration / contract failure → Phase 2 (Dave fix)
-- Spec/AC issue discovered → Phase 1a (Bella+Sara revise)
+**Output (🔴 v2.8.2 — bd-native primary, markdown fallback):**
+- **bd active** → `bd update <id> --notes "..."` ตาม REVIEW Report Format (meeting skill) — **ONLY** ห้ามเขียน markdown ซ้ำ
+- **No bd** → `outputs/REVIEW-<feature>.md` (markdown fallback) ตาม template เดียวกัน
+- Full evidence (Playwright trace, axe report, k6 result, pen test report) ที่ **path** — bd notes refs path เท่านั้น (compact ≤ 500 chars)
+- Critical/Major = block ผ่าน pre-loop-exit gate; Triage route loop:
+  - Test gap / integration / contract failure → Phase 2 (Dave fix)
+  - Spec/AC issue discovered → Phase 1a (Bella+Sara revise)
 
 ## 🔴 Mandatory Pre-merge Gates (v2.2 — block PR)
 

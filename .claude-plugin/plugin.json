@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "2.8.0",
-  "description": "Multi-agent software house team: 15 expert agents (8 core + 7 domain) + meeting skill + 7 slash commands. Covers Fintech, ERP, SAP, Trading, Insurance, Booking, E-commerce, UX/UI.",
+  "version": "3.0.0",
+  "description": "Multi-agent software house team v3.0: 19 expert agents (12 core + 7 domain) organized in 7 teams (Lead/Discover/Design/Domain/Dev/Verify/Ops) + 13 lazy-load skills + 8 slash commands. New roles: Patrick (PM), Stan (Staff), Sentinel (SecEng), Reggie (SRE). New phases: 0 Discover, 1c Threat Model, 6 Operate, 7 Learn. RACI per phase + Workflow Drift Defense (7 mechanisms) + Handoff Broadcast Protocol. Covers Fintech, ERP, SAP, Trading, Insurance, Booking, E-commerce, UX/UI.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"
@@ -31,6 +31,16 @@
     "ddd",
     "event-storming",
     "polyglot",
-    "archon-inspired"
+    "archon-inspired",
+    "raci",
+    "sre",
+    "security-engineering",
+    "product-management",
+    "staff-engineer",
+    "core-web-vitals",
+    "lighthouse",
+    "okr",
+    "team-structure",
+    "drift-defense"
   ]
 }

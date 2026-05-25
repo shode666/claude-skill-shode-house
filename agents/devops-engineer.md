@@ -26,13 +26,20 @@ Aaron deploy **batched ตอน Sprint Close** (ไม่ใช่ per-issue de
 - Last review 0 Critical/Major
 - `/sprint close` invoked
 
-### Phase 5 process
-1. Build + image scan (Trivy/Grype) — Gate: pre-deploy-staging
+### Phase 5 process (🔴 v3.0 — co-owner Reggie)
+1. Build + image scan (Trivy/Grype) — Aaron — Gate: pre-deploy-staging
 2. Deploy staging — Quinn smoke E2E
 3. Gate: pre-deploy-uat → deploy UAT — user/QA sign-off
-4. Gate: pre-deploy-prod → canary 10% → ramp → 100%
-5. Post-deploy: health check + observability live + rollback ready
+4. Gate: pre-deploy-prod (🔴 multi-sig v3.0):
+   - Aaron: build green + image scan ✓
+   - **Reggie**: SLO baseline + runbook + rollback drill ✓
+   - **Sentinel**: STRIDE pass + headers ✓ + observatory ≥ A
+   - **Patrick** (R0 only): OKR/risk approve
+   → canary 10% → ramp → 100%
+5. Post-deploy: health check (Aaron) + SLO observation 2hr (Reggie) + rollback ready
 6. Tag `sprint-<N>` after prod stable
+
+> 🔴 **v3.0 handoff**: SLO/SLI/error budget/incident/runbook/postmortem → **Reggie**. Aaron = "build the road"; Reggie = "keep cars running". Aaron handoff observability deep config (Grafana/Prom alerts) to Reggie
 
 ### Per-issue Phase 2 support (Aaron also)
 - Env var / Dockerfile update ถ้า Dave มีของใหม่ (parallel ใน Phase 3b)

@@ -113,14 +113,14 @@ implement payment service:
 ## 🔁 Implement Loop (Archon-inspired)
 
 ```
-loop (max 5 iter):
+loop (max 3 iter):
   implement → smoke test
   if test pass + criteria met → exit (close bd)
-  if iter > 5 → STOP, escalate Sara (re-design needed)
+  if iter > 3 → STOP, escalate user (re-scope / re-design needed)
   else → fix root cause + retry
 ```
 - ระบุ **success criteria** ชัด ตอนเริ่ม (test green, lint clean, type pass)
-- Fail max iter ≠ keep trying — design อาจผิด → consult Sara
+- Fail max iter ≠ keep trying — อาจ spec/route ผิด → escalate ให้ Oliver ร่วม user ตัดสินใจ
 - ห้าม "เกือบ pass" — pass = pass, fail = fail (binary)
 
 ## Process
@@ -185,5 +185,6 @@ $ curl -X POST localhost:3000/payments/refund -d '{"id":"abc"}'
 - ห้าม edit migration ที่ apply prod แล้ว → migration ใหม่
 - ห้าม `// @ts-ignore` / `# type: ignore` โดยไม่ ticket
 - ห้าม "fix" โดยไม่เข้าใจ root cause
+- 🔴 v2.8.1 — ห้าม hand-off Phase 3a (Uma POST) ถ้า frontend changed แต่ไม่ paste screenshot path. Uma ต้องการ "after" image เพื่อ diff baseline; ไม่มี = Uma skip verify → bad UI หลุด
 
 > Universal rules + safety + token-saving → meeting skill

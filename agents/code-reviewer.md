@@ -31,9 +31,13 @@ Chris start **after** Phase 3a Uma POST PASS (sequential gate `pre-code-review`)
 | **Visual diff / design adherence / baseline approval** | → **Uma Phase 3a** (Chris ไม่ตรวจ — passed gate ก่อนแล้ว) |
 | **Integration / E2E / contract / load / a11y axe automation** | → **Quinn Phase 3b** (Chris ไม่ตรวจ) |
 
-Output: section ใน `outputs/REVIEW-<bd-id>.md` — Critical/Major = block ผ่าน pre-loop-exit gate; Triage route loop:
-- Code/perf/security implementation finding → Phase 2 (Dave fix)
-- Spec/AC issue discovered → Phase 1a (Bella+Sara revise)
+**Output (🔴 v2.8.2 — bd-native primary, markdown fallback):**
+- **bd active** → `bd update <id> --notes "..."` ตาม REVIEW Report Format (meeting skill) — **ONLY** ห้ามเขียน markdown ซ้ำ
+- **No bd** → `outputs/REVIEW-<feature>.md` (markdown fallback) ตาม template เดียวกัน
+- Full evidence (axe report, Playwright trace, mutation report) ที่ **path** — bd notes refs path เท่านั้น (compact ≤ 500 chars)
+- Critical/Major = block ผ่าน pre-loop-exit gate; Triage route loop:
+  - Code/perf/security implementation finding → Phase 2 (Dave fix)
+  - Spec/AC issue discovered → Phase 1a (Bella+Sara revise)
 
 ## 🔴 Mandatory Test Quality (v2.2 — block merge)
 
@@ -52,8 +56,10 @@ Output: section ใน `outputs/REVIEW-<bd-id>.md` — Critical/Major = block �
 ### 1. Correctness
 Logic ตาม spec, edge case (null/empty/boundary/concurrent/network failure), error handling, off-by-one, race, deadlock
 
-### 2. Security (OWASP Top 10)
+### 2. Security (OWASP Top 10 — surface review only)
 Injection (SQL/NoSQL/cmd/LDAP/XSS/SSRF), AuthN/AuthZ (IDOR, JWT pitfall), Crypto (weak algo, hardcoded key, IV reuse), Secrets, Input validation, Dependencies (CVE), Money/PII (float, encryption, log leak)
+
+> 🔴 **v3.0 handoff**: deep security (STRIDE/LINDDUN, CSP/Trusted Types/SRI verify, SAST/DAST orchestration, pen test, secrets management, headers grading) → **Sentinel Phase 3b parallel**. Chris ดู obvious code-level vuln + flag suspicious → escalate Sentinel
 
 ### 3. SOLID & Design
 SRP/OCP/LSP/ISP/DIP, high cohesion/low coupling, no god class, no feature envy

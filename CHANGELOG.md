@@ -3,6 +3,186 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.0.0] — Comprehensive Org Structure (Major)
+
+**Single biggest release since v1.0** — real software-house org chart, zero-overlap capability, parallel-team execution, follow-up drift defense.
+
+### 🆕 Added — 4 new core agents
+
+- **Patrick (PM)** — `agents/product-manager.md` — sole owner Why/What: OKR, RICE/WSJF, opportunity sizing (TAM/SAM/SOM), kill decisions, stakeholder mgmt
+- **Stan (Staff Engineer)** — `agents/staff-engineer.md` — sole owner cross-team technical depth: tech radar, polyglot consistency, convergence decisions, mentoring
+- **Sentinel (Security Engineer)** — `agents/security-engineer.md` — sole owner security: STRIDE/LINDDUN threat modeling, SAST/DAST orchestration, CSP/Trusted Types/SRI, pen testing
+- **Reggie (Site Reliability Engineer)** — `agents/sre-engineer.md` — sole owner operate: SLO/SLI/error budget, runbook, on-call, blameless postmortem
+
+### 🆕 Added — 4 new phases
+
+- **Phase 0 — Discovery** (Patrick + Domain SME) — OKR + opportunity sizing + pain validation BEFORE BRD
+- **Phase 1c — Threat Model** (Sentinel + Sara) — STRIDE + abuse case + security AC, mandatory if feature touches auth/PII/money/external
+- **Phase 6 — Operate** (Reggie + Aaron + Oliver) — continuous post-deploy: SLO burn rate, incident, postmortem
+- **Phase 7 — Learn** (Patrick + Oliver) — sprint retro: OKR review, kill decision, tech debt RICE
+
+### 🆕 Added — 4 new skills + 1 merged
+
+- `dev-gate` — merged from `tdd` + `code-quality`
+- `web-q` — Core Web Vitals + SEO + security headers (ported + adapted from `addyosmani/web-quality-skills` MIT)
+- `secure` — STRIDE + threat-driven design + CSP/Trusted Types
+- `slo` — SLI/SLO/error budget (Google SRE Book-aligned)
+- `incident` — Runbook + on-call + blameless postmortem
+
+### 🆕 Added — Workflow Drift Defense (7 Mechanisms — meeting skill)
+
+แก้ปัญหา agent หลุด workflow ใน warm follow-up:
+- M1 Ingress Guard | M2 Follow-up Classifier | M3 Anti-Puppet "Done"
+- M4 User Comment = FAIL | M5 Spec Change = bd revision
+- M6 SESSION-STATE.md persistent | M7 Direct-to-Agent block
+
+### 🆕 Added — 7-Team Structure + Handoff Broadcast Protocol
+
+7 teams (parallel within, sequential across via gate): Lead / Discover / Design / Domain / Dev / Verify / Ops + Content (opt). Single-owner capability matrix (zero overlap).
+
+Handoff: 1-line caveman `Bella ▸ Dave : impl bd-42` consistent ทุก phase transition.
+
+### 🆕 Added — RACI matrix per phase + Multi-sig pre-deploy-prod gate
+
+ทุก phase มี explicit R/A/C/I. R0 deploy requires 4 sigs: Aaron (build) + Reggie (SLO) + Sentinel (security) + Patrick (OKR).
+
+### Changed — scope split + handoff to new agents
+
+- **Oliver** — keep Engagement Lead only; cross-team tech depth → Stan
+- **Bella** — keep BA only; PM work → Patrick
+- **Sara** — keep SA only; deep threat modeling → Sentinel
+- **Aaron** — keep Platform/DevOps only; SLO/incident → Reggie
+- **Chris** — surface security only; deep security → Sentinel
+- **Quinn** — keep integration/E2E/contract/load; pen test → Sentinel
+- **7 Domain SMEs** — elevated to Phase 0 active driver
+
+### Removed — skill cleanup
+
+- `skills/sd/` + `skills/do/` — identical (v1.1 stale); superseded by `meeting`
+- `skills/tdd/` + `skills/code-quality/` — merged → `dev-gate`
+- `skills/grill-me/` — merged → `meeting` Clarifying (6 patterns)
+- `skills/triage/`, `to-prd/`, `to-issues/`, `zoom-out/` — empty stubs
+
+### Token cost
+
+- Removed: −1,500
+- Added: +7,500
+- Net: **+6,000 (~+4%)** — adds 4 roles + 4 phases + Drift Defense + Teams + Handoff + RACI
+
+### ⚠️ Breaking changes
+
+- Skills `sd`, `do`, `tdd`, `code-quality`, `grill-me`, `triage`, `to-prd`, `to-issues`, `zoom-out` removed — apply-v3.0.sh handles `rm -rf`
+- Phase 5 deploy single-sig → multi-sig (Aaron + Reggie + Sentinel + Patrick R0)
+- Drift Defense (M1-M7) opt-in via `mode: minimal` ใน engagement for legacy flow
+
+### Reference
+
+- Web-Q ported from [`addyosmani/web-quality-skills`](https://github.com/addyosmani/web-quality-skills) (MIT)
+- SLO aligned with Google SRE Book
+- RACI follows PMI standard
+- Tech Radar pattern from Thoughtworks
+
+---
+
+## [2.8.2] — Review Audit Trail (Patch — bd-native primary, no markdown duplicate)
+
+ตอบคำถาม "review เสร็จต้องเขียน md file ไหม": **bd active = bd notes ONLY (ห้ามเขียน md ซ้ำ); no bd = outputs/REVIEW-<feature>.md fallback**. ทั้งคู่ใช้ template structure เดียวกัน
+
+### Added
+
+- **📝 REVIEW Report Format section** (meeting skill) — mandatory template structure: Summary / Findings by severity 🔴🟠🟡🔵 / Coverage (Chris/Quinn) / UX Verdict (Uma) / Loop Routing Recommendation. Apply ทุก Phase 3a + 3b + 4 + `/review`
+- **Storage rule conditional**:
+  - bd active (`.beads/` exists OR `bd ready` returns) → `bd update <id> --notes` ONLY
+  - No bd → `outputs/REVIEW-<feature>.md` (fallback)
+  - bd + sprint close → optional `outputs/RETRO-sprint-<N>.md` (aggregate)
+- **Universal Rule** — "ห้าม close Phase 3 ก่อน post review report"; "ห้ามเขียน markdown ถ้ามี bd" (bd = single source of truth)
+- **DoD checkbox** — "Review report posted (bd notes OR outputs/REVIEW-*.md, conditional)"
+- **Pre-loop-exit gate** — เพิ่มเงื่อนไข: review report posted ตาม REVIEW Report Format
+- **Compact bd notes pattern** (≤ 500 chars) — summary + count + evidence paths; full evidence (axe.json, Playwright trace, mutation report) ที่ path เท่านั้น
+
+### Changed
+
+- **Chris/Quinn/Uma agent files** — Output section refactor:
+  - ก่อน v2.8.2: "Output: section ใน outputs/REVIEW-<bd-id>.md" (always markdown)
+  - หลัง v2.8.2: "bd active → bd update --notes ONLY; no bd → outputs/REVIEW-<feature>.md fallback"
+- **`/review` command Step 4** — Consolidated Report: bash conditional storage (bd active vs no bd); ห้ามเขียนคู่
+- **Anti-redundancy** — ลด token waste จาก double-write (bd notes + markdown ของเรื่องเดียวกัน)
+
+### Token cost
+
+- skills/meeting/SKILL.md: +~400 tokens (REVIEW Report Format section + 2 Universal Rules + DoD line)
+- agents/code-reviewer.md: ~0 tokens (replace section content)
+- agents/qa-engineer.md: ~0 tokens (replace section content)
+- agents/ux-ui-designer.md: +~50 tokens (Verdict format conditional)
+- agents/orchestrator.md: +~30 tokens (pre-loop-exit gate condition)
+- commands/review.md: +~100 tokens (bash conditional storage)
+- **Total: ~+580 tokens (~+0.4%)** — discipline + anti-redundancy
+
+### Why patch bump (2.8.1 → 2.8.2)
+
+Discipline tightening (storage rule + template) — no new phase, no new command. Patch per Semver
+
+### Root cause (user question)
+
+User: "มีการระบุว่า review เสร็จต้องเขียน md file หรือไม่"
+
+Audit เจอ **soft hint ใน 8 จุด**: `outputs/REVIEW-<bd-id>.md` mentioned ที่ Chris/Quinn/orchestrator/developer/implement/meeting × 2/CHANGELOG — แต่:
+- ไม่มี template/structure mandatory
+- ไม่มี enforcement gate / DoD
+- ไม่มี anti-puppet rule for missing report
+- **Most important**: ซ้ำซ้อนกับ bd notes (waste token + drift risk)
+
+User feedback: "ถ้ามี bd ไม่ต้องเขียน markdown" — v2.8.2 บังคับ conditional: bd active = bd notes ONLY; no bd = md fallback. ห้ามคู่
+
+## [2.8.1] — Uma Hardened (Patch — UX/UI verification teeth)
+
+แก้ root cause "Uma ทำงานแย่, UI บิด ๆ เบี้ย ๆ, verify หลัง dev ชอบหลุด" — Uma ขาดเครื่องมือ + ไม่มี anti-puppet UX + Universal UX rules บังคับไม่ได้
+
+### Added
+
+- **🔴 `Bash` tool ใน Uma YAML** — ใหญ่ที่สุด. Uma ก่อนหน้านี้ไม่มี Bash → execute screenshot/diff/axe ไม่ได้ → skip silent / hallucinate. ตอนนี้ run Playwright/Chromatic/axe-cli/rg ได้จริง
+- **🎨 UX Evidence Protocol** (meeting skill, extension of Project Evidence) — UX/a11y claim ต้อง cite tool output: `[axe report: path] critical=0`, `[Chromatic: URL] diff=0.08%`, `[screenshot: path]`. ห้าม "UI ดูดี / a11y ok" — ต้องมี tool path
+- **🔴 Anti-Puppet UX/UI extension** (meeting skill) — ห้าม UI claim โดยไม่ paste Bash output: Playwright run, axe report, Chromatic URL, rg hardcoded check, manual keyboard/screen reader paste
+- **🔴 Universal UX/UI Quality Rules** (meeting skill, 13 rules) — บังคับ semantic token (no hardcoded color/spacing), 8-pt grid, focus order = visual order, contrast ≥ 4.5:1, touch ≥ 44×44, 7 atomic states ครบ, mobile-first 320px, no `tabindex>0`, no `outline:none` without alt, no flash w/o reduce-motion, i18n text expand 30%
+- **Uma Phase 1b mandatory Bash baseline capture** — `pnpm playwright test --update-snapshots` + paste path; ห้าม "baseline.png" placeholder
+- **Uma Phase 3a 11-step mandatory Bash invocation** — capture / diff / token check / axe / contrast / states / content / AC bullet — ทุก step paste tool output
+- **Uma Phase 3a verdict format** — bullet per AC + evidence path + Bash output; ห้าม "AC 5/5 PASS" รวบ
+- **Dave Phase 2 screenshot mandatory** ถ้า frontend changed — `pnpm playwright screenshot` desktop + mobile → paste path; ไม่มี = no hand-off Uma
+- **🔴 Auto-trigger Phase 3a detection** (implement.md Step 0 + Step 5) — Bash `git diff` + `grep -E "\.(vue|tsx|jsx|svelte|html|css)$"` → MANDATORY Uma POST. ห้าม Oliver "skip เพราะ minor"
+
+### Changed
+
+- Uma `Best Practices` → enforce ผ่าน Universal UX/UI Quality Rules (meeting skill บังคับ ทุก agent)
+- Dave ข้อห้าม — เพิ่ม "ห้าม hand-off Phase 3a Uma POST ถ้า frontend changed แต่ไม่ paste screenshot path"
+- implement.md Step 0 — Bash auto-detection แทน manual judgment
+- implement.md Step 5 — reference 11-step mandatory Bash pattern + anti-puppet UX
+
+### Root cause (audit finding from real engagement)
+
+User report: "Uma ทำงานแย่, UI บิด ๆ เบี้ย ๆ, verify หลัง dev ชอบหลุด"
+
+Audit เจอ 8 root cause:
+1. **Uma YAML ไม่มี `Bash` tool** — rule บอก "screenshot + diff + axe" แต่ technically ทำไม่ได้ → skip silent / hallucinate
+2. ไม่มี **Anti-Puppet UX/UI rule** — Anti-Puppet เดิม cover แค่ Dave/Quinn; Uma claim "design ok" ได้โดยไม่ paste
+3. ไม่มี **Universal UX/UI Quality rules** — Mobile-first / 8-pt grid / focus order = guidance เท่านั้น, ไม่ block
+4. Phase 1b baseline = "baseline.png" placeholder ได้ (no enforcement)
+5. **Dave hand-off ไม่ require screenshot** — Uma มี baseline แต่ไม่มี "after" diff → can't verify
+6. Phase 3a trigger **manual judgment** — Oliver decide "minor change skip Uma" → bad UI หลุด
+7. Uma AC verification "AC 5/5 PASS" รวบได้ — ไม่มี bullet-per-AC mandatory
+8. **Domain Evidence Protocol cover เฉพาะ regulation** — UX claim ไม่มี evidence protocol
+
+### Token cost
+
+- agents/ux-ui-designer.md: +~700 tokens (Phase 1b mandatory Bash + Phase 3a 11-step + verdict format)
+- skills/meeting/SKILL.md: +~500 tokens (UX Evidence Protocol + Anti-Puppet UX + Universal UX 13 rules)
+- commands/implement.md: +~200 tokens (Step 0 auto-detect + Step 5 mandatory Bash ref)
+- agents/developer.md: +~30 tokens (ข้อห้าม screenshot hand-off)
+- **Total: ~+1430 tokens (~+0.9%)** — discipline patch, not new feature
+
+### Why patch bump (2.8.0 → 2.8.1)
+
+Hardening + discipline — no new phase, no new command. Bash tool addition + rule tightening. Patch per Semver
+
 ## [2.8.0] — Smart Coop + Sprint (Minor — best-of-best lean refactor)
 
 Workflow refactor "ครั้งที่ดีที่สุด": parallel where independent, sequential gate where dependent. รวม strength ของ dev-flow.md (Sprint cadence + bd-native + Uma PRE/POST gate) + v2.7 (Domain Expert + iter cap + Aaron deploy) → **leaner token (~−25% vs v2.7)** + **higher quality** (precise gates + sharper loop routing)

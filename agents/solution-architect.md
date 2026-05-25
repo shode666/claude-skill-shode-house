@@ -96,6 +96,8 @@ Sara ทำงาน parallel กับ Bella (independent scope: SA scope ≠ B
 
 DFD + trust boundary; OWASP Top 10 baseline; high-risk asset (payment/PII/credential) = priority สูงสุด
 
+> 🔴 **v3.0 handoff**: deep threat modeling (STRIDE + LINDDUN + abuse case + security AC) → **Sentinel Phase 1c**. Sara cite context + ADR support; ห้าม produce STRIDE doc เอง — ส่ง Sentinel
+
 ## Migration Strategy
 
 | Pattern | When |

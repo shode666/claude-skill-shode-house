@@ -16,6 +16,8 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch"]
 
 > SAP-specific (ABAP/S/4HANA/Fiori/BTP) → **Sam**
 
+> 🔴 **v3.0 — Phase 0 active driver**: Elena เข้า Phase 0 Discovery กับ Patrick proactively — accounting close pain, audit trail need, multi-entity consolidation implication early. Refuse feature ที่ไม่ตรง accounting pain หรือชน reporting standard (TFRS/IFRS)
+
 ## โมดูล
 
 ### GL

@@ -6,7 +6,7 @@
 
 ออกแบบเน้น: **lean • token-optimized • production-ready • domain-driven • ภาษาไทย**
 
-[![Version](https://img.shields.io/badge/version-2.8.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
+[![Version](https://img.shields.io/badge/version-2.8.2-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -74,7 +74,7 @@
 
 ---
 
-## ⚡ Slash Commands (7)
+## ⚡ Slash Commands (8)
 
 | Command | ใช้เมื่อ |
 |---------|----------|
@@ -85,6 +85,7 @@
 | `/shode-house:implement [feature]` | Implement — Dave + Chris review/unit + Quinn integration |
 | `/shode-house:review [path\|jira\|bug]` | Code review — Chris 7 มิติ + Quinn security + Domain |
 | `/shode-house:setup-project [stack]` | Aaron setup — Docker-first, CI/CD, observability |
+| `/shode-house:sprint [pre\|status\|close\|retro]` 🆕 v2.8 | Sprint management — outer loop (Pre-Sprint / Mid-Sprint / Close / Retro) |
 
 ---
 
@@ -104,13 +105,19 @@ Trigger เมื่อ user mention "shode-house", "ประชุมทีม
 |---------|----------------|
 | **Phase Contract** | Oliver enforce ห้าม jump phase (clarify → design → impl → review → integration → deploy) |
 | **Lifecycle Hooks** 🆕 | pre/post hook ทุก phase — Aaron auto-trigger (lint/test/scan) |
-| **Loop with Exit** | Dave/Quinn — max 5 iter, binary pass/fail, fail max → escalate Sara |
-| **Approval Gates** | 6 standard gates: pre-merge, pre-deploy-{staging,uat,prod}, pre-data-migration, pre-destructive |
+| **Loop with Exit** | Per bd issue max 3 iter (Phase 4 routing) — exceed cap → escalate user |
+| **Approval Gates** | 10 standard gates (incl. pre-implement-ui, pre-spec-expand, pre-ui-check, pre-code-review, pre-loop-exit, pre-merge/pre-merge-ui, pre-deploy-{staging,uat,prod}, pre-data-migration, pre-destructive) |
 | **Worktree Isolation** | Aaron Makefile pattern สำหรับ parallel-safe dev |
 | **Engagement Mode** 🆕 | AFK / Interactive / Hybrid (default) — เลือกใน Phase 2 |
 | **Pluggable Tracker** 🆕 | beads (default) / GitHub / Linear / Jira / Asana |
 | **UI Test Hard Gate** 🆕 v2.4 | Quinn trigger condition + evidence template + Aaron auto-scaffold + `pre-merge-ui` gate |
 | **Project Evidence Protocol** 🆕 v2.4 | NO MAGIC ext — ห้ามเดาจาก real-world; cite `[file:line]` หรือ `[output: cmd]` |
+
+### v2.8 Smart Coop topology (outer + inner loop)
+
+- **Outer loop (Sprint cadence)**: `/sprint pre` → execute issues via `/implement` (inner loop) → `/sprint close` + retro
+- **Inner loop (per issue)**: **Phase 1a** Foundation (Bella ∥ Sara) → **Phase 1b** Conditional Expand (Uma + Domain, sequential) → **Phase 2** Implement (Dave) → **Phase 3a** Uma POST UI Check gate → **Phase 3b** Chris ∥ Quinn parallel review → **Phase 4** Triage loop routing → queue Phase 5 deploy at sprint end
+- **Routing precision**: code finding → Phase 2, UI finding → Phase 1b, spec/business-rule finding → Phase 1a
 
 ---
 
@@ -225,7 +232,7 @@ shode-house/
 ├── .claude-plugin/         manifest + marketplace
 ├── skills/sd/              foundation (5 philosophy + workflow + routing)
 ├── agents/                 15 expert agents (lean, focus expertise)
-├── commands/               6 slash commands (workflow templates)
+├── commands/               8 slash commands (workflow templates, incl. sprint cadence)
 └── references/
     ├── modern-stack.md     2025+ tech (Sara/Aaron lazy-load)
     ├── patterns/
