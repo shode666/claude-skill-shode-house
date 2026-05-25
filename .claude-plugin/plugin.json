@@ -1,6 +1,6 @@
 {
   "name": "shode-house",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Multi-agent software house team v3.0: 19 expert agents (12 core + 7 domain) organized in 7 teams (Lead/Discover/Design/Domain/Dev/Verify/Ops) + 13 lazy-load skills + 8 slash commands. New roles: Patrick (PM), Stan (Staff), Sentinel (SecEng), Reggie (SRE). New phases: 0 Discover, 1c Threat Model, 6 Operate, 7 Learn. RACI per phase + Workflow Drift Defense (7 mechanisms) + Handoff Broadcast Protocol. Covers Fintech, ERP, SAP, Trading, Insurance, Booking, E-commerce, UX/UI.",
   "author": {
     "name": "shode666",

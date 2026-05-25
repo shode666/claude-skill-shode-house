@@ -8,7 +8,7 @@
 # 📌 PART 1 — Current State
 
 **Plugin**: `shode-house` v2.8.2 (Review Audit Trail — bd-native primary, no markdown duplicate)
-**Workspace**: `/Users/shode/development/shode-house/`
+**Workspace**: `~/development/shode-house/`
 **Package**: `shode-house-v2.8.2.plugin` (157K)
 **Repo**: https://github.com/shode666/claude-skill-shode-house
 
@@ -55,7 +55,7 @@
 ## Pending after package (user run terminal)
 
 ```bash
-cd /Users/shode/development/shode-house
+cd ~/development/shode-house
 
 # clean up old packages
 rm -f shode-house-v2.6.0.plugin shode-house-v2.6.1.plugin shode-house-v2.7.0.plugin shode-house-v2.8.0.plugin

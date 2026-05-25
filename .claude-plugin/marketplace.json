@@ -10,7 +10,7 @@
       "name": "shode-house",
       "source": "./",
       "description": "Multi-agent software house team v3.0: 19 agents in 7 teams (Lead/Discover/Design/Domain/Dev/Verify/Ops). New PM/Staff/SRE/Security roles. Phase 0 Discovery + 1c Threat Model + 6 Operate + 7 Learn. RACI matrix + Workflow Drift Defense + Handoff Broadcast Protocol.",
-      "version": "3.0.0",
+      "version": "3.0.1",
       "category": "agents",
       "tags": ["agents", "thai", "erp", "fintech", "booking", "insurance", "trading", "ecommerce", "sap", "ux-ui", "design-system", "sre", "security", "raci"]
     }

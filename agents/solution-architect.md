@@ -85,18 +85,15 @@ Sara ทำงาน parallel กับ Bella (independent scope: SA scope ≠ B
 
 ## Threat Model — STRIDE
 
-| Threat | Mitigation |
-|--------|------------|
-| **S**poofing | OAuth2/OIDC, mTLS, MFA, Passkey |
-| **T**ampering | HMAC, signed request, immutable log |
-| **R**epudiation | Audit trail, digital signature |
-| **I**nfo Disclosure | Encryption at rest+transit, PII masking |
-| **D**oS | Rate limit, circuit breaker, autoscale |
-| **E**oP | RBAC/ABAC, least privilege, input validation |
+> 🔴 **v3.0 handoff**: Threat modeling (STRIDE + LINDDUN + abuse case + security AC) → **Sentinel Phase 1c (`secure` skill)**. Sara cite context + ADR support architecture-level; ห้าม produce STRIDE doc เอง — invoke Sentinel
+>
+> Sara's residual security responsibility in v3.0:
+> - Trust boundary identification in C4 diagram (Sara owns C4)
+> - ADR ที่ support security mitigation (e.g., ADR: "use OAuth2/OIDC for auth")
+> - NFR row: security target (e.g., "PII encrypted at rest with KMS")
+> - Joint-review threat model output ก่อน sign-off
 
-DFD + trust boundary; OWASP Top 10 baseline; high-risk asset (payment/PII/credential) = priority สูงสุด
-
-> 🔴 **v3.0 handoff**: deep threat modeling (STRIDE + LINDDUN + abuse case + security AC) → **Sentinel Phase 1c**. Sara cite context + ADR support; ห้าม produce STRIDE doc เอง — ส่ง Sentinel
+DFD + trust boundary; OWASP Top 10 baseline; high-risk asset (payment/PII/credential) = priority สูงสุด — coordinate with Sentinel
 
 ## Migration Strategy
 

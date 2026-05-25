@@ -1007,6 +1007,22 @@ Use case: parallel Dave, hotfix-while-feature, A/B
 
 ## 🤝 Handoff Broadcast Protocol (🔴 v3.0 — caveman 1-line)
 
+### Arrow convention (🔴 v3.0.1)
+
+ใช้ 2 arrows คนละความหมาย (accept divergence — semantic distinction):
+
+| Arrow | ความหมาย | When |
+|-------|---------|------|
+| `▸` | **Handoff broadcast** (formal, between agents/teams in workflow) | Phase transition, agent-to-agent handoff, multi-sig gate |
+| `→` | **General flow / sequence / implication** (informal) | Process steps, code flow, "X causes Y", documentation flow |
+
+ตัวอย่าง:
+- `Bella ▸ Dave : impl bd-42` — handoff (use ▸)
+- `Phase 1a → 1b` — general phase sequence (use →)
+- `low contrast → fail WCAG` — implication (use →)
+
+> ห้ามใช้ `▸` ใน documentation flow / code-flow / general explanation. ห้ามใช้ `→` ใน formal handoff (M3 protocol บังคับ `▸`)
+
 ### Format มาตรฐาน
 ```
 [<from>] ▸ [<to>] : <what> (bd-<id>)
@@ -1187,21 +1203,20 @@ User direct ping → Dave (bypass Oliver):
 
 ## 🆕 Skills (v3.0 — short names + lazy-load)
 
-| Skill | Char | Owner | Trigger |
-|-------|------|-------|---------|
-| `meeting` | 7 | ALL | Engagement entry — discipline foundation |
-| `dev-gate` | 8 | Dave + Chris | Production code, TDD, refactor |
-| `ci-test` (was automate-test) | 7 | Quinn + Chris + Aaron | CI test pyramid + gate |
-| `ui-test` | 7 | Quinn + Uma + Dave | Playwright + axe + visual regression |
-| `debug` (was diagnose) | 5 | Chris + Quinn + Dave | Bug + perf root cause |
-| `caveman` | 7 | Oliver + ALL | Compressed output mode |
-| `web-q` (NEW) | 5 | Uma + Dave + Quinn + Aaron | Core Web Vitals + SEO + security headers |
-| `secure` (NEW) | 6 | Sentinel | STRIDE + CSP + Trusted Types + SAST/DAST |
-| `slo` (NEW) | 3 | Reggie | SLI / SLO / error budget |
-| `incident` (NEW) | 8 | Reggie + Oliver | Runbook + on-call + postmortem |
-| `data-eng` (NEW, opt) | 8 | Devon | ETL/CDC/Kafka/dbt/lakehouse |
-| `ml-eng` (NEW, opt) | 6 | Mason | RAG + vector + prompt eval |
-| `mobile` (NEW, opt) | 6 | Dave + Uma | App Store / Play / Fastlane / deep link |
+| Skill | Owner | Trigger |
+|-------|-------|---------|
+| `meeting` | ALL | Engagement entry — discipline foundation |
+| `dev-gate` (NEW v3 — merged tdd + code-quality) | Dave + Chris | Production code, TDD, refactor |
+| `automate-test` | Quinn + Chris + Aaron | CI test pyramid + gate |
+| `ui-test` | Quinn + Uma + Dave | Playwright + axe + visual regression |
+| `diagnose` | Chris + Quinn + Dave | Bug + perf root cause |
+| `caveman` | Oliver + ALL | Compressed output mode |
+| `web-q` (NEW v3) | Uma + Dave + Quinn + Aaron | Core Web Vitals + SEO + security headers |
+| `secure` (NEW v3) | Sentinel | STRIDE + CSP + Trusted Types + SAST/DAST |
+| `slo` (NEW v3) | Reggie | SLI / SLO / error budget |
+| `incident` (NEW v3) | Reggie + Oliver | Runbook + on-call + postmortem |
+
+> Short-name proposal (`ci-test`, `debug`, `data-eng`, `ml-eng`, `mobile`) deferred to v3.1+ — folder rename would break consumers. v3.0 keep original folder names
 
 **Removed in v3.0** (apply-v3.0.sh): `sd`, `do` (identical to meeting v1.1), `tdd` + `code-quality` (merged → `dev-gate`), `grill-me` (merged → `meeting` Clarifying), `triage`, `to-prd`, `to-issues`, `zoom-out` (empty stubs)
 

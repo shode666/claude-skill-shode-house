@@ -3,6 +3,45 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.0.1] — Self-audit Patch (Patch — consistency + de-duplication + arrow convention)
+
+Self-audit ของ v3.0.0 ก่อน public — เจอ 3 inconsistency + apply fix
+
+### Fixed
+
+- **Skill name table** (meeting v3 section) — เคยอ้าง `ci-test` / `debug` (short names proposal) แต่ folder จริง = `automate-test` / `diagnose` → revert table ใช้ชื่อ folder จริง; defer short-name rename ไป v3.1+ (avoid breaking change for consumers)
+- **STRIDE table duplication** (Sara) — ลบ STRIDE table จาก `agents/solution-architect.md` (เคย duplicate กับ Sentinel agent + secure skill); เหลือ Sara residual responsibility 4 ข้อ (trust boundary in C4, ADR mitigation support, NFR security row, joint-review threat model) + handoff pointer → Sentinel `secure` skill
+- **Arrow convention** — Document explicit rule ใน meeting skill: `▸` = handoff broadcast (M3 protocol — formal); `→` = general flow/sequence/implication (informal). Accept divergence per Stan tech-radar pattern
+
+### Bonus fixes
+
+- **README version badge** — 2.8.2 → 3.0.1 (was outdated)
+- **README header** — เพิ่ม v3.0 summary (19 agents / 7 teams / Patrick/Stan/Sentinel/Reggie / Phase 0/1c/6/7 / Drift Defense)
+- **SHODE-HOUSE-MASTER.md** — `/Users/shode/development/shode-house/` → `~/development/shode-house/` (sanitize personal path before public)
+
+### Token cost
+
+- Net delta: **+~80 tokens (~0.05%)** — fix-only patch, no new feature
+
+### Why patch bump (3.0.0 → 3.0.1)
+
+Self-audit findings = consistency fix, ไม่มี behavior change (per Semver patch). No new agent / no new skill / no new phase / no breaking change
+
+### Pre-public security
+
+Self-scan สำหรับ sensitive data ก่อน repo public:
+- ✅ 0 API keys / tokens / passwords / private keys
+- ✅ 0 GitHub PAT / AWS / GCP / Azure credentials
+- ✅ 0 production DB connection strings
+- ✅ 0 JWT samples / session tokens
+- ✅ 0 real customer / NDA names
+- ✅ `.env*`, `outputs/` already in `.gitignore`
+- ⚠️ Personal `/Users/shode` paths in SHODE-HOUSE-MASTER.md → sanitized to `~/development/shode-house/`
+
+Recommended local-only scan ก่อน push: `gitleaks detect` + `trufflehog git file://$(pwd)` (sandbox can't deep-scan git history)
+
+---
+
 ## [3.0.0] — Comprehensive Org Structure (Major)
 
 **Single biggest release since v1.0** — real software-house org chart, zero-overlap capability, parallel-team execution, follow-up drift defense.
