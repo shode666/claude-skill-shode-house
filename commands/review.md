@@ -65,44 +65,30 @@ Review ตาม path ตรงๆ
 
 "`$ARGUMENTS` ตีความได้หลายแบบ — หมาย Jira key, path, หรือคำอธิบายบั๊ก?"
 
-## Step 1 — Code Review (Chris) — 7 มิติ
+## Step 1 — Invoke review-checklist skill (🔴 v3.1 DRY)
 
-1. Correctness (logic, edge, error)
-2. Security (OWASP Top 10 + lang-specific)
-3. SOLID & Design
-4. Performance (N+1, complexity, memory)
-5. Maintainability (size, naming, DRY)
-6. Testing (unit coverage + quality + test doubles)
-7. Observability (log/metric/trace)
+> v3.1: review checklist รวบศูนย์ใน `skills/discipline/review-checklist/SKILL.md`. Command นี้ = router + context-aware invoke
 
-**Context-aware review:**
-- ถ้ามาจาก **Jira (Pattern A)** → cross-check code vs AC ใน description
-- ถ้ามาจาก **bug description (Pattern C)** → focus 7 มิติเฉพาะ "เส้นทาง bug" (calc logic, edge case, expected vs actual) ก่อน — มิติอื่นเป็น secondary
-- bd link: `bd create -t review-finding --links=$BUG_ID`
+```bash
+[Oliver|review|target:$ARGUMENTS] kickoff
+- Chris   → 7-dim — see review-checklist § Chris (Correctness/Security/SOLID/Perf/Maintain/Test/Observ)
+- Quinn   → Security scan section (SAST/SCA/secret/OWASP manual) — see review-checklist § Quinn
+- Sentinel (conditional, if security trigger detected) — see review-checklist § Sentinel
+- Domain (conditional, keyword trigger) — see review-checklist § Domain Expert
+```
 
-Output: findings by severity 🔴 Critical / 🟠 High / 🟡 Medium / 🔵 Low / 💡 Suggestion
+**Context-aware focus**:
+- Pattern A (Jira) → cross-check code vs AC ใน description; bd link `bd create -t review-finding --links=$BUG_ID`
+- Pattern C (bug description) → focus 7-dim เฉพาะ "เส้นทาง bug" ก่อน (calc logic / edge / expected vs actual); มิติอื่นเป็น secondary
+- Pattern B (path) → full 7-dim + integration matrix
 
-## Step 2 — Security Scan (Quinn)
+## Step 2 — Consolidated Report (🔴 v2.8.2 + v3.1)
 
-- SAST (Semgrep/Bandit/gosec)
-- SCA (Trivy/Grype/npm audit)
-- Secret scan (gitleaks)
-- OWASP Top 10 manual
-
-## Step 3 — Domain Review (conditional)
-
-Keyword trigger → domain expert:
-- payment/ledger/money → **Felix**
-- accounting/journal/inventory (generic) → **Elena**
-- SAP/ABAP/Fiori/BAPI/IDoc/S4HANA/ECC/CDS/RAP → **Sam**
-- order/market/matching → **Tara**
-- policy/claim/premium → **Iris**
-- booking/rate (hotel/airline) → **Brooke**
-- cart/checkout/promotion → **Emma**
-
-## Step 4 — Consolidated Report (🔴 v2.8.2 — bd-native primary, markdown fallback)
-
-Format ตาม **REVIEW Report Format** (meeting skill): Summary / Findings by severity / Coverage / UX Verdict (ถ้ามี) / Loop Routing Recommendation
+Format + storage rules + severity grading + loop routing — **ทั้งหมดอยู่ใน `review-checklist` skill**:
+- § Severity Grading (🔴/🟠/🟡/🔵/💡)
+- § REVIEW Report Format (bd-native primary, markdown fallback)
+- § Loop Routing Recommendation
+- § Anti-Puppet Gate (paste tool output)
 
 **Storage rule** (ห้ามซ้ำซ้อน):
 ```bash

@@ -107,32 +107,25 @@ Verdict:
 
 ### 6. Code Review (Chris ∥ Quinn — Phase 3b, TRUE parallel 🔴 v2.8)
 
-Chris + Quinn ทำงานพร้อมกัน (no order, different scope):
+> 🔴 **v3.1**: ใช้ `review-checklist` skill เป็น source-of-truth. Phase นี้ = invoke skill + ส่ง parallel ไปยัง 3 axes
 
-**Chris (7-dim + unit + mutation)**:
-- Correctness / Security (OWASP) / SOLID / Performance / Maintainability / Testing / Observability
-- Unit test gap + mutation kill rate ≥ 70%
-- Property-based test (Hypothesis/fast-check) for invariant
-- Critical/High → block
+Chris + Quinn (+ optional Sentinel/Domain Expert) ทำงาน parallel ผ่าน **`review-checklist` skill**:
 
-**Quinn (integration + E2E + contract + load + a11y axe)**:
-- Integration (Testcontainers + real DB/cache)
-- E2E (Playwright user journey, critical path 100%)
-- Contract (Pact + Schemathesis)
-- Load smoke (k6 — p95 < SLO, error < 0.1%)
-- a11y axe automation (WCAG AA critical=0)
-- Pen test (OWASP ASVS)
+```bash
+[Oliver|state:3b|bd:42] Phase 3b kickoff
+- Chris  → 7-dim (Correctness/Security/SOLID/Perf/Maintain/Test/Observ) — see review-checklist § Chris
+- Quinn  → integration matrix (6 axes: Integration/E2E/Contract/Load/a11y/Pen) — see review-checklist § Quinn
+- Sentinel (conditional, if security trigger) → SAST/SCA/CSP/abuse — see review-checklist § Sentinel
+- Domain (conditional, if code touches sensitive area) → see review-checklist § Domain Expert
+```
 
-**Domain Expert validate** (conditional — parallel กับ Chris+Quinn):
-- payment/ledger → Felix (regulation cite verify, money rule)
-- accounting/inventory → Elena
-- trading → Tara
-- insurance → Iris
-- booking → Brooke
-- ecommerce → Emma
-- SAP → Sam
+**ทุกคน apply**:
+- Severity grading (🔴/🟠/🟡/🔵/💡) — see `review-checklist` § Severity Grading
+- bd-native primary, markdown fallback — see `review-checklist` § REVIEW Report Format
+- Loop routing recommendation — see `review-checklist` § Loop Routing Recommendation
+- Anti-Puppet gate (paste tool output, no "should be fine") — see `review-checklist` § Anti-Puppet Gate
 
-Output: `outputs/REVIEW-<bd-id>.md` (Chris finding + Quinn finding + Domain finding merged)
+Output: bd notes OR `outputs/REVIEW-<bd-id>.md` (consolidated)
 
 ### 7. Triage (Oliver — Phase 4)
 

@@ -1,16 +1,37 @@
 ---
-description: "[shode-house] Smart Spec pipeline (Phase 1a Bella + Sara parallel; Phase 1b Uma + Domain conditional) — v2.8 Smart Coop"
+description: "[shode-house] Smart Spec pipeline (Phase 1a Bella + Sara parallel; Phase 1b Uma + Domain conditional). Flags: --stop = หยุดที่ spec ไม่ suggest implement (proposal mode); --estimate = เพิ่ม T-shirt sizing step"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
-argument-hint: [bd-id | system description]
+argument-hint: [bd-id | system description] [--stop] [--estimate]
 ---
 
 📝 **Spec phase** สำหรับ: **$ARGUMENTS**
 
-> v2.8 Smart Coop: parallel foundation (Bella + Sara) → conditional sequential expand (Uma + Domain). Replaces v2.7 4-way Coop (40% leaner token, no redundant cross-read overhead)
+> v3.1: รวม `/spec-only` เข้ามาเป็น `--stop --estimate` flags. Pipeline = parallel foundation (Bella + Sara) → conditional sequential expand (Uma + Domain) → optional estimation → optional stop.
+
+## Flag parsing (Oliver step 0)
+
+```bash
+STOP=false
+ESTIMATE=false
+ARGS=$(echo "$ARGUMENTS" | sed -E 's/--stop|--estimate//g' | xargs)
+
+[[ "$ARGUMENTS" == *--stop* ]] && STOP=true
+[[ "$ARGUMENTS" == *--estimate* ]] && ESTIMATE=true
+
+# Sanity: --stop มักไปคู่กับ --estimate (proposal mode ต้องการ effort number)
+# ถ้า --stop ไม่มี --estimate → ถาม user 1 ครั้ง: "proposal mode ต้องการ estimation ด้วยมั้ย?"
+```
+
+| Flag combo | Mode | Use case |
+|---|---|---|
+| (none) | spec → suggest /implement | normal feature design |
+| `--estimate` | spec + estimation → suggest /implement | sprint planning |
+| `--stop` | spec → STOP (no implement suggest) | review-only / docs |
+| `--stop --estimate` | spec + estimation → STOP + summary | **proposal / quotation** (replaces /spec-only) |
 
 ## Step 0 — Triage (Oliver)
 
-- Pick bd issue (`bd show <id>` ถ้า มี argument) หรือสร้างใหม่ (`bd create -t feature -p1 "..."`)
+- Pick bd issue (`bd show <id>` ถ้ามี argument) หรือสร้างใหม่ (`bd create -t feature -p1 "..."`)
 - Trigger detection:
   - **frontend trigger**? (touch UI/component/page/view/email/dashboard) → Uma เข้า Phase 1b
   - **business-rule trigger**? (money/policy/matching/booking/inventory/regulation) → Domain Expert เข้า Phase 1b
@@ -21,7 +42,7 @@ argument-hint: [bd-id | system description]
 
 Oliver kickoff broadcast:
 ```
-[Oliver|state:1a|bd:42] Phase 1a start
+[Oliver|state:1a|bd:42] Phase 1a start (flags: stop=$STOP estimate=$ESTIMATE)
 - Roster: Bella + Sara (parallel, independent scope)
 - bd: bd-42
 - Budget: [T-shirt]
@@ -121,7 +142,52 @@ Domain reads `bd show <id>` (Phase 1a notes) → produces:
 - Oliver gate pre-spec-expand: ✅
 ```
 
-## Step 3 — Phase 1b Exit Gate (Oliver)
+## Step 3 — Phase Est (Oliver + Sara — ถ้า `--estimate`)
+
+T-shirt size (XS/S/M/L/XL) ต่อ module:
+- Foundation (setup, infra)
+- Per business module
+- Integration
+- QA
+
+```bash
+bd update <id> --notes "
+## Estimation
+| Module | T-shirt | Confidence | Note |
+|---|---|---|---|
+| Foundation | M | high | infra + auth |
+| <Business-1> | L | medium | <reason> |
+| QA pyramid | M | high | unit + integration + E2E |
+| Integration | S | high | 2 external API |
+**Total**: XL · **Confidence**: medium · **Risk drivers**: <top 3>
+"
+```
+
+→ `outputs/04-estimation.md`
+
+## Step 4 — Exit Gate (Oliver)
+
+### If `--stop` (proposal mode)
+
+Generate `outputs/00-proposal-summary.md`:
+- Business objective (Bella)
+- Solution overview (Sara C4 + ADR top 3)
+- Tech headline
+- Effort ballpark (จาก Estimation; ถ้าไม่มี --estimate → ตอบ "estimation not requested, add --estimate to include")
+- Assumption + risk
+- Next step
+
+```
+⏸️ /design-system --stop completed
+✅ outputs/SPEC-<bd-id>.md
+✅ outputs/00-proposal-summary.md
+✅ outputs/04-estimation.md (ถ้า --estimate)
+
+ห้าม auto-suggest /implement (proposal mode).
+ถ้า user สั่ง proceed → user ต้องเรียก /implement bd-<id> เอง
+```
+
+### If no `--stop` (normal flow)
 
 ```
 ⏸️ Gate: pre-implement-ui (ถ้า frontend)
@@ -129,10 +195,8 @@ Domain reads `bd show <id>` (Phase 1a notes) → produces:
 ✅ Uma's AC documented
 ✅ Domain (ถ้า trigger): regulation cite + business rule signed
 ✅ outputs/SPEC-<bd-id>.md saved
-→ Unlock Phase 2 — call `/implement bd-<id>`
+→ Unlock Phase 2 — call /implement bd-<id>
 ```
-
-Next: `/implement bd-<id>` (Phase 2)
 
 ## ⚠️ Rules
 
@@ -142,5 +206,13 @@ Next: `/implement bd-<id>` (Phase 2)
 4. 🔴 v2.8 — **บังคับ baseline screenshot** ใน 1b (สำหรับ visual diff Phase 3a)
 5. ห้าม skip Uma ถ้า touch frontend (pre-implement-ui gate block)
 6. ห้าม skip Domain ถ้า touch business rule (regulation/money rule risk)
-7. ห้าม implement code (ใช้ `/implement`)
-8. ภาษาไทย
+7. ห้าม implement code (ใช้ `/implement` หลัง spec)
+8. 🔴 v3.1 — **`--stop` ต้องระบุ output destination** (default outputs/; proposal → CC ให้ Patrick review)
+9. ภาษาไทย
+
+## Skill composition
+
+- After spec → `/implement bd-<id>` (normal) หรือ STOP (`--stop`)
+- After estimation → ส่งต่อ Patrick (PM) สำหรับ sprint planning + opportunity sizing
+- เมื่อ Domain Evidence cite → invoke `secure` skill ถ้า touch PII / payment / auth
+- v3.1 merged `/spec-only` เข้ามาเป็น `--stop --estimate` flags (alias เก่ายัง work ผ่าน v3.x)

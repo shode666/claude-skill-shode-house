@@ -6,22 +6,35 @@
 
 ออกแบบเน้น: **lean • token-optimized • production-ready • domain-driven • zero-overlap capability • ภาษาไทย**
 
-[![Version](https://img.shields.io/badge/version-3.0.1-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
+[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
 
-## 🆕 v3.0 — Comprehensive Org Structure
+## 🆕 v3.1 — Skill Craft Refactor (9arm-inspired)
 
-**Biggest release since v1.0** — real software-house org chart:
+**Focused on skill quality + lazy-load + token saving** ขณะที่ keep v3.0 org structure ครบ:
 
-- **4 new core agents**: Patrick (PM), Stan (Staff Eng), Sentinel (Security Eng), Reggie (SRE)
-- **4 new phases**: Phase 0 Discovery → 1c Threat Model → 6 Operate → 7 Learn
-- **7-team structure** with single-owner capability matrix (zero overlap)
-- **Workflow Drift Defense** — 7 mechanisms to keep workflow tight in follow-up
-- **Handoff Broadcast Protocol** — caveman 1-line between agents (`Bella ▸ Dave : impl bd-42`)
-- **RACI matrix** explicit per phase + Multi-sig pre-deploy-prod gate
-- **5 new skills**: dev-gate (merged tdd+code-quality), web-q, secure, slo, incident
+- **Meeting god-skill split** — เดิม `meeting/SKILL.md` = 1316 บรรทัด (everyone loaded). แตกเป็น 7 lazy-load skills ใต้ `skills/discipline/` + meeting เหลือ 180-line thin entry-point + Recite Discipline Card → **86% token reduction** สำหรับ entry context
+- **Bucket folder lifecycle** (`workflow/`, `ops/`, `ui/`, `style/`, `discipline/`, `in-progress/`, `deprecated/`) — maturity visible จาก folder; CLAUDE.md invariants บังคับ index integrity
+- **Command consolidation** — `/init` รวม `/setup-project` ด้วย `--quick` flag; `/design-system` รวม `/spec-only` ด้วย `--stop --estimate` flags. ลด 8 → 6 commands (+ 2 deprecated alias 1-release window)
+- **9arm-inspired skill craft** ทุก SKILL.md:
+  - 4-section description format: `[WHAT] · [AUDIENCE] · [WHEN] · [TRIGGER]`
+  - `When NOT to use` + `Required inputs — refuse without` gate
+  - Skill composition pointer (textual handoff between skills — ลด orchestrator round-trip)
+- **`review-checklist` skill (DRY)** — Chris 7-dim + Quinn integration matrix อยู่ที่เดียว; `/implement` Phase 3b + `/review` อ้างที่นี่
+- **Recite Discipline Card** — ทุก agent recite 5 Philosophy verbatim ใน first response (anchor against drift)
+- **CLAUDE.md repo invariants** (≤ 30 lines) + `scripts/{list,check,build}.sh` dev-loop tooling
+- **18 skills** (10 functional + 7 discipline modules + 1 review-checklist), **6 commands** (+ 2 deprecated)
+
+### v3.0 features ที่ยัง keep
+
+- 4 core agents: Patrick (PM), Stan (Staff Eng), Sentinel (Security Eng), Reggie (SRE)
+- 4 phases: 0 Discovery, 1c Threat Model, 6 Operate, 7 Learn
+- 7-team structure + single-owner capability matrix
+- Workflow Drift Defense (M1-M7 ตอนนี้อยู่ใน `shode-house-drift` skill)
+- Handoff Broadcast Protocol (caveman 1-line)
+- RACI matrix per phase + Multi-sig pre-deploy-prod gate
 
 ---
 
@@ -108,37 +121,71 @@
 
 ---
 
-## ⚡ Slash Commands (8)
+## ⚡ Slash Commands (6 + 2 deprecated alias — v3.1 consolidation)
 
 | Command | ใช้เมื่อ |
 |---------|----------|
-| `/shode-house:init [project]` | Init wizard — interactive scaffold |
 | `/shode-house:consult [คำถาม]` | ปรึกษาด่วน — route ไป agent ตัวเดียว |
-| `/shode-house:spec-only [ระบบ]` | Spec อย่างเดียว — proposal/estimation |
-| `/shode-house:design-system [ระบบ]` | Full design pipeline — Phase 0/1a/1b/1c |
-| `/shode-house:implement [feature]` | Implement — Dave + UI check + 4-way Verify |
-| `/shode-house:review [path\|jira\|bug]` | Code review — Chris + Quinn + Sentinel |
-| `/shode-house:setup-project [stack]` | Aaron setup — Docker-first, CI/CD, observability |
+| `/shode-house:init [project]` | Init project scaffold — **default**: interactive wizard; `--quick "<stack>"` direct Aaron Docker-first (replaces /setup-project) |
+| `/shode-house:design-system [feature]` | Smart Spec pipeline — **default**: spec → suggest implement; `--stop`: stop at spec; `--estimate`: add T-shirt sizing; `--stop --estimate` = proposal mode (replaces /spec-only) |
+| `/shode-house:implement [feature]` | Phase 2-4 — Dave + Uma + Chris ∥ Quinn (uses `review-checklist` skill) |
+| `/shode-house:review [path\|jira\|bug]` | Ad-hoc code review (uses `review-checklist` skill) |
 | `/shode-house:sprint [pre\|status\|close\|retro]` | Sprint management — outer loop |
+| ~~`/shode-house:setup-project`~~ | ⚠️ DEPRECATED v3.1 → alias of `/init --quick`. ลบใน v3.2 |
+| ~~`/shode-house:spec-only`~~ | ⚠️ DEPRECATED v3.1 → alias of `/design-system --stop --estimate`. ลบใน v3.2 |
+
+> **3-flag rule** (CLAUDE.md invariant): ห้ามเพิ่ม command ใหม่ถ้า command เดิม + ≤ 3 flag รองรับได้ → prefer flags over command proliferation
 
 ---
 
-## 📚 Skills (10 lazy-load)
+## 📚 Skills (18 lazy-load — bucket organized v3.1)
 
+### `skills/workflow/` — daily process
 | Skill | Owner | Trigger |
 |-------|-------|---------|
-| `meeting` | ALL | Engagement entry — discipline foundation v3.0 |
-| `dev-gate` 🆕 | Dave + Chris | TDD red-green-refactor + quality gates (merged from tdd + code-quality) |
-| `automate-test` | Quinn + Chris + Aaron | CI test pyramid 70/20/10 + threshold |
-| `ui-test` | Quinn + Uma + Dave | Playwright + axe + visual regression + a11y |
-| `diagnose` | Chris + Quinn + Dave | Bug + perf root cause (4-step methodology) |
-| `caveman` | Oliver + ALL | Compressed output mode |
-| `web-q` 🆕 | Uma + Dave + Quinn + Aaron + Sentinel | Core Web Vitals + SEO + security headers |
-| `secure` 🆕 | Sentinel | STRIDE + LINDDUN + CSP + Trusted Types + SAST/DAST |
-| `slo` 🆕 | Reggie | SLI / SLO / error budget (Google SRE Book-aligned) |
-| `incident` 🆕 | Reggie + Oliver | Runbook + on-call + blameless postmortem + 5-why |
+| [`meeting`](skills/workflow/meeting/SKILL.md) | ALL | **Entry-point** + Recite Discipline Card + index (v3.1 thin) |
+| [`dev-gate`](skills/workflow/dev-gate/SKILL.md) | Dave + Chris | TDD red-green-refactor + 7-gate quality |
+| [`automate-test`](skills/workflow/automate-test/SKILL.md) | Quinn + Chris + Aaron | CI test pyramid 70/20/10 + threshold |
+| [`diagnose`](skills/workflow/diagnose/SKILL.md) | Chris + Quinn + Dave | Bug + perf root cause (4-step) |
 
-**Removed in v3.0**: `sd`/`do` (duplicate v1.1), `tdd`+`code-quality` (merged → `dev-gate`), `grill-me` (merged → `meeting` Clarifying), `triage`/`to-prd`/`to-issues`/`zoom-out` (empty stubs)
+### `skills/ops/` — operational discipline
+| Skill | Owner | Trigger |
+|-------|-------|---------|
+| [`incident`](skills/ops/incident/SKILL.md) | Reggie + Oliver | Runbook + on-call + blameless postmortem + 5-why |
+| [`slo`](skills/ops/slo/SKILL.md) | Reggie | SLI / SLO / error budget (Google SRE Book) |
+| [`secure`](skills/ops/secure/SKILL.md) | Sentinel | STRIDE + LINDDUN + CSP + Trusted Types + SAST/DAST |
+
+### `skills/ui/` — frontend quality
+| Skill | Owner | Trigger |
+|-------|-------|---------|
+| [`ui-test`](skills/ui/ui-test/SKILL.md) | Quinn + Uma + Dave | Playwright + axe + visual regression |
+| [`web-q`](skills/ui/web-q/SKILL.md) | Uma + Dave + Quinn + Aaron + Sentinel | CWV + Lighthouse + SEO + security headers |
+
+### `skills/style/` — communication style
+| Skill | Owner | Trigger |
+|-------|-------|---------|
+| [`caveman`](skills/style/caveman/SKILL.md) | Oliver + ALL | Compressed output mode |
+
+### `skills/discipline/` — v3.1 split modules (from meeting god-skill)
+| Skill | Owner | Role |
+|-------|-------|------|
+| [`shode-house-discipline`](skills/discipline/shode-house-discipline/SKILL.md) 🆕 | ALL (mandatory) | Recite Card + 5 Philosophy + Safety + Universal Rules + Clarifying |
+| [`shode-house-evidence`](skills/discipline/shode-house-evidence/SKILL.md) 🆕 | Claimers, Domain experts | Project + UX + Domain Evidence + REVIEW format |
+| [`shode-house-routing`](skills/discipline/shode-house-routing/SKILL.md) 🆕 | Oliver | Routing + RACI + T-shirt + Trust Levels + Team v3.0 |
+| [`shode-house-deliverable`](skills/discipline/shode-house-deliverable/SKILL.md) 🆕 | Producers | DoD + Anti-Puppet + I Never Do + Postmortem template |
+| [`shode-house-broadcast`](skills/discipline/shode-house-broadcast/SKILL.md) 🆕 | ALL | Tag Prefix + Caveman broadcast + Handoff Protocol |
+| [`shode-house-workflow`](skills/discipline/shode-house-workflow/SKILL.md) 🆕 | Oliver | Phase Contract + Smart Coop + hooks + gates + worktree |
+| [`shode-house-drift`](skills/discipline/shode-house-drift/SKILL.md) 🆕 | Oliver enforcer | Drift Defense M1-M7 + New Phases v3.0 |
+| [`review-checklist`](skills/discipline/review-checklist/SKILL.md) 🆕 | Chris + Quinn + Sentinel + Domain | DRY checklist สำหรับ /implement Phase 3b + /review |
+
+### `skills/in-progress/` + `skills/deprecated/` — not shipped
+Skill ที่อยู่นี่จะไม่ถูกใส่ใน plugin.json (CLAUDE.md invariant)
+
+**v3.1 changes**:
+- Meeting god-skill (1316 lines) split → 7 discipline modules (avg 200 lines each) + 180-line thin entry
+- New `review-checklist` skill — DRY for `/implement` Phase 3b + `/review`
+- 9arm-inspired: 4-section description, When-NOT + Required-inputs gate, skill composition pointers
+- Bucket folders enforce maturity lifecycle
 
 ---
 
@@ -271,24 +318,44 @@ RTM (BR → FR → US → ADR → Test → Code) อยู่ใน bd. Markdown
 
 ---
 
-## 📁 Architecture
+## 📁 Architecture (v3.1 bucket-organized)
 
 ```
 shode-house/
-├── .claude-plugin/             manifest + marketplace
+├── CLAUDE.md                   🆕 v3.1 repo invariants (≤ 30 lines)
+├── .claude-plugin/             manifest + marketplace (v3.1.0)
+├── scripts/                    🆕 v3.1 dev-loop
+│   ├── list-skills.sh          list every SKILL.md + line count + bucket
+│   ├── check-index.sh          enforce CLAUDE.md invariants (CI gate)
+│   └── build-plugin.sh         build shode-house-v3.1.0.plugin
 ├── skills/
-│   ├── meeting/                discipline foundation (5 philosophy + teams + drift defense + RACI + handoff)
-│   ├── dev-gate/        🆕     TDD + quality gates (merged)
-│   ├── automate-test/          CI test pyramid
-│   ├── ui-test/                Playwright + axe + visual
-│   ├── diagnose/               4-step bug methodology
-│   ├── caveman/                compressed output
-│   ├── web-q/           🆕     Core Web Vitals + SEO + sec headers
-│   ├── secure/          🆕     STRIDE + CSP + Trusted Types
-│   ├── slo/             🆕     SLI/SLO/error budget
-│   └── incident/        🆕     Runbook + postmortem
+│   ├── workflow/               daily process
+│   │   ├── meeting/            🔄 v3.1 thin entry-point (180 lines, was 1316)
+│   │   ├── dev-gate/           TDD + 7-gate quality
+│   │   ├── automate-test/      CI test pyramid 70/20/10
+│   │   └── diagnose/           4-step bug methodology
+│   ├── ops/                    operational discipline
+│   │   ├── incident/           runbook + war room + postmortem
+│   │   ├── slo/                SLI/SLO/error budget
+│   │   └── secure/             STRIDE + CSP + Trusted Types
+│   ├── ui/                     frontend quality
+│   │   ├── ui-test/            Playwright + axe + visual
+│   │   └── web-q/              CWV + Lighthouse + SEO + headers
+│   ├── style/                  communication
+│   │   └── caveman/            compressed output
+│   ├── discipline/             🆕 v3.1 split modules + DRY checklist
+│   │   ├── shode-house-discipline/   Recite Card + 5 Philosophy + Safety
+│   │   ├── shode-house-evidence/     Project + UX + Domain Evidence + REVIEW
+│   │   ├── shode-house-routing/      Routing + RACI + T-shirt + Trust
+│   │   ├── shode-house-deliverable/  DoD + Anti-Puppet + Postmortem
+│   │   ├── shode-house-broadcast/    Tag Prefix + Caveman + Handoff
+│   │   ├── shode-house-workflow/     Phase Contract + hooks + gates
+│   │   ├── shode-house-drift/        Drift Defense M1-M7
+│   │   └── review-checklist/         DRY for /implement Phase 3b + /review
+│   ├── in-progress/            not shipped (drafts)
+│   └── deprecated/             not shipped (retiring)
 ├── agents/                     19 expert agents (12 core + 7 domain)
-├── commands/                   8 slash commands
+├── commands/                   6 active + 2 deprecated alias
 └── references/
     ├── modern-stack.md         2025+ tech recommendation
     ├── patterns/general.md     DB/API/Observability (Dave lazy-load)

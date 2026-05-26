@@ -8,3 +8,6 @@ node_modules/
 __pycache__/
 *.pyc
 outputs/
+# Zip temp files from failed builds (cannot be removed on some sandbox mounts)
+ziqn*
+ziq*

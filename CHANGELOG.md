@@ -3,6 +3,124 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.1.0] — Skill Craft Refactor (9arm-inspired) — 2026-05-26
+
+> **Focus**: skill quality + lazy-load + token saving. Keep v3.0 org structure (19 agents in 7 teams) ครบ. Inspired by [`thananon/9arm-skills`](https://github.com/thananon/9arm-skills) skill-craft patterns.
+
+### 🆕 Added
+
+**Repo invariants + dev-loop tooling**:
+- `CLAUDE.md` (≤ 30 lines) — repo invariants: bucket convention, 4-section description format, ≤ 300-line SKILL.md limit, command 3-flag rule
+- `scripts/list-skills.sh` — list every SKILL.md + lines + bucket + description
+- `scripts/check-index.sh` — enforce invariants (CI gate; exits non-zero on violation)
+- `scripts/build-plugin.sh` — build `shode-house-v<VERSION>.plugin` zip
+
+**New skill files (8 total — split from meeting + DRY checklist)**:
+- `skills/discipline/shode-house-discipline/SKILL.md` — Recite Discipline Card + 5 Philosophy + Safety + Universal Rules + Clarifying (mandatory load for all agents)
+- `skills/discipline/shode-house-evidence/SKILL.md` — Project + UX + Domain Evidence Protocol + REVIEW Report Format
+- `skills/discipline/shode-house-routing/SKILL.md` — Routing + RACI + T-shirt + Trust Levels + Team v3.0 + Conflict Resolution
+- `skills/discipline/shode-house-deliverable/SKILL.md` — DoD + Anti-Puppet + I Never Do + AI Persona Disclaimer + Postmortem template
+- `skills/discipline/shode-house-broadcast/SKILL.md` — Agent Tag Prefix + Structured Tag + Caveman Broadcast + Handoff Protocol v3.0
+- `skills/discipline/shode-house-workflow/SKILL.md` — Phase Contract + Smart Coop + lifecycle hooks + approval gates + worktree isolation
+- `skills/discipline/shode-house-drift/SKILL.md` — Workflow Drift Defense M1-M7 + New Phases v3.0 (0/1c/6/7)
+- `skills/discipline/review-checklist/SKILL.md` — Chris 7-dim + Quinn integration matrix + Sentinel security + Domain validation — DRY source-of-truth for `/implement` Phase 3b + `/review`
+
+**Bucket-folder lifecycle** (CLAUDE.md invariant):
+- `skills/workflow/` (4 skills) — daily process
+- `skills/ops/` (3 skills) — operational discipline
+- `skills/ui/` (2 skills) — frontend quality
+- `skills/style/` (1 skill) — communication
+- `skills/discipline/` (8 skills) — v3.1 split modules + DRY checklist
+- `skills/in-progress/` — not shipped placeholder
+- `skills/deprecated/` — not shipped placeholder
+
+**Plugin.json — explicit skills + commands list**:
+- เพิ่ม `skills` array (18 entries with bucket + role + path)
+- เพิ่ม `commands` array (8 entries with role)
+- เพิ่ม keywords: `9arm-inspired`, `skill-craft`, `lazy-load`, `bucket-lifecycle`
+
+### 🔄 Changed
+
+**Skill description format — 4-section across ทุก 10 functional skills**:
+- เดิม: run-on sentence "ใช้เมื่อ user สั่ง X, Y, Z ..."
+- ใหม่: `[WHAT] · [AUDIENCE] · [WHEN] · [TRIGGER]` (9arm-inspired hyper-specific trigger phrases)
+- กระทบ: `meeting`, `dev-gate`, `automate-test`, `diagnose`, `incident`, `slo`, `secure`, `ui-test`, `web-q`, `caveman`
+
+**Skill gates — When-NOT + Required-inputs** ใน 5 heavy skills:
+- `dev-gate`, `automate-test`, `incident`, `slo`, `secure` — เพิ่ม `## When NOT to use` + `## Required inputs — refuse without` (9arm `post-mortem` pattern)
+
+**Skill composition pointers** ใน 5 skills:
+- `diagnose` → `incident`/`dev-gate`/`automate-test`/`ui-test`/`secure`
+- `incident` → `slo`/`diagnose`/`dev-gate`/`secure`/`automate-test`
+- `secure` → `dev-gate`/`incident`/`web-q`/`automate-test`/`diagnose`
+- `dev-gate` → `automate-test`/`ui-test`/`web-q`/`secure`/`review-checklist`
+- `slo` → `incident`/`automate-test`/`diagnose`
+- Pattern: textual handoff ระหว่าง skills (ลด orchestrator round-trip — 9arm `post-mortem → management-talk` pattern)
+
+**Meeting god-skill split** (P1-1 from audit):
+- เดิม: `skills/meeting/SKILL.md` = **1316 บรรทัด, 45 KB** (god-skill — ทุก agent โหลด)
+- ใหม่: `skills/workflow/meeting/SKILL.md` = **180 บรรทัด** (thin entry-point + Recite Discipline Card + index ไป 7 split skills)
+- ผลที่ได้: **86% token reduction** สำหรับ entry context per agent
+
+**Command consolidation** (audit Section 5 — user-requested):
+- `/init` รวม `/setup-project` — เพิ่ม `--quick "<stack>"` flag (direct Aaron Docker-first mode)
+- `/design-system` รวม `/spec-only` — เพิ่ม `--stop` (no implement suggest) + `--estimate` (add T-shirt sizing) flags
+- ลด 8 → 6 active commands + 2 deprecated alias (1-2 release window)
+- 3-flag rule (CLAUDE.md invariant): prefer flags over command proliferation
+
+**`/implement` Phase 3b + `/review` rewired to use `review-checklist` skill** (DRY):
+- เดิม: ทั้ง 2 command มี checklist ของตัวเอง (Chris 7-dim + Quinn matrix duplicated)
+- ใหม่: invoke `review-checklist` skill เป็น source-of-truth — update ครั้งเดียวกระทบทั้ง 2
+
+**Folder migration** (no functional change):
+- `skills/meeting/` → `skills/workflow/meeting/`
+- `skills/dev-gate/` → `skills/workflow/dev-gate/`
+- `skills/automate-test/` → `skills/workflow/automate-test/`
+- `skills/diagnose/` → `skills/workflow/diagnose/`
+- `skills/incident/` → `skills/ops/incident/`
+- `skills/slo/` → `skills/ops/slo/`
+- `skills/secure/` → `skills/ops/secure/`
+- `skills/ui-test/` → `skills/ui/ui-test/`
+- `skills/web-q/` → `skills/ui/web-q/`
+- `skills/caveman/` → `skills/style/caveman/`
+
+### ⚠️ Deprecated (alias 1-2 release window — ลบใน v3.2)
+
+- `commands/setup-project.md` → use `/init --quick "<stack>"` แทน
+- `commands/spec-only.md` → use `/design-system --stop --estimate` แทน
+
+Migration: ทั้ง 2 command ยังทำงานได้ใน v3.1.x — auto-redirect ผ่าน Oliver
+
+### 🏛️ Architecture impact
+
+- v3.0 agents ที่อ้าง *"ยึด meeting skill เป็น discipline foundation"* ยัง work — meeting skill ตอนนี้เป็น thin entry-point + Recite Card + index pointer
+- เพื่อ token optimal: future agents ควร reference เป็น *"ยึด `shode-house-discipline` (mandatory) + `shode-house-evidence` (when claiming)"* — iterative adoption, ไม่บังคับใน v3.1
+- เนื้อหา 1316 บรรทัดเดิมยังครบ — กระจายไปยัง 7 sub-skills + index ใน thin meeting
+
+### 📊 Stats v3.1
+
+- **Skills**: 18 (จาก 10) — 10 functional + 7 discipline modules + 1 review-checklist
+- **Commands**: 6 active + 2 deprecated alias (จาก 8 active)
+- **Skill descriptions**: 100% migrated to 4-section format
+- **When-NOT gates**: 5/5 heavy skills covered
+- **Skill composition pointers**: 5 skills cross-linked
+- **Largest SKILL.md**: 272 lines (`shode-house-deliverable`) — ทุก skill ≤ 300 (CLAUDE.md invariant); meeting/ exception (180 thin)
+- **9arm patterns adopted**: 7/7 (description 4-section, When-NOT, Required-inputs, Recite mantra, skill composition, bucket lifecycle, CLAUDE.md invariants)
+
+### Inspired by
+
+- [`thananon/9arm-skills`](https://github.com/thananon/9arm-skills) — skill-craft patterns (4-section description, When-NOT + Required-inputs gate, Recite mantra, skill composition, bucket-folder lifecycle, CLAUDE.md invariants)
+- [`mattpocock/skills`](https://github.com/mattpocock/skills) — caveman/diagnose concepts (already credited in v2.x)
+- [`addyosmani/web-quality-skills`](https://github.com/addyosmani/web-quality-skills) — web-q port (already credited in v2.x)
+
+### Why minor bump (3.0.1 → 3.1.0)
+
+- **New features**: 8 new skills, command flag system, bucket folders, scripts/, CLAUDE.md
+- **No breaking change**: agent reference to meeting still works (thin entry-point); deprecated commands still work as alias
+- Per Semver: minor bump (backward-compatible additions)
+
+---
+
 ## [3.0.1] — Self-audit Patch (Patch — consistency + de-duplication + arrow convention)
 
 Self-audit ของ v3.0.0 ก่อน public — เจอ 3 inconsistency + apply fix

@@ -1,73 +1,30 @@
 ---
-description: "[shode-house] ทำ spec อย่างเดียว (BA + SA + Domain) ไม่ implement — เหมาะกับ proposal/estimation"
+description: "[shode-house] DEPRECATED v3.1 — alias ของ /design-system --stop --estimate. ใช้ flag form แทน. จะลบใน v3.2"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob
 argument-hint: [system description]
 ---
 
-ทำ spec สำหรับ: **$ARGUMENTS**
+# ⚠️ /spec-only DEPRECATED
 
-## เป้าหมาย
-spec สำหรับ proposal/quotation/estimation/onboarding — **ไม่ implement code**
+Command นี้ถูก merge เข้า `/design-system --stop --estimate` ตั้งแต่ **v3.1.0**. กรุณาใช้:
 
-## Pipeline (หยุดที่ spec)
+```
+/shode-house:design-system "$ARGUMENTS" --stop --estimate
+```
 
-### 0. Triage (Oliver)
-- ระบุ domain → เลือก Domain Expert
-- Present plan ให้ user approve
+**เหตุผล**: `/spec-only` กับ `/design-system` overlap 90% (Phase 1a Bella+Sara + Phase 1b Uma+Domain). v3.1 รวมเป็น command เดียวด้วย `--stop` (no implement suggest) + `--estimate` (add T-shirt) flags — ลด user confusion + maintain แห่งเดียว.
 
-### 1. Requirements (Bella)
-- BRD (objective, scope, stakeholder, RACI)
-- FRD (priority + AC)
-- NFR baseline
-- User stories + AC
-- Process flow as-is/to-be
-- Event Storming (ถ้า complex domain)
-- RTM
-- Risk + assumption
+**Migration window**: alias นี้ยังทำงานได้ใน v3.1.x แต่ **จะลบใน v3.2**. update muscle memory ตอนนี้
 
-→ `outputs/01-brd.md`
+---
 
-### 2. Domain Spec (Domain Expert)
-- ER diagram + state machine
-- Business rule + edge case
-- Compliance note
+## Auto-fallback (สำหรับ user เก่าที่พิมพ์ /spec-only)
 
-→ `outputs/02-domain-spec.md`
+Oliver: ตรวจถ้า user เรียก command นี้ → redirect ไป `/design-system --stop --estimate`:
 
-### 3. Architecture (Sara)
-- C4 Context + Container
-- Tech stack (options + chosen + reason)
-- ADR (3-5 decision สำคัญ)
-- NFR targets
-- Threat model (STRIDE)
-- DR/BCP target (RTO/RPO)
-- Risk register
+```bash
+echo "[Oliver] /spec-only deprecated → routing ไป /design-system \"$ARGUMENTS\" --stop --estimate"
+# Then execute /design-system logic with --stop --estimate flags (ดู commands/design-system.md Step 0)
+```
 
-→ `outputs/03-architecture.md`
-
-### 4. Estimation (Oliver + Sara)
-T-shirt size (XS/S/M/L/XL) ต่อ module:
-- Foundation (setup, infra)
-- Per business module
-- Integration
-- QA
-
-→ `outputs/04-estimation.md`
-
-### 5. Summary (Oliver)
-Exec summary 1 หน้า:
-- Business objective
-- Solution overview
-- Tech headline
-- Effort ballpark
-- Assumption + risk
-- Next step
-
-→ `outputs/00-proposal-summary.md`
-
-## ⚠️ Rules
-
-1. **ห้าม implement code** — spec/diagram/table เท่านั้น
-2. ผ่าน Domain Expert สำหรับ domain-specific
-3. ภาษาไทย (diagram = Mermaid)
-4. ถ้า user proceed → เสนอ `/implement` + `/setup-project`
+ดูรายละเอียดที่ [`commands/design-system.md`](./design-system.md) (Step 3 Phase Est + Step 4 If `--stop`)
