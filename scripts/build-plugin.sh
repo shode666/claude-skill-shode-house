@@ -2,6 +2,8 @@
 # build-plugin.sh — zip shippable bits into shode-house-v<VERSION>.plugin
 # Reads version from .claude-plugin/plugin.json
 # Excludes: in-progress/, deprecated/, outputs/, *.plugin (prior versions), .git, .DS_Store
+#
+# Sandbox-safe: builds in /tmp first then `cp -f` to repo root (mount may block `rm` on existing zip)
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -11,13 +13,15 @@ VERSION=$(grep -oE '"version":[[:space:]]*"[^"]+"' .claude-plugin/plugin.json | 
 [ -n "$VERSION" ] || { echo "ERROR: cannot read version from plugin.json"; exit 1; }
 
 OUT="shode-house-v${VERSION}.plugin"
+TMP_OUT="/tmp/${OUT}"
 
 echo "Building $OUT (version $VERSION) ..."
 
-# Clean prior build of same version
-rm -f "$OUT"
+# Clean prior tmp build (always permitted in /tmp)
+rm -f "$TMP_OUT"
 
-zip -r "$OUT" \
+# Build into /tmp (sandbox-safe — repo mount may block rm on existing .plugin)
+zip -r "$TMP_OUT" \
   .claude-plugin/ \
   agents/ \
   commands/ \
@@ -31,6 +35,14 @@ zip -r "$OUT" \
   -x "skills/deprecated/*" \
   -x "**/.git/*" \
   > /tmp/build-plugin.log 2>&1
+
+# Include .pre-commit-config.yaml if present (optional)
+if [ -f .pre-commit-config.yaml ]; then
+  zip -u "$TMP_OUT" .pre-commit-config.yaml >> /tmp/build-plugin.log 2>&1
+fi
+
+# Copy to repo root (overwrites existing — cp -f works on mount when rm doesn't)
+cp -f "$TMP_OUT" "$OUT"
 
 SIZE=$(du -h "$OUT" | cut -f1)
 COUNT=$(unzip -l "$OUT" | tail -1 | awk '{print $2}')

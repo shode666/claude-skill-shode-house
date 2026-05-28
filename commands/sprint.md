@@ -1,7 +1,7 @@
 ---
 description: "[shode-house] Sprint management (Pre-Sprint / Sprint Close / Retro) — v2.8 outer loop"
 allowed-tools: Task, Read, Write, Edit, Bash
-argument-hint: [pre | close | status | retro]
+argument-hint: "[pre | close | status | retro]"
 ---
 
 🏃 **Sprint command** — outer cadence layer ของ Smart Coop workflow

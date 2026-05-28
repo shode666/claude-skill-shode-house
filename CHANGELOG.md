@@ -3,6 +3,62 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.1.1] — Dev Discipline + Lint Gate — 2026-05-27
+
+> **Focus**: ทำให้ "ตอน dev" มีคุณภาพจริงตาม software craft. v3.1.0 มี skill craft refactor แต่ขาดความลึก dev-gate + ขาด lint discipline ที่ระดับ repo. v3.1.1 fix ทั้งสองจุด.
+
+### 🆕 Added
+
+**dev-gate skill — 7 → 11 gates** (`skills/workflow/dev-gate/SKILL.md`):
+- **Gate 0: Architecture self-check** (Dave judgment ก่อน hand-off) — SOLID 5 checkbox + cohesion + low coupling + human-readable. ห้าม "Chris จะ review ให้" — Dave ตอบ self-check ก่อน push
+- **Gate 2: Organize Imports** (แตกจาก Format) — stdlib/3rd-party/local + alpha sort, ห้าม wildcard
+- **Gate 3: Remove Unused** (แตกจาก Format) — unused import/var/function/parameter ต้องลบ
+- **Gate 9: Security Lint** (เพิ่มใหม่) — SAST per language + secret scan (gitleaks) + dep audit
+- **Per-language tool matrix** — 8 stacks (Py/TS/JS/Go/Java/Kt/Rust/Vue/PHP) บอก tool ที่ใช้ per gate
+- **Pre-commit hook examples** — `.pre-commit-config.yaml` ตัวอย่าง Python + TS/JS
+
+**Repo-level lint discipline**:
+- `scripts/lint.sh` — comprehensive pre-publish gate (8 checks): JSON syntax, SKILL.md YAML + name+description, command YAML + string argument-hint, agent YAML, SKILL name == folder, cross-refs resolve, path refs in README+CLAUDE, Cowork constraints + invariants
+- `.pre-commit-config.yaml` (template สำหรับ shode-house repo เอง) — gitleaks + yamllint + check-yaml + lint.sh
+- `scripts/setup-precommit.sh` — bootstrap pre-commit สำหรับ shode-house contributor
+
+### 🔄 Changed
+
+**`scripts/publish-v3.1.0.sh` → `scripts/publish.sh`** (version-agnostic):
+- Reads version จาก plugin.json (ไม่ hard-code)
+- Step 2 ใช้ `lint.sh` (8 checks) แทน check-index.sh เดี่ยว
+- Idempotent: safe to re-run
+
+**Bug fixes ที่ค้นพบจาก lint pass** (v3.1.0 มี bug ที่เกือบ ship):
+- `commands/design-system.md` `argument-hint: [a | b] [c] [d]` — YAML parse error (3 flow sequences ติดกัน) → quote เป็น string
+- `commands/init.md`, `setup-project.md` — nested quote ใน argument-hint → single-quote wrap
+- `commands/{consult,implement,sprint,review,spec-only}.md` — `argument-hint: [bd-id]` parse เป็น list ไม่ใช่ string → ทุกตัว quote
+- `README.md` line 384 — stale ref `skills/meeting/SKILL.md` (post bucket migration) → `skills/workflow/meeting/SKILL.md` + `skills/discipline/shode-house-routing/SKILL.md`
+
+### 🐛 Lessons learned
+
+**v3.1.0 publish workflow ขาด lint gate** — เกือบ ship ของ buggy เพราะข้าม VERIFY BEFORE DONE step:
+- ไม่มี YAML frontmatter parse check (8 commands พลาด)
+- ไม่มี cross-reference check (README path stale)
+- check-index.sh check แต่ structural ไม่ได้ check syntax
+- **v3.1.1 fix**: `scripts/lint.sh` รวม 8 checks; publish script require pass ก่อน push
+
+**dev-gate ใน v3.1.0 ไม่ครอบ "import/unused/security"** — ทำให้ Dave/Chris อาจ ship ของไม่ครบ:
+- Old: 7 gates เน้น format + lint + test
+- New: 11 gates เพิ่ม organize-imports + remove-unused + security lint + architecture self-check
+- เพิ่ม per-language tool matrix ให้ Dave/Chris pick tool ถูกตั้งแต่ start project
+
+### 📊 Stats v3.1.1
+
+- Skills: 18 (no change)
+- Commands: 6 active + 2 deprecated alias (no change)
+- dev-gate gates: 7 → **11**
+- lint.sh checks: 0 → **8** (gate ก่อน publish)
+- Cowork validator constraints in CLAUDE.md: **enforced via check-index.sh + lint.sh**
+- Pre-commit hook: ✅ template + setup script
+
+---
+
 ## [3.1.0] — Skill Craft Refactor (9arm-inspired) — 2026-05-26
 
 > **Focus**: skill quality + lazy-load + token saving. Keep v3.0 org structure (19 agents in 7 teams) ครบ. Inspired by [`thananon/9arm-skills`](https://github.com/thananon/9arm-skills) skill-craft patterns.

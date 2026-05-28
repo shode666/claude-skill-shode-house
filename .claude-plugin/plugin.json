@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.1.0",
-  "description": "Multi-agent software house team v3.1: 19 agents in 7 teams + 18 lazy-load skills + 6 commands. Bucket-folder lifecycle. 9arm-inspired skill craft.",
+  "version": "3.1.1",
+  "description": "Multi-agent software house team v3.1.1: 19 agents in 7 teams + 18 skills + 6 commands. dev-gate 11 gates. Pre-commit + lint.sh discipline.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"

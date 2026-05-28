@@ -15,7 +15,7 @@
 - ทุก skill ใน 5 bucket แรกต้องอยู่ใน `.claude-plugin/plugin.json` skills list + `README.md` index
 - `in-progress/` + `deprecated/` ต้อง **ไม่** อยู่
 - SKILL.md description ใช้ **4-section format**: `[WHAT] · [AUDIENCE] · [WHEN] · [TRIGGER]`
-- SKILL.md ขนาด ≤ 300 บรรทัด (≤ 12 KB). เกิน → แตก
+- SKILL.md ขนาด ≤ 300 บรรทัด (≤ 12 KB). เกิน → แตก. Exception: `meeting` (thin entry-point + Recite Card) + `dev-gate` (11 gates + per-language tool matrix justified, ≤ 400)
 - Skill ที่ผลิต deliverable ต้องมี: `## When NOT to use` + `## Required inputs — refuse without`
 
 ## Commands

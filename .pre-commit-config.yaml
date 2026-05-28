@@ -1,0 +1,49 @@
+# .pre-commit-config.yaml — shode-house repo pre-commit hook
+# Install: brew install pre-commit && pre-commit install
+# Or via setup script: bash scripts/setup-precommit.sh
+#
+# Runs comprehensive lint on every commit. Block commit if any check fails.
+# This is the SAME lint that scripts/publish.sh runs as final gate.
+
+repos:
+  # Built-in basic hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml              # YAML syntax (catches argument-hint bugs)
+        args: [--unsafe]            # allow custom YAML tags in SKILL.md
+      - id: check-json              # JSON syntax (plugin.json + marketplace.json)
+      - id: end-of-file-fixer       # newline at EOF
+      - id: trailing-whitespace     # trailing space
+      - id: mixed-line-ending       # CRLF/LF consistency
+      - id: check-merge-conflict    # leftover <<<< markers
+
+  # Secret scanning (Cowork plugin shouldn't ship secrets)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+
+  # YAML lint (stricter than check-yaml)
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-d, "{extends: relaxed, rules: {line-length: {max: 200}}}"]
+
+  # Shellcheck for scripts/
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        files: ^scripts/.*\.sh$
+
+  # Custom local hook — run shode-house lint.sh
+  - repo: local
+    hooks:
+      - id: shode-house-lint
+        name: shode-house lint (8 checks)
+        entry: bash scripts/lint.sh
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -1,7 +1,7 @@
 ---
 description: "[shode-house] DEPRECATED v3.1 — alias ของ /init --quick. ใช้ /init --quick <stack> แทน. จะลบใน v3.2"
 allowed-tools: Read, Write, Edit, Bash, Task
-argument-hint: [stack, e.g. "FastAPI + Postgres + Redis"]
+argument-hint: '[stack, e.g. "FastAPI + Postgres + Redis"]'
 ---
 
 # ⚠️ /setup-project DEPRECATED

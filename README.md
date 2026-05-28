@@ -381,7 +381,7 @@ Pattern: ระบุ action + impact + rollback → ขอ confirm → execute
 
 **Add new domain expert**:
 1. Drop `agents/<name>.md` (ตาม 5-Dim Role template)
-2. Update Team Routing ใน `agents/orchestrator.md` + Team Structure ใน `skills/meeting/SKILL.md`
+2. Update Team Routing ใน `agents/orchestrator.md` + Team Structure ใน `skills/workflow/meeting/SKILL.md` + `skills/discipline/shode-house-routing/SKILL.md`
 3. Bump version, repackage
 
 **Remove agent**: ลบไฟล์ + remove จาก routing + capability matrix

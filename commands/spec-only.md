@@ -1,7 +1,7 @@
 ---
 description: "[shode-house] DEPRECATED v3.1 — alias ของ /design-system --stop --estimate. ใช้ flag form แทน. จะลบใน v3.2"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob
-argument-hint: [system description]
+argument-hint: "[system description]"
 ---
 
 # ⚠️ /spec-only DEPRECATED

@@ -1,7 +1,7 @@
 ---
 description: "[shode-house] ปรึกษาด่วน — route ไปหา agent ที่เหมาะที่สุด (ไม่รัน pipeline เต็ม)"
 allowed-tools: Task, Read, Grep, Glob
-argument-hint: [question or topic]
+argument-hint: "[question or topic]"
 ---
 
 คำถาม: **$ARGUMENTS**

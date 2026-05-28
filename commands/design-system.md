@@ -1,7 +1,7 @@
 ---
 description: "[shode-house] Smart Spec pipeline (Phase 1a Bella + Sara parallel; Phase 1b Uma + Domain conditional). Flags: --stop = หยุดที่ spec ไม่ suggest implement (proposal mode); --estimate = เพิ่ม T-shirt sizing step"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
-argument-hint: [bd-id | system description] [--stop] [--estimate]
+argument-hint: "[bd-id | system description] [--stop] [--estimate]"
 ---
 
 📝 **Spec phase** สำหรับ: **$ARGUMENTS**

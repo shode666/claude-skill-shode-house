@@ -1,7 +1,7 @@
 ---
 description: "[shode-house] Implement (Dave) + UI Check (Uma) + Code Review (Chris ∥ Quinn) + Triage — v2.8 Smart Coop Phase 2-4"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
-argument-hint: [bd-id]
+argument-hint: "[bd-id]"
 ---
 
 Implement: **$ARGUMENTS** (bd-id หรือ feature description)

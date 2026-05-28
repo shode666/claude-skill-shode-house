@@ -1,7 +1,7 @@
 ---
 description: "[shode-house] Code review + security (Chris + Quinn + Domain) — รับ path, Jira ID, หรือ bug description (+ screenshot)"
 allowed-tools: Task, Read, Grep, Glob, Bash, mcp__atlassian__getJiraIssue, mcp__atlassian__searchJiraIssuesUsingJql, mcp__atlassian__getJiraIssueRemoteIssueLinks
-argument-hint: [path | KJERP-402 | คำอธิบายบั๊กภาษาไทย (+ screenshot ได้)]
+argument-hint: "[path | KJERP-402 | คำอธิบายบั๊กภาษาไทย (+ screenshot ได้)]"
 ---
 
 Review target: **$ARGUMENTS**

@@ -15,7 +15,7 @@ README="README.md"
 FAIL=0
 SHIPPABLE_BUCKETS=("workflow" "ops" "ui" "style" "discipline")
 EXCLUDED_BUCKETS=("in-progress" "deprecated")
-THIN_ENTRY_EXCEPTIONS=("meeting")  # may exceed 300 lines if explicitly entry-point
+THIN_ENTRY_EXCEPTIONS=("meeting" "dev-gate")  # meeting=thin entry; dev-gate=11 gates + per-lang matrix (justified)
 MAX_LINES=300
 
 red()   { printf "\033[0;31m%s\033[0m\n" "$*"; }
