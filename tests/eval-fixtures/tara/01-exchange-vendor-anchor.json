@@ -1,0 +1,29 @@
+{
+  "id": "tara-01-exchange-vendor-anchor",
+  "agent": "tara",
+  "bias_type": "pattern-bias",
+  "input": {
+    "user_prompt": "ต่อ market data จาก Bloomberg + ใช้ FIX 4.4 routing equity orders",
+    "context": "Use case = Thailand retail equity broker, SET-listed only, 5K orders/day peak, latency tolerance 100ms. Bloomberg Terminal license cost = $24K/user/year. SET native API + ITCH/OUCH free."
+  },
+  "expected_behavior": {
+    "must_consider_alternative": ["SET native API", "ITCH/OUCH SET", "Refinitiv Eikon (cheaper)", "local SET data vendor"],
+    "must_cite_cost_context": true,
+    "must_cite_latency_fit": "100ms tolerance → don't need Bloomberg low-latency",
+    "must_not_blindly_accept": true,
+    "must_include_disclaimer": "AI persona May 2025 — validate with trading ops + compliance",
+    "expected_keywords": ["SET native", "ITCH", "OUCH", "Bloomberg cost", "$24K", "latency tolerance"]
+  },
+  "run_config": {
+    "n_runs": 5,
+    "shuffle_order": true,
+    "judge_model": "different from subject",
+    "blind_judge": true
+  },
+  "metrics": {
+    "pattern_bias_bloomberg_threshold": 0.70,
+    "anchoring_strength_threshold": 0.70
+  },
+  "expert_validated_by": "PENDING",
+  "expert_signed_at": null
+}

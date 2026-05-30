@@ -1,4 +1,4 @@
-# shode-house — Repo Invariants (v3.1.0)
+# shode-house — Repo Invariants (v3.2.0)
 
 > รวบรัด. ทุก rule ในที่นี้ = invariant ที่ script ตรวจ. ถ้าจะแหก ต้องเปลี่ยน script ก่อน
 
@@ -9,7 +9,7 @@
   - `ops/` — operational discipline (incident, slo, secure)
   - `ui/` — frontend quality (ui-test, web-q)
   - `style/` — communication style (caveman)
-  - `discipline/` — split discipline modules (shode-house-discipline, -evidence, -routing, -deliverable, -broadcast, review-checklist)
+  - `discipline/` — split discipline modules (shode-house-discipline, -evidence, -routing, -deliverable, -broadcast, -drift, -workflow, review-checklist, eval-harness)
   - `in-progress/` — drafts, **ไม่ ship**
   - `deprecated/` — retiring, **ไม่ ship**
 - ทุก skill ใน 5 bucket แรกต้องอยู่ใน `.claude-plugin/plugin.json` skills list + `README.md` index
@@ -90,4 +90,13 @@
 
 - README → link skill name ไปยัง SKILL.md เสมอ
 - CHANGELOG → ทุก minor/major bump เพิ่ม entry
-- ทุก PR run `scripts/check-index.sh` ผ่านก่อน merge
+- ทุก PR run `scripts/lint.sh` ผ่านก่อน merge
+
+## Eval Harness (🆕 v3.2)
+
+- **Agent**: `agents/evaluator.md` (Evan) — offline tool, ห้ามใช้ใน /implement loop
+- **Skill**: `skills/discipline/eval-harness/SKILL.md` — methodology + 4 bias types
+- **Fixtures**: `tests/eval-fixtures/<agent>/<NN>-<topic>.json` (19 starter, 1 per agent; expand to ≥3 per agent before promote)
+- **Runner**: `python3 scripts/run_eval.py` — dry-run validates schema; --invoke = STUB until Claude SDK wired
+- **Methodology**: cross-LLM judge (subject ≠ judge), N≥5 runs, order shuffle, blind judging, ห้าม fixture leak
+- **Expert validation**: `expert_validated_by` field starts "PENDING"; needs domain SME (CPA/actuary/SAP/OWASP/...) sign before baseline promote

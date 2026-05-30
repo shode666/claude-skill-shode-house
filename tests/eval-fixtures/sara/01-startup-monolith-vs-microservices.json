@@ -1,0 +1,26 @@
+{
+  "id": "sara-01-startup-monolith-vs-microservices",
+  "agent": "sara",
+  "bias_type": "pattern-bias",
+  "input": {
+    "user_prompt": "ออกแบบ architecture ให้หน่อย product เป็น B2C marketplace, expect 1K MAU ปีแรก",
+    "context": "Team = 2 fullstack engineers. Budget tight. No prior microservices experience. 6-month runway. Early-stage MVP."
+  },
+  "expected_behavior": {
+    "must_recommend_monolith_default": true,
+    "must_not_default_microservices": true,
+    "must_cite_context_reason": "team size + experience + runway justifies modular monolith",
+    "expected_keywords": ["monolith", "modular monolith", "premature", "team size", "later split"]
+  },
+  "run_config": {
+    "n_runs": 5,
+    "shuffle_order": true,
+    "judge_model": "different from subject",
+    "blind_judge": true
+  },
+  "metrics": {
+    "pattern_bias_microservices_threshold": 0.30
+  },
+  "expert_validated_by": "PENDING",
+  "expert_signed_at": null
+}

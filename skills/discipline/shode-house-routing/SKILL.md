@@ -142,6 +142,7 @@ Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly i
 | 🛠 **Dev** | Dave (parallel Dave#N) + Devon + Mason | Phase 2 | Production code + data + ML |
 | ✅ **Verify** | Chris + Quinn + Sentinel | Phase 3b | Code review + Test + Security |
 | 🚀 **Ops** | Aaron + Reggie | Phase 5/6 | Deploy + SLO + Incident |
+| 🧪 **Eval** (🆕 v3.2 — offline only) | Evan | Phase 7 conditional + pre-major-release + on-demand. **ห้าม Phase 0-6 + /implement loop** | Agent bias profile + regression report |
 
 ### Single-owner capability matrix (🔴 zero overlap)
 
@@ -163,6 +164,7 @@ Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly i
 | SLO / SLI / Error budget / Incident / Runbook | **Reggie** | Aaron (ห้าม SLO) |
 | Workflow orchestration / state / delegation | **Oliver** | Patrick |
 | API docs / Developer portal / Release notes | **Tex** (opt) | Bella (BRD only) |
+| Agent bias evaluation / regression test / cross-LLM judge | **Evan** (🆕 v3.2 — offline) | ห้ามทุกคน (self-preference bias if reviewer reviews self) |
 
 > Rule: ทุก agent ก่อน accept งานต้องประกาศ "ผมรับ capability X" — ถ้าไม่ใช่ sole owner = reroute
 
@@ -233,7 +235,26 @@ Lead    ▸ Ops    : ship it
 | **4 Triage** | Oliver | **Oliver** | Chris, Quinn, Sentinel | Dave, Patrick |
 | **5 Deploy** | Aaron, Reggie | **Aaron** (build) + **Reggie** (SLO) | Quinn, Sentinel | All |
 | **6 Operate** | Reggie | **Reggie** | Aaron, Oliver, Patrick | Dave |
-| **7 Learn** | Patrick, Oliver | **Patrick** (OKR) + **Oliver** (process) | All | Stakeholder |
+| **7 Learn** | Patrick, Oliver, **Evan** (conditional) | **Patrick** (OKR) + **Oliver** (process) | All | Stakeholder |
+
+### 🧪 Evan trigger conditions (Phase 7 + off-loop) — when Oliver dispatch Evan
+
+| Trigger | Action | Cadence |
+|---|---|---|
+| `m3_audit.dispute_rate > 20%` per agent (drift M3) | Run Evan against that agent's fixtures | Per sprint retro |
+| Pre-major-release (v3.x → v4.0 prompt refactor) | Full eval suite 19 agents + compare baseline | Per major bump |
+| Pre-prompt-change to default | Targeted eval on edited agent | On-demand |
+| User mention `/shode-house:eval-harness` | Run requested fixtures | On-demand |
+| Phase 0-6 (Discover→Operate) | **❌ NO Evan** — offline tool, NOT in /implement loop | Never |
+
+### Conflict resolution: Evan vs Chris/Quinn
+
+| Question | Answer | Why |
+|---|---|---|
+| Chris/Quinn ตรวจ Evan ได้ไหม? | ❌ ไม่ (Evan = agent prompt, ไม่ใช่ code/runtime artifact) | คนละ subject under test |
+| Evan ตรวจ Chris/Quinn ได้ไหม? | ✅ ใช่ (Chris/Quinn = agent prompt; Evan eval bias profile) | Different abstraction level |
+| Chris/Quinn = Evan ได้ไหม (merge)? | ❌ ห้าม — self-preference bias (LLM-as-judge literature) | Subject ≠ judge |
+| Evan โผล่ใน Phase 3b ได้ไหม? | ❌ ห้าม — offline tool, /implement loop คนละ cadence | Different frequency + scope |
 
 ---
 

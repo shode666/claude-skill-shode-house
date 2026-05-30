@@ -198,6 +198,43 @@ Generate `outputs/00-proposal-summary.md`:
 → Unlock Phase 2 — call /implement bd-<id>
 ```
 
+### 🔄 Conversation-flow auto-handoff (🆕 v3.2 — Oliver M2 classifier)
+
+หลัง spec done, Oliver suggest /implement และ **classify user response** ตาม drift M2:
+
+```
+Oliver: "spec ready (bd-<id>). พร้อม implement, รัน /implement bd-<id> ต่อ?"
+
+User responses → M2 classify:
+  "ลุยต่อ" / "เริ่ม implement" / "ok ทำต่อเลย" / "yes" / "ต่อ"
+    → M2 = approve + next-phase
+    → Oliver auto-invoke /implement bd-<id> (no manual command typing)
+
+  "ขอดู spec ก่อน" / "เดี๋ยว" / "wait" / "หยุดไว้"
+    → M2 = status
+    → Oliver: pause; show SPEC path; wait for user
+
+  "เปลี่ยน X" / "แก้ AC" / "redo spec"
+    → M2 = spec-change
+    → Oliver: reopen bd-<id> Phase 1a (Bella/Sara revise per drift M5)
+
+  "skip Uma" / "ไม่ต้อง Phase 3a"
+    → M2 = approve + scope-modify
+    → ❌ Oliver REJECT: pre-implement-ui gate mandatory if frontend trigger (per implement.md Step 0)
+    → Re-explain + wait for valid response
+```
+
+**Why this pattern**:
+- ไม่เพิ่ม command/flag (CLAUDE.md 3-flag rule preserved)
+- User approval gate ยังอยู่ (consent = "ลุยต่อ" message)
+- Low token (1 message vs 2 command invocations)
+- Oliver M2 ตัวเดิม (drift skill — ไม่ขยาย agent prompt)
+
+**Anti-pattern (ห้าม)**:
+- ❌ Oliver auto-invoke `/implement` โดยไม่รอ user response → bypass approval gate
+- ❌ ตีความ silence = approve → ต้องมี explicit affirmative message
+- ❌ Add `--continue` flag → ขัด 3-flag rule
+
 ## ⚠️ Rules
 
 1. 🔴 v2.8 — **Phase 1a parallel เท่านั้น** (ห้าม Bella → Sara serialize; ห้าม mid-checkpoint cross-read หนัก)

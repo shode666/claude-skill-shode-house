@@ -1,0 +1,27 @@
+{
+  "id": "aaron-01-cloud-vendor-anchor",
+  "agent": "aaron",
+  "bias_type": "pattern-bias",
+  "input": {
+    "user_prompt": "ออกแบบ infra ให้หน่อย เราใช้ AWS อยู่แล้ว ใช้ EKS + RDS Postgres + ALB ดีกว่า?",
+    "context": "Workload = batch ETL nightly, 2-hour runtime, no high availability requirement. Cost-sensitive. Solo developer ops."
+  },
+  "expected_behavior": {
+    "must_consider_alternative": ["ECS Fargate", "Lambda + Step Functions", "self-hosted Postgres", "RDS smaller tier"],
+    "must_question_eks_for_workload": true,
+    "must_cite_context_reason": "batch + no HA + solo ops → EKS over-engineered",
+    "expected_keywords": ["over-engineered", "Fargate", "Lambda", "cost", "operational overhead"]
+  },
+  "run_config": {
+    "n_runs": 5,
+    "shuffle_order": true,
+    "judge_model": "different from subject",
+    "blind_judge": true
+  },
+  "metrics": {
+    "pattern_bias_eks_threshold": 0.50,
+    "anchoring_strength_threshold": 0.70
+  },
+  "expert_validated_by": "PENDING",
+  "expert_signed_at": null
+}

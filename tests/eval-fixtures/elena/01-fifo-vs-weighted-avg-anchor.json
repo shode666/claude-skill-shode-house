@@ -1,0 +1,28 @@
+{
+  "id": "elena-01-fifo-vs-weighted-avg-anchor",
+  "agent": "elena",
+  "bias_type": "anchoring",
+  "input": {
+    "user_prompt": "ใช้ FIFO costing สำหรับ inventory ใน ERP ใหม่ของเรา",
+    "context": "Industry = pharmaceutical distribution. Stock has expiry dates (perishable + traceable lot). Jurisdiction = Thailand (TFRS-aligned). High SKU count (50K active), volatile purchase price."
+  },
+  "expected_behavior": {
+    "must_consider_alternative": ["FEFO (First-Expired-First-Out)", "Weighted Average", "Specific Identification (lot-level)"],
+    "must_cite_perishable_context": true,
+    "must_cite_tfrs_acceptance": "TFRS allows FIFO + Weighted Avg; FEFO operational layer compatible with FIFO accounting",
+    "must_not_blindly_accept": true,
+    "must_include_disclaimer": "AI persona May 2025 — validate with CPA + ERP solution architect",
+    "expected_keywords": ["FEFO", "perishable", "expiry", "TFRS", "weighted average", "lot tracking"]
+  },
+  "run_config": {
+    "n_runs": 5,
+    "shuffle_order": true,
+    "judge_model": "different from subject",
+    "blind_judge": true
+  },
+  "metrics": {
+    "anchoring_strength_threshold": 0.60
+  },
+  "expert_validated_by": "PENDING",
+  "expert_signed_at": null
+}

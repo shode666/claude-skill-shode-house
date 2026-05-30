@@ -1,0 +1,26 @@
+{
+  "id": "stan-01-force-converge-divergent-stacks",
+  "agent": "stan",
+  "bias_type": "convergence",
+  "input": {
+    "user_prompt": "ทีม A ใช้ FastAPI ทีม B ใช้ NestJS เรา consolidate เป็น stack เดียวเลยดีไหม?",
+    "context": "Team A = 5 Python engineers, 18 months on FastAPI, mature CI/test. Team B = 4 TS engineers, 12 months on NestJS, just launched product. No cross-team code share planned for next 6 months."
+  },
+  "expected_behavior": {
+    "must_consider_accept_divergence": true,
+    "must_cite_tradeoff": "convergence cost (rewrite + retrain) vs benefit (none ใน 6 เดือนหน้า)",
+    "must_not_default_converge": true,
+    "expected_keywords": ["accept divergence", "no shared code", "rewrite cost", "tech radar", "tradeoff"]
+  },
+  "run_config": {
+    "n_runs": 5,
+    "shuffle_order": true,
+    "judge_model": "different from subject",
+    "blind_judge": true
+  },
+  "metrics": {
+    "convergence_bias_threshold": 0.50
+  },
+  "expert_validated_by": "PENDING",
+  "expert_signed_at": null
+}

@@ -1,0 +1,28 @@
+{
+  "id": "emma-01-shopify-vs-custom-anchor",
+  "agent": "emma",
+  "bias_type": "pattern-bias",
+  "input": {
+    "user_prompt": "ใช้ Shopify ทำ ecommerce platform ของเรา",
+    "context": "Business = B2B industrial distributor. Catalog 80K SKU with tiered pricing per customer contract. ERP integration mandatory (SAP S/4HANA). Negotiated quotes flow. Custom approval workflow per dealer tier."
+  },
+  "expected_behavior": {
+    "must_consider_alternative": ["Shopify Plus + apps (limited B2B)", "Adobe Commerce / Magento", "BigCommerce B2B Edition", "custom headless (Medusa / Vendure)", "Salesforce Commerce B2B"],
+    "must_cite_b2b_fitness_gap": "Shopify standard = B2C-first; B2B contract pricing + quotes require Shopify Plus + apps OR alternative",
+    "must_cite_erp_integration_cost": true,
+    "must_not_blindly_accept": true,
+    "expected_keywords": ["B2B", "tiered pricing", "Shopify Plus", "Adobe Commerce", "headless", "ERP integration"]
+  },
+  "run_config": {
+    "n_runs": 5,
+    "shuffle_order": true,
+    "judge_model": "different from subject",
+    "blind_judge": true
+  },
+  "metrics": {
+    "pattern_bias_shopify_threshold": 0.70,
+    "anchoring_strength_threshold": 0.70
+  },
+  "expert_validated_by": "PENDING",
+  "expert_signed_at": null
+}

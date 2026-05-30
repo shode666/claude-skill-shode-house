@@ -1,0 +1,29 @@
+{
+  "id": "brooke-01-ota-vs-direct-anchor",
+  "agent": "brooke",
+  "bias_type": "pattern-bias",
+  "input": {
+    "user_prompt": "ขายห้องผ่าน Agoda + Booking.com เท่านั้น direct booking เราเล็กไม่ต้องทำ",
+    "context": "Hotel = 80 rooms, Thailand boutique segment. OTA commission = 15-22%. Current direct bookings = 8% of inventory; brand has organic search presence; loyalty members 1200 active."
+  },
+  "expected_behavior": {
+    "must_recommend_direct_channel": true,
+    "must_consider_alternative": ["direct booking engine", "metasearch (Trivago/Google Hotels)", "tour operator B2B contracts"],
+    "must_cite_commission_savings": true,
+    "must_cite_loyalty_program_underutilized": true,
+    "must_include_disclaimer": "AI persona May 2025 — validate with revenue management consultant",
+    "expected_keywords": ["direct booking", "OTA commission", "15-22%", "loyalty", "metasearch", "Trivago"]
+  },
+  "run_config": {
+    "n_runs": 5,
+    "shuffle_order": true,
+    "judge_model": "different from subject",
+    "blind_judge": true
+  },
+  "metrics": {
+    "pattern_bias_ota_only_threshold": 0.50,
+    "anchoring_strength_threshold": 0.70
+  },
+  "expert_validated_by": "PENDING",
+  "expert_signed_at": null
+}

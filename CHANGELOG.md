@@ -3,6 +3,77 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.2.0] — Eval Harness + Bias-Aware Regression — 2026-05-30
+
+> **Focus**: Bias-aware offline evaluation for all 19 agents. ตอบโจทย์ "งานหลุดคุณภาพ" จากมุม regression test แทน runtime gate — สงสัย agent drift จาก prompt refactor → run eval หา bias profile + compare baseline.
+> **Scope: V2 (Spec + runner stub)** — agent + skill + 19 fixtures + Python runner. Real Claude SDK invoke pending.
+
+### 🆕 Added
+
+**1 new agent + 1 new skill**:
+- **`agents/evaluator.md`** — Evan (Evaluator). Offline tool, NOT in /implement loop. Orchestrate bias-aware fixture runs + cross-LLM judge + bias profile output. Tools: Read/Write/Edit/Glob/Grep/Bash.
+- **`skills/discipline/eval-harness/SKILL.md`** (224 lines) — methodology: 4 bias types (sycophancy/anchoring/pattern-bias/verbosity/position), per-agent bias priority table (19 agents), fixture schema, run pipeline, output JSON spec, calibration step.
+
+**19 starter fixtures** (`tests/eval-fixtures/<agent>/01-*.json`):
+- One per agent covering most-relevant bias type:
+  - Decision (Chris, Quinn): verdict-skew + sycophancy
+  - Domain (Felix, Iris, Sam, Tara, Elena, Brooke, Emma): pattern-bias + anchoring
+  - Design (Bella, Sara, Uma): anchoring + pattern-bias
+  - Workflow (Oliver, Patrick, Stan, Reggie): sycophancy + convergence/anchoring
+  - Dev/Ops (Dave, Aaron): sycophancy + pattern-bias
+  - Sentinel: sycophancy on "low risk"
+
+**Runner script** (cross-platform Python stdlib):
+- `scripts/run_eval.py` — `--dry-run` validates 19 fixtures schema across all agents; `--agent <name>` per-agent; `--invoke` STUB until Claude SDK harness pending
+
+**No-bias methodology baked in**:
+- Multi-run N≥5 per fixture (no single-shot)
+- Cross-LLM judge (subject ≠ judge — mitigate self-preference)
+- Blind judging (judge sees output + expected_keywords, NOT expected_verdict)
+- Order shuffle (mitigate position bias)
+- Judge calibration step on golden labels before real run
+
+### 🔄 Changed
+
+- `.claude-plugin/plugin.json` — v3.1.1 → v3.2.0 (description 141 chars ASCII)
+- `.claude-plugin/marketplace.json` — v3.1.1 → v3.2.0
+- `CLAUDE.md` — Eval Harness section + bucket list updated (eval-harness in discipline/)
+- `README.md` — 18 → 19 skills + eval-harness row
+
+### 🐛 Lessons learned
+
+**Wave-based scope creep prior to v3.2.0 revert**: ออกแบบ v3.2.0 ใหญ่ (Quality Gate + Telemetry + Hooks + 5 fixtures + Devil's Advocate + sprint metrics ...) — user revert + replan focused เฉพาะ harness + no-bias. Lesson: **minimum viable feature** > comprehensive feature set; ship narrow + iterate
+
+**Cross-platform from start**: Python stdlib only (no .sh user-facing); runs in Claude Code Bash sandbox regardless of host OS (Mac/Win/Linux)
+
+### 📊 Stats v3.2.0
+
+- Agents: 19 → **20** (+ Evan)
+- Skills shipped (plugin.json): 18 → **19** (+ eval-harness)
+- Commands: 6 (no change)
+- Python scripts (cross-platform): 0 → **1** (run_eval.py)
+- Maintainer .sh scripts: 6 (no change)
+- Eval fixtures: 0 → **19** (1 per agent starter)
+- Bias types covered: **9** (sycophancy, anchoring, pattern-bias, verbosity, position, verdict-skew, convergence, alert-dismissal, std-vs-custom)
+- **Host-OS dependency: ZERO** (sandbox-only Python execution)
+
+### ⚠️ Known limitations / scope NOT in v3.2.0
+
+- `run_eval.py --invoke` = STUB. Real Claude SDK invocation pending.
+- All 19 fixtures `expert_validated_by: PENDING` — need domain SME sign before baseline promote (CPA/actuary/SAP/OWASP/...)
+- Only 1 fixture per agent. Promote requires ≥ 3 fixtures + 2 baseline runs separated by ≥ 1 week
+- lint.sh integration: dry-run check optional (added in [11/11] check)
+- No web-q / accessibility / security CI deeper integration (deferred to future)
+- No telemetry hooks / sprint metrics / Anti-Puppet enforcement (deferred — was earlier v3.2.0 scope, reverted)
+
+### Roadmap (next versions)
+
+- v3.3: judge calibration tooling + Claude SDK wire-up
+- v3.4: expand fixtures (3+ per agent) + expert validation drive
+- v4.0: Real eval-driven prompt regression (breaking — fixtures become CI gate)
+
+---
+
 ## [3.1.1] — Dev Discipline + Lint Gate — 2026-05-27
 
 > **Focus**: ทำให้ "ตอน dev" มีคุณภาพจริงตาม software craft. v3.1.0 มี skill craft refactor แต่ขาดความลึก dev-gate + ขาด lint discipline ที่ระดับ repo. v3.1.1 fix ทั้งสองจุด.

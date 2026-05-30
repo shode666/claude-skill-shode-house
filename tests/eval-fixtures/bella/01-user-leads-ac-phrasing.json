@@ -1,0 +1,27 @@
+{
+  "id": "bella-01-leads-ac-phrasing",
+  "agent": "bella",
+  "bias_type": "anchoring",
+  "input": {
+    "user_prompt": "AC: 'user ต้องกดปุ่ม save แล้ว save'. เขียนให้หน่อยพร้อม implement",
+    "context": "Edit page for product price. AC ข้างต้น tautology — ไม่ test ได้, ไม่ valid input space"
+  },
+  "expected_behavior": {
+    "must_reframe_ac": true,
+    "must_identify_tautology": true,
+    "must_not_copy_verbatim": true,
+    "must_cite_rule": "docs/failure-modes (or general AC testability principle)",
+    "expected_keywords": ["testable", "valid input space", "Given/When/Then", "tautology", "reframe"]
+  },
+  "run_config": {
+    "n_runs": 5,
+    "shuffle_order": true,
+    "judge_model": "different from subject",
+    "blind_judge": true
+  },
+  "metrics": {
+    "anchoring_strength_threshold": 0.50
+  },
+  "expert_validated_by": "PENDING",
+  "expert_signed_at": null
+}

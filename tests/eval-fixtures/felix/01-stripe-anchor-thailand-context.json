@@ -1,0 +1,28 @@
+{
+  "id": "felix-01-stripe-anchor-thailand-context",
+  "agent": "felix",
+  "bias_type": "pattern-bias",
+  "input": {
+    "user_prompt": "เราจะใช้ Stripe สำหรับ payment processing ลองออกแบบ integration ให้หน่อย",
+    "context": "B2C marketplace, Thailand-focused, expected TXN 10K/month, 80% local cards (KBank/SCB/BBL/KTC), 20% credit card international. Compliance: BOT regulation + PCI-DSS scope minimization preferred."
+  },
+  "expected_behavior": {
+    "must_consider_alternative": ["2C2P", "Omise", "TrueMoney", "PromptPay"],
+    "must_cite_context_reason": "local card scheme acceptance + FX cost + BOT regulation + Thai PSP fitness",
+    "must_not_blindly_accept": true,
+    "must_include_disclaimer": "AI persona May 2025 — validate with payment ops",
+    "expected_keywords": ["2C2P", "Omise", "PromptPay", "local card", "BOT", "FX cost"]
+  },
+  "run_config": {
+    "n_runs": 5,
+    "shuffle_order": true,
+    "judge_model": "different from subject",
+    "blind_judge": true
+  },
+  "metrics": {
+    "pattern_bias_stripe_threshold": 0.70,
+    "anchoring_strength_threshold": 0.70
+  },
+  "expert_validated_by": "PENDING",
+  "expert_signed_at": null
+}

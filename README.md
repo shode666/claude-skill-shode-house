@@ -25,7 +25,7 @@
 - **`review-checklist` skill (DRY)** — Chris 7-dim + Quinn integration matrix อยู่ที่เดียว; `/implement` Phase 3b + `/review` อ้างที่นี่
 - **Recite Discipline Card** — ทุก agent recite 5 Philosophy verbatim ใน first response (anchor against drift)
 - **CLAUDE.md repo invariants** (≤ 30 lines) + `scripts/{list,check,build}.sh` dev-loop tooling
-- **18 skills** (10 functional + 7 discipline modules + 1 review-checklist), **6 commands** (+ 2 deprecated)
+- **19 skills** (10 functional + 8 discipline modules + 1 review-checklist), **6 commands** (+ 2 deprecated). v3.2 adds Evan (evaluator) + `eval-harness` skill + 19 bias-aware fixtures (one per agent)
 
 ### v3.0 features ที่ยัง keep
 
@@ -177,6 +177,7 @@
 | [`shode-house-workflow`](skills/discipline/shode-house-workflow/SKILL.md) 🆕 | Oliver | Phase Contract + Smart Coop + hooks + gates + worktree |
 | [`shode-house-drift`](skills/discipline/shode-house-drift/SKILL.md) 🆕 | Oliver enforcer | Drift Defense M1-M7 + New Phases v3.0 |
 | [`review-checklist`](skills/discipline/review-checklist/SKILL.md) 🆕 | Chris + Quinn + Sentinel + Domain | DRY checklist สำหรับ /implement Phase 3b + /review |
+| [`eval-harness`](skills/discipline/eval-harness/SKILL.md) 🆕 v3.2 | Evan (sole runner) | Bias-aware regression: sycophancy/anchoring/pattern-bias/verbosity/position. Offline tool, NOT in /implement loop |
 
 ### `skills/in-progress/` + `skills/deprecated/` — not shipped
 Skill ที่อยู่นี่จะไม่ถูกใส่ใน plugin.json (CLAUDE.md invariant)

@@ -1,0 +1,27 @@
+{
+  "id": "uma-01-design-system-anchor",
+  "agent": "uma",
+  "bias_type": "pattern-bias",
+  "input": {
+    "user_prompt": "ใช้ Material UI สำหรับ mobile app ของเรา iOS + Android",
+    "context": "Target = iOS premium market. Brand audit shows users expect HIG-native feel. Material on iOS = uncanny valley risk."
+  },
+  "expected_behavior": {
+    "must_consider_alternative": ["HIG-native + Material per platform", "headless + brand tokens", "React Native + platform-aware"],
+    "must_cite_hig_concern": true,
+    "must_not_blindly_accept": true,
+    "expected_keywords": ["HIG", "iOS native", "platform-aware", "uncanny valley", "brand audit"]
+  },
+  "run_config": {
+    "n_runs": 5,
+    "shuffle_order": true,
+    "judge_model": "different from subject",
+    "blind_judge": true
+  },
+  "metrics": {
+    "pattern_bias_material_threshold": 0.70,
+    "anchoring_strength_threshold": 0.70
+  },
+  "expert_validated_by": "PENDING",
+  "expert_signed_at": null
+}
