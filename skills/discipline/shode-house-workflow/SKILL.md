@@ -3,7 +3,7 @@ name: shode-house-workflow
 description: |
   [WHAT] Workflow discipline — Phase Contract (Smart Coop) + lifecycle hooks + approval gates + worktree isolation + task tracking + token-saving runtime rules.
   [AUDIENCE] Oliver (sole owner); ทุก agent (Phase Contract compliance).
-  [WHEN] Pipeline kickoff; phase transition; sprint planning; pre-deploy multi-sig; ทุก hook event.
+  [WHEN] Pipeline kickoff; phase transition; pre-deploy multi-sig; ทุก hook event.
   [TRIGGER] /shode-house:workflow, "Phase Contract", "Smart Coop", "lifecycle hook", "approval gate", "worktree", "task tracking", "token-saving", "bd issue".
 ---
 
@@ -64,63 +64,70 @@ E) Asana — task-focused, paid (cross-functional)
 
 ## 🔁 Workflow Discipline (🔴 Archon-inspired)
 
-### Phase Contract — 🔴 v2.8 Smart Coop + Sprint (Oliver enforce)
+### Phase Contract — 🔴 v3.3 PEV Loop per bd (Oliver enforce)
 
-**2-level loop: Outer Sprint (cadence) + Inner 5-phase (per issue)**
+**Single loop: PEV (Plan → Execute → Verify → Triage) per bd** (🔴 v3.3 — sprint outer loop removed)
+
+> ก่อน v3.3 มี outer sprint loop + inner per-issue loop. v3.3 = **single PEV loop per bd** — agent ส่งงาน task-complete, ไม่ time-bound. ห้าม man-day negotiation (per shode-house-discipline). Deploy = continuous per bd ready, ไม่ batched sprint-end.
 
 ```
-┌─ OUTER SPRINT LOOP (bd-native, team cadence) ────────────────────┐
-│                                                                   │
-│  Pre-Sprint:  bd ready → audit → bd create P0/P1/P2 (Oliver)     │
-│  Sprint Exec: Inner loop (per issue ↓)                            │
-│  Sprint Close: bd close * → git push → bd remember → retro       │
-│  Next Sprint ↑                                                    │
-└───────────────────────────────────────────────────────────────────┘
-
-┌─ INNER PER-ISSUE LOOP (Smart Coop — parallel where independent) ─┐
-│                                                                   │
-│  PICK:        bd update <id> --claim                              │
-│     ↓                                                             │
-│  Phase 1a 🤝 Foundation (Bella ∥ Sara — TRUE parallel, no deps)   │
-│              BRD + AC ∥ ADR + risk                                │
-│              → bd update --notes (compact ref only)               │
-│     ↓                                                             │
-│  Phase 1b 🎨 Conditional Expand (sequential gate after 1a)        │
-│              Uma* reads spec → wireframe + tokens + a11y baseline │
-│              Domain* reads spec → regulation cite + business rule │
-│              → outputs/SPEC-<bd-id>.md (integrated)               │
-│              ⏸️ Gate pre-implement-ui (Uma sign UI acceptance)     │
-│     ↓                                                             │
-│  Phase 2 💻 Implement (Dave — parallel Dave#1/#2 ถ้า independent)  │
-│              Scope Contract + code + unit test                    │
-│              ⏸️ Gate: lint clean + unit green + smoke pass         │
-│     ↓                                                             │
-│  Phase 3a 🎨 UI Check (Uma* — sequential gate)                    │
-│              Screenshot diff vs baseline                          │
-│              Verify Uma own accept criteria (from 1b)             │
-│              ⏸️ Gate: visual diff + a11y manual                    │
-│     ↓                                                             │
-│  Phase 3b 🔍 Code Review (Chris ∥ Quinn — TRUE parallel)          │
-│              Chris: 7-dim + unit mutation kill ≥ 70%              │
-│              Quinn: integration + E2E + contract + load + axe     │
-│              ⏸️ Gate: 0 Critical/Major                             │
-│     ↓                                                             │
-│  Phase 4 🚦 Triage (Oliver — loop routing)                        │
-│              Critical/Major → bd create --discovered-from=N       │
-│                + loop กลับ phase ตาม finding type:                 │
-│                  ─ code/perf/security impl → Phase 2              │
-│                  ─ UI/design adherence → Phase 1b                 │
-│                  ─ spec/AC/regulation → Phase 1a                  │
-│              Minor → bd create P4 + continue                      │
-│              Clean → bd close <id>                                │
-│              Max iter 3 → STOP escalate user                      │
-│     ↓                                                             │
-│  Phase 5 🚀 Deploy (Aaron — batched, sprint-end)                  │
-│              CI + canary + health + observability                 │
-└───────────────────────────────────────────────────────────────────┘
+┌─ PEV LOOP per bd issue (Smart Coop — parallel where independent) ─┐
+│                                                                    │
+│  📍 PICK: bd update <id> --claim                                   │
+│     ↓                                                              │
+│  📋 PLAN                                                           │
+│   Phase 0 🔍 Discovery (Patrick + Domain SME — opt, new initiative)│
+│   Phase 1a 🤝 Foundation (Bella ∥ Sara — TRUE parallel)           │
+│              BRD + AC ∥ ADR + risk                                 │
+│              → bd update --notes (compact ref only)                │
+│   Phase 1b 🎨 Conditional Expand (sequential gate after 1a)        │
+│              Uma* reads spec → wireframe + tokens + a11y baseline  │
+│              Domain* reads spec → regulation cite + business rule  │
+│              → outputs/SPEC-<bd-id>.md (integrated)                │
+│              ⏸️ Gate pre-implement-ui (Uma sign UI acceptance)      │
+│   Phase 1c 🛡 Threat Model (Sentinel — conditional auth/PII/money) │
+│     ↓                                                              │
+│  💻 EXECUTE                                                        │
+│   Phase 2 (Dave — parallel Dave#1/#2 ถ้า independent)              │
+│              Scope Contract + code + unit test                     │
+│              ⏸️ Gate: lint clean + unit green + smoke pass          │
+│     ↓                                                              │
+│  ✅ VERIFY (Chris/Quinn adversarial — zero trust Dave)             │
+│   Phase 3a 🎨 UI Check (Uma* — sequential gate)                    │
+│              Screenshot diff + Claude in Chrome verify             │
+│   Phase 3b 🔍 Code Review (Chris ∥ Quinn — TRUE parallel)          │
+│              Chris: 7-dim + mutation ≥ 70% + Chrome verify         │
+│              Quinn: integration + E2E + contract + load + Chrome   │
+│              ⏸️ Gate: 0 Critical/Major + verdict default = FAIL    │
+│     ↓                                                              │
+│  🚦 TRIAGE (Oliver — loop routing)                                 │
+│   Phase 4 Critical/Major → bd create --discovered-from=N           │
+│              + loop กลับ phase ตาม finding type:                    │
+│                ─ code/perf/security impl → Phase 2 (EXECUTE)       │
+│                ─ UI/design adherence → Phase 1b (PLAN expand)      │
+│                ─ spec/AC/regulation → Phase 1a (PLAN foundation)   │
+│              Minor → bd create P4 + continue                       │
+│              Clean → bd close <id>                                 │
+│              Max iter 3 → STOP escalate user                       │
+│     ↓                                                              │
+│  🚀 DEPLOY (Aaron — continuous per bd, or manual gate)             │
+│   Phase 5 CI + canary + health + observability                     │
+│     ↓                                                              │
+│  📡 OPERATE (Reggie — continuous post-deploy)                      │
+│   Phase 6 SLO burn watch + incident response                       │
+│                                                                    │
+│  📚 (No sprint retro — per-bd reflect happens in Phase 4 Triage)   │
+└────────────────────────────────────────────────────────────────────┘
 
 * = conditional: Uma เข้า 1b+3a เฉพาะ feature touch user-facing UI; Domain เข้า 1b เฉพาะ touch business rule
 ```
+
+**Key change v3.3**:
+- ❌ ไม่มี outer sprint loop (drop /sprint command + Pre-Sprint + Sprint Close + retro bracket)
+- ✅ Patrick OKR review = continuous (per-bd contribution, ไม่ bracket)
+- ✅ Deploy = per bd ready (continuous) หรือ manual batch (optional ตาม user)
+- ✅ Per-bd reflect ใน Phase 4 Triage (ไม่มี Sprint Retro)
+- ✅ ห้าม agent propose timeline / man-day (per shode-house-discipline § No Man-Day Negotiation)
 
 > **Why 1a + 1b แทน Coop 4-way parallel** (v2.8 over v2.7): Bella → Sara มี natural alignment (BRD informs ADR), Uma + Domain ต้องอ่าน spec ก่อน design/validate ฉะนั้น 4-way parallel + cross-read = ~40% redundant token. 1a (Bella ∥ Sara) + 1b (Uma + Domain sequential, read 1 spec baseline) = ได้ quality สูง ลด token
 
@@ -199,20 +206,21 @@ E) Asana — task-focused, paid (cross-functional)
 
 แต่ละ phase มี pre/post hook สำหรับ automated check:
 
-**Grouped by phase (🔴 v2.8 Smart Coop + Sprint)**:
+**Grouped by phase (🔴 v3.3 PEV loop per bd)**:
 
 | Phase | Actor | Pre-hook | Post-hook |
 |-------|-------|----------|-----------|
-| **Pre-Sprint** (outer) | Oliver | last sprint retro loaded | bd backlog audited + P0/P1/P2 created |
-| **Pick Issue** | Oliver | `bd ready --json` empty? = sprint done | `bd update <id> --claim` posted |
+| **Pick bd** | Oliver | `bd ready --json` not empty | `bd update <id> --claim` posted |
+| **Phase 0 Discover** (opt — new initiative) | Patrick + Domain SME | opportunity flagged | OKR + RICE + kill criteria → `outputs/opportunity-<feature>.md` |
 | **Phase 1a Foundation** | Bella ∥ Sara | bd issue context + CLAUDE.md loaded | BRD + ADR drafts done, light cross-read pass, `bd update <id> --notes` posted |
 | **Phase 1b Expand** | Uma + Domain (conditional) | 1a sign-off + frontend/business-rule trigger detected | Uma: wireframe + tokens + a11y baseline; Domain: regulation cite + rule. Integrated `outputs/SPEC-<bd-id>.md` saved |
+| **Phase 1c Threat Model** (conditional) | Sentinel | auth/PII/money/external trigger | STRIDE + abuse case + security AC injected to 1a |
 | **Phase 2 Implement** | Dave | UI artifact verified (pre-implement-ui), Scope Contract posted, worktree | lint + type + unit pass, smoke green, Scope Contract closed |
-| **Phase 3a UI Check** | Uma (conditional) | implement done + frontend changed | screenshot diff approved + a11y manual pass + Uma own AC verified → PASS/FAIL verdict |
-| **Phase 3b Code Review** | Chris ∥ Quinn | Phase 3a passed (no order between Chris/Quinn) | Chris: finding + mutation kill ≥ 70%; Quinn: E2E + contract + load + axe; merged `outputs/REVIEW-<bd-id>.md` |
-| **Phase 4 Triage** | Oliver | 3a + 3b reports ready | route loop (Phase 1a/1b/2 by finding type) ∥ Clean → `bd close <id>` ∥ iter > 3 → escalate user |
-| **Phase 5 Deploy** | Aaron (batched sprint-end) | approval gate + rollback plan ready | health check + observability live |
-| **Sprint Close** (outer) | Oliver | inner loop exhausted (bd ready empty + in_progress empty + last review 0 critical) | `git push` + `bd remember <lesson>` + retro 1-pager saved |
+| **Phase 3a UI Check** | Uma (conditional) | implement done + frontend changed | screenshot diff approved + a11y manual + Claude in Chrome verify + Uma own AC verified → PASS/FAIL verdict |
+| **Phase 3b Code Review** | Chris ∥ Quinn | Phase 3a passed (no order between Chris/Quinn); **adversarial — verdict default FAIL** | Chris: 7-dim + mutation kill ≥ 70% + Chrome verify; Quinn: E2E + contract + load + axe + Chrome verify; merged `outputs/REVIEW-<bd-id>.md` |
+| **Phase 4 Triage** | Oliver | 3a + 3b reports ready | route loop (Phase 1a/1b/2 by finding type) ∥ Clean → `bd close <id>` ∥ iter > 3 → escalate user. Per-bd reflect captured in `bd remember <lesson>` (no sprint retro) |
+| **Phase 5 Deploy** | Aaron (continuous per bd) | approval gate + rollback plan ready | health check + observability live |
+| **Phase 6 Operate** | Reggie | service in production | SLO burn watched, incident response per runbook |
 
 Aaron implements hooks via Makefile/CI — agent ไม่ต้อง manual
 

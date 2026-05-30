@@ -25,7 +25,7 @@ ARGS=$(echo "$ARGUMENTS" | sed -E 's/--stop|--estimate//g' | xargs)
 | Flag combo | Mode | Use case |
 |---|---|---|
 | (none) | spec → suggest /implement | normal feature design |
-| `--estimate` | spec + estimation → suggest /implement | sprint planning |
+| `--estimate` | spec + estimation → suggest /implement | when user explicit ขอ effort for external report |
 | `--stop` | spec → STOP (no implement suggest) | review-only / docs |
 | `--stop --estimate` | spec + estimation → STOP + summary | **proposal / quotation** (replaces /spec-only) |
 
@@ -250,6 +250,6 @@ User responses → M2 classify:
 ## Skill composition
 
 - After spec → `/implement bd-<id>` (normal) หรือ STOP (`--stop`)
-- After estimation → ส่งต่อ Patrick (PM) สำหรับ sprint planning + opportunity sizing
+- After estimation (user explicit ขอ) → ส่งต่อ Patrick (PM) สำหรับ opportunity sizing + user external report
 - เมื่อ Domain Evidence cite → invoke `secure` skill ถ้า touch PII / payment / auth
 - v3.1 merged `/spec-only` เข้ามาเป็น `--stop --estimate` flags (alias เก่ายัง work ผ่าน v3.x)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lint.sh — comprehensive pre-publish gate (9 checks)
+# lint.sh — comprehensive pre-publish gate (8 checks)
 # Run automatically by scripts/publish-*.sh. Exits non-zero on any failure.
 #
 # Catches bugs that check-index.sh doesn't:
@@ -20,12 +20,12 @@ yellow(){ printf "\033[0;33m%s\033[0m\n" "$*"; }
 FAIL=0
 
 echo "==============================================================="
-echo "  shode-house lint — pre-publish gate (9 checks)"
+echo "  shode-house lint — pre-publish gate (8 checks)"
 echo "==============================================================="
 echo ""
 
-# [1/9] JSON syntax
-echo "[1/9] JSON syntax"
+# [1/8] JSON syntax
+echo "[1/8] JSON syntax"
 for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
   if python3 -c "import json; json.load(open('$f'))" 2>/dev/null; then
     green "  ✓ $f"
@@ -37,8 +37,8 @@ for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
 done
 echo ""
 
-# [2/9] SKILL.md YAML + name + description
-echo "[2/9] SKILL.md frontmatter (YAML + name + description string)"
+# [2/8] SKILL.md YAML + name + description
+echo "[2/8] SKILL.md frontmatter (YAML + name + description string)"
 bad=0
 for f in $(find skills -name "SKILL.md" 2>/dev/null | sort); do
   if ! python3 -c "
@@ -64,8 +64,8 @@ if [ $bad -eq 0 ]; then
 fi
 echo ""
 
-# [3/9] Command .md frontmatter (description + string argument-hint)
-echo "[3/9] Command .md frontmatter (YAML + description + string argument-hint)"
+# [3/8] Command .md frontmatter (description + string argument-hint)
+echo "[3/8] Command .md frontmatter (YAML + description + string argument-hint)"
 bad=0
 for f in commands/*.md; do
   if ! python3 -c "
@@ -91,8 +91,8 @@ if [ $bad -eq 0 ]; then
 fi
 echo ""
 
-# [4/9] Agent .md frontmatter (name + description)
-echo "[4/9] Agent .md frontmatter (YAML + name + description)"
+# [4/8] Agent .md frontmatter (name + description)
+echo "[4/8] Agent .md frontmatter (YAML + name + description)"
 bad=0
 for f in agents/*.md; do
   python3 -c "
@@ -107,8 +107,8 @@ if [ $bad -eq 0 ]; then
 fi
 echo ""
 
-# [5/9] SKILL name == folder name
-echo "[5/9] SKILL frontmatter 'name' matches folder name"
+# [5/8] SKILL name == folder name
+echo "[5/8] SKILL frontmatter 'name' matches folder name"
 bad=0
 for f in $(find skills -name "SKILL.md"); do
   folder=$(basename "$(dirname "$f")")
@@ -118,8 +118,8 @@ done
 [ $bad -eq 0 ] && green "  ✓ all SKILL names match folder"
 echo ""
 
-# [6/9] Skill cross-refs in commands+README+CLAUDE resolve
-echo "[6/9] Skill cross-references resolve (commands + README + CLAUDE)"
+# [6/8] Skill cross-refs in commands+README+CLAUDE resolve
+echo "[6/8] Skill cross-references resolve (commands + README + CLAUDE)"
 python3 <<'PYEOF' || FAIL=1
 import re, os, glob, sys
 refs_files = glob.glob('commands/*.md') + ['README.md', 'CLAUDE.md']
@@ -138,8 +138,8 @@ print(f"  \033[0;32m✓ {len(referenced)} skills referenced, all resolve\033[0m"
 PYEOF
 echo ""
 
-# [7/9] Path refs in README+CLAUDE resolve (CHANGELOG skipped — history doc)
-echo "[7/9] Path refs in README+CLAUDE resolve (CHANGELOG skipped)"
+# [7/8] Path refs in README+CLAUDE resolve (CHANGELOG skipped — history doc)
+echo "[7/8] Path refs in README+CLAUDE resolve (CHANGELOG skipped)"
 python3 <<'PYEOF' || FAIL=1
 import re, os, sys
 ok = True
@@ -155,8 +155,8 @@ print("  \033[0;32m✓ All path references resolve\033[0m")
 PYEOF
 echo ""
 
-# [8/9] check-index.sh (Cowork constraints + skill size + bucket discipline)
-echo "[8/9] CLAUDE.md invariants (size + Cowork caps + bucket lifecycle)"
+# [8/8] check-index.sh (Cowork constraints + skill size + bucket discipline)
+echo "[8/8] CLAUDE.md invariants (size + Cowork caps + bucket lifecycle)"
 if bash scripts/check-index.sh > /tmp/check-index.out 2>&1; then
   green "  ✓ all invariants pass"
 else
@@ -166,25 +166,9 @@ else
 fi
 echo ""
 
-# [9/9] eval-harness fixture schema dry-run (19 starter fixtures, 1 per agent)
-echo "[9/9] eval-harness fixtures (dry-run)"
-if [ -f scripts/run_eval.py ] && [ -d tests/eval-fixtures ]; then
-  if python3 scripts/run_eval.py --dry-run > /tmp/run-eval.out 2>&1; then
-    out=$(grep "Total fixtures" /tmp/run-eval.out | head -1 | sed 's/^ *//')
-    green "  ✓ $out"
-  else
-    red "  ✗ eval-harness dry-run FAILED:"
-    tail -15 /tmp/run-eval.out | sed 's/^/    /'
-    FAIL=1
-  fi
-else
-  yellow "  ⚠ skip (no eval-fixtures yet)"
-fi
-echo ""
-
 echo "==============================================================="
 if [ "$FAIL" -eq 0 ]; then
-  green "  ✅ ALL 9 LINT CHECKS PASS — safe to publish"
+  green "  ✅ ALL 8 LINT CHECKS PASS — safe to publish"
   exit 0
 else
   red "  ❌ LINT FAILED — fix issues before publish"

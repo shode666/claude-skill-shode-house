@@ -16,7 +16,7 @@ description: |
 
 ### Phase 0 — Discovery (NEW)
 - **Owner**: 🔍 Discover Team (Patrick + Domain SME)
-- **Trigger**: Pre-sprint, new initiative, no bd issue yet
+- **Trigger**: New initiative, no bd issue yet (continuous — not sprint-bound)
 - **Output**: OKR + opportunity sizing + RICE/WSJF priority + Domain pain validation
 - **Gate**: `pre-spec` — sign-off ก่อน Phase 1a Foundation
 - **Why**: ก่อน v3.0 กระโดดเข้า BRD ทันที → 30% งานถูก kill ภายหลัง
@@ -34,11 +34,11 @@ description: |
 - **Output**: SLO burn rate watch + incident response + blameless postmortem + runbook update
 - **Escalation**: error budget < 0 → ping Patrick (PM) for feature freeze conversation
 
-### Phase 7 — Learn (NEW — sprint retro / monthly)
-- **Owner**: 🧭 Lead Team (Patrick + Oliver)
-- **Trigger**: Sprint close / monthly retro
-- **Output**: OKR review + kill decision + tech debt RICE prioritization + capacity recalibration
-- **Why**: ก่อน v3.0 `/sprint close retro` ทำ implicit — promote เป็น explicit ownership PM+EM
+### ~~Phase 7 — Learn (REMOVED v3.3)~~
+- **v3.3 change**: Phase 7 sprint retro deprecated — per-bd reflect in Phase 4 Triage (Oliver `bd remember <lesson>`)
+- **Patrick OKR review**: continuous (per-bd contribution to OKR; no sprint bracket)
+- **Tech debt RICE**: continuous backlog priority by Patrick (Stan tech-debt input)
+- **ห้ามใช้** `/sprint close retro` — command removed
 
 ---
 

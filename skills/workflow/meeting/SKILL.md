@@ -114,7 +114,7 @@ Oliver ถามก่อน Phase 2: "เลือก mode ไหน?" (option-
 | 4 | Triage / Loop | Oliver | shode-house-workflow |
 | 5 | Deploy | Aaron | (no skill yet) |
 | 6 | Operate | Reggie | slo, incident |
-| 7 | Learn | Patrick + Reggie | (sprint retro) |
+| ~~7~~ | ~~Learn~~ | — | **v3.3: removed** — per-bd reflect in Phase 4 Triage; continuous OKR review (Patrick); no sprint bracket |
 
 ---
 

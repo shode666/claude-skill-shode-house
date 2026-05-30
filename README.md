@@ -25,7 +25,7 @@
 - **`review-checklist` skill (DRY)** — Chris 7-dim + Quinn integration matrix อยู่ที่เดียว; `/implement` Phase 3b + `/review` อ้างที่นี่
 - **Recite Discipline Card** — ทุก agent recite 5 Philosophy verbatim ใน first response (anchor against drift)
 - **CLAUDE.md repo invariants** (≤ 30 lines) + `scripts/{list,check,build}.sh` dev-loop tooling
-- **19 skills** (10 functional + 8 discipline modules + 1 review-checklist), **6 commands** (+ 2 deprecated). v3.2 adds Evan (evaluator) + `eval-harness` skill + 19 bias-aware fixtures (one per agent)
+- **18 skills** (10 functional + 7 discipline modules + 1 review-checklist), **5 commands** (+ 2 deprecated). v3.3 drops sprint outer loop + Evan agent — **PEV loop per bd** (Plan/Execute/Verify/Triage), bias discipline embedded in 19 agent prompts, Chris/Quinn adversarial vs Dave + Claude in Chrome verify mandatory. ห้าม man-day negotiation
 
 ### v3.0 features ที่ยัง keep
 
@@ -130,7 +130,7 @@
 | `/shode-house:design-system [feature]` | Smart Spec pipeline — **default**: spec → suggest implement; `--stop`: stop at spec; `--estimate`: add T-shirt sizing; `--stop --estimate` = proposal mode (replaces /spec-only) |
 | `/shode-house:implement [feature]` | Phase 2-4 — Dave + Uma + Chris ∥ Quinn (uses `review-checklist` skill) |
 | `/shode-house:review [path\|jira\|bug]` | Ad-hoc code review (uses `review-checklist` skill) |
-| `/shode-house:sprint [pre\|status\|close\|retro]` | Sprint management — outer loop |
+| ~~`/shode-house:sprint`~~ | ❌ **REMOVED v3.3** — sprint outer loop dropped; PEV loop per bd; continuous OKR review (Patrick); deploy continuous per bd |
 | ~~`/shode-house:setup-project`~~ | ⚠️ DEPRECATED v3.1 → alias of `/init --quick`. ลบใน v3.2 |
 | ~~`/shode-house:spec-only`~~ | ⚠️ DEPRECATED v3.1 → alias of `/design-system --stop --estimate`. ลบใน v3.2 |
 
@@ -177,7 +177,6 @@
 | [`shode-house-workflow`](skills/discipline/shode-house-workflow/SKILL.md) 🆕 | Oliver | Phase Contract + Smart Coop + hooks + gates + worktree |
 | [`shode-house-drift`](skills/discipline/shode-house-drift/SKILL.md) 🆕 | Oliver enforcer | Drift Defense M1-M7 + New Phases v3.0 |
 | [`review-checklist`](skills/discipline/review-checklist/SKILL.md) 🆕 | Chris + Quinn + Sentinel + Domain | DRY checklist สำหรับ /implement Phase 3b + /review |
-| [`eval-harness`](skills/discipline/eval-harness/SKILL.md) 🆕 v3.2 | Evan (sole runner) | Bias-aware regression: sycophancy/anchoring/pattern-bias/verbosity/position. Offline tool, NOT in /implement loop |
 
 ### `skills/in-progress/` + `skills/deprecated/` — not shipped
 Skill ที่อยู่นี่จะไม่ถูกใส่ใน plugin.json (CLAUDE.md invariant)
@@ -190,21 +189,28 @@ Skill ที่อยู่นี่จะไม่ถูกใส่ใน plug
 
 ---
 
-## 🔁 Workflow — 8 Phases
+## 🔁 Workflow — PEV Loop per bd (v3.3 — no sprint outer loop)
 
 ```
-Outer loop (Sprint = 1-2 weeks):
-  Phase 7 Learn (Patrick + Oliver) → Phase 0 Discovery (Patrick + Domain SME)
-  → Per-issue Inner Loop ↓ → Phase 5 Deploy (Aaron + Reggie) → Phase 6 Operate (Reggie)
+PEV loop per bd-issue (Plan → Execute → Verify → Triage):
+  📋 PLAN
+  Phase 0  Discovery       Patrick + Domain SME (opt — new initiative)
+  Phase 1a Foundation      Bella ∥ Sara (parallel)
+  Phase 1b Pre-Design      Uma + Domain (sequential after 1a, conditional)
+  Phase 1c Threat Model    Sentinel (parallel-able with 1b, conditional)
+  💻 EXECUTE
+  Phase 2  Implement       Dave (parallel by scope contract)
+  ✅ VERIFY (adversarial — Chris/Quinn vs Dave, zero trust)
+  Phase 3a UI Check        Uma POST (sequential gate + Chrome MCP)
+  Phase 3b Code Review     Chris ∥ Quinn (verdict default = FAIL + Chrome MCP)
+  🚦 TRIAGE
+  Phase 4  Triage          Oliver (max iter 3) → bd close + bd remember
+  🚀 DEPLOY (continuous per bd)
+  Phase 5  Deploy          Aaron + Reggie
+  📡 OPERATE
+  Phase 6  Operate         Reggie (SLO, incident)
 
-Inner loop per bd-issue:
-  Phase 1a Foundation     Bella ∥ Sara (parallel)
-  Phase 1b Pre-Design     Uma + Domain (sequential after 1a, conditional)
-  Phase 1c Threat Model   Sentinel (parallel-able with 1b, conditional)
-  Phase 2  Implement      Dave (parallel by scope contract)
-  Phase 3a UI Check       Uma POST (sequential gate)
-  Phase 3b Quality Coop   Chris ∥ Quinn ∥ Sentinel ∥ Aaron (4-way parallel)
-  Phase 4  Triage         Oliver (max iter 3)
+No Phase 7 / sprint retro — per-bd reflect captured in Phase 4 Triage; continuous OKR review (Patrick)
 ```
 
 ### Phase Gates (RACI-aware + Evidence-mandatory)

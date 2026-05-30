@@ -30,7 +30,7 @@ description: |
 
 | Mode | Behavior | When |
 |------|----------|------|
-| **AFK** (Auto) | Oliver delegate ทุก phase + automated gate. User approve เฉพาะ R0 | งานชัด, trusted scope, deadline แน่น |
+| **AFK** (Auto) | Oliver delegate ทุก phase + automated gate. User approve เฉพาะ R0 | งานชัด, trusted scope |
 | **Interactive** (Supervised) | Human approve ทุก hand-off + ดู agent output ก่อน next | งานใหม่/ละเอียดอ่อน, learning, audit |
 | **Hybrid** (Recommended default) | AFK ถึง pre-deploy → Interactive ตั้งแต่ deploy ขึ้น | งานทั่วไป — balance speed + safety |
 
@@ -53,6 +53,40 @@ description: |
 
 ---
 
+
+## 🚫 No Man-Day Negotiation (🔴 v3.3 — universal rule)
+
+**ทุก agent ห้าม**:
+- ❌ ประเมิน man-day / person-week / hours / days โดย user **ไม่ร้องขอ** (explicit ask)
+- ❌ Propose timeline ("ใช้เวลา ~X days", "ทำใน 1 sprint", "ระยะ 2 weeks") ในการ plan / hand-off / status
+- ❌ Refuse งานเพราะ "ใหญ่เกิน X sprint" หรือ "ทำไม่ทันใน Y days"
+- ❌ ใช้ man-day เป็นเหตุผลต่อรองเวลากับ user หรือ defer งานไปอนาคต
+- ❌ ใส่ "Total: ~N days", "Effort: M person-weeks" ใน engagement plan / RICE table
+
+**เหตุผล**:
+1. Agent ทำงานไม่ตรงตาม man-day จริง (LLM throughput ≠ human-effort estimate)
+2. Man-day report = external concern ระหว่าง user กับ stakeholder / PM / vendor — ไม่ใช่ agent
+3. การร้องขอเวลาของ agent ไม่สมเหตุสมผล — agent ส่งงานเป็น **task-complete**, ไม่ใช่ **time-bound**
+4. มี man-day → user อาจเอาไปต่อรองข้างนอก แต่ agent ทำไม่ตรง → trust gap
+
+**Exception (ทำได้)**:
+- ✅ User explicit ขอ estimate (`/design-system --estimate`, "ช่วยประเมิน effort หน่อย") — **purpose = user เอาไป report กับ stakeholder ภายนอก เท่านั้น**; ไม่ใช่ agent ใช้บังคับตัวเอง
+- ✅ Internal routing heuristic (Oliver decide parallel vs sequential — T-shirt **ไม่ส่งต่อ user**)
+- ✅ NFR/SLO/SRE metric ทาง engineering (RTO/RPO, p95 latency, error budget — ไม่ใช่ project schedule)
+- ✅ Industry-standard SLA (5-business-day postmortem) — ไม่ใช่ negotiation, เป็น discipline
+
+**Agent rule when user requests estimate**:
+- ✅ ส่ง estimate ตรงไปตรงมา (best honest guess based on scope)
+- ❌ ห้ามใช้ estimate ตัวเองในการ throttle / limit งาน — ส่งงาน task-complete เหมือนเดิม
+- ❌ ห้าม track "actual vs estimate" เป็น agent performance metric (เกินบทบาท agent)
+- ❌ ห้าม refuse "เพิ่ม scope" เพราะ "เกิน estimate" — estimate = user external report, ไม่ใช่ scope contract
+
+**แทนที่จะพูด**:
+- ❌ "Feature นี้ใหญ่ ทำใน 1 sprint ไม่ทัน" → ✅ "Phase 1a + 1b ครอบ scope; iteration count = 2-3"
+- ❌ "Pen test เดี๋ยว sprint หน้า" → ✅ "Pen test mandatory ถ้า touch money/PII; ห้าม defer"
+- ❌ "Total: ~5 days" → ✅ "Pipeline: Phase 0 → 1a → 1b → 2 → 3 → 4"
+
+---
 
 ## 🛡️ Safety (🔴)
 

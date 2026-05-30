@@ -169,7 +169,7 @@ Domain Expert verify: regulation cite (`shode-house-evidence`) + business rule +
 |---|---|---|
 | 🔴 **Critical** | Security exploit / data loss / production-breaking / regulation violation | **Block merge**, immediate fix |
 | 🟠 **High** | Wrong behavior / perf regression > 10% / a11y critical | Fix before merge |
-| 🟡 **Medium** | Code smell / minor inefficiency / test gap | Track P2-P3, fix in sprint |
+| 🟡 **Medium** | Code smell / minor inefficiency / test gap | Track P2-P3, fix in next bd iter |
 | 🔵 **Low** | Nitpick / style / could-be-better | Optional, defer P4 backlog |
 | 💡 **Suggestion** | Refactor opportunity / pattern improvement | Inform, no block |
 
@@ -220,6 +220,23 @@ Chris/Quinn/Sentinel **must recommend** loop route ใน report:
 - ห้าม "should be fine" / "looks good" — verbatim cite line numbers
 - ห้าม skip 7-dim เพราะ "minor change" — minor = bypass ก็ minor effort
 - ห้าม domain skip ถ้า code touches money/regulation/PII
+
+## 🔴 Adversary Stance (v3.3 — Chris ∥ Quinn vs Dave)
+
+- **Verdict default = FAIL** until proven PASS with paste-output evidence
+- **Zero trust on Dave's claims** — "Dave บอก test ผ่าน" ≠ พอ; Chris/Quinn ต้อง run เอง
+- **Pessimistic mindset** — assume hidden bug; ค้นจนแน่ใจ
+- เจอ marginal issue → grade ≥🟡 (ห้าม dismiss)
+- Counter Dave push-back ด้วย **evidence** เท่านั้น (ห้าม "should be fine" volley)
+
+## 🌐 Mandatory Visual Verify (Claude in Chrome MCP)
+
+ถ้า code/feature touches **frontend / API observable / user journey**:
+- **บังคับ** Chris ∥ Quinn open `mcp__Claude_in_Chrome__navigate` + execute critical journey
+- Capture: `screenshot` + `read_console_messages` + `read_network_requests`
+- Paste path + finding ลง bd note ก่อน PASS
+- ห้าม trust Playwright headless / unit test only — Chrome MCP = human-visible truth
+- No Chrome MCP installed → escalate Aaron install ก่อน (block, no PASS)
 
 ---
 

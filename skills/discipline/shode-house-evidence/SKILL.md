@@ -93,7 +93,7 @@ UX claim ต้อง cite **tool output** (path/URL) — เหมือน Dom
 |---------------|---------------|-----|
 | **bd active** (`.beads/` มี หรือ `bd ready` returns) | `bd update <id> --notes "..."` **ONLY** | bd = single source of truth; ห้ามเขียน markdown ซ้ำ |
 | **No bd** (project ยังไม่ adopt bd) | `outputs/REVIEW-<feature>.md` | audit trail file (fallback) |
-| **bd + sprint close** | bd notes + (optional) `outputs/RETRO-sprint-<N>.md` รวม findings ของทั้ง sprint (1 ไฟล์ต่อ sprint) | retrospective archive — bd ยัง primary |
+| **bd close (per-bd reflect)** | bd notes (v3.3: per-bd `bd remember <lesson>` post-close) | per-bd reflect — no sprint retro since v3.3 |
 
 > Default = bd-native. Markdown = fallback เฉพาะตอนไม่มี bd. ห้ามเขียนทั้งคู่ (waste token + drift risk)
 

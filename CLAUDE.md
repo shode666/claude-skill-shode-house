@@ -1,4 +1,4 @@
-# shode-house — Repo Invariants (v3.2.0)
+# shode-house — Repo Invariants (v3.3.0)
 
 > รวบรัด. ทุก rule ในที่นี้ = invariant ที่ script ตรวจ. ถ้าจะแหก ต้องเปลี่ยน script ก่อน
 
@@ -9,7 +9,7 @@
   - `ops/` — operational discipline (incident, slo, secure)
   - `ui/` — frontend quality (ui-test, web-q)
   - `style/` — communication style (caveman)
-  - `discipline/` — split discipline modules (shode-house-discipline, -evidence, -routing, -deliverable, -broadcast, -drift, -workflow, review-checklist, eval-harness)
+  - `discipline/` — split discipline modules (shode-house-discipline, -evidence, -routing, -deliverable, -broadcast, -drift, -workflow, review-checklist)
   - `in-progress/` — drafts, **ไม่ ship**
   - `deprecated/` — retiring, **ไม่ ship**
 - ทุก skill ใน 5 bucket แรกต้องอยู่ใน `.claude-plugin/plugin.json` skills list + `README.md` index
@@ -92,11 +92,17 @@
 - CHANGELOG → ทุก minor/major bump เพิ่ม entry
 - ทุก PR run `scripts/lint.sh` ผ่านก่อน merge
 
-## Eval Harness (🆕 v3.2)
+## Bias Discipline (🆕 v3.3 — replaces v3.2 Evan agent)
 
-- **Agent**: `agents/evaluator.md` (Evan) — offline tool, ห้ามใช้ใน /implement loop
-- **Skill**: `skills/discipline/eval-harness/SKILL.md` — methodology + 4 bias types
-- **Fixtures**: `tests/eval-fixtures/<agent>/<NN>-<topic>.json` (19 starter, 1 per agent; expand to ≥3 per agent before promote)
-- **Runner**: `python3 scripts/run_eval.py` — dry-run validates schema; --invoke = STUB until Claude SDK wired
-- **Methodology**: cross-LLM judge (subject ≠ judge), N≥5 runs, order shuffle, blind judging, ห้าม fixture leak
-- **Expert validation**: `expert_validated_by` field starts "PENDING"; needs domain SME (CPA/actuary/SAP/OWASP/...) sign before baseline promote
+- **Embed in agent prompts**: 19 agents มี `## Bias Discipline` section ใน prompt (Chris/Quinn = verdict default FAIL; Felix/Tara/etc. = "ห้าม blindly accept vendor"; Sentinel = hold position on "low risk" if triggers fire)
+- **No separate eval agent**: v3.2 Evan = over-engineer for current scale → reverted; eval methodology kept in `skills/in-progress/eval-harness/` (reference only)
+- **In-progress harness**: `skills/in-progress/eval-harness/{SKILL.md,fixtures/,run_eval.py}` — keep for future major-release regression (maintainer offline use); ไม่ ship plugin
+- **Anti-bias rule source-of-truth**: ในแต่ละ agent prompt + `shode-house-discipline` Recite Card
+
+## PEV Loop (🆕 v3.3 — replaces sprint)
+
+- **Loop**: Plan → Execute → Verify → Triage per bd (no sprint outer loop)
+- **No /sprint command**: deleted; Patrick OKR review = continuous (per-bd contribution)
+- **No sprint retro**: per-bd reflect in Phase 4 Triage
+- **Continuous deploy**: per-bd ready → Aaron deploy (or manual batch optional)
+- **Workflow phases unchanged**: 0 Discover → 1a/1b/1c → 2 → 3a/3b → 4 (loop or close)

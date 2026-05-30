@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.2.0",
-  "description": "Multi-agent software house team v3.2: 20 agents + 19 skills + 6 commands. Adds Evan evaluator + eval-harness for bias-aware agent regression.",
+  "version": "3.3.0",
+  "description": "Multi-agent software house team v3.3: 19 agents + 18 skills + 5 commands. PEV loop replaces sprint. Bias discipline embedded in agent prompts.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"
@@ -46,9 +46,9 @@
     "skill-craft",
     "lazy-load",
     "bucket-lifecycle",
-    "eval-harness",
-    "no-bias-eval",
-    "agent-regression"
+    "pev-loop",
+    "bias-discipline",
+    "no-sprint"
   ],
   "skills": [
     "./skills/workflow/",

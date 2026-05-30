@@ -3,7 +3,77 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
-## [3.2.0] — Eval Harness + Bias-Aware Regression — 2026-05-30
+## [3.3.0] — Simplification: drop sprint + Evan, embed bias discipline — 2026-05-30
+
+> **Focus**: Honest audit ของ v3.2.0 ก่อน ship → user feedback ว่า Evan + sprint = over-engineer. v3.3.0 = simplification: drop /sprint command + drop Evan agent + embed bias rules ใน 19 agent prompts. **PEV loop per bd** replaces sprint outer loop. Chris/Quinn ทำงาน adversarial vs Dave + Claude in Chrome verify mandatory. ห้าม agent ประเมิน man-day โดย user ไม่ร้องขอ.
+
+### 🗑️ Removed
+
+- **`agents/evaluator.md` (Evan)** — over-engineer for current scale. Bias detection rules embedded ใน 19 agent prompts แทน (single-source via `shode-house-discipline` + per-agent specifics)
+- **`commands/sprint.md`** — sprint outer loop dropped. PEV loop per bd. Continuous OKR review (Patrick) without bracket.
+- **Phase 7 (Sprint Learn)** from workflow — per-bd reflect captured in Phase 4 Triage (Oliver `bd remember <lesson>` post bd close)
+- **Eval Harness shipped skill** → moved to `skills/in-progress/eval-harness/` (kept as offline tool for maintainer regression test before major bumps; not shipped in plugin.json)
+
+### 🆕 Added
+
+**Universal rules in `shode-house-discipline/SKILL.md`**:
+- **§ No Man-Day Negotiation** (3 ห้าม + 4 exception + user-estimate purpose rule). Agent ทำงานไม่ตรงตาม man-day → ห้าม propose timeline / refuse งานเพราะ "ใหญ่เกิน X sprint" / ใช้ man-day ต่อรองเวลา. Exception: user explicit ขอ estimate → for user external report only, ไม่ใช่ agent scope contract.
+
+**Adversary stance + Claude in Chrome (Chris/Quinn vs Dave)**:
+- **Chris + Quinn**: `🔴 Adversary Stance` section — pessimistic default, zero trust on Dave's claims, verdict default = FAIL until proven PASS, ห้าม dismiss marginal issue
+- **Mandatory Visual Verify via Claude in Chrome MCP** — frontend / API observable / user journey touched = บังคับ open + screenshot + console + network. Headless Playwright ≠ enough.
+- **Dave**: `🔴 Adversary-Aware Hand-off` — proactive evidence paste; ห้าม "should be fine" push-back
+
+**Bias discipline embedded in 19 agents** (`## 🎯 Bias Discipline` section per agent) — covers sycophancy, anchoring, pattern-bias, verdict-skew, convergence, alert-dismissal, std-vs-custom per role.
+
+**PEV Loop concept** (replaces sprint outer loop):
+- Plan (Phase 0-1c) → Execute (Phase 2) → Verify (Phase 3a/3b) → Triage (Phase 4)
+- Deploy (Phase 5) = continuous per bd ready หรือ user manual batch (optional)
+- No Phase 7 / sprint retro — per-bd reflect in Phase 4
+
+### 🔄 Changed
+
+- `.claude-plugin/{plugin,marketplace}.json` — v3.2.0 → **v3.3.0**; description 142 chars ASCII; keywords swap (eval-harness/no-bias-eval → pev-loop/bias-discipline/no-sprint)
+- `CLAUDE.md` — drop "Eval Harness" section, add "Bias Discipline" + "PEV Loop" sections
+- `README.md` — v3.3 banner + workflow diagram refactor (PEV loop) + /sprint marked REMOVED v3.3
+- `scripts/lint.sh` — 9 checks → 8 (drop eval-harness fixture dry-run since skill moved to in-progress)
+- `skills/discipline/shode-house-workflow/SKILL.md` — Phase Contract diagram = PEV loop; Lifecycle Hooks drop Pre-Sprint + Sprint Close
+- `skills/discipline/shode-house-routing/SKILL.md` — drop Eval team + Evan; T-shirt = **internal routing only** (ห้ามส่ง user); add "Adversarial relation: Chris/Quinn vs Dave" table
+- `skills/discipline/shode-house-drift/SKILL.md` — Phase 7 marked REMOVED
+- `skills/discipline/shode-house-evidence/SKILL.md` — Storage row "bd + sprint close" → "bd close per-bd reflect"
+- `skills/discipline/review-checklist/SKILL.md` — add `🔴 Adversary Stance` + `🌐 Mandatory Visual Verify`
+- 19 agents — cleanup sprint refs + man-day negotiation removed
+
+### 🐛 Lessons learned
+
+**v3.2.0 over-engineering caught early**: Evan + 19 fixtures + run_eval.py = heavy weight for "regression bias test" when prompt rules can solve 80% directly. User audit: "ทำไม Chris/Quinn ตรวจตัวเองไม่ได้?" → self-preference bias. Better fix = embed bias rules IN Chris/Quinn prompt.
+
+**Sprint = human concept**: Agents don't need sprint time-box. Task-completion natural unit. User insight: "agent ทำงานไม่ตรงตาม manday".
+
+**Adversarial discipline > telemetry detection**: simpler to put verdict-default-FAIL + zero-trust-Dave in prompts than runtime gate.
+
+### 📊 Stats v3.3.0
+
+- Agents: 20 → **19** (drop Evan)
+- Skills shipped (plugin.json): 19 → **18** (eval-harness → in-progress)
+- Commands: 6 → **5** (drop /sprint, +2 deprecated kept)
+- Bias discipline sections in agents: 0 → **19** (1 per agent)
+- lint.sh checks: 9 → **8**
+- **Host-OS dependency: ZERO**
+
+### Migration v3.2.0 → v3.3.0
+
+- ❌ `/shode-house:sprint` removed → use PEV per-bd flow
+- ❌ Evan agent removed → bias enforcement now in Chris/Quinn/Felix/etc. prompts
+- ❌ `outputs/EVAL-*.json` no longer produced
+- ✅ Eval methodology preserved in `skills/in-progress/eval-harness/` (offline maintainer use)
+- ✅ `/sprint close retro` users: per-bd reflect via Oliver `bd remember`
+
+---
+
+## [3.2.0] — Eval Harness + Bias-Aware Regression — 2026-05-30 (SUPERSEDED by v3.3.0 same day)
+
+> **Note**: v3.2.0 was tagged + locally built but reverted same-day after user feedback that Evan + sprint = over-engineer. v3.3.0 = simplification. Tag v3.2.0 kept for git history; do NOT install v3.2.0.
 
 > **Focus**: Bias-aware offline evaluation for all 19 agents. ตอบโจทย์ "งานหลุดคุณภาพ" จากมุม regression test แทน runtime gate — สงสัย agent drift จาก prompt refactor → run eval หา bias profile + compare baseline.
 > **Scope: V2 (Spec + runner stub)** — agent + skill + 19 fixtures + Python runner. Real Claude SDK invoke pending.

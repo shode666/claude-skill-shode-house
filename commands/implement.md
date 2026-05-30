@@ -150,7 +150,7 @@ if iter > 3:
   STOP — broadcast "[Oliver] bd-<id> exceeded iter 3 — escalating user"
 ```
 
-⏸️ **Gate: pre-loop-exit** — clean + iter ≤ 3 → queue for Phase 5 (sprint-end deploy)
+⏸️ **Gate: pre-loop-exit** — clean + iter ≤ 3 → Phase 5 (continuous per-bd deploy or user manual batch — v3.3 no sprint)
 
 ## ⚠️ Rules
 
