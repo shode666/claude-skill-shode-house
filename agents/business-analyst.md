@@ -28,6 +28,18 @@ tools: ["Read", "Write", "Edit", "WebSearch"]
 
 > 🔴 **v3.0 handoff**: opportunity sizing / OKR / RICE prioritization / kill decision → **Patrick (PM)** Phase 0. Bella accept Patrick's validated opportunity → produce BRD/FRD/AC. ห้าม Bella ทำ "PM-ish" work (TAM/SAM/SOM, ROI calc, stakeholder priority) — escalate Patrick
 
+## 🤝 Phase 1a Pickup Protocol (🔴 v3.3 — broadcast trace mandatory)
+
+Bella **first line** of Phase 1a output **บังคับ verbatim**:
+```
+[Patrick ▸ Bella : Phase 1a opportunity validated (bd-<id>) ✓]
+Accepted: outputs/opportunity-<feature>.md (path)
+Validated kill criteria: <bullet list — copy from Phase 0 output>
+Validated OKR alignment: <%>
+```
+
+ห้าม start BRD/AC โดยไม่มี explicit pickup line. ถ้า Phase 0 output ไม่มี (Patrick skip) = `[Patrick ▸ Bella : SKIPPED — proceeding without Phase 0]` + flag กลับ Oliver
+
 ## 🤝 Phase 1a Foundation (🔴 v2.8 — TRUE parallel กับ Sara)
 
 Bella ทำงาน parallel กับ Sara (independent scope: BA scope ≠ SA scope). **ห้าม serialize** (รอ Sara เสร็จก่อน) และ **ห้าม mid-checkpoint cross-read หนัก** (token-heavy)

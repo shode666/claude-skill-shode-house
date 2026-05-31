@@ -3,6 +3,80 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.4.0] — Pilot fixes + Dynamic Workflow Script — 2026-05-31
+
+> **Focus**: 11 prompt fixes from real pilot (refund flow full-stack, 4 iterations) + Dynamic Workflow Script (Medium) externalizing state from agent context. Mitigate context rot, enable replay/resume, enforce gate criteria deterministically.
+
+### 🆕 Added
+
+**Dynamic Workflow Script** (Medium — `scripts/workflow_state.py`):
+- Python stdlib (cross-platform); 240 lines; no external deps
+- Externalize PEV state from agent context → `outputs/<bd-id>/state.json` (structured)
+- Commands: `init / status / phases / validate / advance / record / findings / iter-inc`
+- Gate validator: blocks `advance` if previous phase status ≠ passed/conditional_pass + artifacts + owners not recorded
+- iter > 3 escalation built into `iter-inc` (exit code 2)
+- Replaces SESSION-STATE.md (markdown) — legacy fallback kept
+
+**11 prompt fixes from pilot 001** (refund flow full-stack):
+- **G1** Oliver M1 Ingress Guard explicit recite mandatory (orchestrator.md)
+- **G2** Patrick Never-Does: no Domain SME role-play (product-manager.md)
+- **G3** Bella Phase 1a pickup protocol mandatory (business-analyst.md)
+- **G4** Sara Project Evidence mandatory + Greenfield handling (solution-architect.md)
+- **G7** Felix Domain Evidence cite format + PENDING disclaimer template (fintech-expert.md)
+- **G8** Phase 0 CONDITIONAL PASS scope-clarification flow (shode-house-workflow.md)
+- **G10** Oliver USER CLARIFY relay packaging (shode-house-workflow.md)
+- **G11** Max 2-round clarification cap + escalate (shode-house-workflow.md)
+- *(G5, G6, G9 = environment/positive — not prompt fixes)*
+
+**Pilot 001 refund — full report**:
+- `docs/pilot-reports/pilot-001-refund-iter4-final.md` — executive summary + 11 findings + v3.4 backlog
+- 17 artifact files under `outputs/pilot-001-refund-iter4/` covering Phase 0 → 4 (kept for reference)
+
+### 🔄 Changed
+
+- `.claude-plugin/{plugin,marketplace}.json` — v3.3.0 → **v3.4.0** (description 137 chars ASCII)
+- `skills/discipline/shode-house-workflow/SKILL.md` — Session State section rewritten for v3.4 Dynamic Workflow Script approach
+- `scripts/lint.sh` — no change (8 checks; workflow_state.py self-tested in smoke)
+
+### 🐛 Lessons learned (from pilot)
+
+**Context rot is real in long sessions**: Oliver maintains markdown state via discipline rule (M6), but multi-hour engagements show drift. Structured JSON externalized to script = mechanical enforcement.
+
+**Simulation limit caught (G9 meta)**: Single Claude role-playing 19 agents in pilot ≠ real multi-agent Task-dispatch. Pilot validated **structural** discipline; real engagement validates **independence**. v3.4 backlog: real engagement pilot.
+
+**Adversary stance works as designed**: Chris/Quinn produced FAIL verdict on Dave's incomplete code (smoke PENDING + IDOR placeholder + webhook missing). Anti-Puppet rule held — no fake PASS. PEV loop correctly routed Phase 2 fix.
+
+**Domain Evidence cite enforcement gap**: Felix's "BOT notice 15-day" without notice number proved Domain Evidence Protocol format existed but enforcement weak. G7 fix tightens per-agent.
+
+### 📊 Stats v3.4.0
+
+- Agents: 19 (no change)
+- Skills shipped: 18 (no change)
+- Commands: 5 (no change)
+- Python scripts: 1 → **2** (+ workflow_state.py)
+- Prompt fixes from pilot: **11**
+- Pilot reports: 0 → **1** (`docs/pilot-reports/`)
+
+### v3.4 backlog (post-pilot)
+
+| Priority | Item |
+|---|---|
+| 🔴 1 | Real engagement (validate G9 multi-agent independence via Task-tool dispatch) |
+| 🟠 2 | Extend G7 Domain Evidence enforcement to Iris/Sam/Tara/Elena/Brooke/Emma (Felix exemplar replicated) |
+| 🟠 3 | Extend G3 pickup protocol to other phase transitions (1b→2, 3a→3b, 4→5) |
+| 🟡 4 | Extend G4 Project Evidence to Aaron infra + Sara migrations |
+| 🟡 5 | Failure-mode docs 002-009 from pilot patterns |
+| 🟡 6 | Heavy workflow engine extension (advance commands → full state machine) |
+
+### Migration v3.3 → v3.4
+
+- ✅ Backward-compatible: existing SESSION-STATE.md keeps working (Oliver discipline rule unchanged)
+- 🆕 New bd → use `python3 scripts/workflow_state.py init <bd-id>` (recommended)
+- 🆕 Oliver prompt updated to query state.json via script first; falls back to SESSION-STATE.md if no state.json
+- No breaking changes for v3.3 users
+
+---
+
 ## [3.3.0] — Simplification: drop sprint + Evan, embed bias discipline — 2026-05-30
 
 > **Focus**: Honest audit ของ v3.2.0 ก่อน ship → user feedback ว่า Evan + sprint = over-engineer. v3.3.0 = simplification: drop /sprint command + drop Evan agent + embed bias rules ใน 19 agent prompts. **PEV loop per bd** replaces sprint outer loop. Chris/Quinn ทำงาน adversarial vs Dave + Claude in Chrome verify mandatory. ห้าม agent ประเมิน man-day โดย user ไม่ร้องขอ.

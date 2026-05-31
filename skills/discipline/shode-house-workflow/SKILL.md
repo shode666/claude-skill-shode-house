@@ -206,12 +206,32 @@ E) Asana — task-focused, paid (cross-functional)
 
 แต่ละ phase มี pre/post hook สำหรับ automated check:
 
+### 📋 Phase 0 scope-clarification flow (🔴 v3.3 — when SME flags ambiguity)
+
+When Domain SME (Felix/Iris/Sam/Tara/Elena/Brooke/Emma) flags scope gap in Phase 0:
+1. Patrick state CONDITIONAL PASS (not full PASS) — list clarification questions verbatim from SME
+2. **Oliver user-question relay** (G10 — explicit packaging, ห้าม invisible):
+   - Oliver create `outputs/<bd>/05-oliver-user-clarify.md`
+   - Format: friendly preamble + numbered questions + grouping by SME + explicit "USER ACTION REQUIRED"
+   - Use AskUserQuestion tool ถ้า ≤ 4 questions; ถ้า > 4 → markdown file + chat summary
+3. **Block Phase 1a** until user response (M2 classify = `quest`, NOT M5 — no spec exists yet)
+4. **Clarification round cap** (G11 — max 2 rounds):
+   - Round 1: initial SME questions to user
+   - Round 2: ถ้า user answer still ambiguous → re-package + ask narrower
+   - Round 3 (= 3rd attempt) → **STOP, escalate user**: "scope ambiguity not resolvable via clarification — recommend (a) defer feature, (b) descope, or (c) workshop session"
+5. User response → Patrick re-issue Phase 0 final → Bella incorporate into BRD scope
+6. Then Phase 1a kickoff
+
+ห้าม proceed Phase 1a โดย Patrick guess scope answer เอง (sycophancy + anchoring risk).
+ห้าม Oliver relay raw SME questions ลอย ๆ โดยไม่ package — user เห็น noise (G10).
+ห้ามวนถาม > 2 rounds — escalate user เลือก descope/workshop (G11).
+
 **Grouped by phase (🔴 v3.3 PEV loop per bd)**:
 
 | Phase | Actor | Pre-hook | Post-hook |
 |-------|-------|----------|-----------|
 | **Pick bd** | Oliver | `bd ready --json` not empty | `bd update <id> --claim` posted |
-| **Phase 0 Discover** (opt — new initiative) | Patrick + Domain SME | opportunity flagged | OKR + RICE + kill criteria → `outputs/opportunity-<feature>.md` |
+| **Phase 0 Discover** (opt — new initiative) | Patrick + Domain SME (dispatched separately, no Patrick role-play) | opportunity flagged | OKR + RICE + kill criteria → `outputs/opportunity-<feature>.md`. **Conditional PASS** if Domain SME flags scope ambiguity → escalate user clarify, block Phase 1a (per § Phase 0 scope-clarify flow) |
 | **Phase 1a Foundation** | Bella ∥ Sara | bd issue context + CLAUDE.md loaded | BRD + ADR drafts done, light cross-read pass, `bd update <id> --notes` posted |
 | **Phase 1b Expand** | Uma + Domain (conditional) | 1a sign-off + frontend/business-rule trigger detected | Uma: wireframe + tokens + a11y baseline; Domain: regulation cite + rule. Integrated `outputs/SPEC-<bd-id>.md` saved |
 | **Phase 1c Threat Model** (conditional) | Sentinel | auth/PII/money/external trigger | STRIDE + abuse case + security AC injected to 1a |
