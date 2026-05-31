@@ -3,7 +3,43 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
-## [3.4.0] — Pilot fixes + Dynamic Workflow Script — 2026-05-31
+## [3.4.1] — Revert workflow script, keep schema in skill — 2026-05-31
+
+> **Focus**: Drop `scripts/workflow_state.py` per v3.3 philosophy (discipline > mechanical layer; same lesson as Evan/sprint revert). Move state.json schema documentation to `shode-house-workflow` skill. Agents use Read/Write tools directly on JSON — no script needed.
+
+### 🗑️ Removed
+
+- **`scripts/workflow_state.py`** — over-engineer per v3.3 philosophy. ~30-40% extra enforcement over discipline didn't justify added complexity + Python dep + script-agent sync risk
+- **`scripts/publish-v3.1.0.sh`** — legacy version-specific publish script (use `scripts/publish.sh`)
+
+### 🔄 Changed
+
+- `skills/discipline/shode-house-workflow/SKILL.md` — added **State persistence** section documenting structured `outputs/<bd-id>/state.json` schema (mandatory fields, phase status enum, Oliver bootstrap rule). Fixed duplicate "Lifecycle Hooks" header (cosmetic).
+- `.claude-plugin/{plugin,marketplace}.json` — v3.4.0 → **v3.4.1** (description ASCII)
+
+### 📊 Stats v3.4.1
+
+- Scripts: 8 → **6** (drop workflow_state.py + publish-v3.1.0.sh legacy)
+- User-facing scripts: 1 → **0** (back to "pure prompt + JSON" philosophy)
+- 11 prompt fixes from pilot 001 — **kept** (G1-G4, G7-G8, G10-G11)
+- Pilot artifacts under `outputs/pilot-001-refund-iter4/` — kept (reference)
+
+### 🐛 Lessons learned
+
+**Over-engineer creep detected + reverted same day** (similar to v3.2.0 Evan revert):
+- workflow_state.py = 250 lines Python to enforce what 30 lines schema doc + discipline rule can cover
+- User question "เรามีกี่ script เนี้ย ใช้แค่ json doc handoff เท่านั้นไม่ได้หรอ" = correct intuition
+- shode-house = prompt-based discipline; mechanical layer should be **rare + justified**
+- This pattern recurring: v3.2 (Evan), v3.3 hooks, v3.4 (workflow script) — all reverted same-day after audit
+
+**Architectural principle (post-v3.4.1)**:
+> Default to "agent + structured doc". Mechanical layer only when discipline provably failed via real engagement signal.
+
+---
+
+## [3.4.0] — Pilot fixes + Dynamic Workflow Script — 2026-05-31 (SUPERSEDED by v3.4.1 same day)
+
+> **Note**: v3.4.0 tagged + built but workflow_state.py reverted same day. v3.4.1 = simplification. Tag v3.4.0 kept for git history; do NOT install v3.4.0 (use v3.4.1).
 
 > **Focus**: 11 prompt fixes from real pilot (refund flow full-stack, 4 iterations) + Dynamic Workflow Script (Medium) externalizing state from agent context. Mitigate context rot, enable replay/resume, enforce gate criteria deterministically.
 

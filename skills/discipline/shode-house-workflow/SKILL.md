@@ -200,7 +200,11 @@ E) Asana — task-focused, paid (cross-functional)
 - ✅ Phase 3a: Uma POST = explicit gate; FAIL = loop ก่อน Chris/Quinn เริ่ม
 - ✅ Phase 3b: Chris+Quinn truly parallel (no order dep)
 
-### 🪝 Lifecycle Hooks (per phase — Aaron auto-trigger)
+### 🗂️ State persistence (🆕 v3.4.1 — pure JSON, no script)
+Agent maintain state ใน `outputs/<bd-id>/state.json` via Read/Write tools.
+**Required**: `schema_version, bd_id, engagement{name,mode,started_at,domain[]}, current_phase, iter, phases{<phase>:{status,owners[],artifacts[]}}, handoff_log[], findings{critical,high,medium,low}, open_questions[]`
+**Phase status enum**: `pending | in_progress | conditional_pass | passed | failed | skipped`
+**Oliver bootstrap**: Read state.json (resume) or Write new; ถ้า `iter > 3` escalate; Edit on phase transition; ห้าม advance ถ้า prev status ≠ passed/conditional_pass หรือ missing artifacts/owners. Gate = Oliver discipline (verify schema on Read; self-check before advance).
 
 ### 🪝 Lifecycle Hooks (per phase — Aaron auto-trigger)
 

@@ -9,8 +9,8 @@
     {
       "name": "shode-house",
       "source": "./",
-      "description": "Multi-agent software house team v3.4: 19 agents + 18 skills + 5 commands.",
-      "version": "3.4.0",
+      "description": "Multi-agent software house team v3.4.1: 19 agents + 18 skills + 5 commands.",
+      "version": "3.4.1",
       "category": "agents",
       "tags": ["agents", "thai", "erp", "fintech", "booking", "insurance", "trading", "ecommerce", "sap", "ux-ui", "design-system", "sre", "security", "raci", "pev-loop", "bias-discipline"]
     }
