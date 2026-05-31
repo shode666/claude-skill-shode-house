@@ -24,7 +24,7 @@
   - Skill composition pointer (textual handoff between skills — ลด orchestrator round-trip)
 - **`review-checklist` skill (DRY)** — Chris 7-dim + Quinn integration matrix อยู่ที่เดียว; `/implement` Phase 3b + `/review` อ้างที่นี่
 - **Recite Discipline Card** — ทุก agent recite 5 Philosophy verbatim ใน first response (anchor against drift)
-- **CLAUDE.md repo invariants** (≤ 30 lines) + `scripts/{list,check,build}.sh` dev-loop tooling
+- **CLAUDE.md repo invariants** + `scripts/{list_skills,check_index,build_plugin,lint,publish}.py` dev-loop tooling (Python 3.9+, cross-platform)
 - **18 skills** (10 functional + 7 discipline modules + 1 review-checklist), **5 commands** (+ 2 deprecated). v3.3 drops sprint outer loop + Evan agent — **PEV loop per bd** (Plan/Execute/Verify/Triage), bias discipline embedded in 19 agent prompts, Chris/Quinn adversarial vs Dave + Claude in Chrome verify mandatory. ห้าม man-day negotiation
 
 ### v3.0 features ที่ยัง keep

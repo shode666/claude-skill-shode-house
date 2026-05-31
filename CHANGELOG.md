@@ -3,6 +3,61 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.4.2] — Maintainer scripts .sh → .py (cross-platform) — 2026-05-31
+
+> **Focus**: Convert 6 maintainer `.sh` scripts to Python (`.py`) for cross-platform parity. Python 3.9+ stdlib only (PyYAML optional). Each `.py` warns clearly on Python <3.9.
+
+### 🔄 Changed (Option B — full conversion)
+
+- `scripts/lint.sh` → **`scripts/lint.py`** (8 pre-publish checks; PyYAML preferred, regex fallback)
+- `scripts/check-index.sh` → **`scripts/check_index.py`** (5 invariant checks; CLAUDE.md size/bucket/Cowork)
+- `scripts/build-plugin.sh` → **`scripts/build_plugin.py`** (uses `zipfile` stdlib; no `zip` binary dep)
+- `scripts/list-skills.sh` → **`scripts/list_skills.py`** (tabular skill index)
+- `scripts/publish.sh` → **`scripts/publish.py`** (git/gh CLI via subprocess; --branch arg)
+- `scripts/setup-precommit.sh` → **`scripts/setup_precommit.py`** (best-effort pre-commit install)
+- **NEW**: `scripts/_lib.py` — shared helpers (Python version check + color output + repo_root)
+
+### 🐍 Python prerequisite
+
+- **Python 3.9+** mandatory for repo dev-loop scripts
+- macOS/Linux: pre-installed (or `brew install python@3.12`)
+- Windows: install from python.org or Microsoft Store
+- Each `.py` checks `sys.version_info < (3, 9)` and fails with platform-specific install guide
+- Optional: PyYAML for full YAML validation (`pip install --user pyyaml`); regex fallback when missing
+- Documented in CLAUDE.md § Prerequisites
+
+### 🔄 Misc updates
+
+- `.pre-commit-config.yaml` — drop shellcheck hook; switch lint hook from `bash scripts/lint.sh` to `python3 scripts/lint.py`
+- `CLAUDE.md` — header v3.3.0 → **v3.4.2**, add Prerequisites section
+- `README.md` — script names updated (`scripts/{list_skills,check_index,build_plugin,lint,publish}.py`)
+- `.claude-plugin/{plugin,marketplace}.json` — v3.4.1 → **v3.4.2**
+
+### 📊 Stats v3.4.2
+
+- Scripts: 6 .sh → **6 .py + 1 _lib.py** (7 total Python files)
+- User-facing scripts: 0 (unchanged — agents don't invoke any script)
+- Maintainer scripts: now cross-platform Mac/Windows/Linux ✓
+- Lint check count: 8 (unchanged)
+
+### 🧪 Smoke tests passed
+
+- ✅ `list_skills.py` — 21 lines output, all skills shown
+- ✅ `build_plugin.py` — built `shode-house-v3.4.2.plugin` correctly (71 files)
+- ✅ `check_index.py` — all invariants pass
+- ✅ `lint.py` — 8/8 PASS (PyYAML available)
+- ✅ `publish.py --help` — argparse works
+- ✅ `setup_precommit.py` — imports OK
+- ✅ `_lib.py` — Python version check + repo_root + color helpers tested
+
+### Migration
+
+- ✅ Backward-compat: old `.sh` deleted; `python3 scripts/<name>.py` invocation
+- ✅ pre-commit hook auto-runs lint.py (no manual change)
+- ⚠ Contributors: ensure Python 3.9+ available before pre-commit fires
+
+---
+
 ## [3.4.1] — Revert workflow script, keep schema in skill — 2026-05-31
 
 > **Focus**: Drop `scripts/workflow_state.py` per v3.3 philosophy (discipline > mechanical layer; same lesson as Evan/sprint revert). Move state.json schema documentation to `shode-house-workflow` skill. Agents use Read/Write tools directly on JSON — no script needed.

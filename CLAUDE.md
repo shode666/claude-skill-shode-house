@@ -1,6 +1,16 @@
-# shode-house — Repo Invariants (v3.3.0)
+# shode-house — Repo Invariants (v3.4.2)
 
 > รวบรัด. ทุก rule ในที่นี้ = invariant ที่ script ตรวจ. ถ้าจะแหก ต้องเปลี่ยน script ก่อน
+
+## 🐍 Prerequisites (maintainer + contributor)
+
+- **Python 3.9+** required for repo dev-loop scripts (`scripts/*.py`)
+  - macOS: pre-installed (or `brew install python@3.12`)
+  - Linux: pre-installed
+  - Windows: `python.org` or Microsoft Store
+- Each `.py` checks Python version at import; fails with clear install guide if older
+- **PyYAML** (optional — better YAML validation in `lint.py`): `pip install --user pyyaml`
+- **git** + **gh CLI** for `publish.py` (push + release)
 
 ## Skills
 
@@ -32,7 +42,7 @@
 
 - `plugin.json` version = SemVer; `marketplace.json` ตาม
 - `.plugin` zip artifact = `shode-house-v<MAJOR>.<MINOR>.<PATCH>.plugin`
-- Build via `scripts/build-plugin.sh`; ห้าม zip มือ
+- Build via `scripts/build_plugin.py`; ห้าม zip มือ
 
 ### Plugin manifest — Cowork validator constraints (🔴 บังคับ — ป้องกัน "Plugin validation failed")
 
@@ -81,16 +91,16 @@
 **Rules ก่อน bump version**:
 
 1. **Detail / marketing copy → `README.md` เท่านั้น** ห้ามใส่ใน manifest description
-2. ก่อน push: รัน `scripts/check-index.sh` (ต้อง enforce description ≤ 200 chars + ASCII)
+2. ก่อน push: รัน `scripts/check_index.py` (ต้อง enforce description ≤ 200 chars + ASCII)
 3. ก่อน release: **drag-drop ทดสอบ Cowork จริง** — CLI validate ผ่าน ≠ Cowork ผ่าน
 4. ถ้า fail: `git log --grep="validator"` ดู lesson learned เก่าก่อน debug ใหม่ — เรามี history v2.5.1 + v3.1.0 แล้ว
-5. ถ้าเจอ bug ใหม่ที่ schema ไม่ enforce แต่ Cowork enforce — เพิ่ม rule ในส่วนนี้ + เพิ่ม check ใน `scripts/check-index.sh` ทันที (อย่าให้รุ่นถัดไปลืม)
+5. ถ้าเจอ bug ใหม่ที่ schema ไม่ enforce แต่ Cowork enforce — เพิ่ม rule ในส่วนนี้ + เพิ่ม check ใน `scripts/check_index.py` ทันที (อย่าให้รุ่นถัดไปลืม)
 
 ## Repo
 
 - README → link skill name ไปยัง SKILL.md เสมอ
 - CHANGELOG → ทุก minor/major bump เพิ่ม entry
-- ทุก PR run `scripts/lint.sh` ผ่านก่อน merge
+- ทุก PR run `scripts/lint.py` ผ่านก่อน merge
 
 ## Bias Discipline (🆕 v3.3 — replaces v3.2 Evan agent)
 

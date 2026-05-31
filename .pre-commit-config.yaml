@@ -1,9 +1,9 @@
-# .pre-commit-config.yaml — shode-house repo pre-commit hook
+# .pre-commit-config.yaml — shode-house repo pre-commit hook (v3.4.2+)
 # Install: brew install pre-commit && pre-commit install
-# Or via setup script: bash scripts/setup-precommit.sh
+# Or via setup script: python3 scripts/setup_precommit.py
 #
 # Runs comprehensive lint on every commit. Block commit if any check fails.
-# This is the SAME lint that scripts/publish.sh runs as final gate.
+# This is the SAME lint that scripts/publish.py runs as final gate.
 
 repos:
   # Built-in basic hygiene
@@ -31,19 +31,14 @@ repos:
       - id: yamllint
         args: [-d, "{extends: relaxed, rules: {line-length: {max: 200}}}"]
 
-  # Shellcheck for scripts/
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
-    hooks:
-      - id: shellcheck
-        files: ^scripts/.*\.sh$
+  # (shellcheck removed v3.4.2 — scripts/*.sh converted to .py)
 
-  # Custom local hook — run shode-house lint.sh
+  # Custom local hook — run shode-house lint.py
   - repo: local
     hooks:
       - id: shode-house-lint
         name: shode-house lint (8 checks)
-        entry: bash scripts/lint.sh
+        entry: python3 scripts/lint.py
         language: system
         pass_filenames: false
         always_run: true

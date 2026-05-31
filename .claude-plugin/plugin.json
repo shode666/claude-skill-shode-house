@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.4.1",
-  "description": "Multi-agent software house team v3.4.1: 19 agents + 18 skills + 5 commands. 11 prompt fixes from pilot + state.json schema (pure JSON, no script).",
+  "version": "3.4.2",
+  "description": "Multi-agent software house team v3.4.2: 19 agents + 18 skills + 5 commands. Maintainer scripts .sh -> .py (cross-platform).",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"
