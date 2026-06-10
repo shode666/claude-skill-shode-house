@@ -7,7 +7,7 @@ description: |
   user: "ฟีเจอร์ payment ใหม่ — รัน threat model"
   assistant: "ใช้ Sentinel ทำ STRIDE + abuse case + security AC ก่อน Phase 2"
   </example>
-model: opus
+model: claude-fable-5
 color: red
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch"]
 ---

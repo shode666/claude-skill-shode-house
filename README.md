@@ -6,7 +6,7 @@
 
 ออกแบบเน้น: **lean • token-optimized • production-ready • domain-driven • zero-overlap capability • ภาษาไทย**
 
-[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
+[![Version](https://img.shields.io/badge/version-3.5.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -80,15 +80,15 @@
 | Key | ชื่อ | Model | Team | Role |
 |-----|------|-------|------|------|
 | Or | **Oliver** | sonnet | Lead | Engagement Lead — orchestrate, classify follow-up, multi-sig gate |
-| St | **Stan** 🆕 | **opus** | Lead | Staff Engineer — cross-team consistency, tech radar, polyglot review |
+| St | **Stan** 🆕 | **fable-5** | Lead | Staff Engineer — cross-team consistency, tech radar, polyglot review |
 | Pa | **Patrick** 🆕 | sonnet | Discover | Product Manager — OKR, RICE/WSJF, opportunity sizing, kill decision |
 | Ba | **Bella** | sonnet | Design | BA — BRD/FRD/AC G-W-T, Event Storming, RTM |
-| Sa | **Sara** | **opus** | Design | SA — C4, ADR, NFR (threat model → Sentinel) |
+| Sa | **Sara** | **fable-5** | Design | SA — C4, ADR, NFR (threat model → Sentinel) |
 | Ux | **Uma** | sonnet | Design | UX/UI + Design System + a11y (WCAG 2.2 AA) |
 | Dv | **Dave** | sonnet | Dev | Polyglot Dev (parallel Dave#N, 14 languages, lazy-load) |
 | Cr | **Chris** | sonnet | Verify | Code Review 7-dim + Unit + Mutation kill ≥ 70% |
 | Qa | **Quinn** | sonnet | Verify | QA — Integration/E2E/Contract/Load/Perf/axe (pen test → Sentinel) |
-| Se | **Sentinel** 🆕 | **opus** | Verify | Security Engineer — STRIDE/LINDDUN, SAST/DAST, CSP/Trusted Types, pen test |
+| Se | **Sentinel** 🆕 | **fable-5** | Verify | Security Engineer — STRIDE/LINDDUN, SAST/DAST, CSP/Trusted Types, pen test |
 | Do | **Aaron** | sonnet | Ops | DevOps/Platform — Docker, CI/CD, IaC (SLO → Reggie) |
 | Re | **Reggie** 🆕 | sonnet | Ops | SRE — SLO/SLI, error budget, runbook, on-call, blameless postmortem |
 
@@ -103,9 +103,31 @@
 | Bk | **Brooke** | sonnet | Booking — PMS, channel manager, yield, overbooking, GDS |
 | Ec | **Emma** | sonnet | E-commerce — catalog, cart, promo, marketplace, fraud |
 
-### Model Strategy
-- **Opus** (6): judgment-critical (architecture, security, money, SAP, insurance reg, trading microstructure)
-- **Sonnet** (13): execution + structured patterns (capable + fast)
+### Model Strategy (v3.5 — Claude 5 family)
+
+| Tier | Agents | Frontmatter value | เหตุผล |
+|------|--------|-------------------|--------|
+| **Fable 5** (3) | Stan, Sara, Sentinel | `claude-fable-5` | judgment สูงสุด: cross-team architecture + security — ผิดแล้วแพงทั้งระบบ |
+| **Opus** (4) | Felix, Sam, Tara, Iris | `opus` (alias → Opus ล่าสุด) | regulated-domain judgment (money, SAP, trading, insurance reg) |
+| **Sonnet** (12) | ที่เหลือทั้งหมด | `sonnet` (alias → Sonnet ล่าสุด) | execution + structured patterns |
+| **Haiku** (0 agent) | mechanical sub-task เท่านั้น | Task `model` override | status digest, broadcast aggregation, bd hygiene — ห้ามผลิต deliverable |
+
+> **กติกา**: full string เฉพาะ Fable (ยังไม่มี alias เป็นทางการ); ตัวอื่นใช้ alias เพื่อตาม model ใหม่อัตโนมัติ. **ห้าม pin dated string** (เช่น `claude-sonnet-4-6-2025xxxx`)
+
+**Fallback (กรณีเรียก Fable 5 ไม่ได้ — quota/availability)** — Claude Code รองรับ fallback chain (สูงสุด 3, ครอบคลุม subagent ทุกตัว):
+
+```jsonc
+// .claude/settings.json (project) หรือ ~/.claude/settings.json
+{ "fallbackModel": "opus,sonnet" }   // fable-5 ล่ม → Opus → Sonnet
+```
+
+หรือ per-session: `claude --fallback-model opus,sonnet`
+
+**Budget mode** (บังคับทุก subagent ลง sonnet ชั่วคราว — ไม่ต้องแก้ไฟล์):
+
+```bash
+CLAUDE_CODE_SUBAGENT_MODEL=sonnet claude
+```
 
 ---
 
@@ -121,18 +143,17 @@
 
 ---
 
-## ⚡ Slash Commands (6 + 2 deprecated alias — v3.1 consolidation)
+## ⚡ Slash Commands (5 — v3.5: deprecated aliases removed)
 
 | Command | ใช้เมื่อ |
 |---------|----------|
 | `/shode-house:consult [คำถาม]` | ปรึกษาด่วน — route ไป agent ตัวเดียว |
-| `/shode-house:init [project]` | Init project scaffold — **default**: interactive wizard; `--quick "<stack>"` direct Aaron Docker-first (replaces /setup-project) |
-| `/shode-house:design-system [feature]` | Smart Spec pipeline — **default**: spec → suggest implement; `--stop`: stop at spec; `--estimate`: add T-shirt sizing; `--stop --estimate` = proposal mode (replaces /spec-only) |
+| `/shode-house:init [project]` | Init project scaffold — **default**: interactive wizard; `--quick "<stack>"` direct Aaron Docker-first |
+| `/shode-house:design-system [feature]` | Smart Spec pipeline — **default**: spec → suggest implement; `--stop`: stop at spec; `--estimate`: add T-shirt sizing; `--stop --estimate` = proposal mode |
 | `/shode-house:implement [feature]` | Phase 2-4 — Dave + Uma + Chris ∥ Quinn (uses `review-checklist` skill) |
 | `/shode-house:review [path\|jira\|bug]` | Ad-hoc code review (uses `review-checklist` skill) |
-| ~~`/shode-house:sprint`~~ | ❌ **REMOVED v3.3** — sprint outer loop dropped; PEV loop per bd; continuous OKR review (Patrick); deploy continuous per bd |
-| ~~`/shode-house:setup-project`~~ | ⚠️ DEPRECATED v3.1 → alias of `/init --quick`. ลบใน v3.2 |
-| ~~`/shode-house:spec-only`~~ | ⚠️ DEPRECATED v3.1 → alias of `/design-system --stop --estimate`. ลบใน v3.2 |
+
+> Removed: `/sprint` (v3.3 — PEV loop per bd), `/setup-project` → `/init --quick`, `/spec-only` → `/design-system --stop --estimate` (v3.5 — aliases past deprecation window)
 
 > **3-flag rule** (CLAUDE.md invariant): ห้ามเพิ่ม command ใหม่ถ้า command เดิม + ≤ 3 flag รองรับได้ → prefer flags over command proliferation
 
@@ -362,7 +383,7 @@ shode-house/
 │   ├── in-progress/            not shipped (drafts)
 │   └── deprecated/             not shipped (retiring)
 ├── agents/                     19 expert agents (12 core + 7 domain)
-├── commands/                   6 active + 2 deprecated alias
+├── commands/                   5 active (v3.5 — aliases removed)
 └── references/
     ├── modern-stack.md         2025+ tech recommendation
     ├── patterns/general.md     DB/API/Observability (Dave lazy-load)

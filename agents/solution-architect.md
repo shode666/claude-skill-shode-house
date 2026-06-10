@@ -7,7 +7,7 @@ description: |
   user: "ออกแบบ architecture ERP โรงงาน 3 โรง"
   assistant: "ใช้ Sara วาง C4 + tech stack + NFR + ADR"
   </example>
-model: opus
+model: claude-fable-5
 color: cyan
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
 ---

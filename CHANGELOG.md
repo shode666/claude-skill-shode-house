@@ -3,6 +3,36 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.5.0] — Claude 5 model matrix + fallback + doc-drift cleanup — 2026-06-10
+
+> **Focus**: Revise model ตาม Claude 5 family (Fable 5 ออกแล้ว) + fallback strategy + ล้าง doc drift ที่กิน token / ทำให้สับสน
+
+### 🔄 Changed — Model matrix (19 agents)
+
+- **Fable 5 (3)**: Stan (staff-engineer), Sara (solution-architect), Sentinel (security-engineer) — `model: claude-fable-5` (full string; ยังไม่มี alias `fable` เป็นทางการ). Judgment สูงสุด: cross-team architecture + security
+- **Opus (4)**: Felix, Sam, Tara, Iris — keep `opus` alias (ตาม Opus ล่าสุด = 4.8 อัตโนมัติ). Regulated-domain judgment
+- **Sonnet (12)**: ที่เหลือ — keep `sonnet` alias (= 4.6)
+- **Haiku (0 agent)**: ใช้เฉพาะ mechanical sub-task ผ่าน Task `model` override (status digest, broadcast aggregation, bd hygiene) — doc ใน routing skill § Token-saving
+- **Fallback**: README § Model Strategy — settings `"fallbackModel": "opus,sonnet"` (ครอบคลุม subagent, max 3 chain) + budget mode `CLAUDE_CODE_SUBAGENT_MODEL=sonnet`
+- **CLAUDE.md invariant ใหม่**: model values whitelist + ห้าม pin dated string + ตาราง model มีที่เดียว (README)
+
+### 🗑️ Removed
+
+- `commands/setup-project.md` + `commands/spec-only.md` — deprecated alias เกิน window ที่สัญญา (ลบใน v3.2 แต่ค้างถึง v3.4.2); plugin description บอก 5 commands แต่ ship 7
+
+### 🐛 Fixed — doc drift (token waste + contradiction)
+
+- `shode-house-routing` skill: ตาราง "ทีม (15 agents)" stale จาก v2.x (ขาด Stan/Patrick/Sentinel/Reggie + model column ขัดกับ README) → แทนด้วย roster 19 ตัวแบบ 1 บรรทัด + pointer ไป frontmatter (single source of truth)
+- `shode-house-routing` skill: เติม section ว่าง `## 🔧 Token-saving` (model tier + lazy-load + bd SoT + caveman); ลบ header ว่าง `## 📦 Standard Output Deliverables`, `## 💬 Clarifying`, `## 🆕 New Phases` (เนื้อหาหายตอน split v3.1)
+- `shode-house-discipline` skill: ลบ header ว่าง `## 🔁 Workflow Discipline`; Recite Card tag → v3.5
+- README: badge 3.1.0 → 3.5.0; "Opus (6)" ขัดกับตารางที่ mark opus 7 ตัว → ตาราง Model Strategy ใหม่; commands section 6+2 → 5
+
+### ⚠️ Known issue — Cowork install (ต้อง verify หลัง release)
+
+- Cache ฝั่ง Cowork ของ v3.4.2 พบ: manifest ถูก strip field `skills`, ไม่มี `agents/` + `commands/` + `skills/workflow/` → skills/agents ไม่โหลดใน session. ถ้า reinstall v3.5.0 แล้วยังไม่โหลด → พิจารณา flatten `skills/` เป็น 1 ระดับ (auto-discovery-safe) ใน v3.6
+
+---
+
 ## [3.4.2] — Maintainer scripts .sh → .py (cross-platform) — 2026-05-31
 
 > **Focus**: Convert 6 maintainer `.sh` scripts to Python (`.py`) for cross-platform parity. Python 3.9+ stdlib only (PyYAML optional). Each `.py` warns clearly on Python <3.9.

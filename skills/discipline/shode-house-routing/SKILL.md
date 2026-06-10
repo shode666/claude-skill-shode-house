@@ -33,32 +33,12 @@ description: |
 
 ---
 
-## 📦 Standard Output Deliverables (🔴 v2.5 — FS-inspired)
+## 👥 ทีม (19 agents = 12 core + 7 domain)
 
-## ทีม (15 agents)
+> **Model = อ่านจาก agent frontmatter เท่านั้น** (single source of truth — ห้าม copy ตาราง model มาไว้ที่นี่). Strategy + fallback: README § Model Strategy
 
-### Core (8)
-| Key | ชื่อ | Model | Role |
-|-----|------|-------|------|
-| Or | Oliver | sonnet | Orchestrator |
-| Ba | Bella | sonnet | BA — BRD/FRD/RTM, Event Storming |
-| Sa | Sara | **opus** | SA — C4, ADR, NFR, threat model |
-| Dv | Dave | sonnet | Polyglot Dev (parallelizable) |
-| Cr | Chris | sonnet | Code Review (7 มิติ) + Unit Test |
-| Qa | Quinn | sonnet | QA — Integration/E2E/Pen test |
-| Do | Aaron | sonnet | DevOps — Docker, CI/CD, observability |
-| Ux | Uma | sonnet | UX/UI + Design System + a11y |
-
-### Domain Experts (7) — pluggable
-| Key | ชื่อ | Model | Domain |
-|-----|------|-------|--------|
-| Fe | Felix | **opus** | Fintech/Banking/Payment |
-| Ee | Elena | sonnet | ERP/Accounting (generic) |
-| Sm | Sam | **opus** | SAP (ECC + S/4HANA + ABAP + Fiori + BTP) |
-| Te | Tara | **opus** | Trading/Exchange |
-| Ie | Iris | **opus** | Insurance — IFRS 17, OIC |
-| Bk | Brooke | sonnet | Booking/Reservation |
-| Ec | Emma | sonnet | E-commerce/Retail |
+- **Core (12)**: Oliver (orchestrate) · Stan (staff) · Patrick (PM) · Bella (BA) · Sara (SA) · Uma (UX/UI) · Dave (dev, parallel #N) · Chris (CR) · Quinn (QA) · Sentinel (security) · Aaron (DevOps) · Reggie (SRE)
+- **Domain (7, pluggable)**: Felix (fintech) · Elena (ERP) · Sam (SAP) · Tara (trading) · Iris (insurance) · Brooke (booking) · Emma (e-commerce)
 
 > Add agent: drop `agents/<name>.md` + update routing table — done
 
@@ -75,8 +55,6 @@ description: |
 7. Reproducible (git clone → run = work)
 
 ---
-
-## 💬 Clarifying — option-style (🔴 บังคับ)
 
 ## 🧭 Routing
 
@@ -138,6 +116,11 @@ Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly i
 ---
 
 ## 🔧 Token-saving (🔴 runtime)
+
+- **Model tier ตาม judgment ไม่ใช่ตาม prestige**: fable-5 = cross-team architecture/security judgment · opus = regulated-domain judgment · sonnet = execution/structured pattern · **haiku = mechanical sub-task เท่านั้น** (status digest, broadcast aggregation, bd hygiene, format conversion) — Oliver ระบุผ่าน Task `model` override; ห้ามใช้ haiku ผลิต deliverable ที่มี sole owner
+- **Lazy-load**: Dave อ่าน `references/languages/<lang>.md` เฉพาะภาษาที่ใช้; skill โหลดเมื่อ trigger เท่านั้น
+- **bd = single source of truth**: bd active → `bd update --notes` only; ห้ามเขียน markdown ซ้ำ (redundancy + drift)
+- **Caveman broadcast**: 1 บรรทัดต่อ handoff; รายละเอียดไป bd notes
 
 ## 👥 Team Structure (🔴 v3.0)
 
@@ -258,6 +241,4 @@ Lead    ▸ Ops    : ship it
 | Frontend/API/observable touched? | ✅ Chris ∥ Quinn บังคับ open `mcp__Claude_in_Chrome__navigate` + screenshot/console/network | Headless Playwright = automation; Chrome MCP = human-visible truth |
 | Chris/Quinn agree blindly with each other? | ⚠ Cross-check ได้ — แต่ verdict ต้อง independent (parallel) | M3 Anti-Puppet — single point trust = drift risk |
 
----
-
-## 🆕 New Phases (🔴 v3.0)
+> New Phases v3.0 (0 Discovery / 1c Threat Model / 6 Operate) → ดู `shode-house-drift` skill

@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.4.2",
-  "description": "Multi-agent software house team v3.4.2: 19 agents + 18 skills + 5 commands. Maintainer scripts .sh -> .py (cross-platform).",
+  "version": "3.5.0",
+  "description": "Multi-agent software house team v3.5.0: 19 agents + 18 skills + 5 commands. Tiered models Fable 5 / Opus / Sonnet with fallback chain.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"

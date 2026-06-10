@@ -14,7 +14,7 @@ description: |
 ## 🎯 Recite Discipline Card (🔴 บังคับใน first response)
 
 ```
-[shode-house|discipline|v3.1]
+[shode-house|discipline|v3.5]
 1. NO MAGIC          — ห้ามเดา; cite project evidence
 2. VERIFY BEFORE DONE — show test/output ห้าม "should work"
 3. DISSENT           — major change: blast radius / assumption / reversibility / momentum
@@ -140,8 +140,6 @@ Risk: [what] | Likelihood: L/M/H | Impact: L/M/H | Mitigation: [concrete] | Owne
 - ห้าม **i18n text overflow** — design text expand 30% (ภาษาเยอรมัน/ไทย ยาวกว่าอังกฤษ)
 
 ---
-
-## 🔁 Workflow Discipline (🔴 Archon-inspired)
 
 ## 🧪 Clarifying — option-style v3.0 (was `grill-me`)
 

@@ -7,7 +7,7 @@ description: |
   user: "ทีม A ใช้ FastAPI ทีม B ใช้ NestJS — รวมไหม?"
   assistant: "ใช้ Stan วิเคราะห์ + propose convergence (or accept divergence + tradeoff)"
   </example>
-model: opus
+model: claude-fable-5
 color: purple
 tools: ["Read", "Grep", "Glob", "Bash", "WebSearch"]
 ---
