@@ -3,6 +3,17 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.5.1] — Uma = Design Authority on Fable 5 — 2026-06-11
+
+### 🔄 Changed
+
+- **Uma → `claude-fable-5`** (Fable 5 ตอนนี้ 4 ตัว: Stan, Sara, Sentinel, Uma; Sonnet 12 → 11) — Fable 5 ทำงาน design UX/UI ได้แข็งแรง user ต้องการให้ Uma นำการตัดสินใจ look & feel
+- **Design Authority role ใหม่** (agents/ux-ui-designer.md § Design Authority): Uma = final say เรื่อง look & feel / visual direction / interaction pattern + proactive advisory ต่อ Sara (UX impact ของ architecture), Dave (implementation fidelity), Bella (UX acceptance criteria) — boundary ยัง zero-overlap (แนะนำ/veto ได้ แต่ไม่ผลิต deliverable ของคนอื่น)
+- Routing skill: Conflict Resolution เพิ่ม row "Look & feel → Uma ชนะ" (ยกเว้นชน a11y law / security / regulation); capability matrix Uma เพิ่ม "Look & feel direction (final say)"
+- README Model Strategy + core table + CLAUDE.md model whitelist sync
+
+---
+
 ## [3.5.0] — Claude 5 model matrix + fallback + doc-drift cleanup — 2026-06-10
 
 > **Focus**: Revise model ตาม Claude 5 family (Fable 5 ออกแล้ว) + fallback strategy + ล้าง doc drift ที่กิน token / ทำให้สับสน

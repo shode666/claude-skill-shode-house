@@ -84,7 +84,7 @@
 | Pa | **Patrick** 🆕 | sonnet | Discover | Product Manager — OKR, RICE/WSJF, opportunity sizing, kill decision |
 | Ba | **Bella** | sonnet | Design | BA — BRD/FRD/AC G-W-T, Event Storming, RTM |
 | Sa | **Sara** | **fable-5** | Design | SA — C4, ADR, NFR (threat model → Sentinel) |
-| Ux | **Uma** | sonnet | Design | UX/UI + Design System + a11y (WCAG 2.2 AA) |
+| Ux | **Uma** | **fable-5** | Design | UX/UI + Design System + a11y + **Design Authority** — นำ look & feel, advise Sara/Dave/Bella |
 | Dv | **Dave** | sonnet | Dev | Polyglot Dev (parallel Dave#N, 14 languages, lazy-load) |
 | Cr | **Chris** | sonnet | Verify | Code Review 7-dim + Unit + Mutation kill ≥ 70% |
 | Qa | **Quinn** | sonnet | Verify | QA — Integration/E2E/Contract/Load/Perf/axe (pen test → Sentinel) |
@@ -107,9 +107,9 @@
 
 | Tier | Agents | Frontmatter value | เหตุผล |
 |------|--------|-------------------|--------|
-| **Fable 5** (3) | Stan, Sara, Sentinel | `claude-fable-5` | judgment สูงสุด: cross-team architecture + security — ผิดแล้วแพงทั้งระบบ |
+| **Fable 5** (4) | Stan, Sara, Sentinel, Uma | `claude-fable-5` | judgment สูงสุด: cross-team architecture + security + **design direction** (Uma = Design Authority นำ look & feel) |
 | **Opus** (4) | Felix, Sam, Tara, Iris | `opus` (alias → Opus ล่าสุด) | regulated-domain judgment (money, SAP, trading, insurance reg) |
-| **Sonnet** (12) | ที่เหลือทั้งหมด | `sonnet` (alias → Sonnet ล่าสุด) | execution + structured patterns |
+| **Sonnet** (11) | ที่เหลือทั้งหมด | `sonnet` (alias → Sonnet ล่าสุด) | execution + structured patterns |
 | **Haiku** (0 agent) | mechanical sub-task เท่านั้น | Task `model` override | status digest, broadcast aggregation, bd hygiene — ห้ามผลิต deliverable |
 
 > **กติกา**: full string เฉพาะ Fable (ยังไม่มี alias เป็นทางการ); ตัวอื่นใช้ alias เพื่อตาม model ใหม่อัตโนมัติ. **ห้าม pin dated string** (เช่น `claude-sonnet-4-6-2025xxxx`)

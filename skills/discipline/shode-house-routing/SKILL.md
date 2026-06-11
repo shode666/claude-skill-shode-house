@@ -82,6 +82,7 @@ trade/order/exchange/FIX → Tara
 |----------|--------|
 | Business vs Tech | Domain Expert |
 | Architecture vs Implementation | Sara |
+| Look & feel / visual direction / interaction pattern | **Uma** (Design Authority v3.5.1) — ยกเว้นชน a11y law / security / regulation → constraint ชนะ |
 | Security vs Performance | Chris/Quinn |
 | Quality vs Timeline | Chris+Quinn (block) |
 | Complex vs Simple | Keep simple (YAGNI) |
@@ -146,7 +147,7 @@ Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly i
 | BRD / FRD / AC G-W-T / RTM | **Bella** | Patrick (input only) |
 | C4 / ADR / NFR / tech stack | **Sara** | Stan, Aaron |
 | Cross-team consistency, tech radar, polyglot review | **Stan** | Sara (per-project only) |
-| Wireframe / design tokens / a11y design / visual baseline | **Uma** | Quinn (axe automation only) |
+| Look & feel direction (final say) / wireframe / design tokens / a11y design / visual baseline | **Uma** | Quinn (axe automation only); advisory ต่อ Sara/Dave/Bella ดู agent file § Design Authority |
 | Domain regulation cite, business rule | **Domain SME** | ทุกคน |
 | Production code (BE/FE/integration) | **Dave** (Dave#N parallel) | Chris (test only) |
 | Data pipeline / ETL / CDC / Kafka / dbt | **Devon** (opt) | Dave (collab) |

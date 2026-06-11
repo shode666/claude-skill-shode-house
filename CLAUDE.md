@@ -1,4 +1,4 @@
-# shode-house — Repo Invariants (v3.5.0)
+# shode-house — Repo Invariants (v3.5.1)
 
 > รวบรัด. ทุก rule ในที่นี้ = invariant ที่ script ตรวจ. ถ้าจะแหก ต้องเปลี่ยน script ก่อน
 
@@ -37,7 +37,7 @@
 
 - ทุก agent reference `shode-house-discipline` (Recite Card) + `shode-house-evidence` ขั้นต่ำ
 - `meeting/SKILL.md` = thin entry-point เท่านั้น (≤ 300 บรรทัด)
-- **Model frontmatter (v3.5)**: ค่าที่อนุญาต = `claude-fable-5` (Stan/Sara/Sentinel เท่านั้น) | `opus` | `sonnet`. ห้าม pin dated model string. ตาราง model มีที่เดียว = README § Model Strategy (skill อื่นห้าม copy — เคย drift ใน routing skill v2.x). Fallback = settings `fallbackModel`, budget mode = `CLAUDE_CODE_SUBAGENT_MODEL` (doc ใน README)
+- **Model frontmatter (v3.5)**: ค่าที่อนุญาต = `claude-fable-5` (Stan/Sara/Sentinel/Uma เท่านั้น) | `opus` | `sonnet`. ห้าม pin dated model string. ตาราง model มีที่เดียว = README § Model Strategy (skill อื่นห้าม copy — เคย drift ใน routing skill v2.x). Fallback = settings `fallbackModel`, budget mode = `CLAUDE_CODE_SUBAGENT_MODEL` (doc ใน README)
 
 ## Plugin
 
