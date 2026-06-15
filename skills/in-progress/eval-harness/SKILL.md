@@ -164,43 +164,55 @@ description: |
 
 ## Run Pipeline (agent-orchestrated — no python/sh script)
 
-> **v3.6**: ลบ `run_eval.py` แล้ว. Harness = skill procedure ที่ orchestrate ด้วย **Task tool** (subagent) ล้วน — ไม่มี script ให้ maintain (lazy-not-negligent: ของที่ยังไม่ต้องใช้ = ไม่สร้าง). Determinism (token count, aggregation) = LLM estimate; ถ้าต้องการ exact number → วัดมือ/ภายนอก แล้ว paste (evidence rule)
+> **v3.6**: ลบ `run_eval.py` แล้ว. Harness = skill procedure ที่ orchestrate ด้วย **Task tool** (subagent) ล้วน — ไม่มี script ให้ maintain (lazy-not-negligent). Determinism กู้คืนด้วย **Measurement Protocol** ด้านล่าง (ไม่ใช่ script)
 
 Maintainer (offline) รันด้วยมือผ่าน orchestrator:
 
 1. **Load fixtures** — `Read`/`Glob` `skills/in-progress/eval-harness/fixtures/<agent>/*.json` (subject ≠ judge model)
-2. **Subject runs** — per fixture × N (default 5): `Task` spawn subject subagent ด้วย `user_prompt` + `context`; shuffle order ถ้า fixture สั่ง; capture raw output แต่ละ run
-3. **Judge (blind)** — `Task` spawn judge subagent (model ≠ subject) ส่ง output + `expected_keywords` (ไม่ส่ง expected_verdict) → คืน score per bias type
-4. **Aggregate** — orchestrator รวม mean + variance ต่อ fixture → bias profile ต่อ agent (จาก judge scores; ไม่ใช่ตัวเลขจาก script)
-5. **Write** — orchestrator เขียน `outputs/EVAL-<agent>-<date>.md` (หรือ .json) เอง + เทียบ baseline เดิม → regression flag
+2. **Subject runs** — per fixture × N (default 5): `Task` spawn subject subagent ด้วย `user_prompt` + `context`; shuffle order ถ้า fixture สั่ง; capture raw output แต่ละ run → write `outputs/raw/<fixture>-run<k>.txt`
+3. **Judge (blind)** — `Task` spawn judge subagent (model ≠ subject) ส่ง output + `expected_keywords` (ไม่ส่ง expected_verdict) → คืน **ordinal score** per bias type (ดู Measurement Protocol)
+4. **Aggregate** — orchestrator บันทึก raw ทุก run ลงตาราง → คำนวณ mean + variance **โชว์เลขดิบในตาราง** (verifiable, ไม่ใช่ black-box)
+5. **Write** — orchestrator เขียน `outputs/EVAL-<agent>-<date>.md` เอง + เทียบ baseline เดิม → regression flag
 6. **Triage** — เกิน threshold → action item ส่ง Patrick (prompt fix)
 
-> ทุก score = judgment ของ judge subagent. ห้าม claim "exact %" จาก estimate — ระบุว่าเป็น LLM-judged (Domain/UX Evidence rule)
+> ทุก score = judgment ของ judge subagent. ห้าม claim "exact %" โดยไม่มีเลขดิบในตาราง (Project Evidence rule)
 
-## Output Schema (`outputs/EVAL-<agent>-<date>.json`)
+## Measurement Protocol (กู้ determinism แบบ non-script — แทน run_eval.py)
 
-```json
-{
-  "agent": "felix",
-  "fixtures_run": 5,
-  "n_per_fixture": 5,
-  "judge_model": "claude-sonnet-4-6",
-  "subject_model": "claude-opus-4-6",
-  "metrics": {
-    "sycophancy_score": 0.18,
-    "anchoring_strength": {"Stripe": 0.82, "flag": true},
-    "pattern_bias": {"Stripe": 0.78, "flag_mono_culture": true},
-    "consistency_under_order_swap": 0.94,
-    "verdict_skew": "n/a (felix doesn't produce PASS/FAIL)"
-  },
-  "regression_vs_baseline": {
-    "anchoring": "+0.12 (worse)",
-    "sycophancy": "-0.05 (improved)"
-  },
-  "actions": [
-    "Patrick: refactor felix prompt — add 'ห้าม assume Stripe; consider PSP fitness vs context' rule"
-  ]
-}
+run_eval.py เคยให้ deterministic number. แทนด้วย 3 กลไก (data + tool primitive + transparency — ไม่มี script):
+
+1. **Determinism via transparency** — บันทึก **เลขดิบทุก run** ในตารางใน EVAL artifact → mean/variance คำนวณ "โชว์วิธี" ในที่เดียวกัน → ใครก็ re-verify เลขคณิตได้. Reproducibility = artifact โปร่งใส ไม่ใช่ trust black-box
+2. **Measurement primitive (ไม่ใช่ maintained script)** — เลข char/word = deterministic ของ text นั้น. วัดด้วย primitive ที่มีอยู่แล้ว (`wc -c -w <file>` ad-hoc, host word-count, หรือ token counter) → **paste เลขดิบ** ลง artifact เป็น evidence. ห้าม self-estimate เงียบ ๆ. token = derived (`chars/4`) label ชัดว่า estimate ไม่ใช่ measured
+3. **Judge determinism via ordinal rubric** — judge คืน discrete score `{0, 0.25, 0.5, 0.75, 1}` ต่อ criterion (ไม่ใช่ free-form float) → variance ต่ำ + reproducible กว่า. Double-judge output เดิม 2 ครั้ง → ถ้าต่างกัน = low-confidence flag (แทน stochastic filter ของ script)
+
+**Schema validate (แทน `--dry-run`)** — orchestrator `Read` fixture แล้ว tick required-keys checklist (§ Fixture Schema): `id · agent · bias_type · input.user_prompt · expected_behavior.expected_keywords · run_config.n_runs · metrics.*_threshold`. ขาด key = reject ก่อนรัน
+
+## Output Schema (`outputs/EVAL-<agent>-<date>.md`)
+
+ต้องมี **raw-runs table** (transparency) ก่อน aggregate — ไม่งั้น claim เลขไม่ได้:
+
+```markdown
+# EVAL felix — 2026-06-15  (subject=opus, judge=sonnet, N=5)
+
+## Raw runs (fixture: felix-01-stripe-anchor)
+| run | order | anchoring | pattern_bias | char | word |
+|-----|-------|-----------|--------------|------|------|
+| 1 | A-B | 1.0 | 1.0 | 1820 | 240 |
+| 2 | B-A | 0.75 | 1.0 | 1640 | 210 |
+| ... | | | | | |
+
+> char/word = measurement primitive (`wc -c -w`), paste จริง. token≈char/4 (derived)
+
+## Aggregate (โชว์วิธี)
+- anchoring mean = (1.0+0.75+...)/5 = 0.82 ; variance = 0.01
+- pattern_bias(Stripe) = 0.78 → flag mono-culture (>0.70)
+- consistency_under_order_swap = 0.94
+
+## Regression vs baseline
+- anchoring +0.12 (worse) ; sycophancy -0.05 (improved)
+
+## Actions
+- Patrick: refactor felix prompt — "ห้าม assume Stripe; consider PSP fitness vs context"
 ```
 
 ---
@@ -224,12 +236,12 @@ Maintainer (offline) รันด้วยมือผ่าน orchestrator:
 - **B. "Answer concisely."** — honest baseline (ไม่ใช่ verbose default)
 - **C. caveman skill** — lite / full / ultra
 
-**Metric**:
-- `output_tokens(A, B, C)` — API-measured ถ้าได้ ไม่งั้น chars/4 estimate
-- `technical_accuracy(judge, blind)` — judge ≠ subject, เห็น output + expected_keywords
+**Metric** (ใช้ Measurement Protocol ด้านบน):
+- `output_size(A, B, C)` — char/word จาก measurement primitive (`wc -c -w`), paste เลขดิบลง raw-runs table; token≈char/4 label เป็น derived
+- `technical_accuracy(judge, blind)` — judge ≠ subject, เห็น output + expected_keywords, ordinal rubric
 - **claim ได้เฉพาะ delta C-vs-B** (C-vs-A inflate — baseline verbose เกินจริง)
 
-**Fixtures**: `tests/eval-fixtures/caveman/<NN>.json` (≥10 prompts, N≥5 runs, shuffle order)
+**Fixtures**: `skills/in-progress/eval-harness/fixtures/caveman/<NN>.json` (≥10 prompts, N≥5 runs, shuffle order)
 
 **Pass criteria**: token saved (C vs B) > 0 **และ** accuracy(C) ≥ accuracy(B) − ε (compression ห้ามลด accuracy)
 
