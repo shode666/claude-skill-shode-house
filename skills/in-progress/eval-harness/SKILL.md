@@ -2,15 +2,15 @@
 name: eval-harness
 description: |
   [WHAT] Bias-aware evaluation harness — orchestrate fixture runs across 19 agents + detect 4 bias types (sycophancy, anchoring, verbosity, pattern-bias, position) + cross-LLM judge methodology.
-  [AUDIENCE] Evan (evaluator agent — sole runner); Patrick (Phase 7 retro consumer); Stan (cross-team calibration); maintainer (offline regression test).
+  [AUDIENCE] Maintainer (offline — sole runner; Evan agent reverted in v3.3); Patrick (retro consumer); Stan (cross-team calibration).
   [WHEN] Pre-major-release (v3→v4 prompt refactor); sprint retro ถ้า dispute_rate > 20% per agent (per drift M3); ก่อน promote prompt change to default.
   [TRIGGER] /shode-house:eval-harness, "eval", "bias detection", "agent regression", "sycophancy test", "no-bias evaluation", "harness".
 ---
 
 # Eval Harness (v3.2 — bias-aware, no-bias evaluation methodology)
 
-> Offline tool. **ไม่** อยู่ใน `/implement` Phase loop. Run โดย Evan agent ตอน sprint retro / major release / dispute_rate spike.
-> **Owner**: Evan (evaluator agent). Co-pilot: Patrick (consume retro), Stan (cross-team calibration).
+> Offline tool. **ไม่** อยู่ใน `/implement` Phase loop. Run โดย **maintainer (offline)** ตอน major release / dispute_rate spike. (Evan evaluator agent = reverted v3.3 — methodology เก็บที่นี่ reference-only, ไม่ ship)
+> **Owner**: Maintainer (offline). Co-pilot: Patrick (consume retro), Stan (cross-team calibration).
 
 ---
 
@@ -216,9 +216,31 @@ description: |
 
 ---
 
+## Compression eval (3-arm — measure caveman honestly, จาก caveman `evals/`)
+
+แยกจาก agent-bias eval ด้านบน. วัด *compression delta* ของ caveman skill เอง — ห้าม inflate
+
+**3 arms ต่อ prompt เดียวกัน**:
+- **A. baseline** — no instruction (verbose default)
+- **B. "Answer concisely."** — honest baseline (ไม่ใช่ verbose default)
+- **C. caveman skill** — lite / full / ultra
+
+**Metric**:
+- `output_tokens(A, B, C)` — API-measured ถ้าได้ ไม่งั้น chars/4 estimate
+- `technical_accuracy(judge, blind)` — judge ≠ subject, เห็น output + expected_keywords
+- **claim ได้เฉพาะ delta C-vs-B** (C-vs-A inflate — baseline verbose เกินจริง)
+
+**Fixtures**: `tests/eval-fixtures/caveman/<NN>.json` (≥10 prompts, N≥5 runs, shuffle order)
+
+**Pass criteria**: token saved (C vs B) > 0 **และ** accuracy(C) ≥ accuracy(B) − ε (compression ห้ามลด accuracy)
+
+> ตรง caveman repo caveat: compress *output* token เท่านั้น (thinking/reasoning untouched); accuracy = primary guard
+
+---
+
 ## Used by
 
-- Evan (sole runner)
-- Patrick Phase 7 retro (consume `outputs/EVAL-*.json`)
+- Maintainer (offline — sole runner; Evan reverted v3.3)
+- Patrick retro (consume `outputs/EVAL-*.json`)
 - Stan cross-team calibration (compare agent baselines)
 - Maintainer regression test before major prompt refactor (v3→v4)

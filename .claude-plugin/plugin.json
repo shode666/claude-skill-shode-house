@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.5.1",
-  "description": "Multi-agent software house team v3.5.1: 19 agents + 18 skills + 5 commands. Fable 5 tier incl. Uma as Design Authority; fallback chain.",
+  "version": "3.6.0",
+  "description": "Multi-agent software house team v3.6: 19 agents + 18 skills + 5 commands. YAGNI ladder + debt ledger + caveman compress; model-table drift check.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"

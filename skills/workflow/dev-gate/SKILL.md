@@ -33,10 +33,38 @@ description: |
 
 1. **No production code without failing test first** (TDD core)
 2. **Quality at dev time, not after** — fix early ถูกกว่า 100x
+3. **Best code = code you never wrote** — ผ่าน YAGNI ladder (Step 0) ก่อนทุกครั้ง
+
+### Lazy ≠ Negligent — ห้ามตัด (carve-out)
+
+YAGNI/compression ตัดได้เฉพาะ "ความซับซ้อนที่ยังไม่ต้องใช้" — **ห้ามแตะ**:
+- Trust-boundary validation (input/HTTP/queue/env — Zod/Pydantic)
+- Data-loss handling (transaction, idempotency, money R0)
+- Security control (auth, crypto, secret, injection guard)
+- Accessibility (WCAG — Uma's gate)
+- Regulation/compliance (Felix BOT/PCI · Iris OIC · domain rule)
+
+ตัดของเหล่านี้ = Philosophy violation, ไม่ใช่ "lazy"
 
 ---
 
 ## Part 1: TDD Cycle (red → green → refactor)
+
+### 0. ⛔ YAGNI ladder — หยุดก่อนเขียน (จาก ponytail)
+
+ก่อนเขียน production code ใด ๆ ตอบไล่จากบนลงล่าง หยุดที่ข้อแรกที่ "ใช่":
+
+| ขั้น | ถาม | ถ้าใช่ |
+|---|---|---|
+| 1 | feature นี้ต้องมีจริงไหม? | ไม่ → skip (YAGNI) + log เป็น bd discovered |
+| 2 | stdlib ทำได้ไหม? | ใช้ stdlib |
+| 3 | native platform feature? (`<input type=date>`, `crypto`, ...) | ใช้ native |
+| 4 | dep ที่ลงแล้วทำได้? | ใช้ของเดิม ห้ามลง dep ใหม่ |
+| 5 | one-liner พอไหม? | เขียนบรรทัดเดียว |
+| 6 | ถ้าผ่านทั้งหมด | เขียน "ขั้นต่ำที่ work" เท่านั้น |
+
+> ทุกครั้งที่ตัด (ขั้น 1) หรือใช้ทางลัด → mark ด้วย `shortcut(bd:N):` comment (ดู Gate 3) เพื่อให้ debt harvest เก็บได้
+> เพดานความขี้เกียจ = carve-out ด้านบน (validation/security/a11y/regulation ห้ามตัด)
 
 ### 1. 🔴 Red — เขียน test ที่ fail ก่อน
 - Test เล็กที่สุด — 1 behavior
@@ -149,6 +177,12 @@ Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
 - Unused **function parameter** → ลบ หรือ prefix `_` ถ้าจำเป็นต้องเก็บ signature
 - Unused **function/class export** → ลบหรือ mark internal (ts-unused-exports / vulture)
 - ห้าม `# noqa` / `// eslint-disable` โดยไม่ comment "why" + bd track
+
+**Deferred-shortcut convention** (จาก ponytail — ทางลัดที่ YAGNI ladder ตัดไว้):
+- รูปแบบบังคับ: `shortcut(bd:<id>): <reason>; upgrade → <path>`
+- ตัวอย่าง: `# shortcut(bd:42): in-memory dict; upgrade → Redis เมื่อ >10k key`
+- `scripts/harvest_shortcuts.py` / `/review --debt` รวบเป็น ledger → "later" ไม่กลาย "never"
+- ห้าม shortcut โดยไม่มี bd id (ต้อง track ได้)
 
 ### Gate 4: Lint (strict — diagnose)
 - ดู per-language matrix; เปิด strict rule set ทั้งหมด ไม่ใช่ default ที่อ่อน

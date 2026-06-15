@@ -3,6 +3,26 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.6.0] — ponytail + caveman adoptions — 2026-06-15
+
+> **Focus**: adopt 7 ideas จาก [ponytail](https://github.com/DietrichGebert/ponytail) (YAGNI-first) + [caveman](https://github.com/JuliusBrussee/caveman) (compression) — ลด code/token, เพิ่ม drift guard
+
+### ✨ Added
+
+- **YAGNI ladder** (dev-gate Step 0): หยุดก่อนเขียน code — need? / stdlib / native / dep เดิม / one-line / minimum. Pointer ใน `agents/developer.md` Implement Loop
+- **Lazy ≠ Negligent carve-out** (dev-gate + caveman + developer.md): YAGNI/compression ห้ามตัด validation/data-loss/security/a11y/regulation
+- **Deferred-shortcut convention** `shortcut(bd:N): reason; upgrade → path` (dev-gate Gate 3) + `scripts/harvest_shortcuts.py` (debt ledger) + `/review --debt` mode
+- **caveman levels** (lite/full/ultra) + **compress-memory-file** sub-mode + **stats mode** + `scripts/caveman_stats.py` (token-saving estimate)
+- **3-arm compression eval** (in-progress/eval-harness): baseline / "Answer concisely." / caveman — claim เฉพาะ delta C-vs-B (honest)
+
+### 🔄 Changed
+
+- **`scripts/check_index.py`** เพิ่ม 2 check: (6) agent model frontmatter (allowed value + Fable-5 whitelist + no dated string) · (7) model-table single-source (ห้าม copy model table นอก README — drift guard ตาม CLAUDE.md)
+- **CLAUDE.md** เพิ่ม invariant v3.6 (model enforce, new scripts, Lazy≠Negligent) — ประเมิน caveman-compress แล้ว: ไฟล์ terse อยู่แล้ว delta ≈ 0 → ไม่ compress (capability ใช้กับ verbose file อื่น)
+- **eval-harness** แก้ owner drift: Evan (reverted v3.3) → maintainer offline
+
+---
+
 ## [3.5.1] — Uma = Design Authority on Fable 5 — 2026-06-11
 
 ### 🔄 Changed

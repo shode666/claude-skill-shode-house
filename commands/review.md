@@ -1,10 +1,20 @@
 ---
 description: "[shode-house] Code review + security (Chris + Quinn + Domain) — รับ path, Jira ID, หรือ bug description (+ screenshot)"
 allowed-tools: Task, Read, Grep, Glob, Bash, mcp__atlassian__getJiraIssue, mcp__atlassian__searchJiraIssuesUsingJql, mcp__atlassian__getJiraIssueRemoteIssueLinks
-argument-hint: "[path | KJERP-402 | คำอธิบายบั๊กภาษาไทย (+ screenshot ได้)]"
+argument-hint: "[path | KJERP-402 | คำอธิบายบั๊กภาษาไทย (+ screenshot ได้) | --debt]"
 ---
 
 Review target: **$ARGUMENTS**
+
+## Mode: `--debt` (จาก ponytail — deferred-shortcut harvest)
+
+ถ้า `$ARGUMENTS` = `--debt`:
+1. รัน `python3 scripts/harvest_shortcuts.py` → รวบ `shortcut(bd:N):` comment ทั้ง repo
+2. present `outputs/DEBT-<date>.md` ledger (group ตาม bd id)
+3. แนะนำ: ทางลัดที่ค้าง → สร้าง bd discovered ถ้ายังไม่มี
+4. ไม่รัน 7-dim review (mode นี้เก็บ debt อย่างเดียว) → จบ
+
+ไม่ใช่ `--debt` → ทำต่อ Step 0 ปกติ
 
 ## Step 0 — Resolve Argument (Oliver)
 

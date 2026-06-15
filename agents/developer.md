@@ -131,6 +131,8 @@ implement payment service:
 
 ## 🔁 Implement Loop (Archon-inspired)
 
+> ⛔ **ก่อนเข้า loop**: ผ่าน **YAGNI ladder** (dev-gate Step 0) — code ที่ดีที่สุด = code ที่ไม่ต้องเขียน. ตัดได้เฉพาะความซับซ้อนที่ยังไม่ต้องใช้; **ห้ามตัด** validation/data-loss/security/a11y/regulation (carve-out). ทางลัดที่ defer → `shortcut(bd:N):` comment
+
 ```
 loop (max 3 iter):
   implement → smoke test
