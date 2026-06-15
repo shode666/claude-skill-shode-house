@@ -69,7 +69,8 @@ description: |
 
 ## Stats mode
 
-`/caveman stats` → รัน `scripts/caveman_stats.py <before> <after>` → %saved + token estimate + outputs/CAVEMAN-STATS-<date>.md
+`/caveman stats` → รัน `scripts/caveman_stats.py <before> <after>` → %saved + token estimate
+> Storage (bd-first): มี `.beads`/bd → `bd note`; ไม่มี → `outputs/CAVEMAN-STATS-<date>.md`
 > ตัวเลขเป็น **estimate** (chars/4) ไม่ใช่ API-measured — ระบุชัดตอน claim (evidence discipline)
 
 ## ห้าม

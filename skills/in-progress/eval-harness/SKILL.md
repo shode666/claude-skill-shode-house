@@ -3,7 +3,7 @@ name: eval-harness
 description: |
   [WHAT] Bias-aware evaluation harness — orchestrate fixture runs across 19 agents + detect 4 bias types (sycophancy, anchoring, verbosity, pattern-bias, position) + cross-LLM judge methodology.
   [AUDIENCE] Maintainer (offline — sole runner; Evan agent reverted in v3.3); Patrick (retro consumer); Stan (cross-team calibration).
-  [WHEN] Pre-major-release (v3→v4 prompt refactor); sprint retro ถ้า dispute_rate > 20% per agent (per drift M3); ก่อน promote prompt change to default.
+  [WHEN] Pre-major-release (v3→v4 prompt refactor); Phase 4 Triage (PEV loop, per-bd) ถ้า dispute_rate > 20% per agent (per drift M3); ก่อน promote prompt change to default.
   [TRIGGER] /shode-house:eval-harness, "eval", "bias detection", "agent regression", "sycophancy test", "no-bias evaluation", "harness".
 ---
 
@@ -172,7 +172,7 @@ Maintainer (offline) รันด้วยมือผ่าน orchestrator:
 2. **Subject runs** — per fixture × N (default 5): `Task` spawn subject subagent ด้วย `user_prompt` + `context`; shuffle order ถ้า fixture สั่ง; capture raw output แต่ละ run → write `outputs/raw/<fixture>-run<k>.txt`
 3. **Judge (blind)** — `Task` spawn judge subagent (model ≠ subject) ส่ง output + `expected_keywords` (ไม่ส่ง expected_verdict) → คืน **ordinal score** per bias type (ดู Measurement Protocol)
 4. **Aggregate** — orchestrator บันทึก raw ทุก run ลงตาราง → คำนวณ mean + variance **โชว์เลขดิบในตาราง** (verifiable, ไม่ใช่ black-box)
-5. **Write** — orchestrator เขียน `outputs/EVAL-<agent>-<date>.md` เอง + เทียบ baseline เดิม → regression flag
+5. **Write (bd-first)** — มี `.beads`/bd → EVAL summary + regression + action เป็น `bd note`/`bd create -t eval-finding` (ไม่เขียน .md); ไม่มี bd → `outputs/EVAL-<agent>-<date>.md`. raw runs = file เสมอ (bulky) ทั้งสองกรณี
 6. **Triage** — เกิน threshold → action item ส่ง Patrick (prompt fix)
 
 > ทุก score = judgment ของ judge subagent. ห้าม claim "exact %" โดยไม่มีเลขดิบในตาราง (Project Evidence rule)
@@ -189,12 +189,12 @@ run_eval.py เคยให้ deterministic number. แทนด้วย 3 ก
 
 ## Long-run protocol (map-reduce + file checkpoint — scale แบบ script-free)
 
-ปัญหา agent-orchestrated ตอน run ใหญ่ (19 agent × N fixture × N run): context bloat, ไม่มี resume, aggregation เพี้ยนตอนแถวเยอะ. แก้ด้วย 4 รูปแบบ (state อยู่ใน **file** ไม่ใช่ context):
+ปัญหา agent-orchestrated ตอน run ใหญ่ (19 agent × N fixture × N run): context bloat, ไม่มี resume, aggregation เพี้ยนตอนแถวเยอะ. แก้ด้วย 4 รูปแบบ (state อยู่นอก context):
 
 1. **Map = batch subagent** — main orchestrator = coordinator เท่านั้น. ต่อ fixture (หรือต่อ agent) `Task` spawn **batch-runner subagent** 1 ตัว → รัน N runs + judge + เขียน raw ลง `outputs/EVAL-<date>/raw/<agent>-<fixture>.md` + aggregate เฉพาะ batch ตัวเอง → **return สรุป 1 บรรทัด** เท่านั้น. Subagent context isolated → main context คงที่ ไม่ว่า total run เท่าไร
-2. **Checkpoint = progress ledger** — `outputs/EVAL-<date>/progress.md` list ทุก cell `(agent,fixture)` = pending/done. batch เสร็จ → mark done ทันที (เขียนก่อน return)
-3. **Resume = idempotent** — restart → `Read` progress.md → skip cell ที่ done → ทำต่อจากที่ค้าง (poor-man's checkpoint แทน loop ของ script)
-4. **Bounded fan-out** — spawn พร้อมกันไม่เกิน 3-5 batch (กัน token spike + rate limit). Reduce step สุดท้าย `Read` raw files (ไม่ดึงเข้า context ระหว่างทาง) → เขียน EVAL summary
+2. **Checkpoint = progress ledger (bd-first)** — **มี bd** → ต่อ cell `(agent,fixture)` = 1 bd issue `-t eval-cell` (status open=pending / closed=done); bd เป็น tracker อยู่แล้ว เหมาะกว่า .md. **ไม่มี bd** → `outputs/EVAL-<date>/progress.md` list pending/done. batch เสร็จ → mark done/`bd close` ก่อน return
+3. **Resume = idempotent** — restart → query bd (`bd ready`) หรือ `Read` progress.md → skip cell ที่ done → ทำต่อจากที่ค้าง (checkpoint แทน loop ของ script)
+4. **Bounded fan-out** — spawn พร้อมกันไม่เกิน 3-5 batch (กัน token spike + rate limit). Reduce step สุดท้าย `Read` raw files (ไม่ดึงเข้า context ระหว่างทาง) → เขียน EVAL summary (bd-first per step 5)
 
 > **DISSENT (lazy ≠ negligent)**: long run แบบ "หลักพัน iteration ซ้ำ ๆ deterministic" → thin script คือเครื่องมือถูก. no-script ดีสำหรับ harness offline เป็นครั้งคราว (scope ปัจจุบัน); ถ้า long run กลายเป็น routine → reconsider script (ของที่จำเป็นแล้ว = ต้องสร้าง)
 

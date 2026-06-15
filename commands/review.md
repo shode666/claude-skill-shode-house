@@ -9,9 +9,11 @@ Review target: **$ARGUMENTS**
 ## Mode: `--debt` (จาก ponytail — deferred-shortcut harvest)
 
 ถ้า `$ARGUMENTS` = `--debt`:
-1. รัน `python3 scripts/harvest_shortcuts.py` → รวบ `shortcut(bd:N):` comment ทั้ง repo
-2. present `outputs/DEBT-<date>.md` ledger (group ตาม bd id)
-3. แนะนำ: ทางลัดที่ค้าง → สร้าง bd discovered ถ้ายังไม่มี
+1. รัน `python3 scripts/harvest_shortcuts.py --print` → รวบ `shortcut(bd:N):` comment ทั้ง repo (group ตาม bd id)
+2. **Storage (bd-first)** — detect: `[ -d ".beads" ] || bd ready --json >/dev/null 2>&1`
+   - **มี bd** → ต่อแต่ละ shortcut: ถ้า bd id อ้างถึงมีอยู่ → `bd update <id> --notes "<file:line + upgrade path>"`; ถ้า bd id ไม่มี/ไม่ตรง → `bd create -t debt "<reason>" --notes "<file:line; upgrade → path>"`. **ไม่เขียน .md**
+   - **ไม่มี bd** → write `outputs/DEBT-<date>.md` fallback (รัน `harvest_shortcuts.py` ไม่ใส่ `--print`)
+3. present สรุป (bd ids หรือ md path)
 4. ไม่รัน 7-dim review (mode นี้เก็บ debt อย่างเดียว) → จบ
 
 ไม่ใช่ `--debt` → ทำต่อ Step 0 ปกติ
