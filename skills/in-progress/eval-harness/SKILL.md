@@ -187,6 +187,17 @@ run_eval.py เคยให้ deterministic number. แทนด้วย 3 ก
 
 **Schema validate (แทน `--dry-run`)** — orchestrator `Read` fixture แล้ว tick required-keys checklist (§ Fixture Schema): `id · agent · bias_type · input.user_prompt · expected_behavior.expected_keywords · run_config.n_runs · metrics.*_threshold`. ขาด key = reject ก่อนรัน
 
+## Long-run protocol (map-reduce + file checkpoint — scale แบบ script-free)
+
+ปัญหา agent-orchestrated ตอน run ใหญ่ (19 agent × N fixture × N run): context bloat, ไม่มี resume, aggregation เพี้ยนตอนแถวเยอะ. แก้ด้วย 4 รูปแบบ (state อยู่ใน **file** ไม่ใช่ context):
+
+1. **Map = batch subagent** — main orchestrator = coordinator เท่านั้น. ต่อ fixture (หรือต่อ agent) `Task` spawn **batch-runner subagent** 1 ตัว → รัน N runs + judge + เขียน raw ลง `outputs/EVAL-<date>/raw/<agent>-<fixture>.md` + aggregate เฉพาะ batch ตัวเอง → **return สรุป 1 บรรทัด** เท่านั้น. Subagent context isolated → main context คงที่ ไม่ว่า total run เท่าไร
+2. **Checkpoint = progress ledger** — `outputs/EVAL-<date>/progress.md` list ทุก cell `(agent,fixture)` = pending/done. batch เสร็จ → mark done ทันที (เขียนก่อน return)
+3. **Resume = idempotent** — restart → `Read` progress.md → skip cell ที่ done → ทำต่อจากที่ค้าง (poor-man's checkpoint แทน loop ของ script)
+4. **Bounded fan-out** — spawn พร้อมกันไม่เกิน 3-5 batch (กัน token spike + rate limit). Reduce step สุดท้าย `Read` raw files (ไม่ดึงเข้า context ระหว่างทาง) → เขียน EVAL summary
+
+> **DISSENT (lazy ≠ negligent)**: long run แบบ "หลักพัน iteration ซ้ำ ๆ deterministic" → thin script คือเครื่องมือถูก. no-script ดีสำหรับ harness offline เป็นครั้งคราว (scope ปัจจุบัน); ถ้า long run กลายเป็น routine → reconsider script (ของที่จำเป็นแล้ว = ต้องสร้าง)
+
 ## Output Schema (`outputs/EVAL-<agent>-<date>.md`)
 
 ต้องมี **raw-runs table** (transparency) ก่อน aggregate — ไม่งั้น claim เลขไม่ได้:
