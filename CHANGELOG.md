@@ -3,6 +3,19 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.6.1] — harness de-script + bd-first + long-run — 2026-06-15
+
+### 🔄 Changed
+
+- **eval-harness = agent-orchestrated** (no python/sh): ลบ `run_eval.py`; Run Pipeline ใช้ Task tool (subject + judge subagent)
+- **Measurement Protocol** (กู้ determinism แบบ non-script): raw-runs table transparency + measurement primitive (`wc`) paste-as-evidence + judge ordinal rubric `{0,.25,.5,.75,1}`
+- **Long-run protocol**: map-reduce batch subagent + bd/file checkpoint + idempotent resume + bounded fan-out 3-5
+- **bd-first storage**: `/review --debt`, eval output, long-run progress ledger, caveman stats → bd note/issue ถ้ามี `.beads`/bd; ไม่งั้น `.md` fallback (raw runs = file เสมอ)
+- **PEV-loop align**: eval-harness WHEN sprint retro → Phase 4 Triage (per-bd)
+- **SHODE-HOUSE-MASTER.md** scripts tree: `.sh` → `.py` (สะท้อนจริง + v3.6 scripts)
+
+---
+
 ## [3.6.0] — ponytail + caveman adoptions — 2026-06-15
 
 > **Focus**: adopt 7 ideas จาก [ponytail](https://github.com/DietrichGebert/ponytail) (YAGNI-first) + [caveman](https://github.com/JuliusBrussee/caveman) (compression) — ลด code/token, เพิ่ม drift guard
