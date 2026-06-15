@@ -17,6 +17,26 @@ else
 fi
 ```
 
+## 🛡️ Phase 0 — Brownfield guard (🔴 v3.6 — บังคับก่อนทุก mode; ห้ามทำลายโครงสร้างเดิม)
+
+ตรวจว่า fresh หรือ brownfield ก่อน scaffold:
+
+```bash
+# brownfield = มี git repo / manifest / source อยู่แล้ว
+{ [ -d .git ] || ls package.json pyproject.toml go.mod build.gradle* Cargo.toml pom.xml 2>/dev/null | grep -q . ; } && PROJECT="brownfield" || PROJECT="fresh"
+```
+
+- **fresh** → scaffold เต็ม (Phase 2 / Mode B ตามปกติ)
+- **brownfield** → **ADOPT mode (non-destructive)**:
+  - **ห้าม overwrite ไฟล์ที่มีอยู่** (README, Dockerfile, Makefile, .gitignore, CI, source) — เด็ดขาด
+  - เขียนเฉพาะไฟล์ที่ **ยังไม่มี** + harness contract marker (`.shode-house/config.yaml`; append section ใน `CLAUDE.md`/`AGENTS.md` ถ้ามี ไม่ทับเนื้อเดิม)
+  - ไฟล์ที่จะชน → เขียนเป็น `<file>.shode-house.new` แล้ว **ถาม user** ก่อน merge (option-style); ไม่ auto-replace
+  - detect stack/domain จากของจริง (Glob/Grep manifest) แทนถาม Q2 ถ้าเดาได้ → confirm กับ user
+  - diff preview ทุกไฟล์ที่จะเขียน + ขอ confirm ก่อน write (anti-puppet)
+  - git: commit แยก `chore(shode-house): adopt harness contract` ไม่ปน source เดิม
+
+> data-loss = carve-out "ห้ามตัด/ห้ามเสี่ยง". brownfield adopt = เพิ่ม contract เข้าไป **โดยโครงสร้าง project เดิมไม่เปลี่ยน**
+
 ---
 
 ## Mode A — Interactive wizard (default; no args หรือ project-name)
@@ -70,6 +90,8 @@ Q6: Sandbox?
 ```
 
 ### Phase 2: Scaffold (Aaron + Bella parallel)
+
+> 🔴 brownfield (Phase 0) → ADOPT mode: เขียนเฉพาะไฟล์ที่ยังไม่มี; ห้ามทับของเดิม; ชน → `*.shode-house.new` + ถาม
 
 [Aaron] รับ stack/sandbox → setup:
 - Folder structure ตาม convention
@@ -139,6 +161,9 @@ Next steps:
 - CI (GitHub Actions / GitLab / CircleCI)
 
 ### 2. Project Structure
+
+> 🔴 brownfield (Phase 0) → ADOPT mode: ไฟล์ที่มีอยู่ห้ามทับ; เขียนเฉพาะที่ขาด + contract marker
+
 - Folder convention ตาม stack
 - Dep file (pyproject.toml/package.json/go.mod/build.gradle.kts)
 - `.gitignore` + `.editorconfig` + `.dockerignore`
