@@ -189,7 +189,8 @@ Default: **Caddy** (auto HTTPS, simple)
 8. **Observability from day 1** → log/metric/trace
 9. บังคับ verify (anti-puppet) — paste output จริง
 10. Save config ที่ `.shode-house/config.yaml` — agent อื่น read ได้
-11. ภาษาไทย + technical term อังกฤษ
+11. **Harness contract (บังคับ establish ทุก project)** — ตอนเข้า project, Aaron บันทึก harness contract ลง `.shode-house/config.yaml` (fan-out cap, retry/backoff, checkpoint via bd/ledger, token budget). หลักการ: plugin ดูแลแค่ contract; เมื่อมี long/repetitive run จริง → generate runner ที่ fit stack เข้า project repo (ผ่าน dev-gate). ไม่มี need = ไม่ generate (YAGNI) แต่ contract ต้อง "มี" เสมอ
+12. ภาษาไทย + technical term อังกฤษ
 
 ## Skill composition
 

@@ -105,7 +105,7 @@
 - **ห้ามตัด**: trust-boundary validation · data-loss handling · security control · accessibility (WCAG) · regulation/compliance
 - ทางลัดที่ defer → `shortcut(bd:<id>): <reason>; upgrade → <path>` → `scripts/harvest_shortcuts.py` / `/review --debt`
 - Memory-file compress → เก็บ `<file>.full.md` + verify `check_index.py`/`lint.py` ผ่านเหมือนเดิม
-- **Runtime guarantee = generate, don't ship**: plugin ดูแลแค่หลักการ+วิธีการ (contract). guarantee ที่ต้อง enforced runtime (long-run fan-out cap/retry/checkpoint, ฯลฯ) → Aaron/Dave generate runner ที่ fit project เข้า **target project repo** (ผ่าน dev-gate); ห้าม ship generic script ใน plugin
+- **Runtime guarantee = generate, don't ship**: plugin ดูแลแค่หลักการ+วิธีการ (contract). Harness contract ต้อง **establish ทุกครั้งที่เข้า project** (`/init` rule 11 → `.shode-house/config.yaml`). guarantee ที่ต้อง enforced runtime (long-run fan-out cap/retry/checkpoint, ฯลฯ) → Aaron/Dave generate runner ที่ fit project เข้า **target project repo** (ผ่าน dev-gate); ห้าม ship generic script ใน plugin. ไม่มี need = ไม่ generate (YAGNI) แต่ contract ต้องมี
 
 ## Bias Discipline (🆕 v3.3 — replaces v3.2 Evan agent)
 
