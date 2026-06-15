@@ -3,6 +3,18 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.6.2] — harness contract + brownfield-safe adopt — 2026-06-15
+
+### ✨ Added / 🔄 Changed
+
+- **Runtime guarantee = generate, don't ship**: plugin ดูแลแค่หลักการ+วิธีการ (contract); runner ที่ enforce จริง (fan-out cap/retry/checkpoint/token budget) → Aaron/Dave generate fit-stack เข้า **target project repo** (ผ่าน dev-gate) เมื่อมี long-run need
+- **Harness contract = บังคับ establish ทุก project** (`/init` rule 11 → `.shode-house/config.yaml`)
+- **Oliver Harness Contract Check** (project entry): grep `harness-contract` marker ใน **project ปลายทาง** `./.shode-house/config.yaml` + `./CLAUDE.md`/`AGENTS.md`; ไม่เจอ → บอก user + แนะนำ `/init` (ไม่ auto-generate)
+- **`/init` brownfield guard (non-destructive)**: detect git/manifest → ADOPT mode — **check ของเดิมก่อน → reuse → เติมเฉพาะที่ขาด (ask ก่อน) → ห้ามทับ** (ชน → `*.shode-house.new` + ถาม)
+- **adopt → append `## Harness (shode-house)` section ใน project CLAUDE.md** = marker + doc ว่า harness ทำอะไร (contract/long-run/tracker/runner/reused+added)
+
+---
+
 ## [3.6.1] — harness de-script + bd-first + long-run — 2026-06-15
 
 ### 🔄 Changed
