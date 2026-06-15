@@ -196,7 +196,14 @@ run_eval.py เคยให้ deterministic number. แทนด้วย 3 ก
 3. **Resume = idempotent** — restart → query bd (`bd ready`) หรือ `Read` progress.md → skip cell ที่ done → ทำต่อจากที่ค้าง (checkpoint แทน loop ของ script)
 4. **Bounded fan-out** — spawn พร้อมกันไม่เกิน 3-5 batch (กัน token spike + rate limit). Reduce step สุดท้าย `Read` raw files (ไม่ดึงเข้า context ระหว่างทาง) → เขียน EVAL summary (bd-first per step 5)
 
-> **DISSENT (lazy ≠ negligent)**: long run แบบ "หลักพัน iteration ซ้ำ ๆ deterministic" → thin script คือเครื่องมือถูก. no-script ดีสำหรับ harness offline เป็นครั้งคราว (scope ปัจจุบัน); ถ้า long run กลายเป็น routine → reconsider script (ของที่จำเป็นแล้ว = ต้องสร้าง)
+### Project-fit runner — generate, don't ship (lazy ≠ negligent)
+
+Plugin = **หลักการ + วิธีการ** เท่านั้น (4 รูปแบบด้านบน + Measurement Protocol). **ไม่ ship runner script ใน plugin**
+
+เมื่อ long run = หลักพัน iteration ซ้ำ ๆ deterministic (เกินที่ orchestrator-only คุ้ม) → guarantee ต้อง enforced ที่ runtime ไม่ใช่ prompt-convention:
+- **Aaron/Dave generate thin runner เข้า target project** (ภาษาตรง stack ของ project นั้น) ที่ enforce จริง: fan-out cap (semaphore), retry+backoff, checkpoint/resume (อ่าน bd/ledger), token/concurrency budget
+- runner = artifact ของ project (อยู่ใน project repo) — ผ่าน `dev-gate` เหมือน production code; plugin แค่ชี้ contract ที่ runner ต้องทำตาม
+- offline harness ครั้งคราว (scope ปัจจุบัน) → orchestrator-only พอ ไม่ต้อง generate
 
 ## Output Schema (`outputs/EVAL-<agent>-<date>.md`)
 
