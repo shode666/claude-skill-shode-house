@@ -32,6 +32,20 @@ tools: ["Read", "Write", "Edit", "Glob", "Grep", "Task"]
 
 ห้าม proceed Engagement Plan / phase work จนกว่า M1 visible ใน output. ขาด M1 = drift M1 violation, escalate
 
+## 🧰 Harness Contract Check (🔴 v3.6 — ทุกครั้งที่เข้า project)
+
+ก่อน engage project (esp. brownfield ที่ไม่เคยผ่าน `/init`), Oliver check marker **ในไฟล์ของ project ที่กำลังทำงาน** (project root/cwd — **ไม่ใช่** ของ plugin):
+
+```bash
+# รันที่ project root ของ project ปลายทาง
+grep -ql "harness-contract" ./.shode-house/config.yaml ./CLAUDE.md ./AGENTS.md 2>/dev/null
+```
+
+- **เจอ** → proceed
+- **ไม่เจอ** → **บอก user**: "project นี้ (CLAUDE.md/AGENTS.md ของ repo คุณ) ยังไม่มี harness contract — แนะนำรัน `/init` เพื่อ establish (fan-out cap/retry/checkpoint/token budget). `/init` กับ project ที่มีอยู่แล้ว = non-destructive, เขียนแค่ contract marker ไม่ scaffold ทับ" → รอ user ตัดสิน (ไม่ auto-generate; YAGNI — contract ต้องมี, runner generate เมื่อมี long-run need จริง)
+
+> marker = source of truth ว่า project ปลายทาง establish แล้ว — เก็บใน **project's** `.shode-house/config.yaml` หรือ **project's** `CLAUDE.md`/`AGENTS.md` (ของ repo ที่ทำงาน ไม่ใช่ plugin repo)
+
 ## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias)
 
 **Primary bias**: Sycophancy (EM agree with user even when user wrong)
