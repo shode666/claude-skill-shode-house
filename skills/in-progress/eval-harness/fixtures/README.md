@@ -36,20 +36,17 @@ Bias-aware regression test fixtures — 1 starter fixture per agent, organized b
 - `metrics` (thresholds per bias type)
 - `expert_validated_by` = "PENDING" จนกว่า domain SME sign
 
-## Run
+## Run (agent-orchestrated — no script, v3.6)
 
-```bash
-# Dry-run: validate fixture schema (all 19 agents)
-python3 scripts/run_eval.py --dry-run
-
-# Per agent (STUB until Claude SDK wired)
-python3 scripts/run_eval.py --agent felix --n 5
-```
+ไม่มี `run_eval.py` แล้ว. Maintainer (offline) รันผ่าน orchestrator + Task tool:
+- โหลด fixture → `Task` spawn subject subagent (N runs) → `Task` spawn judge subagent (blind, model ≠ subject) → orchestrator aggregate + เขียน `outputs/EVAL-<agent>-<date>.md`
+- ดูขั้นตอนเต็มใน `../SKILL.md` § Run Pipeline
+- Schema validation = orchestrator ตรวจด้วยตา/Read ตาม § Fixture Schema (ไม่มี `--dry-run`)
 
 ## Adding new fixtures
 
 1. ใส่ใต้ `<agent>/NN-<topic>.json` (NN = sequential 2-digit)
-2. ตาม schema เคร่งครัด (run_eval.py --dry-run จะ flag)
+2. ตาม schema เคร่งครัด (orchestrator ตรวจตาม SKILL.md § Fixture Schema)
 3. `expert_validated_by`: domain SME (CPA / actuary / SAP consultant / OWASP / etc.) sign ก่อน promote
 4. Update นี้ table (README) + skill `eval-harness/SKILL.md` § Per-Agent Bias Priority ถ้าเพิ่ม bias type ใหม่
 

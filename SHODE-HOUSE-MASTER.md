@@ -100,7 +100,7 @@ shode-house/
 │   │   ├── shode-house-drift/       # M1-M7 + Phase 7 REMOVED
 │   │   └── review-checklist/        # Chris 7-dim + Quinn matrix + Adversary stance
 │   ├── in-progress/             # NOT shipped (drafts / maintainer-only)
-│   │   └── eval-harness/        # SKILL.md + 19 fixtures + run_eval.py (offline regression tool)
+│   │   └── eval-harness/        # SKILL.md + 19 fixtures (agent-orchestrated, no script; offline regression tool)
 │   └── deprecated/              # NOT shipped (retiring)
 ├── scripts/                      # Maintainer .sh only
 │   ├── lint.sh                  # 8 checks

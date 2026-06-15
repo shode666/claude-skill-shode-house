@@ -23,7 +23,7 @@ description: |
 ## Required inputs — refuse without
 
 - [ ] **Agent under test** (1 หรือ batch จาก 19 in `agents/`)
-- [ ] **Fixture set** (ระบุ tests/eval-fixtures/<agent>/ — ห้าม run "ทุก fixture" โดยไม่ระบุ)
+- [ ] **Fixture set** (ระบุ `skills/in-progress/eval-harness/fixtures/<agent>/` — ห้าม run "ทุก fixture" โดยไม่ระบุ)
 - [ ] **Judge model** (subject ≠ judge — เช่น subject=Opus, judge=Sonnet หรือ external)
 - [ ] **Run count N** (default 5; ห้าม N=1 — single-shot ไม่ filter stochastic)
 - [ ] **Output destination** (ห้าม print ลอย ๆ — ต้อง bd note / outputs/EVAL-<agent>-<date>.json)
@@ -127,7 +127,7 @@ description: |
 
 ---
 
-## Fixture Schema (`tests/eval-fixtures/<agent>/<NN>-<topic>.json`)
+## Fixture Schema (`skills/in-progress/eval-harness/fixtures/<agent>/<NN>-<topic>.json`)
 
 ```json
 {
@@ -162,21 +162,20 @@ description: |
 
 ---
 
-## Run Pipeline
+## Run Pipeline (agent-orchestrated — no python/sh script)
 
-```
-1. Evan loads fixture set
-2. Per fixture × N runs:
-   a. Shuffle order if applicable
-   b. Invoke subject LLM (Claude SDK / CLI)
-   c. Capture raw output
-   d. Invoke judge LLM (different model) with output + expected_keywords (blind)
-   e. Judge returns: {anchoring_score, sycophancy_score, etc.}
-3. Aggregate per fixture: mean + variance
-4. Aggregate per agent: bias profile
-5. Output outputs/EVAL-<agent>-<date>.json
-6. Compare with previous baseline → regression flag
-```
+> **v3.6**: ลบ `run_eval.py` แล้ว. Harness = skill procedure ที่ orchestrate ด้วย **Task tool** (subagent) ล้วน — ไม่มี script ให้ maintain (lazy-not-negligent: ของที่ยังไม่ต้องใช้ = ไม่สร้าง). Determinism (token count, aggregation) = LLM estimate; ถ้าต้องการ exact number → วัดมือ/ภายนอก แล้ว paste (evidence rule)
+
+Maintainer (offline) รันด้วยมือผ่าน orchestrator:
+
+1. **Load fixtures** — `Read`/`Glob` `skills/in-progress/eval-harness/fixtures/<agent>/*.json` (subject ≠ judge model)
+2. **Subject runs** — per fixture × N (default 5): `Task` spawn subject subagent ด้วย `user_prompt` + `context`; shuffle order ถ้า fixture สั่ง; capture raw output แต่ละ run
+3. **Judge (blind)** — `Task` spawn judge subagent (model ≠ subject) ส่ง output + `expected_keywords` (ไม่ส่ง expected_verdict) → คืน score per bias type
+4. **Aggregate** — orchestrator รวม mean + variance ต่อ fixture → bias profile ต่อ agent (จาก judge scores; ไม่ใช่ตัวเลขจาก script)
+5. **Write** — orchestrator เขียน `outputs/EVAL-<agent>-<date>.md` (หรือ .json) เอง + เทียบ baseline เดิม → regression flag
+6. **Triage** — เกิน threshold → action item ส่ง Patrick (prompt fix)
+
+> ทุก score = judgment ของ judge subagent. ห้าม claim "exact %" จาก estimate — ระบุว่าเป็น LLM-judged (Domain/UX Evidence rule)
 
 ## Output Schema (`outputs/EVAL-<agent>-<date>.json`)
 

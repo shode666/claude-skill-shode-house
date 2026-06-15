@@ -20,6 +20,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 - **`scripts/check_index.py`** เพิ่ม 2 check: (6) agent model frontmatter (allowed value + Fable-5 whitelist + no dated string) · (7) model-table single-source (ห้าม copy model table นอก README — drift guard ตาม CLAUDE.md)
 - **CLAUDE.md** เพิ่ม invariant v3.6 (model enforce, new scripts, Lazy≠Negligent) — ประเมิน caveman-compress แล้ว: ไฟล์ terse อยู่แล้ว delta ≈ 0 → ไม่ compress (capability ใช้กับ verbose file อื่น)
 - **eval-harness** แก้ owner drift: Evan (reverted v3.3) → maintainer offline
+- **eval-harness = agent-orchestrated** (no python/sh): ลบ `run_eval.py`; Run Pipeline ใช้ Task tool (subject + judge subagent) ล้วน; fixtures JSON เก็บไว้ (data, agent อ้างถึง); แก้ fixture path drift (`tests/eval-fixtures/` → `skills/in-progress/eval-harness/fixtures/`)
 
 ---
 

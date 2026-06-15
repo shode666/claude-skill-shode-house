@@ -110,7 +110,7 @@
 
 - **Embed in agent prompts**: 19 agents มี `## Bias Discipline` (Chris/Quinn = verdict default FAIL; Felix/Tara = "ห้าม blindly accept vendor"; Sentinel = hold on "low risk" ถ้า trigger)
 - **No separate eval agent**: v3.2 Evan = over-engineer → reverted; methodology kept in `skills/in-progress/eval-harness/` (reference only, maintainer offline)
-- **In-progress harness**: `skills/in-progress/eval-harness/{SKILL.md,fixtures/,run_eval.py}` — future major-release regression; ไม่ ship
+- **In-progress harness**: `skills/in-progress/eval-harness/{SKILL.md,fixtures/}` — agent-orchestrated (Task tool, no script; run_eval.py ลบ v3.6); future major-release regression; ไม่ ship
 - **Anti-bias source-of-truth**: agent prompt + `shode-house-discipline` Recite Card
 
 ## PEV Loop (🆕 v3.3 — replaces sprint)
