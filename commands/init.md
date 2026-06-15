@@ -27,15 +27,24 @@ fi
 ```
 
 - **fresh** → scaffold เต็ม (Phase 2 / Mode B ตามปกติ)
-- **brownfield** → **ADOPT mode (non-destructive)**:
-  - **ห้าม overwrite ไฟล์ที่มีอยู่** (README, Dockerfile, Makefile, .gitignore, CI, source) — เด็ดขาด
-  - เขียนเฉพาะไฟล์ที่ **ยังไม่มี** + harness contract marker (`.shode-house/config.yaml`; append section ใน `CLAUDE.md`/`AGENTS.md` ถ้ามี ไม่ทับเนื้อเดิม)
-  - ไฟล์ที่จะชน → เขียนเป็น `<file>.shode-house.new` แล้ว **ถาม user** ก่อน merge (option-style); ไม่ auto-replace
-  - detect stack/domain จากของจริง (Glob/Grep manifest) แทนถาม Q2 ถ้าเดาได้ → confirm กับ user
-  - diff preview ทุกไฟล์ที่จะเขียน + ขอ confirm ก่อน write (anti-puppet)
-  - git: commit แยก `chore(shode-house): adopt harness contract` ไม่ปน source เดิม
+- **brownfield** → **ADOPT mode (non-destructive)** — *check-first → reuse → gap-fill*:
+  1. **Check ของเดิมก่อนเสมอ** (ห้ามเดา/ห้ามทับ): `harness-contract` marker มีไหม? · มี `CLAUDE.md`/`AGENTS.md` ไหม? · มี CI / test runner / pre-commit / Makefile / tracker (bd/Jira/Linear) อยู่แล้วไหม? (Glob/Grep ของจริง)
+  2. **มีอยู่แล้ว → reuse + ปรับใช้** ของเขา (ไม่สร้างซ้ำ ไม่ทับ); เติมเฉพาะ **ส่วนที่ขาด**
+  3. **ขาดส่วนไหน → ask** (option-style) ก่อนเพิ่ม — ไม่ auto-add; เขียนเฉพาะไฟล์ที่ยังไม่มี
+  4. ไฟล์ที่จะชน → `<file>.shode-house.new` + ถาม user ก่อน merge; ไม่ auto-replace
+  5. **เขียน/append section `## Harness (shode-house)` ลง project's `CLAUDE.md`** (ถ้าไม่มี CLAUDE.md ใช้ `AGENTS.md`; ไม่ทับเนื้อเดิม) — เป็นทั้ง marker + เอกสารว่า harness ทำอะไร:
+     ```md
+     ## Harness (shode-house) — <date>
+     <!-- harness-contract -->
+     - Contract: fan-out cap=<N> · retry=backoff · checkpoint=<bd|ledger> · token budget=<...>
+     - Long-run: map-reduce batch subagent + idempotent resume
+     - Tracker: <bd|jira|linear (reuse ของเดิม)>
+     - Runner: <generated path | ยังไม่ generate (YAGNI; gen เมื่อมี long-run need)>
+     - Reused: <ของเดิมที่ปรับใช้> | Added: <ส่วนที่เติม>
+     ```
+  6. diff preview ทุกไฟล์ + confirm ก่อน write (anti-puppet); commit แยก `chore(shode-house): adopt harness contract`
 
-> data-loss = carve-out "ห้ามตัด/ห้ามเสี่ยง". brownfield adopt = เพิ่ม contract เข้าไป **โดยโครงสร้าง project เดิมไม่เปลี่ยน**
+> data-loss = carve-out "ห้ามตัด/ห้ามเสี่ยง". brownfield adopt = **check ของเดิม → reuse → เติมที่ขาด → document ใน CLAUDE.md** โดยโครงสร้าง project เดิมไม่เปลี่ยน
 
 ---
 

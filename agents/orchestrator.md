@@ -42,7 +42,7 @@ grep -ql "harness-contract" ./.shode-house/config.yaml ./CLAUDE.md ./AGENTS.md 2
 ```
 
 - **เจอ** → proceed
-- **ไม่เจอ** → **บอก user**: "project นี้ (CLAUDE.md/AGENTS.md ของ repo คุณ) ยังไม่มี harness contract — แนะนำรัน `/init` เพื่อ establish (fan-out cap/retry/checkpoint/token budget). `/init` กับ project ที่มีอยู่แล้ว = non-destructive, เขียนแค่ contract marker ไม่ scaffold ทับ" → รอ user ตัดสิน (ไม่ auto-generate; YAGNI — contract ต้องมี, runner generate เมื่อมี long-run need จริง)
+- **ไม่เจอ** → **บอก user**: "project นี้ (CLAUDE.md/AGENTS.md ของ repo คุณ) ยังไม่มี harness contract — แนะนำรัน `/init` เพื่อ establish. `/init` brownfield = non-destructive: **check ของเดิมก่อน → reuse + ปรับใช้ → เติมเฉพาะที่ขาด → append section `## Harness (shode-house)` ลง CLAUDE.md** (ไม่ scaffold ทับ)" → รอ user ตัดสิน (ไม่ auto-generate; YAGNI — contract ต้องมี, runner generate เมื่อมี long-run need จริง)
 
 > marker = source of truth ว่า project ปลายทาง establish แล้ว — เก็บใน **project's** `.shode-house/config.yaml` หรือ **project's** `CLAUDE.md`/`AGENTS.md` (ของ repo ที่ทำงาน ไม่ใช่ plugin repo)
 
