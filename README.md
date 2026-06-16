@@ -66,7 +66,7 @@
 | 🔍 **Discover** | Patrick + Domain SME | 0 | OKR + opportunity + pain validation |
 | 📐 **Design** | Bella + Sara + Uma | 1a/1b/3a | BRD + ADR + UI artifacts |
 | 🎓 **Domain** | Felix/Elena/Sam/Tara/Iris/Brooke/Emma | 0/1b/3b | Regulation cite + business rule |
-| 🛠 **Dev** | Dave (parallel) + Devon/Mason (opt) | 2 | Production code |
+| 🛠 **Dev** | Dave (parallel) | 1 | Production code (data/ML = Dave interim) |
 | ✅ **Verify** | Chris + Quinn + Sentinel | 3b | Code review + Test + Security |
 | 🚀 **Ops** | Aaron + Reggie | 5/6 | Deploy + SLO + Incident |
 

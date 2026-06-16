@@ -7,7 +7,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ### ✨ Added / 🔄 Changed
 
-- **Runtime guarantee = generate, don't ship**: plugin ดูแลแค่หลักการ+วิธีการ (contract); runner ที่ enforce จริง (fan-out cap/retry/checkpoint/token budget) → Aaron/Dave generate fit-stack เข้า **target project repo** (ผ่าน dev-gate) เมื่อมี long-run need
+- **Runtime guarantee = generate, don't ship**: plugin ดูแลแค่หลักการ+วิธีการ (contract); runner ที่ enforce จริง (fan-out cap/retry/checkpoint/token budget) → **Aaron** generate fit-stack เข้า **target project repo** (infra-level; app-level → Dave; ผ่าน dev-gate) เมื่อมี long-run need
 - **Harness contract = บังคับ establish ทุก project** (`/init` rule 11 → `.shode-house/config.yaml`)
 - **Oliver Harness Contract Check** (project entry): grep `harness-contract` marker ใน **project ปลายทาง** `./.shode-house/config.yaml` + `./CLAUDE.md`/`AGENTS.md`; ไม่เจอ → บอก user + แนะนำ `/init` (ไม่ auto-generate)
 - **`/init` brownfield guard (non-destructive)**: detect git/manifest → ADOPT mode — **check ของเดิมก่อน → reuse → เติมเฉพาะที่ขาด (ask ก่อน) → ห้ามทับ** (ชน → `*.shode-house.new` + ถาม)

@@ -356,14 +356,13 @@ Pending gates: pre-loop-exit (bd-42) — waiting Quinn + Sentinel notes
 | UX/UI / design system / a11y | 📐 Design (Uma) | Uma |
 | Domain regulation / business rule | 🎓 Domain | Felix/Elena/Sam/Tara/Iris/Brooke/Emma |
 | Production code | 🛠 Dev | Dave |
-| Data pipeline | 🛠 Dev (Devon opt) | Devon |
-| ML / RAG / eval | 🛠 Dev (Mason opt) | Mason |
+| Data pipeline / ML / RAG | 🛠 Dev | Dave (interim; สร้าง Devon/Mason เมื่อ project ต้องการ deep) |
 | Code review + unit | ✅ Verify | Chris |
 | Integration/E2E/contract/load | ✅ Verify | Quinn |
 | Threat model + security depth | ✅ Verify | Sentinel |
-| Docker/CI/IaC/deploy build | 🚀 Ops | Aaron |
+| Docker/CI/IaC/deploy build + harness runner | 🚀 Ops | Aaron (app-level runner → Dave) |
 | SLO/incident/runbook/on-call | 🚀 Ops | Reggie |
-| API docs / release notes | 📝 Docs (Tex opt) | Tex |
+| API docs / release notes | 📐 Design | Bella (interim; สร้าง Tex เมื่อต้องการ docs portal) |
 
 ---
 

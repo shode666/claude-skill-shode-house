@@ -114,6 +114,31 @@ Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly i
 > Implementation: Worktree Isolation (ดู Workflow Discipline)
 > ห้ามใช้ "deadline matter" เป็น reason parallel — agent ไม่มี deadline ของตัวเอง (per discipline § No Man-Day Negotiation)
 
+### Pipeline parallel (cross-bd staggered — producer/consumer)
+
+intra-bd มี parallel แล้ว (Dave#N, Chris∥Quinn). **cross-phase pipeline** (เช่น Sara detail-design chunk 1 → Dave build chunk 1 **พร้อม** Sara design chunk 2) ทำผ่าน **chunk-bd decomposition**:
+
+```
+bd-1: Sara design ▸ Dave build ─────────
+bd-2:        Sara design ▸ Dave build ───   ← Sara เลื่อนไป design bd-2 ตอน Dave build bd-1
+bd-3:               Sara design ▸ Dave ───
+```
+
+- แตก feature เป็น chunk-bd ที่ **interface ชัด** (Sara กำหนด contract ระหว่าง chunk ก่อน) → downstream chunk ไม่ block จนกว่า interface เปลี่ยน
+- Oliver schedule แบบ stagger: bd-N เข้า Phase 2 ขณะ bd-(N+1) อยู่ Phase 1 — **owner คนละ stage ไม่ชนกัน** (Sara=design stage, Dave=build stage)
+- ห้าม pipeline ถ้า chunk มี hard data-dep (bd-2 ต้องใช้ผล bd-1) → sequential
+- WIP cap: ไม่เกิน 2-3 bd in-flight ต่อ stage (กัน Sara/Dave context bloat + rework ตอน interface เปลี่ยน)
+
+## 🔁 Multi-bd Long-run Orchestration (🔴 v3.6 — wire harness contract)
+
+long run = หลาย bd ต่อเนื่อง. enforce ด้วย harness contract (ดู `/init` rule 11 + Oliver Harness Contract Check):
+
+- **Checkpoint** = bd tracker เอง (state per bd) + `outputs/<bd>/state.json` → พังแล้ว resume: `bd ready` หยิบ bd ที่ยังไม่ปิดต่อ
+- **Fan-out cap** = WIP limit ต่อ stage (default 2-3); ห้าม spawn bd พร้อมกันเกิน cap (token spike + Oliver context bloat)
+- **Retry/backoff** = bd fail → iter++ (max 3, per Phase 4) → escalate; ไม่ retry เงียบ
+- **Reduce** = สถานะรวมอ่านจาก bd/state.json ไม่ดึงทุก bd เข้า context พร้อมกัน
+- guarantee ที่ต้อง enforced runtime จริง (หลักพัน bd) → Aaron generate runner เข้า project (ดู § Harness, ไม่ ship ใน plugin)
+
 ---
 
 ## 🔧 Token-saving (🔴 runtime)
@@ -133,7 +158,7 @@ Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly i
 | 🔍 **Discover** | Patrick + Domain SME | Phase 0 | OKR + opportunity + domain validation |
 | 📐 **Design** | Bella + Sara + Uma | Phase 1a/1b/3a | Spec + Architecture + UI artifacts |
 | 🎓 **Domain** | Felix/Elena/Sam/Tara/Iris/Brooke/Emma | Phase 0/1b/3b (pluggable) | Regulation cite + business rule |
-| 🛠 **Dev** | Dave (parallel Dave#N) + Devon + Mason | Phase 2 | Production code + data + ML |
+| 🛠 **Dev** | Dave (parallel Dave#N) | Phase 2 | Production code (data/ML = Dave interim จนกว่ามี dedicated agent) |
 | ✅ **Verify** | Chris + Quinn + Sentinel | Phase 3b | Code review + Test + Security |
 | 🚀 **Ops** | Aaron + Reggie | Phase 5/6 | Deploy + SLO + Incident |
 
@@ -150,17 +175,18 @@ Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly i
 | Look & feel direction (final say) / wireframe / design tokens / a11y design / visual baseline | **Uma** | Quinn (axe automation only); advisory ต่อ Sara/Dave/Bella ดู agent file § Design Authority |
 | Domain regulation cite, business rule | **Domain SME** | ทุกคน |
 | Production code (BE/FE/integration) | **Dave** (Dave#N parallel) | Chris (test only) |
-| Data pipeline / ETL / CDC / Kafka / dbt | **Devon** (opt) | Dave (collab) |
-| ML model / RAG / vector / prompt eval | **Mason** (opt) | Dave (collab) |
+| Data pipeline / ETL / CDC / Kafka / dbt | **Dave** (interim) | — (สร้าง Devon agent เมื่อ project ต้องการ deep data) |
+| ML model / RAG / vector / prompt eval | **Dave** (interim) | — (สร้าง Mason agent เมื่อ project ต้องการ deep ML) |
 | 7-dim review + Unit + Mutation ≥ 70% | **Chris** | Quinn (ห้าม unit) |
 | Integration + E2E + Contract + Load + axe auto | **Quinn** | Chris (ห้าม integ), Uma (ห้าม automation) |
 | STRIDE / SAST / DAST / Secrets / Pen test / CSP | **Sentinel** | Sara, Chris, Quinn (handoff in v3.0) |
 | Dockerfile / CI/CD / IaC / Deploy build | **Aaron** | Reggie (ห้าม build) |
 | SLO / SLI / Error budget / Incident / Runbook | **Reggie** | Aaron (ห้าม SLO) |
 | Workflow orchestration / state / delegation | **Oliver** | Patrick |
-| API docs / Developer portal / Release notes | **Tex** (opt) | Bella (BRD only) |
+| API docs / Developer portal / Release notes | **Bella** (interim) | — (สร้าง Tex agent เมื่อ project ต้องการ docs portal เต็มรูป) |
 
 > Rule: ทุก agent ก่อน accept งานต้องประกาศ "ผมรับ capability X" — ถ้าไม่ใช่ sole owner = reroute
+> Interim owner = ไม่มี dedicated agent ตอนนี้ (YAGNI); สร้างเมื่อ project ต้องการจริง (ดู "Add agent" ด้านบน) — ไม่ใช่ phantom sole-owner
 
 ---
 

@@ -201,7 +201,7 @@ run_eval.py เคยให้ deterministic number. แทนด้วย 3 ก
 Plugin = **หลักการ + วิธีการ** เท่านั้น (4 รูปแบบด้านบน + Measurement Protocol). **ไม่ ship runner script ใน plugin**
 
 เมื่อ long run = หลักพัน iteration ซ้ำ ๆ deterministic (เกินที่ orchestrator-only คุ้ม) → guarantee ต้อง enforced ที่ runtime ไม่ใช่ prompt-convention:
-- **Aaron/Dave generate thin runner เข้า target project** (ภาษาตรง stack ของ project นั้น) ที่ enforce จริง: fan-out cap (semaphore), retry+backoff, checkpoint/resume (อ่าน bd/ledger), token/concurrency budget
+- **Aaron generate thin runner เข้า target project** (infra/CI-level; app-level → Dave; ภาษาตรง stack ของ project นั้น) ที่ enforce จริง: fan-out cap (semaphore), retry+backoff, checkpoint/resume (อ่าน bd/ledger), token/concurrency budget
 - runner = artifact ของ project (อยู่ใน project repo) — ผ่าน `dev-gate` เหมือน production code; plugin แค่ชี้ contract ที่ runner ต้องทำตาม
 - offline harness ครั้งคราว (scope ปัจจุบัน) → orchestrator-only พอ ไม่ต้อง generate
 
