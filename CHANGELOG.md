@@ -3,6 +3,17 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.6.3] — workflow audit: no-overlap / no-gap + pipeline — 2026-06-15
+
+### 🔄 Changed / 🐛 Fixed
+
+- **Phantom agents resolved** (gap): Devon/Mason/Tex อ้างเป็น sole-owner แต่ไม่มีไฟล์ → reassign interim (data/ML = Dave, docs = Bella); สร้าง dedicated agent เมื่อ project ต้องการจริง (YAGNI). sync routing + orchestrator + README + CLAUDE
+- **Pipeline parallel** (cross-bd staggered): Sara design chunk N ▸ Dave build chunk N พร้อม Sara design chunk N+1 — ผ่าน chunk-bd + interface contract + WIP cap 2-3 (routing)
+- **Multi-bd long-run orchestration**: checkpoint (bd + state.json) + fan-out cap (WIP) + retry (iter++ max 3) + reduce-from-bd; wire harness contract (routing)
+- **Harness runner owner** ชัด: Aaron (infra/CI-level) · Dave (app-level)
+
+---
+
 ## [3.6.2] — harness contract + brownfield-safe adopt — 2026-06-15
 
 ### ✨ Added / 🔄 Changed

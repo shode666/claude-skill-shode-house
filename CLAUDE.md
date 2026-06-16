@@ -1,4 +1,4 @@
-# shode-house — Repo Invariants (v3.6.2)
+# shode-house — Repo Invariants (v3.6.3)
 
 > ทุก rule = invariant ที่ script ตรวจ. จะแหก → แก้ script ก่อน
 > หมายเหตุ: ไฟล์นี้ terse อยู่แล้ว → caveman-compress ไม่คุ้ม (วัดแล้ว delta ≈ 0). compress capability ใช้กับ verbose memory file อื่น (project notes) แทน
