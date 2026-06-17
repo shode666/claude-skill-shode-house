@@ -3,6 +3,17 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.6.4] — learning-loop (self-improving, gated, non-blocking) — 2026-06-15
+
+### ✨ Added
+
+- **`skills/in-progress/learning-loop/`** (ไม่ ship — bake ก่อนเหมือน eval-harness): self-improving loop แบบ Hermes-inspired แต่ gated
+  - **Non-blocking guarantee**: HOT path = `bd remember` capture (append-only) + session_start load bounded top-N; COLD path = distill/gate/promote offline (ห้ามใน PEV loop) → loop ไม่สะดุด
+  - **Plugin/project split**: lessons store = project artifact (bd-first); method skill + cross-project promote = plugin ผ่าน gate (human + check_index/lint + eval-harness)
+  - promote เฉพาะ pattern ข้าม project (recurrence ≥ N); project-only lesson อยู่ project ตลอด (YAGNI, กัน plugin drift)
+
+---
+
 ## [3.6.3] — workflow audit: no-overlap / no-gap + pipeline — 2026-06-15
 
 ### 🔄 Changed / 🐛 Fixed
