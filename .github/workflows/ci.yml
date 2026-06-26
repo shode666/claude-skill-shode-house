@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dev deps
+        run: pip install pytest pyyaml
+
+      - name: Invariants (check_index.py)
+        run: python3 scripts/check_index.py
+
+      - name: Lint gate (lint.py)
+        run: python3 scripts/lint.py
+
+      - name: Unit tests (pytest)
+        run: pytest -q
+
+      - name: Eval fixtures schema
+        run: python3 eval/validate_fixtures.py

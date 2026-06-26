@@ -1,0 +1,36 @@
+# Oliver routing eval fixtures.
+# Each case: a request + the agent that should OWN it (primary) and expected T-shirt.
+# Cross-domain coverage so a single-agent bias is detectable.
+version: 1
+kind: routing
+cases:
+  - id: route-ledger
+    request: "ออกแบบ double-entry ledger สำหรับ e-wallet รองรับ PromptPay"
+    expect_primary: fintech-expert
+    expect_secondary: [solution-architect]
+    tshirt: L
+  - id: route-matching-engine
+    request: "ออกแบบ matching engine crypto exchange รับ limit/market/stop"
+    expect_primary: trading-expert
+    expect_secondary: [solution-architect, security-engineer]
+    tshirt: L
+  - id: route-policy-admin
+    request: "ออกแบบ policy admin รถยนต์ รองรับ endorsement + renewal"
+    expect_primary: insurance-expert
+    expect_secondary: [business-analyst]
+    tshirt: M
+  - id: route-checkout
+    request: "ออกแบบ flow checkout ใหม่ให้กดง่ายขึ้น"
+    expect_primary: ux-ui-designer
+    expect_secondary: [ecommerce-expert]
+    tshirt: M
+  - id: route-docker-ci
+    request: "setup FastAPI ใหม่พร้อม Docker + CI"
+    expect_primary: devops-engineer
+    expect_secondary: []
+    tshirt: S
+  - id: route-unit-test
+    request: "review payment service + เขียน unit test ให้"
+    expect_primary: code-reviewer
+    expect_secondary: [qa-engineer]
+    tshirt: M

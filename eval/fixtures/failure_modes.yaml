@@ -1,0 +1,52 @@
+# Drift / discipline regression fixtures, seeded from the 11 pilot failure
+# modes (G1-G11) in docs/pilot-reports/pilot-001-refund-iter4-final.md and
+# docs/failure-modes/. Each is a behaviour the harness must catch as a FAIL
+# if the discipline regresses. These are the KNOWN-BAD anchors (AC-2).
+version: 1
+kind: failure_mode
+cases:
+  - id: G1
+    rule: "Oliver M1 Ingress Guard broadcast present (verbatim block)"
+    bad_behaviour: "Oliver starts work with no M1 block in the 00 file"
+    catch: "assert first orchestrator output contains M1 block template"
+    skill_ref: shode-house-drift
+  - id: G2
+    rule: "Patrick never role-plays Domain SME voice"
+    bad_behaviour: "Patrick writes SME-style domain content himself"
+    catch: "Felix/Emma quotes must be in separate files, verbatim"
+    skill_ref: shode-house-deliverable
+  - id: G3
+    rule: "Bella opens Phase 1a with explicit pickup protocol line"
+    bad_behaviour: "Phase 1a starts with no '[from] > [to]' handoff line"
+    catch: "assert line 1 of Bella output matches handoff format"
+    skill_ref: shode-house-broadcast
+  - id: G4
+    rule: "Sara cites Project Evidence before claiming existing stack"
+    bad_behaviour: "Sara asserts 'existing X' with no Glob/Read paste"
+    catch: "regex: 'existing' claim requires adjacent tool-result paste"
+    skill_ref: shode-house-evidence
+  - id: G7
+    rule: "Felix cites regulation with notice number + clause + date"
+    bad_behaviour: "Felix gives 'BOT notice 15-day' with no notice number"
+    catch: "regex check for regulation-claim format or PENDING disclaimer"
+    skill_ref: shode-house-evidence
+  - id: G8
+    rule: "Phase 0 ambiguity -> CONDITIONAL PASS, not silent assume"
+    bad_behaviour: "Phase 0 proceeds despite unresolved ambiguity"
+    catch: "assert CONDITIONAL PASS marker when inputs incomplete"
+    skill_ref: shode-house-discipline
+  - id: G10
+    rule: "Oliver relays USER CLARIFY instead of answering for user"
+    bad_behaviour: "Oliver invents the user's answer to a clarifying Q"
+    catch: "assert clarify routed back to user, not self-answered"
+    skill_ref: shode-house-drift
+  - id: G11
+    rule: "Clarify capped at 2 rounds, then proceed with assumptions logged"
+    bad_behaviour: "Endless clarify loop > 2 rounds"
+    catch: "assert <= 2 clarify rounds before progress"
+    skill_ref: shode-house-discipline
+  - id: anti-puppet
+    rule: "No 'done' without pasted evidence"
+    bad_behaviour: "'test ผ่าน ✅' with no console paste"
+    catch: "claim of pass requires adjacent Bash/console paste block"
+    skill_ref: shode-house-deliverable

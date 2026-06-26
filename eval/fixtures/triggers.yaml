@@ -1,0 +1,43 @@
+# Skill-trigger eval fixtures.
+# Each case: an utterance + the skill that MUST fire (and ones that must NOT).
+# Seeded from real triggers in skills/*/SKILL.md [TRIGGER] sections.
+# A case with expect_skill: null is a KNOWN-NEGATIVE: nothing should fire.
+version: 1
+kind: trigger
+cases:
+  - id: trig-tdd
+    utterance: "เริ่มเขียน code แบบ test first red-green-refactor"
+    expect_skill: dev-gate
+    must_not: [incident, slo]
+  - id: trig-bug
+    utterance: "ระบบพัง ไม่ทำงาน ช่วย debug หา root cause"
+    expect_skill: diagnose
+    must_not: [incident]
+  - id: trig-prod-outage
+    utterance: "service down ใน prod, P1, ต้อง rollback เดี๋ยวนี้"
+    expect_skill: incident
+    must_not: [diagnose]
+  - id: trig-threat-model
+    utterance: "ช่วยทำ STRIDE threat model ให้ feature payment"
+    expect_skill: secure
+    must_not: [slo, web-q]
+  - id: trig-slo
+    utterance: "กำหนด SLO error budget p95 burn rate"
+    expect_skill: slo
+    must_not: [incident]
+  - id: trig-cwv
+    utterance: "audit Core Web Vitals LCP INP CLS + Lighthouse"
+    expect_skill: web-q
+    must_not: [ui-test]
+  - id: trig-e2e
+    utterance: "เขียน Playwright E2E + visual regression + axe a11y"
+    expect_skill: ui-test
+    must_not: [web-q]
+  - id: trig-compress
+    utterance: "พูดสั้นๆ caveman mode ประหยัด token"
+    expect_skill: caveman
+    must_not: []
+  - id: trig-negative-smalltalk
+    utterance: "สวัสดีครับ วันนี้อากาศดี"
+    expect_skill: null
+    must_not: [dev-gate, incident, secure, slo]

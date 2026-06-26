@@ -9,6 +9,9 @@ Checks:
   3. Shippable bucket paths listed in plugin.json skills array
   4. Cowork validator constraints (description length + ASCII)
   5. SKILL.md description 4-section marker check (warn-only)
+  6. Agent model frontmatter (allowed value + Fable-5 whitelist)
+  7. Model table single-source (no copy outside README)
+  8. Manifest skills/commands/agents = array of path strings (no object form)
 
 Exits non-zero on violation. Use as pre-commit / CI gate.
 """
@@ -227,6 +230,54 @@ def check_model_table_single_source(root: Path) -> int:
     return fail
 
 
+def check_manifest_array_form(root: Path) -> int:
+    """8. Manifest skills/commands/agents = array of path STRINGS only.
+
+    Cowork + CLI schema reject array-of-objects (the real v3.1.0 'Plugin
+    validation failed' bug). Each entry must be a string starting with './',
+    contain no '..', and no backslash. CLAUDE.md: 'array of path strings เท่านั้น'.
+    """
+    print("\n== 8. Manifest array form (skills/commands/agents = path strings) ==")
+    fail = 0
+    array_fields = ("skills", "commands", "agents")
+    for fname in ("plugin.json", "marketplace.json"):
+        p = root / ".claude-plugin" / fname
+        if not p.exists():
+            continue
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            red(f"  ✗ {fname}: {exc}")
+            fail = 1
+            continue
+        # marketplace.json nests manifests under plugins[]; plugin.json is flat.
+        scopes = [data] + (data.get("plugins", []) if isinstance(data.get("plugins"), list) else [])
+        for scope in scopes:
+            if not isinstance(scope, dict):
+                continue
+            for field in array_fields:
+                if field not in scope:
+                    continue
+                val = scope[field]
+                if not isinstance(val, list):
+                    red(f"  ✗ {fname}: '{field}' must be an array, got {type(val).__name__}")
+                    fail = 1
+                    continue
+                for i, entry in enumerate(val):
+                    if not isinstance(entry, str):
+                        red(f"  ✗ {fname}: {field}[{i}] is {type(entry).__name__}, must be a path string (no object form)")
+                        fail = 1
+                    elif not entry.startswith("./"):
+                        red(f"  ✗ {fname}: {field}[{i}]={entry!r} must start with './'")
+                        fail = 1
+                    elif ".." in entry or "\\" in entry:
+                        red(f"  ✗ {fname}: {field}[{i}]={entry!r} must not contain '..' or '\\'")
+                        fail = 1
+    if fail == 0:
+        green("  ✓ all manifest array fields are clean path strings")
+    return fail
+
+
 def main() -> int:
     root = repo_root()
     plugin_json = root / ".claude-plugin" / "plugin.json"
@@ -243,6 +294,7 @@ def main() -> int:
     fail += check_cowork_constraints(root)
     fail += check_agent_models(root)
     fail += check_model_table_single_source(root)
+    fail += check_manifest_array_form(root)
     check_description_format(root)  # warn-only, no fail contribution
 
     print()
