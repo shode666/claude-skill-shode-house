@@ -3,6 +3,23 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.6.5] — quality harness: dev-loop tests + CI + manifest array guard — 2026-06-26
+
+### ✨ Added
+
+- **`tests/`** (dev infra, ไม่ ship) — pytest suite สำหรับ dev-loop scripts; 27 cases, good+bad fixture ต่อ Cowork-critical invariant (desc length/ASCII, model whitelist, skill size + thin-entry exception, manifest array form). พิสูจน์ว่า enforcement layer ยัง enforce จริง
+- **`.github/workflows/ci.yml`** — gate ทุก PR/push: `check_index.py` + `lint.py` + `pytest` + `eval/validate_fixtures.py`
+- **`eval/`** (foundation, ไม่ ship) — quality harness ตาม bd-101: `fixtures/{triggers,routing,failure_modes}.yaml` (24 cases, seed จาก pilot G1-G11), `validate_fixtures.py` (corpus gate, cross-check ชื่อ skill/agent จริง), `README.md` runbook. Scorer = agent-orchestrated (ยังไม่ทำ)
+
+### 🐛 Fixed / 🔄 Changed
+
+- **`check_index.py` check #8** `check_manifest_array_form` — reject object-form `skills`/`commands`/`agents` array (สาเหตุจริงของ v3.1.0 "Plugin validation failed"); บังคับ path string เริ่ม `./`, ห้าม `..`/`\`. ปิด gap ที่ schema check ครอบ description แล้วแต่ไม่ครอบ array shape
+- **Hygiene** — `chmod +x` `scripts/caveman_stats.py` + `scripts/harvest_shortcuts.py` (ให้ตรงกับ script อื่น)
+
+> หมายเหตุ: ไม่มี shipped content (skills/agents/commands/manifest) เปลี่ยน behavior — เป็น maintainer/build-gate + dev infra ล้วน. `.plugin` artifact bump version แต่ payload เท่าเดิม
+
+---
+
 ## [3.6.4] — learning-loop (self-improving, gated, non-blocking) — 2026-06-15
 
 ### ✨ Added
