@@ -11,3 +11,5 @@ outputs/
 # Zip temp files from failed builds (cannot be removed on some sandbox mounts)
 ziqn*
 ziq*
+# FUSE mount artifacts (transient, sandbox-only)
+.fuse_hidden*

@@ -237,10 +237,10 @@ User responses → M2 classify:
 
 ## ⚠️ Rules
 
-1. 🔴 v2.8 — **Phase 1a parallel เท่านั้น** (ห้าม Bella → Sara serialize; ห้าม mid-checkpoint cross-read หนัก)
-2. 🔴 v2.8 — **Phase 1b sequential เท่านั้น** (Uma + Domain ต้องอ่าน 1a sign-off ก่อน start)
-3. 🔴 v2.8 — **บังคับ Uma's own AC** ใน 1b (Phase 3a Uma POST จะ verify AC นี้)
-4. 🔴 v2.8 — **บังคับ baseline screenshot** ใน 1b (สำหรับ visual diff Phase 3a)
+1. 🔴 **Phase 1a parallel เท่านั้น** (ห้าม Bella → Sara serialize; ห้าม mid-checkpoint cross-read หนัก)
+2. 🔴 **Phase 1b sequential เท่านั้น** (Uma + Domain ต้องอ่าน 1a sign-off ก่อน start)
+3. 🔴 **บังคับ Uma's own AC** ใน 1b (Phase 3a Uma POST จะ verify AC นี้)
+4. 🔴 **บังคับ baseline screenshot** ใน 1b (สำหรับ visual diff Phase 3a)
 5. ห้าม skip Uma ถ้า touch frontend (pre-implement-ui gate block)
 6. ห้าม skip Domain ถ้า touch business rule (regulation/money rule risk)
 7. ห้าม implement code (ใช้ `/implement` หลัง spec)

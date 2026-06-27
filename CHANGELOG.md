@@ -3,6 +3,25 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.7.0] — no-Python dev-loop + content reconciliation + loop-engineering doc — 2026-06-27
+
+### ✨ Added
+
+- **Inline CI gate** (bash + jq) in `.github/workflows/ci.yml` — replaces `check_index.py` + `lint.py` with **no script file at all** (runs only on GitHub, never on a contributor's machine). Mirrors every fail-contributing check (skill size, excluded/shippable buckets, Cowork desc caps + ASCII, agent model + Fable-5 whitelist, model-table single-source, manifest array-of-path-strings, JSON syntax, frontmatter name/description, name==folder, cross-ref + path-ref resolution). Parity-tested: passes clean repo, fails on injected violations.
+- **`Makefile`** — no-Python dev-loop: `make pack` (zip artifact, same include/exclude set as old builder) · `make stats` · `make skills`.
+- **`docs/ADOPT-loop-engineering-proposal.md`** — maps 2026 loop-engineering patterns onto shode-house; proposes circuit-breaker, bounded-execution, Reflexion `learning-loop` promotion, reward-hack guard, sub-agent isolation.
+
+### 🔄 Changed / 🐛 Fixed
+
+- **No Python, no script files** — removed `scripts/` entirely (check_index, lint, build_plugin, publish, setup_precommit, list_skills, harvest_shortcuts, caveman_stats, _lib), `tests/` (pytest), `eval/validate_fixtures.py`, `pytest.ini`. `.pre-commit-config.yaml` now stock hooks only (no custom local script runs on commit — this was the source of the local "popup"); the gate is inlined in `.github/workflows/ci.yml` and runs only on GitHub.
+- **All 19 agents** now reference `shode-house-evidence` (was 2/19) — CLAUDE.md invariant satisfied.
+- **Stale-detail fixes** — removed dead "Phase 7 Learn" (staff-engineer); `15 agents` -> `19` (deliverable); persona disclaimer made model-agnostic (was hardcoded "May 2025"); stripped ~16 `v2.x` version-archaeology stamps from `implement.md` + `shode-house-workflow`; README/CLAUDE/meeting version labels reconciled.
+- **CLAUDE.md** — prerequisites, dev-loop, build invariant rewritten for the no-Python toolchain.
+
+> Shipped content: agent evidence refs + skill content trims only. Dev-loop migration is build/CI infra (not shipped in `.plugin`).
+
+---
+
 ## [3.6.5] — quality harness: dev-loop tests + CI + manifest array guard — 2026-06-26
 
 ### ✨ Added

@@ -24,7 +24,7 @@ Chris + Quinn ทำงาน **adversarial ต่อ Dave** (pessimistic defaul
 - Dave = **builder**; Chris/Quinn = **gatekeeper**. ความสัมพันธ์ adversarial = healthy gate, ไม่ใช่ conflict
 - Source rule: shode-house-discipline § VERIFY BEFORE DONE + Anti-Puppet
 
-## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias)
+## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias + shode-house-evidence § cite-before-claim)
 
 **Primary bias**: Sycophancy (user push "skip test / just try") + Defensive over-validation
 

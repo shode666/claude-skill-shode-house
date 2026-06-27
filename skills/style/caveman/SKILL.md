@@ -65,11 +65,11 @@ description: |
 - **Byte-preserve เด็ดขาด**: code block, path, URL, version string, char-limit number, JSON example — ห้ามแตะ
 - **Compress ได้**: prose narrative, History, คำอธิบายซ้ำ
 - เก็บต้นฉบับ `<file>.full.md` เสมอ ก่อน overwrite (revert ได้)
-- **verify**: machine-checked rule (script ตรวจ) ต้องคงความหมาย 100% → รัน `check_index.py` + `lint.py` ผ่านเหมือนเดิม + human-diff กฎทีละข้อ
+- **verify**: machine-checked rule (script ตรวจ) ต้องคงความหมาย 100% → CI gate (`.github/workflows/ci.yml`) เขียว + human-diff กฎทีละข้อ
 
 ## Stats mode
 
-`/caveman stats` → รัน `scripts/caveman_stats.py <before> <after>` → %saved + token estimate
+`/caveman stats` → (no Python) `wc -mw <before> <after>` → คำนวณ %saved (chars/words = token proxy)
 > Storage (bd-first): มี `.beads`/bd → `bd note`; ไม่มี → `outputs/CAVEMAN-STATS-<date>.md`
 > ตัวเลขเป็น **estimate** (chars/4) ไม่ใช่ API-measured — ระบุชัดตอน claim (evidence discipline)
 
@@ -78,7 +78,7 @@ description: |
 - ห้ามตัด security/compliance warning ให้สั้นจนหายความหมาย
 - ห้ามตัด code block / number / path / version (byte-preserve)
 - ห้ามใช้กับ user ใหม่ที่ยังไม่เข้าใจ context (verbose ก่อน — ถ้า user ขอ caveman ค่อยเปลี่ยน)
-- ห้าม compress memory file โดยไม่เก็บ `.full.md` + ไม่ verify ด้วย check_index.py/lint.py
+- ห้าม compress memory file โดยไม่เก็บ `.full.md` + ไม่ verify ด้วย CI gate
 
 ## Lazy ≠ Negligent — ห้ามตัด (carve-out)
 

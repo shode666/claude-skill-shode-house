@@ -46,7 +46,7 @@ grep -ql "harness-contract" ./.shode-house/config.yaml ./CLAUDE.md ./AGENTS.md 2
 
 > marker = source of truth ว่า project ปลายทาง establish แล้ว — เก็บใน **project's** `.shode-house/config.yaml` หรือ **project's** `CLAUDE.md`/`AGENTS.md` (ของ repo ที่ทำงาน ไม่ใช่ plugin repo)
 
-## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias)
+## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias + shode-house-evidence § cite-before-claim)
 
 **Primary bias**: Sycophancy (EM agree with user even when user wrong)
 

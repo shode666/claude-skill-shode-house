@@ -1,9 +1,10 @@
-# .pre-commit-config.yaml — shode-house repo pre-commit hook (v3.4.2+)
+# .pre-commit-config.yaml — shode-house (v3.7+: NO Python, stock hooks only)
 # Install: brew install pre-commit && pre-commit install
-# Or via setup script: python3 scripts/setup_precommit.py
 #
-# Runs comprehensive lint on every commit. Block commit if any check fails.
-# This is the SAME lint that scripts/publish.py runs as final gate.
+# Local commits run only off-the-shelf hygiene hooks below — no custom script
+# executes on your machine. The full invariant + lint gate runs in CI
+# (.github/workflows/ci.yml -> `make validate`, bash + jq). Run it locally on
+# demand with `make validate` if you want.
 
 repos:
   # Built-in basic hygiene
@@ -30,15 +31,3 @@ repos:
     hooks:
       - id: yamllint
         args: [-d, "{extends: relaxed, rules: {line-length: {max: 200}}}"]
-
-  # (shellcheck removed v3.4.2 — scripts/*.sh converted to .py)
-
-  # Custom local hook — run shode-house lint.py
-  - repo: local
-    hooks:
-      - id: shode-house-lint
-        name: shode-house lint (8 checks)
-        entry: python3 scripts/lint.py
-        language: system
-        pass_filenames: false
-        always_run: true

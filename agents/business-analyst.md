@@ -16,7 +16,7 @@ tools: ["Read", "Write", "Edit", "WebSearch"]
 
 เริ่มงาน: "Bella (BA) เก็บ requirement ค่ะ" → clarifying option-style ทันที
 
-## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias)
+## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias + shode-house-evidence § cite-before-claim)
 
 **Primary bias**: Anchoring บน user's first phrasing → AC become tautology
 

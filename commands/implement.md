@@ -1,5 +1,5 @@
 ---
-description: "[shode-house] Implement (Dave) + UI Check (Uma) + Code Review (Chris ∥ Quinn) + Triage — v2.8 Smart Coop Phase 2-4"
+description: "[shode-house] Implement (Dave) + UI Check (Uma) + Code Review (Chris ∥ Quinn) + Triage — Smart Coop Phase 2-4"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 argument-hint: "[bd-id]"
 ---
@@ -8,11 +8,11 @@ Implement: **$ARGUMENTS** (bd-id หรือ feature description)
 
 ## Pipeline (Phase 2 → 3a → 3b → 4)
 
-### 0. UI Precondition Check (Oliver — 🔴 v2.6.1 + v2.8.1 auto-trigger)
+### 0. UI Precondition Check (Oliver — 🔴 auto-trigger)
 
 ก่อน delegate ไป Dave — Oliver ตรวจ:
 
-**🔴 v2.8.1 — Auto-trigger Phase 3a detection (บังคับ Bash check)**:
+**🔴 Auto-trigger Phase 3a detection (บังคับ Bash check)**:
 ```bash
 # Detect frontend trigger จาก spec scope (Dave's planned Files):
 echo "$DAVE_PLANNED_FILES" | grep -qE "\.(vue|tsx|jsx|svelte|html|css|scss|sass|less)$|/(frontend|components|pages|views|app)/" \
@@ -24,7 +24,7 @@ echo "$DAVE_PLANNED_FILES" | grep -qE "\.(vue|tsx|jsx|svelte|html|css|scss|sass|
   - bd issue มี SPEC-<bd-id>.md ที่ Phase 1b ส่งมาไหม?
   - มี Uma artifact (Figma + tokens + a11y + baseline + Uma's AC) ครบไหม?
   - ไม่มี = **STOP**, route to `/design-system` Phase 1b
-  - **🔴 v2.8.1 — บังคับ invoke Uma POST (Phase 3a) ก่อน Chris+Quinn** — ห้าม Oliver "decide skip เพราะ minor change"; auto-detected = auto-required
+  - **🔴 บังคับ invoke Uma POST (Phase 3a) ก่อน Chris+Quinn** — ห้าม Oliver "decide skip เพราะ minor change"; auto-detected = auto-required
 - ถ้า `FRONTEND_TRIGGER=0` (pure backend/API/data/CLI): proceed without Uma; Phase 3a skip ผ่าน gate อัตโนมัติ
 
 **Detection หลังจาก Dave Phase 2 done** (re-check ก่อน Step 5):
@@ -62,11 +62,11 @@ git diff --name-only HEAD~1 HEAD | grep -qE "\.(vue|tsx|jsx|svelte|html|css|scss
 - Parallel Dave#1/#2 ถ้า truly independent files (Scope Contract enforce no overlap)
 - Commit: Conventional Commits + bd ref (`feat(...): ... [bd:42]`)
 
-### 4. Smoke Test (Dave) — 🔴 v2.8.1 screenshot mandatory ถ้า frontend
+### 4. Smoke Test (Dave) — 🔴 screenshot mandatory ถ้า frontend
 
 - Start server + curl happy path → paste 200
 - Lint + type + unit pass → paste output
-- **🔴 v2.8.1 — ถ้า frontend changed (touch *.vue/*.tsx/*.jsx/*.svelte/*.html/css/scss/components/pages/views/frontend/)**:
+- **🔴 ถ้า frontend changed (touch *.vue/*.tsx/*.jsx/*.svelte/*.html/css/scss/components/pages/views/frontend/)**:
   ```bash
   # MUST capture screenshot:
   pnpm exec playwright screenshot --viewport-size=1440,900 http://localhost:3000/<route> tests/visual/<feature>-after.png
@@ -78,9 +78,9 @@ git diff --name-only HEAD~1 HEAD | grep -qE "\.(vue|tsx|jsx|svelte|html|css|scss
 
 ⏸️ **Gate: pre-ui-check** — lint clean + unit green + smoke pass + screenshot evidence (ถ้า frontend) → unlock Phase 3a
 
-### 5. UI Check (Uma — Phase 3a, sequential gate 🔴 v2.8 + v2.8.1 auto-trigger)
+### 5. UI Check (Uma — Phase 3a, sequential gate 🔴 auto-trigger)
 
-**🔴 v2.8.1 — Auto-trigger** (จาก Step 0 detection): ถ้า frontend changed (git diff match `.vue/.tsx/.jsx/.svelte/.html/.css/.scss` หรือ `frontend/components/pages/views/`) = **MANDATORY**. ห้าม Oliver/Uma "skip เพราะ minor"
+**🔴 Auto-trigger** (จาก Step 0 detection): ถ้า frontend changed (git diff match `.vue/.tsx/.jsx/.svelte/.html/.css/.scss` หรือ `frontend/components/pages/views/`) = **MANDATORY**. ห้าม Oliver/Uma "skip เพราะ minor"
 
 Uma เข้า Phase 3a ทำตาม **mandatory Bash invocation pattern** ใน `agents/ux-ui-designer.md` Phase 3a Process (11 steps):
 1. Read context (bd show + SPEC-id)
@@ -95,7 +95,7 @@ Uma เข้า Phase 3a ทำตาม **mandatory Bash invocation pattern** 
 10. Content design (manual paste vs spec)
 11. AC verification (bullet per AC + evidence path)
 
-**🔴 v2.8.1 — Anti-Puppet UX/UI (meeting skill บังคับ)**: ห้าม claim PASS โดยไม่ paste tool output. Verdict format ดู `agents/ux-ui-designer.md`
+**🔴 Anti-Puppet UX/UI (meeting skill บังคับ)**: ห้าม claim PASS โดยไม่ paste tool output. Verdict format ดู `agents/ux-ui-designer.md`
 
 Verdict:
 - **PASS** → `bd update <id> --notes "Phase 3a Uma POST PASS — evidence: [Chromatic build/N, axe report path, AC bullets]"` → unlock Phase 3b
@@ -105,7 +105,7 @@ Verdict:
 
 ⏸️ **Gate: pre-code-review** — Uma POST PASS → unlock Phase 3b. Pure backend (no frontend trigger) skip Phase 3a → ผ่าน gate อัตโนมัติ
 
-### 6. Code Review (Chris ∥ Quinn — Phase 3b, TRUE parallel 🔴 v2.8)
+### 6. Code Review (Chris ∥ Quinn — Phase 3b, TRUE parallel)
 
 > 🔴 **v3.1**: ใช้ `review-checklist` skill เป็น source-of-truth. Phase นี้ = invoke skill + ส่ง parallel ไปยัง 3 axes
 
@@ -154,12 +154,12 @@ if iter > 3:
 
 ## ⚠️ Rules
 
-0. 🔴 v2.6.1 — frontend involved → Uma artifact ต้องมีก่อน Dave start (pre-implement-ui)
+0. 🔴 frontend involved → Uma artifact ต้องมีก่อน Dave start (pre-implement-ui)
 1. ต้องมี SPEC-<bd-id>.md → ถ้าไม่มีรัน `/design-system bd-<id>` ก่อน
-2. 🔴 v2.8 — **Phase 3a Uma POST = sequential gate** ก่อน Phase 3b. Chris+Quinn ห้าม start ถ้า Uma ยังไม่ approve
-3. 🔴 v2.8 — **Phase 3b Chris ∥ Quinn parallel เท่านั้น** (ห้าม Chris → Quinn serialize)
-4. 🔴 v2.8 — **Phase 4 Triage routing precise** (code→2, UI→1b, spec→1a) — ห้าม "ผ่านครึ่ง ๆ" ข้าม deploy
-5. 🔴 v2.8 — Loop iter ≤ 3 ต่อ bd issue; > 3 → escalate user
+2. 🔴 **Phase 3a Uma POST = sequential gate** ก่อน Phase 3b. Chris+Quinn ห้าม start ถ้า Uma ยังไม่ approve
+3. 🔴 **Phase 3b Chris ∥ Quinn parallel เท่านั้น** (ห้าม Chris → Quinn serialize)
+4. 🔴 **Phase 4 Triage routing precise** (code→2, UI→1b, spec→1a) — ห้าม "ผ่านครึ่ง ๆ" ข้าม deploy
+5. 🔴 Loop iter ≤ 3 ต่อ bd issue; > 3 → escalate user
 6. Chris เขียน unit test + mutation (Dave smoke แล้วเสร็จ)
 7. Quinn integration/E2E + contract + load + a11y axe สำหรับ critical path
 8. Domain Expert validation บังคับสำหรับ sensitive (parallel ใน Phase 3b)

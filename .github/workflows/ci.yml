@@ -1,32 +1,125 @@
 name: ci
 
+# No Python, no script files. The invariant + lint gate is INLINED below and
+# runs only here on GitHub (bash + jq) — nothing executes on a contributor's
+# machine. To validate locally, push and read the CI result.
+
 on:
   pull_request:
   push:
     branches: [main]
 
 jobs:
-  gates:
+  gate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Invariant + lint gate (inline bash + jq)
+        shell: bash
+        run: |
+          set +e -u -o pipefail
+          fail=0
+          err(){ printf '  X %s\n' "$*"; fail=1; }
+          ok(){  printf '  ok %s\n' "$*"; }
+          sec(){ printf '\n== %s ==\n' "$*"; }
+          PJ=.claude-plugin/plugin.json
+          MK=.claude-plugin/marketplace.json
+          SHIP="workflow ops ui style discipline"
+          EXCL="in-progress deprecated"
+          F5="staff-engineer solution-architect security-engineer ux-ui-designer"
+          command -v jq >/dev/null || { echo "FATAL: jq required"; exit 2; }
+
+          sec "1. skill size <= 300 (except meeting, dev-gate)"
+          while IFS= read -r f; do
+            n=$(basename "$(dirname "$f")"); l=$(wc -l < "$f")
+            if [ "$l" -gt 300 ] && [ "$n" != meeting ] && [ "$n" != dev-gate ]; then err "$f: $l lines > 300"; fi
+          done < <(find skills -mindepth 3 -name SKILL.md)
+          [ $fail -eq 0 ] && ok "all skills within limit"
+
+          sec "2. excluded buckets not in plugin.json"
+          for b in $EXCL; do [ -d "skills/$b" ] || continue
+            while IFS= read -r f; do n=$(basename "$(dirname "$f")")
+              grep -q "\"$n\"" "$PJ" && err "'$n' excluded but in plugin.json"
+            done < <(find "skills/$b" -mindepth 2 -name SKILL.md 2>/dev/null); done
+
+          sec "3. shippable bucket paths listed"
+          for b in $SHIP; do grep -q "\"./skills/$b/\"" "$PJ" || err "bucket '$b' not listed"; done
+
+          sec "4. Cowork caps (length + ASCII + no em-dash)"
+          chk(){ local L="$1" t="$2" lim="$3"
+            [ "${#t}" -gt "$lim" ] && err "$L length ${#t} > $lim"
+            printf '%s' "$t" | LC_ALL=C grep -qP '[^\x00-\x7F]' && err "$L non-ASCII"
+            printf '%s' "$t" | grep -q '—\|–' && err "$L em/en-dash"; }
+          chk "plugin.json description"      "$(jq -r '.description//""' "$PJ")" 200
+          chk "marketplace.json description" "$(jq -r '.description//""' "$MK")" 200
+          while IFS= read -r d; do chk "marketplace plugins[].description" "$d" 100; done < <(jq -r '.plugins[]?.description//""' "$MK")
+          [ $fail -eq 0 ] && ok "description caps ok"
+
+          sec "5. agent model (allowed value + Fable-5 whitelist)"
+          for f in agents/*.md; do n=$(basename "$f" .md)
+            m=$(awk '/^---$/{c++;next} c==1&&/^model:/{sub(/^model:[ \t]*/,"");gsub(/["'"'"']/,"");print;exit}' "$f")
+            [ -z "$m" ] && continue
+            case " claude-fable-5 opus sonnet " in *" $m "*) :;; *) err "$n: model '$m' not allowed";; esac
+            if [ "$m" = claude-fable-5 ]; then case " $F5 " in *" $n "*) :;; *) err "$n: claude-fable-5 not whitelisted";; esac; fi
+          done
+          [ $fail -eq 0 ] && ok "agent models ok"
+
+          sec "6. model table single-source (none outside README)"
+          while IFS= read -r f; do
+            grep -q 'claude-fable-5' "$f" && err "$f: contains 'claude-fable-5'"
+            if grep -q '|' "$f" && grep -iE '\|' "$f" | grep -iqE '(fable-5).*(opus|sonnet|haiku)|opus.*(sonnet|haiku)|sonnet.*haiku'; then
+              err "$f: model matrix row"; fi
+          done < <(find skills -mindepth 3 -name SKILL.md; find commands -name '*.md')
+
+          sec "7. manifest arrays = './' path strings"
+          for fn in "$PJ" "$MK"; do for fld in skills commands agents; do
+            jq -e --arg f "$fld" '
+              def c(a): (a|type)=="array" and (a|all(type=="string" and startswith("./") and (contains("..")|not) and (contains("\\")|not)));
+              (if has($f) then c(.[$f]) else true end)
+              and (if has("plugins") then (.plugins|all(if has($f) then c(.[$f]) else true end)) else true end)
+            ' "$fn" >/dev/null || err "$fn: '$fld' not a clean path-string array"
+          done; done
+
+          sec "8. JSON syntax"
+          for f in "$PJ" "$MK"; do jq -e . "$f" >/dev/null 2>&1 && ok "$f" || err "$f: invalid JSON"; done
+
+          sec "9. skill + agent frontmatter name + description"
+          while IFS= read -r f; do
+            awk '/^---$/{c++;next} c==1&&/^name:/{nm=1} c==1&&/^description:/{de=1} END{exit !(nm&&de)}' "$f" || err "$f: missing name/description"
+          done < <(find skills -name SKILL.md; find agents -name '*.md')
+          [ $fail -eq 0 ] && ok "frontmatter ok"
+
+          sec "10. SKILL name == folder"
+          while IFS= read -r f; do d=$(basename "$(dirname "$f")")
+            nm=$(awk '/^---$/{c++;next} c==1&&/^name:/{sub(/^name:[ \t]*/,"");gsub(/["'"'"']/,"");print;exit}' "$f")
+            [ "$d" = "$nm" ] || err "name '$nm' != folder '$d'"
+          done < <(find skills -mindepth 3 -name SKILL.md)
+          [ $fail -eq 0 ] && ok "names match folders"
+
+          sec "11. skill cross-refs resolve (commands + README + CLAUDE)"
+          dirs=$(for d in skills/*/*/; do basename "$d"; done)
+          refs=$(grep -rhoE '`(meeting|dev-gate|automate-test|diagnose|incident|slo|secure|ui-test|web-q|caveman|review-checklist|shode-house-[a-z]+)`' commands README.md CLAUDE.md 2>/dev/null | tr -d '`' | sort -u)
+          for r in $refs; do echo "$dirs" | grep -qx "$r" || err "referenced skill '$r' missing"; done
+          [ $fail -eq 0 ] && ok "cross-refs resolve"
+
+          sec "12. path refs in README + CLAUDE resolve"
+          for src in README.md CLAUDE.md; do [ -f "$src" ] || continue
+            while read -r p; do [ -e "$p" ] || err "$src: broken ref '$p'"
+            done < <(grep -oE '`(skills/[a-zA-Z0-9._/-]+|commands/[a-z-]+\.md|agents/[a-z-]+\.md)`' "$src" | tr -d '`' | sort -u)
+          done
+          [ $fail -eq 0 ] && ok "path refs resolve"
+
+          echo
+          if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi
+          exit $fail
+
+      - name: Build .plugin artifact
+        run: make pack
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          python-version: "3.12"
-
-      - name: Install dev deps
-        run: pip install pytest pyyaml
-
-      - name: Invariants (check_index.py)
-        run: python3 scripts/check_index.py
-
-      - name: Lint gate (lint.py)
-        run: python3 scripts/lint.py
-
-      - name: Unit tests (pytest)
-        run: pytest -q
-
-      - name: Eval fixtures schema
-        run: python3 eval/validate_fixtures.py
+          name: shode-house-plugin
+          path: shode-house-v*.plugin
+          if-no-files-found: error

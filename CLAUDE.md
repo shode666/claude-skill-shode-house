@@ -1,14 +1,13 @@
-# shode-house — Repo Invariants (v3.6.4)
+# shode-house — Repo Invariants (v3.7.0)
 
 > ทุก rule = invariant ที่ script ตรวจ. จะแหก → แก้ script ก่อน
 > หมายเหตุ: ไฟล์นี้ terse อยู่แล้ว → caveman-compress ไม่คุ้ม (วัดแล้ว delta ≈ 0). compress capability ใช้กับ verbose memory file อื่น (project notes) แทน
 
-## 🐍 Prerequisites
+## ⚙️ Prerequisites (no Python — v3.7)
 
-- **Python 3.9+** for `scripts/*.py` (macOS/Linux pre-installed; Windows: python.org / MS Store)
-- ทุก `.py` check version ตอน import → fail พร้อม install guide
-- **PyYAML** optional (ดี YAML ใน `lint.py`): `pip install --user pyyaml`
-- **git** + **gh CLI** for `publish.py`
+- **bash + jq** for the CI gate (`.github/workflows/ci.yml`, invariant + lint — runs on GitHub, no local script). `jq`: `brew install jq` / `apt install jq`
+- **make** + **zip** for packaging (`make pack`); validation runs in CI
+- **git** + **gh CLI** for release/publish (or GitHub Actions)
 
 ## Skills
 
@@ -32,13 +31,13 @@
 - ทุก agent reference `shode-house-discipline` (Recite Card) + `shode-house-evidence` ขั้นต่ำ
 - `meeting/SKILL.md` = thin entry-point เท่านั้น (≤ 300 บรรทัด)
 - **Model frontmatter (v3.5)**: ค่าที่อนุญาต = `claude-fable-5` (Stan/Sara/Sentinel/Uma เท่านั้น) | `opus` | `sonnet`. ห้าม pin dated model string. ตาราง model มีที่เดียว = README § Model Strategy (skill อื่นห้าม copy — เคย drift ใน routing skill v2.x). Fallback = settings `fallbackModel`, budget = `CLAUDE_CODE_SUBAGENT_MODEL` (doc ใน README)
-- **v3.6 enforce**: `scripts/check_index.py` ตรวจ model value + Fable-5 whitelist + ห้าม model table นอก README
+- **enforce**: CI gate (`.github/workflows/ci.yml`) ตรวจ model value + Fable-5 whitelist + ห้าม model table นอก README
 
 ## Plugin
 
 - `plugin.json` version = SemVer; `marketplace.json` ตาม
 - `.plugin` zip artifact = `shode-house-v<MAJOR>.<MINOR>.<PATCH>.plugin`
-- Build via `scripts/build_plugin.py`; ห้าม zip มือ
+- Build via `make pack` (zip ผ่าน Makefile); ห้าม zip มือนอก Makefile
 
 ### Plugin manifest — Cowork validator constraints (🔴 บังคับ — ป้องกัน "Plugin validation failed")
 
@@ -87,24 +86,24 @@
 **Rules ก่อน bump version**:
 
 1. **Detail / marketing copy → `README.md` เท่านั้น** ห้ามใส่ใน manifest description
-2. ก่อน push: รัน `scripts/check_index.py` (enforce description ≤ 200 chars + ASCII)
+2. ก่อน push: CI gate (`.github/workflows/ci.yml`) enforce description ≤ 200 chars + ASCII (รันบน GitHub)
 3. ก่อน release: **drag-drop ทดสอบ Cowork จริง** — CLI validate ผ่าน ≠ Cowork ผ่าน
 4. ถ้า fail: `git log --grep="validator"` ดู lesson learned เก่าก่อน — มี history v2.5.1 + v3.1.0
-5. เจอ bug ใหม่ที่ schema ไม่ enforce แต่ Cowork enforce → เพิ่ม rule ที่นี่ + เพิ่ม check ใน `scripts/check_index.py` ทันที
+5. เจอ bug ใหม่ที่ schema ไม่ enforce แต่ Cowork enforce → เพิ่ม rule ที่นี่ + เพิ่ม check ใน `.github/workflows/ci.yml` (gate step) ทันที
 
 ## Repo
 
 - README → link skill name ไปยัง SKILL.md เสมอ
 - CHANGELOG → ทุก minor/major bump เพิ่ม entry
-- ทุก PR run `scripts/lint.py` ผ่านก่อน merge
-- **Dev-loop scripts**: `check_index.py` (invariants) · `lint.py` · `build_plugin.py` · `publish.py` · `harvest_shortcuts.py` (debt ledger, v3.6) · `caveman_stats.py` (compression stats, v3.6)
+- ทุก PR run CI gate (`.github/workflows/ci.yml`) ผ่านก่อน merge
+- **Dev-loop (no Python, v3.7)**: invariant + lint gate inline ใน `.github/workflows/ci.yml` (bash + jq, CI-only — no local script) · `make pack` (zip) · `make stats` · `make skills`; publish via `gh` / GitHub Actions
 
 ## Lazy ≠ Negligent (🆕 v3.6 — ponytail/caveman adoption)
 
 - YAGNI ladder (dev-gate Step 0) + caveman compression ตัดได้เฉพาะความซับซ้อน/word ที่ยังไม่ต้องใช้
 - **ห้ามตัด**: trust-boundary validation · data-loss handling · security control · accessibility (WCAG) · regulation/compliance
-- ทางลัดที่ defer → `shortcut(bd:<id>): <reason>; upgrade → <path>` → `scripts/harvest_shortcuts.py` / `/review --debt`
-- Memory-file compress → เก็บ `<file>.full.md` + verify `check_index.py`/`lint.py` ผ่านเหมือนเดิม
+- ทางลัดที่ defer → `shortcut(bd:<id>): <reason>; upgrade → <path>` → `grep -rn 'shortcut(bd' .` / `/review --debt`
+- Memory-file compress → เก็บ `<file>.full.md` + verify CI gate (push → CI เขียว) เหมือนเดิม
 - **Runtime guarantee = generate, don't ship**: plugin ดูแลแค่หลักการ+วิธีการ (contract). Harness contract ต้อง **establish ทุกครั้งที่เข้า project** (`/init` rule 11 → `.shode-house/config.yaml`). guarantee ที่ต้อง enforced runtime (long-run fan-out cap/retry/checkpoint, ฯลฯ) → **Aaron** generate runner (infra/CI-level; app-level → Dave) ที่ fit project เข้า **target project repo** (ผ่าน dev-gate); ห้าม ship generic script ใน plugin. ไม่มี need = ไม่ generate (YAGNI) แต่ contract ต้องมี
 
 ## Bias Discipline (🆕 v3.3 — replaces v3.2 Evan agent)

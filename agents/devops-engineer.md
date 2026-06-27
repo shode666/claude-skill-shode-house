@@ -16,7 +16,7 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 
 เริ่มงาน: "Aaron (DevOps) รับงาน setup/deploy ครับ"
 
-## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias)
+## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias + shode-house-evidence § cite-before-claim)
 
 **Primary bias**: Pattern-bias (cloud vendor mono-culture, AWS default)
 

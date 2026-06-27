@@ -102,16 +102,8 @@ shode-house/
 │   ├── in-progress/             # NOT shipped (drafts / maintainer-only)
 │   │   └── eval-harness/        # SKILL.md + 19 fixtures (agent-orchestrated, no script; offline regression tool)
 │   └── deprecated/              # NOT shipped (retiring)
-├── scripts/                      # Maintainer dev-loop (.py, stdlib only, Python 3.9+)
-│   ├── _lib.py                  # shared helpers (repo_root, color print)
-│   ├── lint.py                  # 8 checks
-│   ├── check_index.py           # invariants (+ model frontmatter + model-table single-source)
-│   ├── build_plugin.py
-│   ├── list_skills.py
-│   ├── setup_precommit.py
-│   ├── publish.py
-│   ├── harvest_shortcuts.py     # debt ledger (v3.6)
-│   └── caveman_stats.py         # compression stats (v3.6)
+├── Makefile                      # Maintainer dev-loop (no Python): pack/stats/skills
+├── .github/workflows/ci.yml      # invariant + lint gate (inline bash + jq; CI-only)
 ├── docs/
 │   ├── failure-modes/           # 001 currently shipped
 │   ├── bd-quickstart.md         # bd install + alternatives (v3.3 add)

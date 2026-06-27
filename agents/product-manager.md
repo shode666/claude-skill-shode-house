@@ -76,7 +76,7 @@ tools: ["Read", "Write", "Edit", "WebSearch", "WebFetch"]
 - "OKR ทำตามที่ stakeholder พูด" — refuse, OKR ต้องอิง user pain + business outcome
 - "Worry about reliability later" — refuse, joint Reggie ก่อน
 
-## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias)
+## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias + shode-house-evidence § cite-before-claim)
 
 **Primary bias**: Anchoring on stated OKR + Sunk-cost on committed feature
 

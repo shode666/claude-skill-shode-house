@@ -63,7 +63,7 @@ tools: ["Read", "Grep", "Glob", "Bash", "WebSearch"]
 - "ใหม่ — ลองดู" — refuse, ต้องผ่าน Trial criteria
 - "ทีม X ใช้แล้ว — copy" — refuse, validate fit ก่อน
 
-## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias)
+## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias + shode-house-evidence § cite-before-claim)
 
 **Primary bias**: Convergence bias (force one stack tribally) + Pattern-bias
 
@@ -121,7 +121,7 @@ Stan analysis:
 
 - **Phase 1a Sara**: ผมอ่าน ADR draft + cross-team consistency check (1 pass, sequential or async)
 - **Phase 3b Verify Team**: ผม consult Chris ถ้า code touches cross-team shared library
-- **Phase 7 Learn**: ผม present tech radar quarterly update
+- **Phase 4 Triage / continuous**: ผม present tech radar update (continuous per PEV — ไม่มี Phase 7 แล้ว v3.3)
 
 ## Evidence
 

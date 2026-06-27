@@ -129,15 +129,15 @@ E) Asana — task-focused, paid (cross-functional)
 - ✅ Per-bd reflect ใน Phase 4 Triage (ไม่มี Sprint Retro)
 - ✅ ห้าม agent propose timeline / man-day (per shode-house-discipline § No Man-Day Negotiation)
 
-> **Why 1a + 1b แทน Coop 4-way parallel** (v2.8 over v2.7): Bella → Sara มี natural alignment (BRD informs ADR), Uma + Domain ต้องอ่าน spec ก่อน design/validate ฉะนั้น 4-way parallel + cross-read = ~40% redundant token. 1a (Bella ∥ Sara) + 1b (Uma + Domain sequential, read 1 spec baseline) = ได้ quality สูง ลด token
+> **Why 1a + 1b แทน Coop 4-way parallel**: Bella → Sara มี natural alignment (BRD informs ADR), Uma + Domain ต้องอ่าน spec ก่อน design/validate ฉะนั้น 4-way parallel + cross-read = ~40% redundant token. 1a (Bella ∥ Sara) + 1b (Uma + Domain sequential, read 1 spec baseline) = ได้ quality สูง ลด token
 
-> **Why 3a before 3b** (v2.8 over v2.7): UI bug ตรวจที่ Uma ก่อน — Chris/Quinn ไม่เสีย effort review code ที่ design ผิด. Chris+Quinn ทำงาน parallel ตามเดิม (different scope: static review vs runtime test)
+> **Why 3a before 3b**: UI bug ตรวจที่ Uma ก่อน — Chris/Quinn ไม่เสีย effort review code ที่ design ผิด. Chris+Quinn ทำงาน parallel ตามเดิม (different scope: static review vs runtime test)
 
-> **Phase routing precision** (v2.8 over v2.7): Triage แยก code/UI/spec → loop กลับ phase ที่เหมาะ (1a vs 1b vs 2) ไม่ใช่แค่ "Phase 1 หรือ Phase 2"
+> **Phase routing precision**: Triage แยก code/UI/spec → loop กลับ phase ที่เหมาะ (1a vs 1b vs 2) ไม่ใช่แค่ "Phase 1 หรือ Phase 2"
 
 ---
 
-## 🤝 Smart Coop Pattern (🔴 v2.8 — parallel where independent, sequential gate where dependent)
+## 🤝 Smart Coop Pattern (🔴 parallel where independent, sequential gate where dependent)
 
 **Smart Coop ≠ everything parallel.** ใช้ parallel เฉพาะที่ agent **truly independent** (no read dependency); ใช้ sequential gate ที่มี natural dependency
 
@@ -280,7 +280,7 @@ loop (max 5):
 
 ### Approval Gates (⏸️ Oliver)
 ก่อน R0 (irreversible) → bullet check + ขอ approve
-**10 standard (🔴 v2.8 phase-aligned)**: **pre-spec-expand** (🔴 v2.8 — Phase 1a → 1b: Bella+Sara sign-off ก่อน Uma/Domain expand), **pre-implement-ui** (🔴 v2.6.1 — Phase 1b → 2: Uma artifact ครบก่อน Dave start frontend), **pre-ui-check** (🔴 v2.8 — Phase 2 → 3a: lint clean + unit green + smoke pass ก่อน Uma POST), **pre-code-review** (🔴 v2.8 — Phase 3a → 3b: Uma POST PASS ก่อน Chris+Quinn เริ่ม), pre-merge, **pre-merge-ui** (🔴 v2.4 — Playwright/visual/axe evidence ก่อน merge UI change), **pre-loop-exit** (🔴 v2.7 — Phase 4 → 5: Triage clean + iter ≤ 3 → unlock Deploy), pre-deploy-staging/uat/prod, pre-data-migration, pre-destructive
+**10 standard (🔴 phase-aligned)**: **pre-spec-expand** (🔴 Phase 1a → 1b: Bella+Sara sign-off ก่อน Uma/Domain expand), **pre-implement-ui** (🔴 Phase 1b → 2: Uma artifact ครบก่อน Dave start frontend), **pre-ui-check** (🔴 Phase 2 → 3a: lint clean + unit green + smoke pass ก่อน Uma POST), **pre-code-review** (🔴 Phase 3a → 3b: Uma POST PASS ก่อน Chris+Quinn เริ่ม), pre-merge, **pre-merge-ui** (🔴 Playwright/visual/axe evidence ก่อน merge UI change), **pre-loop-exit** (🔴 Phase 4 → 5: Triage clean + iter ≤ 3 → unlock Deploy), pre-deploy-staging/uat/prod, pre-data-migration, pre-destructive
 > ดู Oliver agent file สำหรับ full table + format
 
 ### Worktree Isolation (parallel-safe — Aaron pattern)

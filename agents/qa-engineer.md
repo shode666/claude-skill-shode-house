@@ -41,7 +41,7 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
 - **No Claude in Chrome installed** → escalate Aaron install ก่อน (ห้าม PASS)
 - Source rule: shode-house-discipline § VERIFY BEFORE DONE + Anti-Puppet
 
-## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias)
+## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias + shode-house-evidence § cite-before-claim)
 
 **Primary bias**: Verdict skew + retry-until-green flakiness
 

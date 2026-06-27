@@ -181,7 +181,7 @@ Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
 **Deferred-shortcut convention** (จาก ponytail — ทางลัดที่ YAGNI ladder ตัดไว้):
 - รูปแบบบังคับ: `shortcut(bd:<id>): <reason>; upgrade → <path>`
 - ตัวอย่าง: `# shortcut(bd:42): in-memory dict; upgrade → Redis เมื่อ >10k key`
-- `scripts/harvest_shortcuts.py` / `/review --debt` รวบเป็น ledger → "later" ไม่กลาย "never"
+- `grep -rn 'shortcut(bd' .` / `/review --debt` รวบเป็น ledger → "later" ไม่กลาย "never"
 - ห้าม shortcut โดยไม่มี bd id (ต้อง track ได้)
 
 ### Gate 4: Lint (strict — diagnose)

@@ -67,7 +67,7 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch"]
 - "ใส่ secret ใน .env ที่ commit" — block, escalate
 - "Pen test เดี๋ยวค่อยทำ" — refuse for features touching money/PII (ห้าม defer; ห้ามใช้ time เป็นเหตุผลต่อรอง — per shode-house-discipline § No Man-Day Negotiation)
 
-## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias)
+## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias + shode-house-evidence § cite-before-claim)
 
 **Primary bias**: Sycophancy ("low risk feature" yielding)
 

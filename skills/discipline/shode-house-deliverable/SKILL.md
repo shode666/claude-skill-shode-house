@@ -117,7 +117,7 @@ description: |
 
 ## ⚠️ AI Persona Disclaimer (🔴 v2.6 — บังคับทุก domain expert)
 
-Agent ทั้งหมด (โดยเฉพาะ domain expert: Felix/Iris/Tara/Elena/Sam) คือ **AI persona based on Claude training** (cutoff May 2025).
+Agent ทั้งหมด (โดยเฉพาะ domain expert: Felix/Iris/Tara/Elena/Sam) คือ **AI persona based on model training** (cutoff = ของ model ปัจจุบัน).
 Domain knowledge อาจ outdated หรือ incorrect
 
 **ทุก decision ที่กระทบ money / regulation / safety / compliance ต้อง validate กับ**:
@@ -129,28 +129,28 @@ Domain knowledge อาจ outdated หรือ incorrect
 **Agent ไม่ provide**: professional advice, legal opinion, audit sign-off, prescriptive regulation interpretation
 
 **บังคับ**: domain agent เริ่มทุก engagement ด้วย disclaimer 1 บรรทัด:
-"⚠️ AI persona, training cutoff May 2025 — validate critical claims with [domain expert / official source]"
+"⚠️ AI persona, training-cutoff knowledge — validate critical claims with [domain expert / official source]"
 
 ---
 
-## ทีม (15 agents)
-
 ## ✅ Definition of Done (🔴 verifiable — Oliver enforce ห้ามปิด task)
 
+> Team roster = single source ใน `shode-house-routing` (19 agents, 7 teams)
+
 ```
-□ 🔴 v2.8 — Phase 1a Foundation passed (Bella ∥ Sara light cross-read ok, bd notes posted)
-□ 🔴 v2.8 — Phase 1b Expand passed (Uma* sign UI accept + baseline; Domain* sign regulation/rule; integrated SPEC saved)
-□ 🔴 v2.8 — Phase 3a UI Check PASS (Uma verdict before Chris/Quinn เริ่ม)
-□ 🔴 v2.8 — Phase 3b Code Review passed (Chris ∥ Quinn parallel, 0 Critical/Major)
-□ 🔴 v2.8 — Loop iter ≤ 3 + routing precise (code→2, UI→1b, spec→1a); iter > 3 → escalate user
-□ 🔴 v2.8.2 — Review report posted (bd active → `bd update --notes` ตาม REVIEW template; no bd → `outputs/REVIEW-<feature>.md`). ห้ามเขียนคู่
+□ Phase 1a Foundation passed (Bella ∥ Sara light cross-read ok, bd notes posted)
+□ Phase 1b Expand passed (Uma* sign UI accept + baseline; Domain* sign regulation/rule; integrated SPEC saved)
+□ Phase 3a UI Check PASS (Uma verdict before Chris/Quinn เริ่ม)
+□ Phase 3b Code Review passed (Chris ∥ Quinn parallel, 0 Critical/Major)
+□ Loop iter ≤ 3 + routing precise (code→2, UI→1b, spec→1a); iter > 3 → escalate user
+□ Review report posted (bd active → `bd update --notes` ตาม REVIEW template; no bd → `outputs/REVIEW-<feature>.md`). ห้ามเขียนคู่
 □ Code merged + CI green (lint+type+unit+integration+SAST+SCA)
 □ Contract test pass (Pact/Schemathesis — BE ↔ FE align)
 □ Mutation test kill rate ≥ 70% (business logic)
 □ Pre-merge integration smoke pass (BE+FE+DB up + curl journey)
-□ UI Design (🔴 v2.6.1 — REQUIRED ถ้า frontend/UI changed): Uma wireframe (Figma link/frame ID) + tokens.json + a11y checklist (WCAG AA) attached **ก่อน** Dave start implement
+□ UI Design (REQUIRED ถ้า frontend/UI changed): Uma wireframe (Figma link/frame ID) + tokens.json + a11y checklist (WCAG AA) attached **ก่อน** Dave start implement
    Evidence: link หรือ path ของ Figma frame + tokens.json + a11y self-audit list
-□ UI Test (🔴 v2.4 — REQUIRED ถ้า frontend/components/pages/views/*.vue/*.tsx/*.jsx เปลี่ยน หรือ Uma involved): Playwright pass + visual diff approved + axe critical=0
+□ UI Test (REQUIRED ถ้า frontend/components/pages/views/*.vue/*.tsx/*.jsx เปลี่ยน หรือ Uma involved): Playwright pass + visual diff approved + axe critical=0
    Evidence: paste Playwright console + screenshot/diff path + axe report path + trace path
 □ Load smoke: p95 < SLO, error < 0.1%
 □ Deploy staging + Aaron screenshot ✅

@@ -6,7 +6,7 @@
 
 ออกแบบเน้น: **lean • token-optimized • production-ready • domain-driven • zero-overlap capability • ภาษาไทย**
 
-[![Version](https://img.shields.io/badge/version-3.5.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
+[![Version](https://img.shields.io/badge/version-3.7.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -24,7 +24,7 @@
   - Skill composition pointer (textual handoff between skills — ลด orchestrator round-trip)
 - **`review-checklist` skill (DRY)** — Chris 7-dim + Quinn integration matrix อยู่ที่เดียว; `/implement` Phase 3b + `/review` อ้างที่นี่
 - **Recite Discipline Card** — ทุก agent recite 5 Philosophy verbatim ใน first response (anchor against drift)
-- **CLAUDE.md repo invariants** + `scripts/{list_skills,check_index,build_plugin,lint,publish}.py` dev-loop tooling (Python 3.9+, cross-platform)
+- **CLAUDE.md repo invariants** + `Makefile` + `.github/workflows/ci.yml` dev-loop (no Python; gate inline in CI: bash + jq)
 - **18 skills** (10 functional + 7 discipline modules + 1 review-checklist), **5 commands** (+ 2 deprecated). v3.3 drops sprint outer loop + Evan agent — **PEV loop per bd** (Plan/Execute/Verify/Triage), bias discipline embedded in 19 agent prompts, Chris/Quinn adversarial vs Dave + Claude in Chrome verify mandatory. ห้าม man-day negotiation
 
 ### v3.0 features ที่ยัง keep
@@ -196,7 +196,7 @@ CLAUDE_CODE_SUBAGENT_MODEL=sonnet claude
 | [`shode-house-deliverable`](skills/discipline/shode-house-deliverable/SKILL.md) 🆕 | Producers | DoD + Anti-Puppet + I Never Do + Postmortem template |
 | [`shode-house-broadcast`](skills/discipline/shode-house-broadcast/SKILL.md) 🆕 | ALL | Tag Prefix + Caveman broadcast + Handoff Protocol |
 | [`shode-house-workflow`](skills/discipline/shode-house-workflow/SKILL.md) 🆕 | Oliver | Phase Contract + Smart Coop + hooks + gates + worktree |
-| [`shode-house-drift`](skills/discipline/shode-house-drift/SKILL.md) 🆕 | Oliver enforcer | Drift Defense M1-M7 + New Phases v3.0 |
+| [`shode-house-drift`](skills/discipline/shode-house-drift/SKILL.md) 🆕 | Oliver enforcer | Drift Defense M1-M7 + Phase wiring (Discovery/Threat Model/Operate) |
 | [`review-checklist`](skills/discipline/review-checklist/SKILL.md) 🆕 | Chris + Quinn + Sentinel + Domain | DRY checklist สำหรับ /implement Phase 3b + /review |
 
 ### `skills/in-progress/` + `skills/deprecated/` — not shipped
@@ -352,10 +352,8 @@ RTM (BR → FR → US → ADR → Test → Code) อยู่ใน bd. Markdown
 shode-house/
 ├── CLAUDE.md                   🆕 v3.1 repo invariants (≤ 30 lines)
 ├── .claude-plugin/             manifest + marketplace (v3.1.0)
-├── scripts/                    🆕 v3.1 dev-loop
-│   ├── list-skills.sh          list every SKILL.md + line count + bucket
-│   ├── check-index.sh          enforce CLAUDE.md invariants (CI gate)
-│   └── build-plugin.sh         build shode-house-v3.1.0.plugin
+├── Makefile                    🆕 v3.7 dev-loop (no Python): pack/stats/skills
+├── .github/workflows/ci.yml    invariant + lint gate (inline bash + jq; CI-only)
 ├── skills/
 │   ├── workflow/               daily process
 │   │   ├── meeting/            🔄 v3.1 thin entry-point (180 lines, was 1316)

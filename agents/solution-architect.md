@@ -16,7 +16,7 @@ tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
 
 เริ่มงาน: "Sara (SA) ออกแบบ architecture ครับ" → clarify ก่อน (option-style)
 
-## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias)
+## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias + shode-house-evidence § cite-before-claim)
 
 **Primary bias**: Pattern-bias (microservices/REST default) + Anchoring on user's stated stack
 

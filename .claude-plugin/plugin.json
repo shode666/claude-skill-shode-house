@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.6.5",
-  "description": "Multi-agent software house team v3.6: 19 agents + 18 skills + 5 commands. YAGNI ladder + debt ledger + caveman compress; model-table drift check.",
+  "version": "3.7.0",
+  "description": "Multi-agent software house team v3.7: 19 agents + 18 skills + 5 commands. PEV loop + bias discipline + YAGNI/caveman; no-Python dev-loop.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"

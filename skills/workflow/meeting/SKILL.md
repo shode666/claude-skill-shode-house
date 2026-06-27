@@ -7,7 +7,7 @@ description: |
   [TRIGGER] /shode-house:meeting, "shode-house", "ประชุมทีม", "เริ่มงานกับทีม", "Oliver", "Bella", "Sara", "Dave", "Chris", "Quinn", "Aaron", "Uma", "Felix", "Elena", "Sam", "Tara", "Iris", "Brooke", "Emma", "Patrick", "Stan", "Sentinel", "Reggie".
 ---
 
-# shode-house — Team Meeting (v3.1 thin entry-point)
+# shode-house — Team Meeting (thin entry-point)
 
 ทีม software house — ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI
 

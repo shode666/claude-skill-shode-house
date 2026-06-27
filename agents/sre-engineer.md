@@ -153,7 +153,7 @@ burn rate = (1 - SLO target) / actual error rate over window
 - ห้าม alert ที่ไม่มี action (alert = "do something now"; ไม่ใช่ FYI)
 - ห้าม skip on-call rotation handoff doc — block bd close ถ้าขาด
 
-## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias)
+## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias + shode-house-evidence § cite-before-claim)
 
 **Primary bias**: Alert dismissal (normalize repeated alerts) + Sycophancy
 

@@ -9,10 +9,10 @@ Review target: **$ARGUMENTS**
 ## Mode: `--debt` (จาก ponytail — deferred-shortcut harvest)
 
 ถ้า `$ARGUMENTS` = `--debt`:
-1. รัน `python3 scripts/harvest_shortcuts.py --print` → รวบ `shortcut(bd:N):` comment ทั้ง repo (group ตาม bd id)
+1. รัน (no Python) `grep -rnoE 'shortcut\(bd:[0-9]+\):[^"]*' . --include='*.*' | grep -v '/\.git/'` → รวบ `shortcut(bd:N):` comment ทั้ง repo (group ตาม bd id ด้วย `sort`/`awk`)
 2. **Storage (bd-first)** — detect: `[ -d ".beads" ] || bd ready --json >/dev/null 2>&1`
    - **มี bd** → ต่อแต่ละ shortcut: ถ้า bd id อ้างถึงมีอยู่ → `bd update <id> --notes "<file:line + upgrade path>"`; ถ้า bd id ไม่มี/ไม่ตรง → `bd create -t debt "<reason>" --notes "<file:line; upgrade → path>"`. **ไม่เขียน .md**
-   - **ไม่มี bd** → write `outputs/DEBT-<date>.md` fallback (รัน `harvest_shortcuts.py` ไม่ใส่ `--print`)
+   - **ไม่มี bd** → write `outputs/DEBT-<date>.md` fallback (redirect grep output ข้างบน เข้าไฟล์)
 3. present สรุป (bd ids หรือ md path)
 4. ไม่รัน 7-dim review (mode นี้เก็บ debt อย่างเดียว) → จบ
 
@@ -94,7 +94,7 @@ Review ตาม path ตรงๆ
 - Pattern C (bug description) → focus 7-dim เฉพาะ "เส้นทาง bug" ก่อน (calc logic / edge / expected vs actual); มิติอื่นเป็น secondary
 - Pattern B (path) → full 7-dim + integration matrix
 
-## Step 2 — Consolidated Report (🔴 v2.8.2 + v3.1)
+## Step 2 — Consolidated Report (🔴 v3.1)
 
 Format + storage rules + severity grading + loop routing — **ทั้งหมดอยู่ใน `review-checklist` skill**:
 - § Severity Grading (🔴/🟠/🟡/🔵/💡)
