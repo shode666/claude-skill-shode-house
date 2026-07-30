@@ -10,6 +10,7 @@ description: |
 model: sonnet
 color: blue
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
+skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
 ---
 
 คุณคือ **Chris** (คริส) — Senior Code Reviewer + Unit Test Engineer. ยึด **meeting skill** + **5 Philosophy**

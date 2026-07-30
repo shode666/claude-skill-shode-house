@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.7.0",
-  "description": "Multi-agent software house team v3.7: 19 agents + 18 skills + 5 commands. PEV loop + bias discipline + YAGNI/caveman; no-Python dev-loop.",
+  "version": "3.9.0",
+  "description": "Multi-agent software house team v3.9: 19 agents + 19 skills + 5 commands. Backlog drain (worktree fan-out) + close-on-done guard.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"
@@ -48,7 +48,10 @@
     "bucket-lifecycle",
     "pev-loop",
     "bias-discipline",
-    "no-sprint"
+    "no-sprint",
+    "backlog-drain",
+    "close-on-done",
+    "worktree-isolation"
   ],
   "skills": [
     "./skills/workflow/",

@@ -12,7 +12,7 @@ description: |
 > Oliver = workflow/process owner. Stan (Staff) = cross-team tech depth. Sara (SA) = per-project tech decision
 
 ---
-## 🔐 Input Trust Levels (🔴 v2.5 — FS-inspired)
+## 🔐 Input Trust Levels (🔴 FS-inspired)
 
 ทุก agent ประกาศ **trust level** ของ source ก่อน act/claim. ระดับ trust ตัดสิน handling:
 
@@ -82,7 +82,7 @@ trade/order/exchange/FIX → Tara
 |----------|--------|
 | Business vs Tech | Domain Expert |
 | Architecture vs Implementation | Sara |
-| Look & feel / visual direction / interaction pattern | **Uma** (Design Authority v3.5.1) — ยกเว้นชน a11y law / security / regulation → constraint ชนะ |
+| Look & feel / visual direction / interaction pattern | **Uma** (Design Authority) — ยกเว้นชน a11y law / security / regulation → constraint ชนะ |
 | Security vs Performance | Chris/Quinn |
 | Quality vs Timeline | Chris+Quinn (block) |
 | Complex vs Simple | Keep simple (YAGNI) |
@@ -93,7 +93,7 @@ trade/order/exchange/FIX → Tara
 
 ---
 
-## 📏 T-shirt (🔴 v3.3 — internal routing heuristic only, ไม่ส่งต่อ user)
+## 📏 T-shirt (🔴 internal routing heuristic only, ไม่ส่งต่อ user)
 
 > T-shirt = **internal signal** สำหรับ Oliver decide parallel vs sequential delegation. **ห้ามใช้เป็น time estimate ส่งให้ user** (per shode-house-discipline § No Man-Day Negotiation). ถ้า user explicit ขอ effort → ใช้ `/design-system --estimate`.
 
@@ -129,7 +129,7 @@ bd-3:               Sara design ▸ Dave ───
 - ห้าม pipeline ถ้า chunk มี hard data-dep (bd-2 ต้องใช้ผล bd-1) → sequential
 - WIP cap: ไม่เกิน 2-3 bd in-flight ต่อ stage (กัน Sara/Dave context bloat + rework ตอน interface เปลี่ยน)
 
-## 🔁 Multi-bd Long-run Orchestration (🔴 v3.6 — wire harness contract)
+## 🔁 Multi-bd Long-run Orchestration (🔴 wire harness contract)
 
 long run = หลาย bd ต่อเนื่อง. enforce ด้วย harness contract (ดู `/init` rule 11 + Oliver Harness Contract Check):
 
@@ -148,7 +148,7 @@ long run = หลาย bd ต่อเนื่อง. enforce ด้วย har
 - **bd = single source of truth**: bd active → `bd update --notes` only; ห้ามเขียน markdown ซ้ำ (redundancy + drift)
 - **Caveman broadcast**: 1 บรรทัดต่อ handoff; รายละเอียดไป bd notes
 
-## 👥 Team Structure (🔴 v3.0)
+## 👥 Team Structure
 
 7 teams ที่ทำงาน **parallel ภายในทีม + sequential ระหว่างทีม** (cross-team handoff = phase gate)
 
@@ -162,7 +162,7 @@ long run = หลาย bd ต่อเนื่อง. enforce ด้วย har
 | ✅ **Verify** | Chris + Quinn + Sentinel | Phase 3b | Code review + Test + Security |
 | 🚀 **Ops** | Aaron + Reggie | Phase 5/6 | Deploy + SLO + Incident |
 
-> v3.3: dropped Eval team (Evan agent over-engineer for current scale). Bias discipline embedded in each agent prompt + `shode-house-discipline` § No-Bias rules. Eval harness kept in `skills/in-progress/` for future major-release regression (maintainer offline use).
+> Dropped Eval team (Evan agent over-engineer for current scale). Bias discipline embedded in each agent prompt + `shode-house-discipline` § No-Bias rules. Eval harness kept in `skills/in-progress/` for future major-release regression (maintainer offline use).
 
 ### Single-owner capability matrix (🔴 zero overlap)
 
@@ -179,7 +179,7 @@ long run = หลาย bd ต่อเนื่อง. enforce ด้วย har
 | ML model / RAG / vector / prompt eval | **Dave** (interim) | — (สร้าง Mason agent เมื่อ project ต้องการ deep ML) |
 | 7-dim review + Unit + Mutation ≥ 70% | **Chris** | Quinn (ห้าม unit) |
 | Integration + E2E + Contract + Load + axe auto | **Quinn** | Chris (ห้าม integ), Uma (ห้าม automation) |
-| STRIDE / SAST / DAST / Secrets / Pen test / CSP | **Sentinel** | Sara, Chris, Quinn (handoff in v3.0) |
+| STRIDE / SAST / DAST / Secrets / Pen test / CSP | **Sentinel** | Sara, Chris, Quinn (handoff) |
 | Dockerfile / CI/CD / IaC / Deploy build | **Aaron** | Reggie (ห้าม build) |
 | SLO / SLI / Error budget / Incident / Runbook | **Reggie** | Aaron (ห้าม SLO) |
 | Workflow orchestration / state / delegation | **Oliver** | Patrick |
@@ -190,9 +190,9 @@ long run = หลาย bd ต่อเนื่อง. enforce ด้วย har
 
 ---
 
-## 🤝 Handoff Broadcast Protocol (🔴 v3.0 — caveman 1-line)
+## 🤝 Handoff Broadcast Protocol (🔴 caveman 1-line)
 
-### Arrow convention (🔴 v3.0.1)
+### Arrow convention
 
 ใช้ 2 arrows คนละความหมาย (accept divergence — semantic distinction):
 
@@ -239,7 +239,7 @@ Lead    ▸ Ops    : ship it
 
 ---
 
-## 📋 RACI per Phase (🔴 v3.0)
+## 📋 RACI per Phase
 
 > R = Responsible (does) | A = Accountable (one sign-off) | C = Consulted | I = Informed
 
@@ -256,9 +256,9 @@ Lead    ▸ Ops    : ship it
 | **5 Deploy** | Aaron, Reggie | **Aaron** (build) + **Reggie** (SLO) | Quinn, Sentinel | All |
 | **6 Operate** | Reggie | **Reggie** | Aaron, Oliver, Patrick | Dave |
 
-> v3.3: Phase 7 (Sprint Learn) removed — per-bd reflect happens in Phase 4 Triage; continuous OKR review (Patrick) without bracket.
+> Phase 7 (Sprint Learn) removed — per-bd reflect happens in Phase 4 Triage; continuous OKR review (Patrick) without bracket.
 
-### Adversarial relation: Chris/Quinn vs Dave (🔴 v3.3 — embedded discipline)
+### Adversarial relation: Chris/Quinn vs Dave (🔴 embedded discipline)
 
 | Question | Answer | Why |
 |---|---|---|
@@ -268,4 +268,4 @@ Lead    ▸ Ops    : ship it
 | Frontend/API/observable touched? | ✅ Chris ∥ Quinn บังคับ open `mcp__Claude_in_Chrome__navigate` + screenshot/console/network | Headless Playwright = automation; Chrome MCP = human-visible truth |
 | Chris/Quinn agree blindly with each other? | ⚠ Cross-check ได้ — แต่ verdict ต้อง independent (parallel) | M3 Anti-Puppet — single point trust = drift risk |
 
-> New Phases v3.0 (0 Discovery / 1c Threat Model / 6 Operate) → ดู `shode-house-drift` skill
+> New Phases (0 Discovery / 1c Threat Model / 6 Operate) → ดู `shode-house-drift` skill

@@ -3,6 +3,51 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.9.0] — backlog drain (worktree fan-out + serial merge) + M8 Close-on-Done Guard — 2026-07-30
+
+> **Root-cause release #2.** ปิด 2 failure mode ที่วัดได้จริง: (1) **stale-open bd** — งานเสร็จ merged แล้วแต่ไม่มีใครปิด issue -> backlog โกหก รอบถัดไปทำซ้ำ (2) **git race / tree collision** ตอน agent หลายตัว commit บน trunk พร้อมกัน
+
+### ✨ Added
+
+- **`drain` skill** (`skills/ops/drain/`) — orchestration pattern สำหรับ backlog ที่ **verified แล้ว**: verify set (`bd show` ทีละตัว — `bd list` ไม่นับ) -> Oliver route + **group by file-locality** -> fan-out 1 worktree-isolated agent ต่อ item (TDD, unit test เท่านั้น, commit บน `fix/<id>`, **ห้าม push**) -> main loop `git cherry-pick` **serial** -> 1 aggregate fast-gate -> 1 push -> `bd close` ทุก item พร้อม evidence. 8 invariants + `When NOT to use` + `Required inputs — refuse without` + Skill composition ครบตาม repo invariant
+- **`skills/ops/drain/workflow-template.js`** — Runner A (Workflow tool) parameterize `ITEMS`; guard `ITEMS.length === 0` และ `> 20`. Runner B = `Task` tool fan-out (Claude Code default) ใช้ COMMON brief เดียวกัน
+- **M8 — Close-on-Done Guard** (`shode-house-drift`) — งาน land แล้วต้อง `bd close <id> --reason "<verdict> <commit_sha> <test_result>"` -> `bd show <id>` -> **paste output**. Can/Can-NOT table ต่อ agent; `PARTIAL`/`BLOCKED` **คง OPEN** พร้อม note (no false close); `FALSE_POSITIVE` ปิดเป็น invalid พร้อม proof
+
+### 🔄 Changed
+
+- **DoD** (`shode-house-deliverable`) — เพิ่มข้อ **bd CLOSED with evidence**; code merged แต่ bd ยัง OPEN = ยังไม่ done. Anti-Puppet list เพิ่ม "ปิด bd แล้ว" (ไม่มี `bd show`) เป็น pattern ต้องห้าม
+- **`shode-house-workflow`** — Phase 4 Triage post-hook บังคับ close-with-reason + `bd show` re-confirm; tracker table (beads) แสดง `--reason` + verify step; Worktree Isolation ชี้ไป `drain` สำหรับ batch backlog; อ้าง Drift Defense เป็น M1-M8
+- **`/implement`** — Step 7 Triage เพิ่ม `--reason` + `bd show` gate; rule ใหม่ #10 (Close-on-Done) + #11 (batch -> `drain` ไม่ใช่ `/implement` ซ้ำ)
+- **Oliver** (`agents/orchestrator.md`) — bd close section เพิ่ม M8 requirement + ห้ามจบ run ที่มี item FIXED แต่ bd ยัง OPEN
+- **CI gate check #11** — เพิ่ม `drain` ใน cross-ref alternation
+
+> Skill count 18 -> **19** (ops bucket 3 -> 4). `drain` ไม่ถูกใส่ใน `skills:` frontmatter ของ Oliver — เพดาน <= 3 skill/agent (CLAUDE.md) ยังคงอยู่; เรียก on-demand ผ่าน `/shode-house:drain`
+
+---
+
+## [3.8.0] — 🔴 fix: discipline never reached subagents (skills preload + handoff contract) — 2026-07-20
+
+> **Root-cause release.** Diagnosis: `docs/DIAGNOSIS-agent-coordination-drop.md`
+
+### 🐛 Fixed — the coordination-drop root cause
+
+- **`skills:` frontmatter on all 19 agents** — ก่อนหน้านี้ **0/19** agents โหลด discipline ได้เลย: ไม่มี `Skill` ใน `tools:` (0/19), ไม่มี `skills:` frontmatter (0/19), ไม่มี hook layer, และ CLAUDE.md ที่ auto-load เข้า subagent เป็นของ **target project** ไม่ใช่ของ plugin repo. `meeting/SKILL.md:40` สั่งว่า "ทุก agent ต้องโหลดอย่างน้อย `shode-house-discipline`" ซึ่ง **ทำไม่ได้ในทางกายภาพ** → Recite Card / 5 Philosophy / evidence protocol / Phase Contract / drift defense หายทุกครั้งที่ `Task` delegate. Regression นี้เข้ามาตั้งแต่ v3.1 ที่แตก god-skill เป็น lazy-load skills. `skills:` inject **full content เข้า subagent ตอน startup** — เปลี่ยนจาก convention เป็น enforcement
+- **M1 Ingress Guard ย้าย `shode-house-drift` → `shode-house-discipline`** — M1 บังคับที่ *ทุก* agent แต่ `drift` เป็น Oliver-only skill ที่ agent อื่นไม่ preload. `drift` เหลือ M2–M7 (Oliver enforcer). ลบ duplicate header ที่ค้างอยู่ด้วย
+
+### ✨ Added
+
+- **Handoff Contract** (`shode-house-workflow`) — phase artifact ต้องอยู่ในไฟล์; delegation ส่ง **path ไม่ส่งเนื้อหา**; producer return = structured conclusion + artifact path (ห้าม dump transcript กลับ orchestrator); delegation message ต้องมี bd-id + paths + phase + iter เสมอ (sub-agent ไม่เห็น conversation history). ปิด "game of telephone" — inter-agent misalignment ≈ 37% ของ multi-agent failure (MAST, arXiv:2503.13657)
+- **Response Language rule** (`shode-house-discipline`) — ทุก agent **ตอบภาษาเดียวกับที่ user เขียนมา** ไม่ fix ไทย ไม่ fix อังกฤษ; เปลี่ยนตาม message ล่าสุด; user สั่งชัดเจน = override. Verbatim ห้ามแปล: code/path/command/log, Recite Card, tag prefix + handoff line, regulation cite, bd field + phase/gate name
+- **Language momentum trap guard** — 🔬 **measured defect**: smoke test v3.8 (Dave + Chris, prompt ภาษาอังกฤษ) → Chris ตอบอังกฤษ ✅ แต่ **Dave ตอบไทย ❌** ทั้งที่ preload rule เดียวกัน. สาเหตุ: Recite Card (ไทย verbatim) + agent prompt body (ไทย) มาก่อน → ลากภาษาทั้ง response (สอดคล้อง IFScale "bias towards earlier instructions"). เพิ่ม explicit rule: card + agent-file language **ไม่นับเป็น signal**, ตัดสินจาก user message เท่านั้น + self-check ก่อนส่ง
+- **CI gate check #13** — ทุกชื่อใน `skills:` ต้อง resolve เป็น shipped skill + ห้ามชี้ `in-progress/` หรือ `deprecated/` + ต้องมี `shode-house-discipline` ขั้นต่ำ. **จำเป็นเพราะ Claude Code ข้าม skill ที่หาไม่เจอแบบเงียบ ๆ** (log ลง debug เท่านั้น) → ไม่มี check นี้ = regression กลับมาโดยไม่มีใครรู้
+
+### 🔄 Changed
+
+- `shode-house-workflow` trim (prompt-template + why-blocks) เพื่อคง invariant ≤ 300 บรรทัด หลังเพิ่ม Handoff Contract
+- **`ADOPT-loop-engineering-proposal.md` #5 ประเมินผิด** — เขียนไว้ว่า sub-agent isolation "ทำแบบ emergent อยู่แล้ว แค่ยังไม่ใช่ rule / เสี่ยงต่ำ" ความจริง isolation ทำงาน *แรงเกินไป* จนตัด discipline ทิ้งหมด = root cause อันดับ 1 ไม่ใช่ nice-to-have. #1 circuit-breaker + #2 learning-loop เลื่อนไปหลังวัดผล v3.8
+
+---
+
 ## [3.7.0] — no-Python dev-loop + content reconciliation + loop-engineering doc — 2026-06-27
 
 ### ✨ Added

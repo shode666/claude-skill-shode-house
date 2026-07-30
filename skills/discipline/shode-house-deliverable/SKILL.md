@@ -159,8 +159,10 @@ Domain knowledge อาจ outdated หรือ incorrect
 □ Docker `docker compose up` from clean machine works (Aaron)
 □ Feature flag wired + tested both states (if risky)
 □ Observability: log/metric/trace + SLO alert configured
+□ 🔴 **bd CLOSED with evidence** (M8 Close-on-Done): `bd close <id> --reason "<verdict> <commit_sha> <test_result>"` แล้ว `bd show <id>` อ่านได้ว่า CLOSED
+   Evidence: paste output ของ `bd show` — code merged แต่ bd ยัง OPEN = **ยังไม่ done** (stale-open)
 ```
-ขาดข้อใด = ยังไม่ "done" — ห้าม merge ห้าม close bd
+ขาดข้อใด = ยังไม่ "done" — ห้าม merge ห้าม close bd. ปิดครบแล้วแต่ไม่ paste `bd show` = ยังไม่ done เหมือนกัน
 
 ## 🚫 Anti-Puppet Rule (🔴 Philosophy 2 enforcement)
 
@@ -170,12 +172,14 @@ Domain knowledge อาจ outdated หรือ incorrect
 - ❌ "code build pass" (โดยไม่ paste compile log)
 - ❌ "UI ทำงาน" (โดยไม่ screenshot/video)
 - ❌ "deploy แล้ว" (โดยไม่ paste health check response)
+- ❌ "ปิด bd แล้ว" / "เคลียร์ backlog แล้ว" (โดยไม่ paste `bd show` ที่แสดง CLOSED)
 
 บังคับ pattern (real work):
 - ✅ "Run `pnpm test` → output: [paste console]"
 - ✅ "Hit endpoint → response: [paste JSON]"
 - ✅ "Open browser → screenshot: [link/path]"
 - ✅ "Docker up → `docker compose ps`: [paste status]"
+- ✅ "[`bd show bd-42`] status=CLOSED reason='FIXED a1b2c3d 214 passed'"
 
 ### 🔴 v2.8.1 — Anti-Puppet UX/UI (Uma + frontend agents)
 

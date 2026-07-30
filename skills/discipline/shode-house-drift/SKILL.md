@@ -1,13 +1,13 @@
 ---
 name: shode-house-drift
 description: |
-  [WHAT] Workflow Drift Defense — 7 mechanisms (M1-M7) ป้องกัน workflow regression: Ingress Guard, Follow-up Classifier, Anti-Puppet Done, User Comment = FAIL, Spec change = mandatory bd revision, Conversation State pin, Direct-to-agent block.
+  [WHAT] Workflow Drift Defense — 8 mechanisms (M1-M8) ป้องกัน workflow regression: Ingress Guard, Follow-up Classifier, Anti-Puppet Done, User Comment = FAIL, Spec change = mandatory bd revision, Conversation State pin, Direct-to-agent block, Close-on-Done Guard.
   [AUDIENCE] Oliver (primary enforcer); ทุก agent ต้องผ่าน Ingress Guard.
-  [WHEN] Every user message (M1 Ingress Guard); every follow-up (M2 Classifier); every "done" claim (M3); every comment (M4); every spec change (M5); session state (M6); agent invocation (M7).
-  [TRIGGER] /shode-house:drift, "Drift Defense", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "Ingress Guard", "Follow-up Classifier", "Anti-Puppet Done", "Conversation State", "Direct-to-agent block", "drift", "regression".
+  [WHEN] Every user message (M1 Ingress Guard); every follow-up (M2 Classifier); every "done" claim (M3); every comment (M4); every spec change (M5); session state (M6); agent invocation (M7); every landed item (M8 Close-on-Done).
+  [TRIGGER] /shode-house:drift, "Drift Defense", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "Ingress Guard", "Follow-up Classifier", "Anti-Puppet Done", "Conversation State", "Direct-to-agent block", "Close-on-Done", "stale-open", "drift", "regression".
 ---
 
-# shode-house — Workflow Drift Defense (7 Mechanisms)
+# shode-house — Workflow Drift Defense (8 Mechanisms)
 
 > v3.0 invariants ที่ Oliver enforce ทุก message. ขาด mechanism ไหน = workflow drift จะกลับมา
 
@@ -42,21 +42,14 @@ description: |
 
 ---
 
-## 🛡️ Workflow Drift Defense (🔴 v3.0 — 7 Mechanisms)
-
-## 🛡️ Workflow Drift Defense (🔴 v3.0 — 7 Mechanisms)
+## 🛡️ Workflow Drift Defense (🔴 8 Mechanisms)
 
 แก้ปัญหา **agent หลุด workflow ใน follow-up message** — Dave บอก "เสร็จแล้ว" โดยไม่ผ่าน Verify, fix ตรงโดยไม่ผ่าน Phase 1a
 
-### M1 — Ingress Guard (🔴 บังคับ ก่อน respond ทุก message)
+### M1 — Ingress Guard → **ย้ายไป `shode-house-discipline` § M1** (v3.8)
 
-ทุก agent ก่อนตอบ user message ใน active engagement:
-```
-1. bd show <id>   → no bd-id → STOP, route Oliver triage
-2. read state     → state ∈ {pick|impl|ui-check|review|triage|done}
-3. classify msg   → {new-task|fix|spec-change|question|done-claim|cancel}
-4. route check    → message type × current state = valid? FAIL → STOP, explicit reroute
-```
+M1 บังคับที่ **ทุก agent** ไม่ใช่แค่ Oliver → ย้ายเข้า skill ที่ทุก agent preload เพื่อการันตีว่าถึงจริง
+skill นี้ = **M2–M7 (Oliver enforcer)** เท่านั้น
 
 ### M2 — Follow-up Classifier (Oliver auto-triage ทุก user message)
 
@@ -138,6 +131,30 @@ User direct ping → Dave (bypass Oliver):
 ```
 
 ทุก agent ที่ไม่ใช่ Oliver ห้าม accept direct-from-user ใน active engagement — ส่งกลับ Oliver
+
+### M8 — Close-on-Done Guard (🆕 v3.9 — ปิดช่อง stale-open)
+
+> **Measured failure mode**: งานเสร็จจริง (merged / test green / verdict PASS) แต่ bd ค้าง OPEN — backlog โกหก, รอบถัดไปทำซ้ำ
+
+```
+งาน land แล้ว → bd ต้อง CLOSED ในรอบเดียวกัน (3 ขั้น ห้ามข้าม):
+  1. bd close <id> --reason "<verdict> <commit_sha> <test_result>"
+  2. bd show <id>            → ต้องอ่านได้ว่า CLOSED
+  3. paste output ของข้อ 2   → หลักฐาน ไม่ใช่คำพูดของ agent
+```
+
+| Agent | Can say | Can NOT say |
+|-------|---------|-------------|
+| **Oliver** | "bd-42 CLOSED [paste `bd show`]" | "ปิด bd แล้ว" / "เคลียร์ backlog แล้ว" (ไม่มี output) |
+| Dave/Chris/Quinn | "verdict FIXED, sha a1b2c3d, 214 passed" | "ปิด bd ให้แล้ว" (close = Oliver Phase 4 เท่านั้น) |
+
+**ห้าม**:
+- ❌ จบ run / session โดยมี item verdict = FIXED แต่ bd ยัง OPEN
+- ❌ `bd close` ที่ `--reason` ว่าง หรือไม่มี commit sha + test result
+- ❌ close `PARTIAL` / `BLOCKED` ให้ตัวเลขสวย — **คง OPEN + note ตรงไปตรงมา**
+- ❌ เชื่อ `bd list` เป็นหลักฐานสถานะ — `bd show` เท่านั้นที่ trust ได้
+
+**Batch / backlog run** (หลาย item รอบเดียว) → ใช้ `drain` skill; Step 5 = close-on-done + `bd show` verify ทุก item
 
 ---
 

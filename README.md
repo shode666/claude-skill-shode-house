@@ -6,8 +6,20 @@
 
 ออกแบบเน้น: **lean • token-optimized • production-ready • domain-driven • zero-overlap capability • ภาษาไทย**
 
-[![Version](https://img.shields.io/badge/version-3.7.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
+[![Version](https://img.shields.io/badge/version-3.9.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+---
+
+## 🆕 v3.9 — Backlog drain + Close-on-Done Guard
+
+**Root cause ที่ปิดในรุ่นนี้: bd ค้าง OPEN ทั้งที่งานเสร็จ** (stale-open) + git race ตอน agent หลายตัวแตะ trunk พร้อมกัน
+
+- **`drain` skill ใหม่** ([`skills/ops/drain/SKILL.md`](skills/ops/drain/SKILL.md)) — เปลี่ยน backlog ที่ **verified แล้ว** N item อิสระ เป็น: 1 worktree-isolated agent ต่อ item (TDD, no push) → **serial cherry-pick** เข้า trunk → 1 fast-gate → 1 push → `bd close` ทุก item พร้อม evidence. 8 invariants (verify-before-done, close-on-done, no-false-close, false-positive honesty, worktree isolation, no-push-in-worktree, scope-lock + no-delete, unit-tests-only-in-parallel)
+- **M8 Close-on-Done Guard** (`shode-house-drift`) — งาน land แล้ว → `bd close --reason "<verdict> <sha> <test_result>"` + `bd show` re-confirm CLOSED + **paste output**. "ปิด bd แล้ว" โดยไม่มี `bd show` = anti-puppet violation. `bd list` ไม่นับเป็นหลักฐานสถานะ
+- **DoD เพิ่มข้อ bd CLOSED with evidence** (`shode-house-deliverable`) — code merged แต่ bd ยัง OPEN = **ยังไม่ done**
+- **`/implement` Phase 4 Triage** — ทุก `bd close` ต้องมี `--reason` + `bd show` verify; batch หลาย bd → route ไป `drain` แทนการรัน `/implement` ซ้ำ
+- **CI gate check #11** รู้จัก `drain` (cross-ref resolution)
 
 ---
 
@@ -25,14 +37,14 @@
 - **`review-checklist` skill (DRY)** — Chris 7-dim + Quinn integration matrix อยู่ที่เดียว; `/implement` Phase 3b + `/review` อ้างที่นี่
 - **Recite Discipline Card** — ทุก agent recite 5 Philosophy verbatim ใน first response (anchor against drift)
 - **CLAUDE.md repo invariants** + `Makefile` + `.github/workflows/ci.yml` dev-loop (no Python; gate inline in CI: bash + jq)
-- **18 skills** (10 functional + 7 discipline modules + 1 review-checklist), **5 commands** (+ 2 deprecated). v3.3 drops sprint outer loop + Evan agent — **PEV loop per bd** (Plan/Execute/Verify/Triage), bias discipline embedded in 19 agent prompts, Chris/Quinn adversarial vs Dave + Claude in Chrome verify mandatory. ห้าม man-day negotiation
+- **19 skills** (11 functional + 7 discipline modules + 1 review-checklist), **5 commands** (+ 2 deprecated). v3.3 drops sprint outer loop + Evan agent — **PEV loop per bd** (Plan/Execute/Verify/Triage), bias discipline embedded in 19 agent prompts, Chris/Quinn adversarial vs Dave + Claude in Chrome verify mandatory. ห้าม man-day negotiation
 
 ### v3.0 features ที่ยัง keep
 
 - 4 core agents: Patrick (PM), Stan (Staff Eng), Sentinel (Security Eng), Reggie (SRE)
 - 4 phases: 0 Discovery, 1c Threat Model, 6 Operate, 7 Learn
 - 7-team structure + single-owner capability matrix
-- Workflow Drift Defense (M1-M7 ตอนนี้อยู่ใน `shode-house-drift` skill)
+- Workflow Drift Defense (M1-M8 ตอนนี้อยู่ใน `shode-house-drift` skill)
 - Handoff Broadcast Protocol (caveman 1-line)
 - RACI matrix per phase + Multi-sig pre-deploy-prod gate
 
@@ -159,7 +171,7 @@ CLAUDE_CODE_SUBAGENT_MODEL=sonnet claude
 
 ---
 
-## 📚 Skills (18 lazy-load — bucket organized v3.1)
+## 📚 Skills (19 lazy-load — bucket organized v3.1)
 
 ### `skills/workflow/` — daily process
 | Skill | Owner | Trigger |
@@ -175,6 +187,7 @@ CLAUDE_CODE_SUBAGENT_MODEL=sonnet claude
 | [`incident`](skills/ops/incident/SKILL.md) | Reggie + Oliver | Runbook + on-call + blameless postmortem + 5-why |
 | [`slo`](skills/ops/slo/SKILL.md) | Reggie | SLI / SLO / error budget (Google SRE Book) |
 | [`secure`](skills/ops/secure/SKILL.md) | Sentinel | STRIDE + LINDDUN + CSP + Trusted Types + SAST/DAST |
+| [`drain`](skills/ops/drain/SKILL.md) 🆕 | Oliver + Dave/Chris/Quinn/Aaron/Uma | Verified backlog → parallel worktree → serial merge → close-on-done |
 
 ### `skills/ui/` — frontend quality
 | Skill | Owner | Trigger |
@@ -196,7 +209,7 @@ CLAUDE_CODE_SUBAGENT_MODEL=sonnet claude
 | [`shode-house-deliverable`](skills/discipline/shode-house-deliverable/SKILL.md) 🆕 | Producers | DoD + Anti-Puppet + I Never Do + Postmortem template |
 | [`shode-house-broadcast`](skills/discipline/shode-house-broadcast/SKILL.md) 🆕 | ALL | Tag Prefix + Caveman broadcast + Handoff Protocol |
 | [`shode-house-workflow`](skills/discipline/shode-house-workflow/SKILL.md) 🆕 | Oliver | Phase Contract + Smart Coop + hooks + gates + worktree |
-| [`shode-house-drift`](skills/discipline/shode-house-drift/SKILL.md) 🆕 | Oliver enforcer | Drift Defense M1-M7 + Phase wiring (Discovery/Threat Model/Operate) |
+| [`shode-house-drift`](skills/discipline/shode-house-drift/SKILL.md) 🆕 | Oliver enforcer | Drift Defense M1-M8 + Phase wiring (Discovery/Threat Model/Operate) |
 | [`review-checklist`](skills/discipline/review-checklist/SKILL.md) 🆕 | Chris + Quinn + Sentinel + Domain | DRY checklist สำหรับ /implement Phase 3b + /review |
 
 ### `skills/in-progress/` + `skills/deprecated/` — not shipped
@@ -225,7 +238,7 @@ PEV loop per bd-issue (Plan → Execute → Verify → Triage):
   Phase 3a UI Check        Uma POST (sequential gate + Chrome MCP)
   Phase 3b Code Review     Chris ∥ Quinn (verdict default = FAIL + Chrome MCP)
   🚦 TRIAGE
-  Phase 4  Triage          Oliver (max iter 3) → bd close + bd remember
+  Phase 4  Triage          Oliver (max iter 3) → bd close + bd show verify (M8) + bd remember
   🚀 DEPLOY (continuous per bd)
   Phase 5  Deploy          Aaron + Reggie
   📡 OPERATE
@@ -363,7 +376,8 @@ shode-house/
 │   ├── ops/                    operational discipline
 │   │   ├── incident/           runbook + war room + postmortem
 │   │   ├── slo/                SLI/SLO/error budget
-│   │   └── secure/             STRIDE + CSP + Trusted Types
+│   │   ├── secure/             STRIDE + CSP + Trusted Types
+│   │   └── drain/              🆕 v3.9 backlog drain + close-on-done
 │   ├── ui/                     frontend quality
 │   │   ├── ui-test/            Playwright + axe + visual
 │   │   └── web-q/              CWV + Lighthouse + SEO + headers
@@ -376,7 +390,7 @@ shode-house/
 │   │   ├── shode-house-deliverable/  DoD + Anti-Puppet + Postmortem
 │   │   ├── shode-house-broadcast/    Tag Prefix + Caveman + Handoff
 │   │   ├── shode-house-workflow/     Phase Contract + hooks + gates
-│   │   ├── shode-house-drift/        Drift Defense M1-M7
+│   │   ├── shode-house-drift/        Drift Defense M1-M8
 │   │   └── review-checklist/         DRY for /implement Phase 3b + /review
 │   ├── in-progress/            not shipped (drafts)
 │   └── deprecated/             not shipped (retiring)

@@ -142,9 +142,12 @@ if any critical/major:
     → Phase 1a (Bella ∥ Sara revise)
 elif any minor:
   bd create -p4 "..." (defer P4 backlog)
-  → bd close <id>
+  → bd close <id> --reason "minor deferred <sha> <test_result>"
 else: # clean
-  bd close <id>
+  bd close <id> --reason "clean <commit_sha> <test_result>"
+
+# 🔴 M8 Close-on-Done Guard (บังคับหลังทุก bd close):
+bd show <id>   # ต้องอ่านได้ว่า CLOSED แล้ว paste output — ห้าม claim "ปิดแล้ว" ลอย ๆ
 
 if iter > 3:
   STOP — broadcast "[Oliver] bd-<id> exceeded iter 3 — escalating user"
@@ -164,4 +167,6 @@ if iter > 3:
 7. Quinn integration/E2E + contract + load + a11y axe สำหรับ critical path
 8. Domain Expert validation บังคับสำหรับ sensitive (parallel ใน Phase 3b)
 9. ห้าม merge จน Phase 3a + 3b ผ่าน + Phase 4 clean (pre-loop-exit gate)
-10. ภาษาไทย; code ตาม convention
+10. 🔴 **Close-on-Done (M8)**: ทุก `bd close` ต้องมี `--reason` = verdict + commit sha + test result แล้ว `bd show <id>` paste ยืนยัน CLOSED. code merged แต่ bd ยัง OPEN = ยังไม่ done
+11. Batch หลาย bd อิสระในรอบเดียว → ใช้ `drain` skill (worktree fan-out + serial cherry-pick + close-on-done) ไม่ใช่ /implement ซ้ำ ๆ
+12. ภาษาไทย; code ตาม convention
