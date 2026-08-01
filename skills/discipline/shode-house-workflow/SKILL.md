@@ -9,7 +9,7 @@ description: |
 
 # shode-house — Workflow Discipline
 
-> Oliver owns workflow. Phase Contract บังคับ. Hooks + Gates make pipeline auditable. สำหรับ Drift Defense (M1-M7) ดู `shode-house-drift` skill
+> Oliver owns workflow. Phase Contract บังคับ. Hooks + Gates make pipeline auditable. สำหรับ Drift Defense (M1-M8) ดู `shode-house-drift` skill
 
 ---
 ## 🧵 Task Tracking — Pluggable Tracker (default: beads/bd)
@@ -18,7 +18,7 @@ description: |
 
 | Tracker | Init | Create | Ready | Close |
 |---------|------|--------|-------|-------|
-| **beads (bd)** default | `bd init` | `bd create "..." -p1 -t feature` | `bd ready --json` | `bd close N` |
+| **beads (bd)** default | `bd init` | `bd create "..." -p1 -t feature` | `bd ready --json` | `bd close N --reason "<sha> <test>"` + `bd show N` |
 | **GitHub Issues** | (gh authed) | `gh issue create -t "..." -l p1` | `gh issue list -l "ready"` | `gh issue close N` |
 | **Linear** | (linear auth) | `linear issue create -t "..."` | `linear issue list --state Todo` | `linear issue update --state Done` |
 | **Jira** | (atlassian MCP) | `mcp jira create ...` | JQL ready query | transition to Done |
@@ -44,8 +44,6 @@ E) Asana — task-focused, paid (cross-functional)
 
 ---
 
-## 🧭 Routing
-
 ## 🔧 Token-saving (🔴 runtime)
 
 - `Grep`/`Glob` (targeted) > `Read` ทั้งไฟล์
@@ -61,6 +59,8 @@ E) Asana — task-focused, paid (cross-functional)
 ---
 
 ## ✅ Definition of Done (🔴 verifiable — Oliver enforce ห้ามปิด task)
+
+> DoD checklist (verifiable, Anti-Puppet, per-owner) = **`shode-house-deliverable` skill § Definition of Done** (single source). Oliver enforce ก่อนปิด bd: ทุก DoD item ต้องมี evidence path — ห้ามปิดถ้าขาด
 
 ## 🔁 Workflow Discipline (🔴 Archon-inspired)
 
@@ -107,7 +107,7 @@ E) Asana — task-focused, paid (cross-functional)
 │                ─ UI/design adherence → Phase 1b (PLAN expand)      │
 │                ─ spec/AC/regulation → Phase 1a (PLAN foundation)   │
 │              Minor → bd create P4 + continue                       │
-│              Clean → bd close <id>                                 │
+│              Clean → bd close <id> + bd show verify (M8)           │
 │              Max iter 3 → STOP escalate user                       │
 │     ↓                                                              │
 │  🚀 DEPLOY (Aaron — continuous per bd, or manual gate)             │
@@ -122,18 +122,11 @@ E) Asana — task-focused, paid (cross-functional)
 * = conditional: Uma เข้า 1b+3a เฉพาะ feature touch user-facing UI; Domain เข้า 1b เฉพาะ touch business rule
 ```
 
-**Key change v3.3**:
-- ❌ ไม่มี outer sprint loop (drop /sprint command + Pre-Sprint + Sprint Close + retro bracket)
-- ✅ Patrick OKR review = continuous (per-bd contribution, ไม่ bracket)
-- ✅ Deploy = per bd ready (continuous) หรือ manual batch (optional ตาม user)
-- ✅ Per-bd reflect ใน Phase 4 Triage (ไม่มี Sprint Retro)
-- ✅ ห้าม agent propose timeline / man-day (per shode-house-discipline § No Man-Day Negotiation)
+**Key rules**: ❌ ไม่มี outer sprint loop (ไม่มี /sprint, Pre-Sprint, Sprint Close, retro bracket) · ✅ Patrick OKR review + Deploy = continuous per-bd · ✅ per-bd reflect ใน Phase 4 Triage · ✅ ห้าม propose timeline/man-day (per `shode-house-discipline` § No Man-Day Negotiation)
 
-> **Why 1a + 1b แทน Coop 4-way parallel**: Bella → Sara มี natural alignment (BRD informs ADR), Uma + Domain ต้องอ่าน spec ก่อน design/validate ฉะนั้น 4-way parallel + cross-read = ~40% redundant token. 1a (Bella ∥ Sara) + 1b (Uma + Domain sequential, read 1 spec baseline) = ได้ quality สูง ลด token
-
-> **Why 3a before 3b**: UI bug ตรวจที่ Uma ก่อน — Chris/Quinn ไม่เสีย effort review code ที่ design ผิด. Chris+Quinn ทำงาน parallel ตามเดิม (different scope: static review vs runtime test)
-
-> **Phase routing precision**: Triage แยก code/UI/spec → loop กลับ phase ที่เหมาะ (1a vs 1b vs 2) ไม่ใช่แค่ "Phase 1 หรือ Phase 2"
+> **Why 1a + 1b แทน 4-way parallel**: Uma + Domain ต้องอ่าน spec ก่อน design/validate → 4-way + cross-read = ~40% redundant token. 1a (Bella ∥ Sara) + 1b (read 1 spec baseline) = quality สูง token ต่ำ
+> **Why 3a before 3b**: UI bug ตรวจที่ Uma ก่อน — Chris/Quinn ไม่เสีย effort review code ที่ design ผิด
+> **Phase routing precision**: Triage แยก code/UI/spec → loop กลับ phase ที่เหมาะ (1a vs 1b vs 2)
 
 ---
 
@@ -156,7 +149,7 @@ E) Asana — task-focused, paid (cross-functional)
 ### Phase 1a Pattern (Parallel Foundation)
 ```
 1. Oliver kick-off: broadcast roster (Bella + Sara) + bd-id
-2. Bella + Sara draft pผ่ารallel (independent scopes)
+2. Bella + Sara draft parallel (independent scopes)
 3. Light cross-read at end (NOT mid-checkpoint — too token-heavy):
    - Bella check FR ขัด ADR ไหม
    - Sara check ADR support FR ครบไหม
@@ -200,7 +193,28 @@ E) Asana — task-focused, paid (cross-functional)
 - ✅ Phase 3a: Uma POST = explicit gate; FAIL = loop ก่อน Chris/Quinn เริ่ม
 - ✅ Phase 3b: Chris+Quinn truly parallel (no order dep)
 
-### 🗂️ State persistence (🆕 v3.4.1 — pure JSON, no script)
+### 🤝 Handoff Contract (🔴 v3.8 — artifact-passing, ห้ามส่งเนื้อหาผ่าน prose)
+
+> **Why**: sub-agent เกิดใน context ว่าง — เห็นแค่ agent body + delegation message + CLAUDE.md. เนื้อหาที่ orchestrator ส่งเป็น prose = **lossy channel** ("game of telephone"). ทุก phase artifact จึงต้องอยู่ใน **ไฟล์** และ delegation ส่ง **path**
+
+**บังคับทุก Task delegate**:
+```
+1. Producer เขียน artifact ลงไฟล์ก่อน hand-off  → outputs/<bd-id>/<NN>-<agent>-<phase>.md
+2. Delegation message ส่ง PATH ไม่ส่งเนื้อหา     → "อ่าน outputs/bd-42/08-bella-phase1a.md"
+3. Consumer Read ไฟล์เอง                        → ห้ามพึ่งสรุปใน delegation message
+4. Producer return = structured conclusion เท่านั้น → verdict + artifact path + open questions
+   (ห้าม dump transcript / full content กลับ orchestrator)
+5. Oliver synthesize จาก conclusion + path      → ห้าม rehydrate worker's full trace
+```
+
+**ห้าม** (จะถูก block):
+- ❌ Oliver paste BRD/ADR/REVIEW content ลง delegation prompt — ส่ง path
+- ❌ Agent claim "ตาม spec ที่ได้รับมา" โดยไม่ Read ไฟล์ spec จริง (= NO MAGIC violation)
+- ❌ Sub-agent return markdown ยาวกลับ Oliver แทนที่จะเขียนไฟล์ + return path
+
+**Bootstrap gap**: sub-agent ไม่เห็น conversation history → delegation message ต้องมี **bd-id + artifact paths + phase + iter** เสมอ ไม่งั้น consumer เริ่มงานแบบไม่มี state
+
+### 🗂️ State persistence (pure JSON, no script)
 Agent maintain state ใน `outputs/<bd-id>/state.json` via Read/Write tools.
 **Required**: `schema_version, bd_id, engagement{name,mode,started_at,domain[]}, current_phase, iter, phases{<phase>:{status,owners[],artifacts[]}}, handoff_log[], findings{critical,high,medium,low}, open_questions[]`
 **Phase status enum**: `pending | in_progress | conditional_pass | passed | failed | skipped`
@@ -242,7 +256,7 @@ When Domain SME (Felix/Iris/Sam/Tara/Elena/Brooke/Emma) flags scope gap in Phase
 | **Phase 2 Implement** | Dave | UI artifact verified (pre-implement-ui), Scope Contract posted, worktree | lint + type + unit pass, smoke green, Scope Contract closed |
 | **Phase 3a UI Check** | Uma (conditional) | implement done + frontend changed | screenshot diff approved + a11y manual + Claude in Chrome verify + Uma own AC verified → PASS/FAIL verdict |
 | **Phase 3b Code Review** | Chris ∥ Quinn | Phase 3a passed (no order between Chris/Quinn); **adversarial — verdict default FAIL** | Chris: 7-dim + mutation kill ≥ 70% + Chrome verify; Quinn: E2E + contract + load + axe + Chrome verify; merged `outputs/REVIEW-<bd-id>.md` |
-| **Phase 4 Triage** | Oliver | 3a + 3b reports ready | route loop (Phase 1a/1b/2 by finding type) ∥ Clean → `bd close <id>` ∥ iter > 3 → escalate user. Per-bd reflect captured in `bd remember <lesson>` (no sprint retro) |
+| **Phase 4 Triage** | Oliver | 3a + 3b reports ready | route loop (Phase 1a/1b/2 by finding type) ∥ Clean → `bd close <id> --reason "<verdict> <sha> <test>"` + `bd show <id>` re-confirm CLOSED (🔴 M8 Close-on-Done — paste output) ∥ iter > 3 → escalate user. Per-bd reflect `bd remember <lesson>` |
 | **Phase 5 Deploy** | Aaron (continuous per bd) | approval gate + rollback plan ready | health check + observability live |
 | **Phase 6 Operate** | Reggie | service in production | SLO burn watched, incident response per runbook |
 
@@ -250,23 +264,8 @@ Aaron implements hooks via Makefile/CI — agent ไม่ต้อง manual
 
 ### 📝 Prompt Template Substitution (commands convention)
 
-Slash commands รองรับ placeholder + shell eval:
-
-**Static substitution** (host-side):
-- `{{PROJECT_NAME}}` `{{STACK}}` `{{DOMAIN}}` `{{TRACKER}}` `{{ENV}}`
-- `{{ENGAGEMENT_ID}}` `{{USER}}` `{{DATE}}` `{{BRANCH}}`
-
-**Shell eval** (sandbox-side, per iteration):
-- `` {{!`git rev-parse HEAD`}} `` — current commit
-- `` {{!`bd ready --json | jq '.[0].id'`}} `` — next task
-- `` {{!`docker compose ps --format json`}} `` — runtime state
-
-**Example** (`commands/implement.md`):
-```
-[Dave] รับงาน {{!`bd ready --json | jq -r '.[0].title'`}}
-context: {{ENGAGEMENT_ID}} on {{BRANCH}}
-```
-
+Static (host): `{{PROJECT_NAME}}` `{{STACK}}` `{{DOMAIN}}` `{{TRACKER}}` `{{ENV}}` `{{ENGAGEMENT_ID}}` `{{USER}}` `{{DATE}}` `{{BRANCH}}`
+Shell eval (sandbox, per iteration): `` {{!`git rev-parse HEAD`}} `` · `` {{!`bd ready --json | jq '.[0].id'`}} ``
 > ใช้เฉพาะที่จำเป็น — over-template = อ่านยาก
 
 ### Loop with Exit (🔴 Dave/Quinn)
@@ -287,7 +286,7 @@ loop (max 5):
 ```bash
 git worktree add ../$(PROJECT)-$(feat) -b $(feat)
 ```
-Use case: parallel Dave, hotfix-while-feature, A/B
+Use case: parallel Dave, hotfix-while-feature, A/B. **Batch backlog (N item อิสระ)** → `drain` skill (fan-out worktree + serial cherry-pick + close-on-done)
 > ดู Aaron agent file สำหรับ Makefile pattern
 
 ### Workflow as Markdown

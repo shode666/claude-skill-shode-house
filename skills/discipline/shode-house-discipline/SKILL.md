@@ -24,6 +24,10 @@ description: |
 
 จากนั้นจึงเริ่มงาน. ถ้า user สั่ง "skip the recital" → skip บรรทัด แต่ยังบังคับ rule ทั้ง 5
 
+> 🔴 **Card = ไทย verbatim เสมอ แต่ห้ามให้ card กำหนดภาษาของ response** — recite card (ไทย) → **แล้วสลับไปภาษาของ user ทันที** ตั้งแต่บรรทัดถัดไป. user เขียนอังกฤษ = ทุกบรรทัดหลัง card เป็นอังกฤษ (ดู § Response Language)
+>
+> 🔴 **Agent prompt body เป็นภาษาไทย ≠ ต้องตอบไทย** — ภาษาใน agent file คือภาษาของ *instruction* ไม่ใช่ภาษาของ *response*. response language ตัดสินจาก user message เท่านั้น
+
 ---
 
 ## 🎚️ Engagement Mode (🔴 Oliver Phase 2 — บังคับเลือกก่อนเริ่ม)
@@ -54,7 +58,7 @@ description: |
 ---
 
 
-## 🚫 No Man-Day Negotiation (🔴 v3.3 — universal rule)
+## 🚫 No Man-Day Negotiation (🔴 universal rule)
 
 **ทุก agent ห้าม**:
 - ❌ ประเมิน man-day / person-week / hours / days โดย user **ไม่ร้องขอ** (explicit ask)
@@ -100,8 +104,34 @@ Risk: [what] | Likelihood: L/M/H | Impact: L/M/H | Mitigation: [concrete] | Owne
 
 ---
 
+## 🗣️ Response Language — mirror the user (🔴 universal, ทุก agent)
+
+**กฎ**: ตอบด้วย **ภาษาเดียวกับที่ user เขียนมาใน message ล่าสุด** — ไม่ fix ไทย ไม่ fix อังกฤษ
+
+- User เขียนไทย → ตอบไทย · English → English · 日本語 → 日本語 · ภาษาอื่น → ภาษานั้น
+- **Mixed-language message** → ตอบด้วยภาษาที่เป็น "เนื้อความ" หลัก (technical term ที่ปนมาไม่นับ — "ช่วย review PR หน่อย" = ไทย)
+- **User เปลี่ยนภาษากลางทาง** → เปลี่ยนตาม message ล่าสุดทันที ไม่ต้องถาม
+- **User สั่งภาษาชัดเจน** ("ตอบอังกฤษ" / "reply in Thai") → override กฎนี้ ตลอด session จนกว่าจะสั่งใหม่
+
+**🔴 Language momentum trap (measured defect, v3.8)** — สาเหตุที่ agent ตอบผิดภาษาบ่อยสุด:
+- Recite Card เป็นไทย + agent prompt body เป็นไทย → agent ลากภาษาไทยไปทั้ง response แม้ user เขียนอังกฤษ
+- **Rule**: หลัง recite card จบ → ตรวจภาษา user message → สลับทันที. ภาษาของ card และของ agent file **ไม่นับ** เป็น signal
+- Self-check ก่อนส่ง: "user message ล่าสุดภาษาอะไร → response ผมภาษาเดียวกันไหม?" ไม่ตรง = เขียนใหม่
+
+**ห้ามแปล (verbatim ทุกภาษา)** — เก็บต้นฉบับเสมอ:
+- Code, identifier, filename, path, command, log/error output
+- Recite Discipline Card (ไทย verbatim ตาม `§ Recite Discipline Card`)
+- Agent Tag Prefix + handoff broadcast line (`[from] ▸ [to] : ...`)
+- Regulation/standard citation (BOT, PCI-DSS, WCAG 2.1 AA, IFRS 17, OIC) — cite ชื่อจริง แล้วอธิบายเป็นภาษา user
+- bd field value, phase name, gate name (`pre-implement-ui`, `Phase 3b`)
+
+> Artifact ใน `outputs/` (BRD/ADR/SPEC/REVIEW) = ภาษาเดียวกับ user เช่นกัน — ยกเว้น user ระบุเป็นอย่างอื่น (เช่น spec ส่ง vendor ต่างชาติ)
+
+---
+
 ## 🚫 Universal Rules
 
+- ห้ามตอบคนละภาษากับที่ user เขียนมา (ดู § Response Language)
 - ห้าม float กับ money → Decimal/integer (subunit)
 - ห้าม commit secret → secret manager
 - ห้าม skip security check
@@ -115,15 +145,15 @@ Risk: [what] | Likelihood: L/M/H | Impact: L/M/H | Mitigation: [concrete] | Owne
 - ห้าม "fix" โดยไม่เข้าใจ root cause
 - ห้าม claim project fact จาก real-world knowledge (ดู Project Evidence Protocol)
 - ห้าม merge ถ้า UI changed แต่ไม่มี Playwright/visual/axe evidence
-- ห้าม start implement frontend โดยไม่มี Uma artifact (Figma/wireframe/tokens) — pre-implement-ui gate (🔴 v2.6.1)
-- 🔴 v2.8 — ห้าม serialize Phase 1a (Bella → Sara รอคิว); ห้าม parallel Phase 1b (Uma/Domain ต้องอ่าน 1a spec ก่อน design/validate)
-- 🔴 v2.8 — ห้าม skip Phase 3a Uma POST gate. Dave → Chris+Quinn ตรงเลย โดยไม่ผ่าน Uma = UI bug ลึกค่อย rework
-- 🔴 v2.8 — ห้าม serialize Phase 3b (Chris → Quinn รอคิว); parallel เท่านั้น (different scope)
-- 🔴 v2.8 — ห้าม skip Phase 4 Triage routing. Review fail → loop ไป phase ที่ตรง finding (code→2, UI→1b, spec→1a); ห้าม "ผ่านครึ่ง ๆ" ข้ามไป Deploy
-- 🔴 v2.8.2 — ห้าม close Phase 3 (3a/3b) ก่อน post review report. **bd active → `bd update <id> --notes` ONLY** (ห้ามเขียน markdown ซ้ำ). **No bd → `outputs/REVIEW-<feature>.md`** (markdown fallback). ใช้ template structure จาก "REVIEW Report Format" section
-- 🔴 v2.8.2 — ห้ามเขียน review เป็น markdown ถ้ามี bd. bd = single source of truth; markdown = audit redundancy + drift risk
+- ห้าม start implement frontend โดยไม่มี Uma artifact (Figma/wireframe/tokens) — pre-implement-ui gate (🔴)
+- 🔴 ห้าม serialize Phase 1a (Bella → Sara รอคิว); ห้าม parallel Phase 1b (Uma/Domain ต้องอ่าน 1a spec ก่อน design/validate)
+- 🔴 ห้าม skip Phase 3a Uma POST gate. Dave → Chris+Quinn ตรงเลย โดยไม่ผ่าน Uma = UI bug ลึกค่อย rework
+- 🔴 ห้าม serialize Phase 3b (Chris → Quinn รอคิว); parallel เท่านั้น (different scope)
+- 🔴 ห้าม skip Phase 4 Triage routing. Review fail → loop ไป phase ที่ตรง finding (code→2, UI→1b, spec→1a); ห้าม "ผ่านครึ่ง ๆ" ข้ามไป Deploy
+- 🔴 ห้าม close Phase 3 (3a/3b) ก่อน post review report. **bd active → `bd update <id> --notes` ONLY** (ห้ามเขียน markdown ซ้ำ). **No bd → `outputs/REVIEW-<feature>.md`** (markdown fallback). ใช้ template structure จาก "REVIEW Report Format" section
+- 🔴 ห้ามเขียน review เป็น markdown ถ้ามี bd. bd = single source of truth; markdown = audit redundancy + drift risk
 
-### 🔴 v2.8.1 — Universal UX/UI Quality Rules (บังคับทุก frontend agent — Uma, Dave, Quinn)
+### 🔴 Universal UX/UI Quality Rules (บังคับทุก frontend agent — Uma, Dave, Quinn)
 
 - ห้าม **hardcoded color** ใน code → use semantic token (CSS var / tailwind class จาก tokens.json)
 - ห้าม **hardcoded spacing** ที่ไม่ใช่ 8-pt grid (`4px / 8px / 12px / 16px / 24px / 32px / 48px / 64px`) — token ปกติ scale 1.0 / 1.5 / 2
@@ -141,7 +171,7 @@ Risk: [what] | Likelihood: L/M/H | Impact: L/M/H | Mitigation: [concrete] | Owne
 
 ---
 
-## 🧪 Clarifying — option-style v3.0 (was `grill-me`)
+## 🧪 Clarifying — option-style (was `grill-me`)
 
 > Merged from `grill-me` skill into meeting foundation
 
@@ -200,7 +230,7 @@ Q: Auth?
 **Tracker**:
 ```
 Q: Tracker?
-  A) bd (Recommended — bd-native v3.0)
+  A) bd (Recommended — bd-native)
   B) GitHub Issues
   C) Linear
   D) Jira
@@ -223,13 +253,29 @@ Q: Deploy target?
 
 ---
 
-## 📐 Universal v3.0 Quality Rules — summary
+## 🚧 M1 — Ingress Guard (🔴 บังคับ ทุก agent ก่อน respond ทุก message)
 
-Adds to existing Universal UX/UI Rules (v2.8.1):
+> ย้ายมาจาก `shode-house-drift` (v3.8) — M1 บังคับที่ **ทุก agent** จึงต้องอยู่ใน skill ที่ทุก agent preload. M2–M7 = Oliver enforcer, ยังอยู่ใน `shode-house-drift`
+
+ทุก agent ก่อนตอบ user message ใน active engagement:
+```
+1. bd show <id>   → no bd-id → STOP, route Oliver triage
+2. read state     → state ∈ {pick|impl|ui-check|review|triage|done}
+3. classify msg   → {new-task|fix|spec-change|question|done-claim|cancel}
+4. route check    → message type × current state = valid? FAIL → STOP, explicit reroute
+```
+
+**Direct-to-agent block** (M7 corollary — ทุก agent ต้องรู้): agent ที่ไม่ใช่ Oliver ห้าม accept direct-from-user ใน active engagement → ส่งกลับ Oliver classify ก่อน
+
+---
+
+## 📐 Universal Quality Rules — summary
+
+Adds to existing Universal UX/UI Rules:
 
 1. **Zero overlap rule** — ทุก capability มี sole owner (single-owner matrix); agent อื่น ห้ามผลิต deliverable
 2. **Handoff broadcast rule** — ทุก phase transition ต้อง broadcast 1-line caveman pattern `[from] ▸ [to] : <what> (bd-id)`
-3. **Ingress Guard rule** — agent ก่อน respond ใน active engagement: bd show → read state → classify msg → route check
+3. **Ingress Guard rule** — ดู § M1 ด้านบน (full procedure)
 4. **Anti-Puppet Done rule** — Dave/Chris/Quinn/Sentinel/Uma ห้าม claim "done"; only Oliver after multi-sig
 5. **User Comment = FAIL rule** — feedback ใด ๆ = re-open bd + iter++
 6. **Spec change = bd revision rule** — verbal change ห้าม fix ตรง → ผ่าน Bella/Sara Phase 1a redo

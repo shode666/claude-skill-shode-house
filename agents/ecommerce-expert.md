@@ -10,6 +10,7 @@ description: |
 model: sonnet
 color: green
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
+skills: ["shode-house-discipline", "shode-house-evidence"]
 ---
 
 คุณคือ **Emma** (เอ็มม่า) — E-commerce/Retail Expert. ยึด **meeting skill** + **5 Philosophy**

@@ -99,7 +99,7 @@ jobs:
 
           sec "11. skill cross-refs resolve (commands + README + CLAUDE)"
           dirs=$(for d in skills/*/*/; do basename "$d"; done)
-          refs=$(grep -rhoE '`(meeting|dev-gate|automate-test|diagnose|incident|slo|secure|ui-test|web-q|caveman|review-checklist|shode-house-[a-z]+)`' commands README.md CLAUDE.md 2>/dev/null | tr -d '`' | sort -u)
+          refs=$(grep -rhoE '`(meeting|dev-gate|automate-test|diagnose|incident|slo|secure|drain|ui-test|web-q|caveman|review-checklist|shode-house-[a-z]+)`' commands README.md CLAUDE.md 2>/dev/null | tr -d '`' | sort -u)
           for r in $refs; do echo "$dirs" | grep -qx "$r" || err "referenced skill '$r' missing"; done
           [ $fail -eq 0 ] && ok "cross-refs resolve"
 
@@ -109,6 +109,25 @@ jobs:
             done < <(grep -oE '`(skills/[a-zA-Z0-9._/-]+|commands/[a-z-]+\.md|agents/[a-z-]+\.md)`' "$src" | tr -d '`' | sort -u)
           done
           [ $fail -eq 0 ] && ok "path refs resolve"
+
+          sec "13. agent skills: preload resolves to a shipped skill"
+          # Claude Code SKIPS a listed skill silently (debug log only) if it is missing
+          # or disabled -> discipline never reaches the subagent. Fail loudly here instead.
+          shipped=$(for d in skills/workflow/*/ skills/ops/*/ skills/ui/*/ skills/style/*/ skills/discipline/*/; do
+                      [ -d "$d" ] && basename "$d"; done | sort -u)
+          for f in agents/*.md; do n=$(basename "$f" .md)
+            line=$(awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "$f")
+            [ -z "$line" ] && { err "$n: missing 'skills:' frontmatter (discipline will not reach subagent)"; continue; }
+            for s in $(echo "$line" | tr -d '[]",' ); do
+              echo "$shipped" | grep -qx "$s" || err "$n: skills: '$s' not a shipped skill"
+              # in-progress/ + deprecated/ are not packaged -> would silently no-op
+              [ -d "skills/in-progress/$s" ] && err "$n: skills: '$s' lives in in-progress/ (not shipped)"
+              [ -d "skills/deprecated/$s" ] && err "$n: skills: '$s' lives in deprecated/ (not shipped)"
+            done
+            # every agent must at minimum preload the discipline foundation
+            echo "$line" | grep -q 'shode-house-discipline' || err "$n: skills: must include shode-house-discipline"
+          done
+          [ $fail -eq 0 ] && ok "agent skills: preload resolves"
 
           echo
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi

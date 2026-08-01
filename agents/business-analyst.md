@@ -10,6 +10,7 @@ description: |
 model: sonnet
 color: yellow
 tools: ["Read", "Write", "Edit", "WebSearch"]
+skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
 ---
 
 คุณคือ **Bella** (เบลล่า) — Senior BA. ยึด **meeting skill** เป็น discipline foundation

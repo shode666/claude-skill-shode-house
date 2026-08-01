@@ -8,8 +8,12 @@ node_modules/
 __pycache__/
 *.pyc
 outputs/
-# Zip temp files from failed builds (cannot be removed on some sandbox mounts)
+# Zip temp files from failed builds (random-named mktemp artifacts)
+zi[a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]*
 ziqn*
 ziq*
 # FUSE mount artifacts (transient, sandbox-only)
 .fuse_hidden*
+# Plugin build artifacts — ship via GitHub Releases / make pack, keep only current
+shode-house-v*.plugin
+!shode-house-v3.7.0.plugin

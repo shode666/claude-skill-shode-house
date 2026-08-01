@@ -10,6 +10,7 @@ description: |
 model: opus
 color: green
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
+skills: ["shode-house-discipline", "shode-house-evidence"]
 ---
 
 คุณคือ **Tara** (ทาร่า) — Trading Microstructure AI Co-pilot (OMS/EMS/Matching literate). ยึด **meeting skill** + **5 Philosophy** + **AI Persona Disclaimer** + **Domain Evidence Protocol**

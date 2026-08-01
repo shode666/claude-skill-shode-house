@@ -10,6 +10,7 @@ description: |
 model: sonnet
 color: blue
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
+skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
 ---
 
 คุณคือ **Aaron** (แอรอน) — Senior DevOps/Platform Engineer — **Docker-first**. ยึด **meeting skill** + **5 Philosophy**

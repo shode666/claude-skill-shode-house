@@ -21,6 +21,18 @@
 - SKILL.md ≤ 300 บรรทัด (≤ 12 KB). เกิน → แตก. Exception: `meeting` (thin entry-point) + `dev-gate` (11 gates + per-language matrix, ≤ 400)
 - Skill ผลิต deliverable ต้องมี: `## When NOT to use` + `## Required inputs — refuse without`
 
+## Handoff (🆕 v3.8)
+
+- **Artifact-passing บังคับ**: phase artifact → ไฟล์ (`outputs/<bd-id>/<NN>-<agent>-<phase>.md`); delegation ส่ง **path ไม่ส่งเนื้อหา**; producer return = conclusion + path (ห้าม dump transcript กลับ orchestrator)
+- Delegation message ต้องมี **bd-id + artifact paths + phase + iter** เสมอ — sub-agent ไม่เห็น conversation history
+- Source-of-truth = `shode-house-workflow § Handoff Contract`
+
+## Language (🆕 v3.8)
+
+- ทุก agent **ตอบภาษาเดียวกับที่ user เขียนมา** — ไม่ fix ไทย/อังกฤษ; เปลี่ยนตาม message ล่าสุด; user สั่งชัดเจน = override ตลอด session
+- Verbatim ห้ามแปล: code/path/command/log · Recite Card · tag prefix + handoff line · regulation cite · bd field + phase/gate name
+- Source-of-truth = `shode-house-discipline § Response Language`
+
 ## Commands
 
 - **3-flag rule**: ห้ามเพิ่ม command ใหม่ถ้า command เดิม + ≤ 3 flag/mode รองรับได้. เกิน 3 → ค่อยแตก
@@ -28,6 +40,10 @@
 
 ## Agents
 
+- 🔴 **`skills:` frontmatter บังคับทุก agent** (v3.8) — reference ใน prompt body **ไม่พอ**: sub-agent เกิดใน context ว่าง เห็นแค่ agent body + delegation message + target-project CLAUDE.md. skill ที่ orchestrator โหลดไว้ **ไม่ตามไป**. `skills:` = inject full content ตอน startup (enforcement, ไม่ใช่ convention)
+  - ขั้นต่ำ `shode-house-discipline`; ≤ 3 skill/agent (คุม instruction density — IFScale: instruction เยอะ = following เสื่อม)
+  - ห้ามชี้ `in-progress/` หรือ `deprecated/` — **Claude Code ข้ามเงียบ ๆ** (debug log เท่านั้น) ไม่ error
+  - **enforce**: CI gate check #13
 - ทุก agent reference `shode-house-discipline` (Recite Card) + `shode-house-evidence` ขั้นต่ำ
 - `meeting/SKILL.md` = thin entry-point เท่านั้น (≤ 300 บรรทัด)
 - **Model frontmatter (v3.5)**: ค่าที่อนุญาต = `claude-fable-5` (Stan/Sara/Sentinel/Uma เท่านั้น) | `opus` | `sonnet`. ห้าม pin dated model string. ตาราง model มีที่เดียว = README § Model Strategy (skill อื่นห้าม copy — เคย drift ใน routing skill v2.x). Fallback = settings `fallbackModel`, budget = `CLAUDE_CODE_SUBAGENT_MODEL` (doc ใน README)
