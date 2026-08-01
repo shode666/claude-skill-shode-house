@@ -30,20 +30,6 @@ description: |
 
 ---
 
-## 🎚️ Engagement Mode (🔴 Oliver Phase 2 — บังคับเลือกก่อนเริ่ม)
-
-| Mode | Behavior | When |
-|------|----------|------|
-| **AFK** (Auto) | Oliver delegate ทุก phase + automated gate. User approve เฉพาะ R0 | งานชัด, trusted scope |
-| **Interactive** (Supervised) | Human approve ทุก hand-off + ดู agent output ก่อน next | งานใหม่/ละเอียดอ่อน, learning, audit |
-| **Hybrid** (Recommended default) | AFK ถึง pre-deploy → Interactive ตั้งแต่ deploy ขึ้น | งานทั่วไป — balance speed + safety |
-
-**Mode bind R0/R1/R2**:
-- AFK: R2 auto, R1 inform-only, R0 ขออนุญาต
-- Interactive: R2/R1 inform, R0 ขออนุญาต + ทุก phase exit ขออนุมัติ
-- Hybrid: AFK rule ก่อน deploy phase → switch Interactive ตั้งแต่ deploy
-
----
 
 ## 🧭 5 Core Philosophy (🔴 อันดับหนึ่ง)
 
@@ -58,37 +44,15 @@ description: |
 ---
 
 
-## 🚫 No Man-Day Negotiation (🔴 universal rule)
+## 🚫 No Man-Day Negotiation (🔴 universal)
 
-**ทุก agent ห้าม**:
-- ❌ ประเมิน man-day / person-week / hours / days โดย user **ไม่ร้องขอ** (explicit ask)
-- ❌ Propose timeline ("ใช้เวลา ~X days", "ทำใน 1 sprint", "ระยะ 2 weeks") ในการ plan / hand-off / status
-- ❌ Refuse งานเพราะ "ใหญ่เกิน X sprint" หรือ "ทำไม่ทันใน Y days"
-- ❌ ใช้ man-day เป็นเหตุผลต่อรองเวลากับ user หรือ defer งานไปอนาคต
-- ❌ ใส่ "Total: ~N days", "Effort: M person-weeks" ใน engagement plan / RICE table
+**ห้าม**: ประเมิน man-day/person-week/hours โดย user ไม่ได้ขอ · propose timeline ใน plan/hand-off/status · refuse งานเพราะ "ใหญ่เกิน X sprint" · ใช้เวลาต่อรอง/defer · ใส่ "Total: ~N days" ใน engagement plan / RICE
 
-**เหตุผล**:
-1. Agent ทำงานไม่ตรงตาม man-day จริง (LLM throughput ≠ human-effort estimate)
-2. Man-day report = external concern ระหว่าง user กับ stakeholder / PM / vendor — ไม่ใช่ agent
-3. การร้องขอเวลาของ agent ไม่สมเหตุสมผล — agent ส่งงานเป็น **task-complete**, ไม่ใช่ **time-bound**
-4. มี man-day → user อาจเอาไปต่อรองข้างนอก แต่ agent ทำไม่ตรง → trust gap
+**ทำไม**: LLM throughput ≠ human-effort estimate · man-day = เรื่องระหว่าง user กับ stakeholder ไม่ใช่ agent · agent ส่งงานแบบ **task-complete ไม่ใช่ time-bound** · estimate ที่ทำไม่ตรง = trust gap
 
-**Exception (ทำได้)**:
-- ✅ User explicit ขอ estimate (`/design-system --estimate`, "ช่วยประเมิน effort หน่อย") — **purpose = user เอาไป report กับ stakeholder ภายนอก เท่านั้น**; ไม่ใช่ agent ใช้บังคับตัวเอง
-- ✅ Internal routing heuristic (Oliver decide parallel vs sequential — T-shirt **ไม่ส่งต่อ user**)
-- ✅ NFR/SLO/SRE metric ทาง engineering (RTO/RPO, p95 latency, error budget — ไม่ใช่ project schedule)
-- ✅ Industry-standard SLA (5-business-day postmortem) — ไม่ใช่ negotiation, เป็น discipline
+**Exception**: user ขอ estimate ตรง ๆ (`--estimate`) → ส่ง best honest guess ให้ user เอาไป report ภายนอก (ห้ามใช้ throttle ตัวเอง, ห้าม track actual-vs-estimate, ห้าม refuse scope เพราะ "เกิน estimate") · T-shirt ภายในของ Oliver (ไม่ส่งต่อ user) · NFR/SLO metric (RTO/RPO/p95/error budget) · SLA มาตรฐาน (postmortem ภายใน 5 วันทำการ)
 
-**Agent rule when user requests estimate**:
-- ✅ ส่ง estimate ตรงไปตรงมา (best honest guess based on scope)
-- ❌ ห้ามใช้ estimate ตัวเองในการ throttle / limit งาน — ส่งงาน task-complete เหมือนเดิม
-- ❌ ห้าม track "actual vs estimate" เป็น agent performance metric (เกินบทบาท agent)
-- ❌ ห้าม refuse "เพิ่ม scope" เพราะ "เกิน estimate" — estimate = user external report, ไม่ใช่ scope contract
-
-**แทนที่จะพูด**:
-- ❌ "Feature นี้ใหญ่ ทำใน 1 sprint ไม่ทัน" → ✅ "Phase 1a + 1b ครอบ scope; iteration count = 2-3"
-- ❌ "Pen test เดี๋ยว sprint หน้า" → ✅ "Pen test mandatory ถ้า touch money/PII; ห้าม defer"
-- ❌ "Total: ~5 days" → ✅ "Pipeline: Phase 0 → 1a → 1b → 2 → 3 → 4"
+**แทนที่จะพูด**: ❌ "ทำใน 1 sprint ไม่ทัน" → ✅ "Phase 1a+1b ครอบ scope; iteration 2-3" · ❌ "Pen test ไว้ sprint หน้า" → ✅ "Pen test mandatory ถ้าแตะ money/PII ห้าม defer" · ❌ "Total: ~5 days" → ✅ "Pipeline: 0 → 1a → 1b → 2 → 3 → 4"
 
 ---
 
@@ -146,110 +110,23 @@ Risk: [what] | Likelihood: L/M/H | Impact: L/M/H | Mitigation: [concrete] | Owne
 - ห้าม claim project fact จาก real-world knowledge (ดู Project Evidence Protocol)
 - ห้าม merge ถ้า UI changed แต่ไม่มี Playwright/visual/axe evidence
 - ห้าม start implement frontend โดยไม่มี Uma artifact (Figma/wireframe/tokens) — pre-implement-ui gate (🔴)
-- 🔴 ห้าม serialize Phase 1a (Bella → Sara รอคิว); ห้าม parallel Phase 1b (Uma/Domain ต้องอ่าน 1a spec ก่อน design/validate)
-- 🔴 ห้าม skip Phase 3a Uma POST gate. Dave → Chris+Quinn ตรงเลย โดยไม่ผ่าน Uma = UI bug ลึกค่อย rework
-- 🔴 ห้าม serialize Phase 3b (Chris → Quinn รอคิว); parallel เท่านั้น (different scope)
-- 🔴 ห้าม skip Phase 4 Triage routing. Review fail → loop ไป phase ที่ตรง finding (code→2, UI→1b, spec→1a); ห้าม "ผ่านครึ่ง ๆ" ข้ามไป Deploy
-- 🔴 ห้าม close Phase 3 (3a/3b) ก่อน post review report. **bd active → `bd update <id> --notes` ONLY** (ห้ามเขียน markdown ซ้ำ). **No bd → `outputs/REVIEW-<feature>.md`** (markdown fallback). ใช้ template structure จาก "REVIEW Report Format" section
-- 🔴 ห้ามเขียน review เป็น markdown ถ้ามี bd. bd = single source of truth; markdown = audit redundancy + drift risk
 
-### 🔴 Universal UX/UI Quality Rules (บังคับทุก frontend agent — Uma, Dave, Quinn)
 
-- ห้าม **hardcoded color** ใน code → use semantic token (CSS var / tailwind class จาก tokens.json)
-- ห้าม **hardcoded spacing** ที่ไม่ใช่ 8-pt grid (`4px / 8px / 12px / 16px / 24px / 32px / 48px / 64px`) — token ปกติ scale 1.0 / 1.5 / 2
-- ห้าม **focus order ≠ visual order** (no `tabindex>0`; rely on DOM order)
-- ห้าม **contrast < 4.5:1** สำหรับ text หรือ **< 3:1** สำหรับ UI/large text (WCAG AA)
-- ห้าม **color เดี่ยวสื่อ status** (ต้องคู่กับ icon/label/pattern)
-- ห้าม **fixed-pixel layout** ที่ไม่ responsive — mobile-first 320px expand
-- ห้าม **missing focus indicator** (default browser outline ok; ห้าม `outline: none` without alternative)
-- ห้าม **missing aria-label/role** บน interactive element (button/input/link)
-- ห้าม **touch target < 44×44** (iOS HIG) / < 48dp (Material)
-- ห้าม **component state ขาด** — ทุก interactive component ต้องมี default/hover/active/focus/disabled/loading/error/empty (atomic 7 state)
-- ห้าม **heading skip level** (h1→h3 ห้าม; ต้อง h1→h2→h3)
-- ห้าม **flash/auto-play motion** ที่ไม่ respect `prefers-reduced-motion`
-- ห้าม **i18n text overflow** — design text expand 30% (ภาษาเยอรมัน/ไทย ยาวกว่าอังกฤษ)
+## 🧪 Clarifying — option-style (🔴 ห้ามเดา → ห้ามทำ)
 
----
+ตัวเลือก > คำถามเปิด. Batch 3-7 คำถามรอบเดียว ลด round-trip
 
-## 🧪 Clarifying — option-style (was `grill-me`)
-
-> Merged from `grill-me` skill into meeting foundation
-
-### หลักการ
-**ห้ามเดา → ห้ามทำ** ก่อน confirm ทุก ambiguity. ตัวเลือก > คำถามเปิด
-
-### Format (🔴 บังคับ)
 ```
 Q: [คำถาม]
-  A) [option] (Recommended — เหตุผลสั้น)
+  A) [option] (Recommended — เหตุผล 1 บรรทัด)
   B) [option]
   C) [option]
   D) อื่นๆ (ระบุ)
 ```
 
-- 2-4 options + "อื่นๆ" เสมอ
-- Recommend ตัวแรก + เหตุผล 1 บรรทัด
-- Label ≤ 5 คำ + คำอธิบาย 1 บรรทัด
-- Batch 3-7 คำถามรอบเดียว → ลด round-trip
-
-### 6 Patterns
-
-**Stack**:
-```
-Q: Backend framework?
-  A) FastAPI (Recommended — type + async + OpenAPI)
-  B) NestJS (TS)
-  C) Spring Boot (JVM)
-```
-
-**Scope**:
-```
-Q: รวม authentication?
-  A) ใช่ (built-in)
-  B) ไม่ — assume มี SSO
-  C) optional (flag)
-```
-
-**Severity**:
-```
-Q: Severity?
-  A) 🔴 Critical (prod block / security / money)
-  B) 🟠 High (visible bug, data loss risk)
-  C) 🟡 Medium (workaround มี)
-  D) 🔵 Low (UX nitpick)
-```
-
-**Auth method**:
-```
-Q: Auth?
-  A) OAuth 2.1 + PKCE (Recommended — modern, SPA-safe)
-  B) Session cookie + CSRF
-  C) JWT bearer (with refresh)
-```
-
-**Tracker**:
-```
-Q: Tracker?
-  A) bd (Recommended — bd-native)
-  B) GitHub Issues
-  C) Linear
-  D) Jira
-```
-
-**Deployment target**:
-```
-Q: Deploy target?
-  A) Docker + K8s (Recommended — portable)
-  B) Vercel / Netlify (serverless)
-  C) Bare metal / VM
-  D) Edge (Cloudflare Workers)
-```
-
-### เมื่อไหร่ NOT to grill
-- User ระบุชัดอยู่แล้ว
-- ตอบเองได้จาก context (อ่าน file/code ดู)
-- Low-stakes (ทำผิดเปลี่ยนได้ง่าย)
-- Tactical work ไม่กำหนด direction
+- 2-4 option + "อื่นๆ" เสมอ · recommend ตัวแรกพร้อมเหตุผล · label ≤ 5 คำ + คำอธิบาย 1 บรรทัด
+- ใช้กับ: stack · scope boundary · severity · auth method · tracker · deploy target · trade-off ที่ user ต้องเป็นคนเลือก
+- **ห้าม grill เมื่อ**: user ระบุชัดแล้ว · ตอบเองได้จาก code/file (อ่านเอง อย่าถาม) · low-stakes เปลี่ยนทีหลังง่าย · tactical work ที่ไม่กำหนด direction
 
 ---
 
@@ -269,13 +146,74 @@ Q: Deploy target?
 
 ---
 
-## 📐 Universal Quality Rules — summary
+## 🧰 Skill loading (🆕 v3.10 — คุณมี `Skill` tool)
 
-Adds to existing Universal UX/UI Rules:
+ก่อน v3.10 agent ทุกตัว **โหลด skill ไม่ได้เลย** (`Skill` ไม่อยู่ใน `tools:`) → 12 skill เข้าไม่ถึง subagent
+ตอนนี้: preload = 3 skill แรกที่ inject ให้อัตโนมัติ · ที่เหลือ **โหลดเองด้วย `Skill` tool เมื่อจะใช้จริง**
 
-1. **Zero overlap rule** — ทุก capability มี sole owner (single-owner matrix); agent อื่น ห้ามผลิต deliverable
-2. **Handoff broadcast rule** — ทุก phase transition ต้อง broadcast 1-line caveman pattern `[from] ▸ [to] : <what> (bd-id)`
-3. **Ingress Guard rule** — ดู § M1 ด้านบน (full procedure)
-4. **Anti-Puppet Done rule** — Dave/Chris/Quinn/Sentinel/Uma ห้าม claim "done"; only Oliver after multi-sig
-5. **User Comment = FAIL rule** — feedback ใด ๆ = re-open bd + iter++
-6. **Spec change = bd revision rule** — verbal change ห้าม fix ตรง → ผ่าน Bella/Sara Phase 1a redo
+| คุณคือ | โหลดเพิ่มก่อนลงมือ |
+|---|---|
+| Dave | `dev-gate` (TDD + 11 gates) · `diagnose` (bug) · `data-migration` (schema change) · `api-contract` (public interface) |
+| Chris / Quinn | `review-checklist` · `automate-test` · `ui-test` (frontend) |
+| Sentinel | `secure` (STRIDE/LINDDUN/CSP/injection) |
+| Reggie | `slo` · `incident` |
+| Aaron | `automate-test` · `dep-upgrade` |
+| Uma | `ui-test` · `web-q` |
+| Oliver | `shode-house-routing` · `drain` (batch backlog) · `shode-house-deliverable` (DoD) |
+
+ห้าม paraphrase เนื้อหา skill จากความจำ — โหลดจริงแล้วอ้างอิง (NO MAGIC)
+
+## 🏷️ Agent Tag Prefix (🔴 บังคับทุก message — ย้ายมาจาก `shode-house-broadcast` v3.10)
+
+```
+[<Agent>|state:<phase>|bd:<id>]        เช่น [Dave|state:phase-2|bd:42]
+<Agent A> ▸ <Agent B> : <1-line handoff>
+```
+
+ไม่มี bd → `bd:none`. ไม่มี phase → `state:adhoc`
+
+## 🤝 Handoff Contract (🔴 บังคับทุก delegate — ย้ายมาจาก `shode-house-workflow` v3.10)
+
+sub-agent เกิดใน **context ว่าง** เห็นแค่ agent body + delegation message + target CLAUDE.md — prose = lossy channel
+
+```
+1. Producer เขียน artifact ลงไฟล์ก่อน hand-off → outputs/<bd-id>/<NN>-<agent>-<phase>.md
+2. Delegation ส่ง PATH ไม่ส่งเนื้อหา + ต้องมี bd-id + paths + phase + iter เสมอ
+3. Consumer Read ไฟล์เอง — ห้ามพึ่งสรุปใน delegation message
+4. Producer return = verdict + artifact path + open questions (ห้าม dump transcript)
+```
+
+## ✍️ Report Brevity — work deep, report short (🆕 v3.10 🔴 ทุก agent)
+
+**ทำละเอียด ≠ พูดเยอะ.** ความละเอียดอยู่ใน artifact file + tool output ที่ paste ไม่ใช่ในคำบรรยาย
+
+| ต้องยาว (ไม่จำกัด) | ต้องสั้น (บังคับ) |
+|---|---|
+| artifact file ที่เขียนลง `outputs/` | ข้อความที่ส่งกลับ orchestrator/user |
+| tool output ที่ paste เป็นหลักฐาน | คำอธิบายสิ่งที่กำลังจะทำ |
+| code + test ที่เขียนจริง | สรุปสิ่งที่เพิ่งทำเสร็จ |
+
+**Return format บังคับ** (ไม่เกิน ~15 บรรทัด):
+```
+[<Agent>|state:<phase>|bd:<id>] <VERDICT>
+- did      : <1-2 บรรทัด>
+- evidence : <paste PASS line / path / sha — ของจริงเท่านั้น>
+- artifact : outputs/<bd-id>/<file>
+- next     : <agent/phase ถัดไป | BLOCKED: reason>
+```
+
+ห้าม: preamble ("ผมจะเริ่มด้วย…") · narrate ทุก tool call · เล่าซ้ำสิ่งที่อยู่ใน artifact แล้ว · restate คำถาม user · สรุปปิดท้ายที่ไม่มีข้อมูลใหม่
+ตัดคำบรรยายได้ **ห้ามตัด**: evidence, security finding, ตัวเลข, dissent, สิ่งที่ทำไม่สำเร็จ
+เกินไปอีกขั้น (long loop / broadcast) → โหลด `caveman` skill
+
+## ✅ Close on Done (🔴 M8 — ดูเต็มใน `shode-house-drift`)
+
+งาน land แล้ว → `bd close <id> --reason "<verdict> <sha> <test_result>"` → `bd show <id>` → **paste ที่อ่านได้ว่า CLOSED**
+`bd list` ไม่ใช่หลักฐาน · `PARTIAL`/`BLOCKED` คง OPEN + note · ห้ามจบ session โดยมีงานเสร็จแต่ bd ยัง OPEN
+
+## 📐 Universal Quality summary
+
+1. **Zero overlap** — ทุก capability มี sole owner; agent อื่นห้ามผลิต deliverable นั้น (ดู `shode-house-routing`)
+2. **Handoff broadcast** — ทุก phase transition = 1 บรรทัด `[from] ▸ [to] : <what> (bd-id)`
+3. Anti-Puppet Done · User-comment=FAIL · Spec-change=bd revision · Engagement Mode → `shode-house-drift` (M2-M8) + `shode-house-workflow`
+4. **Frontend agent (Uma/Dave/Quinn/Chris)** → โหลด `ui-test` ก่อนแตะ UI: token/8-pt grid/contrast/focus/touch target/7 state ครบอยู่ที่นั่น

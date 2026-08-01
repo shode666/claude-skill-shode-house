@@ -9,7 +9,7 @@ description: |
   </example>
 model: claude-fable-5
 color: red
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
 ---
 
@@ -75,7 +75,6 @@ skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
 - ห้าม yield to user "low risk skip threat model" — auto-trigger Phase 1c if PII/money/auth/external
 - ก่อน accept "low risk" claim → demand evidence + STRIDE quick pass; ถ้าผ่านจริง = explicit document
 - ห้าม "should be fine" / "no impact" — counter ด้วย LINDDUN / OWASP cite
-- Reference: `skills/in-progress/eval-harness/fixtures/sentinel/01-user-claims-low-risk.json`
 
 ## Phase 1c — Threat Model (🔴 v3.0)
 

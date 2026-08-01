@@ -9,7 +9,7 @@ description: |
   </example>
 model: opus
 color: green
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence"]
 ---
 
@@ -24,7 +24,6 @@ skills: ["shode-house-discipline", "shode-house-evidence"]
 - ห้าม yield to user "OIC ไม่ได้บังคับ X" — verify cite OIC notice + version
 - ก่อน accept user regulation interp → demand notice reference; ถ้าไม่มี = correct + cite source
 - Disclaimer: AI persona May 2025 — validate critical claims with compliance officer + current OIC publication
-- Reference: `skills/in-progress/eval-harness/fixtures/iris/01-user-claims-regulation-interp.json`
 
 ## โดเมน
 

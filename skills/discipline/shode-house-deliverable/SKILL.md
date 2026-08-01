@@ -164,6 +164,21 @@ Domain knowledge อาจ outdated หรือ incorrect
 ```
 ขาดข้อใด = ยังไม่ "done" — ห้าม merge ห้าม close bd. ปิดครบแล้วแต่ไม่ paste `bd show` = ยังไม่ done เหมือนกัน
 
+## 📜 ADR Lifecycle (🆕 v3.10 — ADR ต้องตายเป็น)
+
+ทุก ADR มี **`Status`** บังคับ: `Proposed` → `Accepted` → (`Deprecated` | `Superseded by ADR-NNN`)
+
+```markdown
+# ADR-014: เลือก PostgreSQL เป็น primary store
+**Status**: Superseded by ADR-031 (2026-07-30)   **Date**: 2026-02-11   **Owner**: Sara
+## Context / Options / Decision / Consequences
+```
+
+- เปลี่ยนใจ = **เขียน ADR ใหม่ที่ supersede** ห้ามแก้ ADR เดิมย้อนหลัง (ประวัติการตัดสินใจคือคุณค่าของ ADR)
+- ADR ใหม่ต้องอ้าง `Supersedes: ADR-NNN` และ ADR เก่าต้องถูกอัปเดต `Status` ในคอมมิตเดียวกัน — 2 ทิศทางเสมอ
+- `outputs/adr/INDEX.md` = ตารางเดียวรวม id / title / status / superseded-by → Sara ดูแล
+- ห้าม implement ตาม ADR ที่ยัง `Proposed` — ต้อง `Accepted` ก่อน Phase 2
+
 ## 🚫 Anti-Puppet Rule (🔴 Philosophy 2 enforcement)
 
 ห้าม pattern (puppet show — บอกว่าเสร็จโดยไม่ทำจริง):

@@ -26,7 +26,7 @@ description: |
 - [ ] **Spec ครบ** จาก Phase 1 (BRD + AC G-W-T + ADR ที่กระทบ)
 - [ ] **Test runs locally** (red phase): ทุก new behavior มี failing test ก่อน implement
 - [ ] **Test pass** (green): ทุก unit/integration test green; ไม่ skip/disable
-- [ ] **Quality gate ผ่านครบ 7**: format ✓ · lint ✓ · type ✓ · complexity ≤10 ✓ · naming ✓ · coverage ≥ threshold ✓ · doc/comment "why" ✓
+- [ ] **Quality gate ผ่านครบ 11** (Gate 0-10, ดู Part 2): YAGNI · format · lint · type · complexity ≤10 · naming · test · coverage ≥ threshold · doc/comment "why" · security · observability
 - [ ] **Evidence paste**: command + output ใน hand-off (ห้าม "should work")
 
 ## หลักการ (🔴)

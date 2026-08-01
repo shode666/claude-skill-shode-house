@@ -13,6 +13,7 @@
 
 - **bucket folders** ใต้ `skills/`:
   - `workflow/` (meeting, dev-gate, automate-test, diagnose) · `ops/` (incident, slo, secure) · `ui/` (ui-test, web-q) · `style/` (caveman)
+  - `workflow/` เพิ่ม data-migration + api-contract (v3.10)
   - `discipline/` (shode-house-discipline, -evidence, -routing, -deliverable, -broadcast, -drift, -workflow, review-checklist)
   - `in-progress/` + `deprecated/` — **ไม่ ship**
 - 5 bucket แรก → ต้องอยู่ใน `.claude-plugin/plugin.json` skills list + `README.md` index
@@ -40,6 +41,9 @@
 
 ## Agents
 
+- 🔴 **`Skill` บังคับใน `tools:` ทุก agent** (v3.10) — `tools:` ที่ระบุ explicit และ **ไม่มี** `Skill` = subagent โหลด skill ไม่ได้เลย (ไม่ใช่แค่ที่ไม่ได้ preload — *ทั้งหมด*). ก่อน v3.10 เป็น 0/19 → 12 skill ตายอยู่ในไฟล์. `skills:` = preload (inject full content, cap 3); `Skill` ใน `tools:` = โหลดเพิ่มเองตอน runtime. **ต้องมีทั้งคู่** — enforce CI gate check #14
+- 🔴 **rule ที่ "ทุก agent ต้องทำตาม" ต้องอยู่ใน `shode-house-discipline`** (ตัวเดียวที่ preload 19/19). rule ที่เป็นของบาง role ห้ามอยู่ที่นี่ — ย้ายไป skill ของ role นั้นแล้วให้เขาโหลดเอง (discipline โดน ×19 ทุกไบต์)
+
 - 🔴 **`skills:` frontmatter บังคับทุก agent** (v3.8) — reference ใน prompt body **ไม่พอ**: sub-agent เกิดใน context ว่าง เห็นแค่ agent body + delegation message + target-project CLAUDE.md. skill ที่ orchestrator โหลดไว้ **ไม่ตามไป**. `skills:` = inject full content ตอน startup (enforcement, ไม่ใช่ convention)
   - ขั้นต่ำ `shode-house-discipline`; ≤ 3 skill/agent (คุม instruction density — IFScale: instruction เยอะ = following เสื่อม)
   - ห้ามชี้ `in-progress/` หรือ `deprecated/` — **Claude Code ข้ามเงียบ ๆ** (debug log เท่านั้น) ไม่ error
@@ -48,6 +52,15 @@
 - `meeting/SKILL.md` = thin entry-point เท่านั้น (≤ 300 บรรทัด)
 - **Model frontmatter (v3.5)**: ค่าที่อนุญาต = `claude-fable-5` (Stan/Sara/Sentinel/Uma เท่านั้น) | `opus` | `sonnet`. ห้าม pin dated model string. ตาราง model มีที่เดียว = README § Model Strategy (skill อื่นห้าม copy — เคย drift ใน routing skill v2.x). Fallback = settings `fallbackModel`, budget = `CLAUDE_CODE_SUBAGENT_MODEL` (doc ใน README)
 - **enforce**: CI gate (`.github/workflows/ci.yml`) ตรวจ model value + Fable-5 whitelist + ห้าม model table นอก README
+
+## Output styles (🆕 v3.10)
+
+- อยู่ที่ `output-styles/<name>.md` (plugin root, default scan path) — **ห้ามใส่ `outputStyles` ใน `plugin.json`** เพราะ field นั้น *replace* default scan และเพิ่มความเสี่ยง Cowork validator
+- Frontmatter: `name` + `description` บังคับ (CI #15) · `keep-coding-instructions: true` เก็บ engineering prompt เดิมไว้ · `force-for-plugin: true` = ยึด main session อัตโนมัติทันทีที่ plugin เปิด (override `outputStyle` ของ user)
+- Output style แก้ **system prompt ของ main loop เท่านั้น** — subagent มี system prompt ของตัวเอง ไม่ได้รับผลกระทบ
+- มีผลหลัง `/clear` หรือ session ใหม่ (อ่านครั้งเดียวตอน startup)
+- `make pack` ต้อง ship `output-styles/` (อยู่ใน zip list แล้ว)
+- ⚠️ **ยังไม่ยืนยันว่า Cowork รองรับ output style** — docs ครอบเฉพาะ Claude Code CLI/Code tab; ต้องทดสอบ drag-drop จริง
 
 ## Plugin
 

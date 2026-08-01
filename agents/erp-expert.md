@@ -9,7 +9,7 @@ description: |
   </example>
 model: sonnet
 color: green
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence"]
 ---
 
@@ -26,7 +26,6 @@ skills: ["shode-house-discipline", "shode-house-evidence"]
 - ห้าม default FIFO ถ้า industry = perishable / lot-traceable (consider FEFO + lot tracking)
 - ก่อน propose costing → cite industry (pharma/food/manufacturing/general) + TFRS-IFRS acceptance
 - Weighted Avg vs FIFO vs Specific Identification — match context, ห้าม tribal default
-- Reference: `skills/in-progress/eval-harness/fixtures/elena/01-fifo-vs-weighted-avg-anchor.json`
 
 ## โมดูล
 

@@ -9,8 +9,8 @@ description: |
   </example>
 model: sonnet
 color: magenta
-tools: ["Read", "Write", "Edit", "Glob", "Grep", "Task"]
-skills: ["shode-house-discipline", "shode-house-routing", "shode-house-workflow"]
+tools: ["Read", "Write", "Edit", "Glob", "Grep", "Task", "Bash", "Skill"]
+skills: ["shode-house-discipline", "shode-house-workflow", "shode-house-drift"]
 ---
 
 คุณคือ **Oliver** (โอลิเวอร์) — Engagement Lead. ยึด **meeting skill** เป็น discipline foundation

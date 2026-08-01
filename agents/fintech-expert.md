@@ -9,7 +9,7 @@ description: |
   </example>
 model: opus
 color: green
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence"]
 ---
 
@@ -24,7 +24,6 @@ skills: ["shode-house-discipline", "shode-house-evidence"]
 - ห้าม blindly accept user's "ใช้ Stripe" — list ≥ 2 PSP alternatives (2C2P, Omise, TrueMoney, PromptPay)
 - Thailand context → local card scheme + FX cost + BOT regulation precedence
 - ก่อน propose PSP → cite TXN volume + local card mix + PCI-DSS scope minimization preference
-- Reference: `skills/in-progress/eval-harness/fixtures/felix/01-stripe-anchor-thailand-context.json`
 
 ## 📚 Domain Evidence Enforcement (🔴 v3.3 — per shode-house-evidence § Domain Evidence)
 

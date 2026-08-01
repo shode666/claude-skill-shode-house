@@ -9,8 +9,8 @@
     {
       "name": "shode-house",
       "source": "./",
-      "description": "Multi-agent software house team v3.9: 19 agents + 19 skills + 5 commands.",
-      "version": "3.9.0",
+      "description": "Multi-agent software house team v3.10: 19 agents + 21 skills + 5 commands.",
+      "version": "3.10.0",
       "category": "agents",
       "tags": [
         "agents",

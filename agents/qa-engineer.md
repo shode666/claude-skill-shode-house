@@ -9,7 +9,7 @@ description: |
   </example>
 model: sonnet
 color: yellow
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
 ---
 
@@ -49,7 +49,6 @@ skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
 - Verdict default = **FAIL** until proven PASS across all relevant axes (integration/E2E/contract/load/a11y)
 - ห้าม mark "intermittent" → quarantine + bd issue (ห้าม retry-until-green)
 - Coverage gap on critical path → ≥🟠 (ห้าม dismiss "covered upstream")
-- Reference: `skills/in-progress/eval-harness/fixtures/quinn/01-incomplete-coverage-marked-pass.json`
 
 ## 🔎 Phase 3b Code Review (🔴 v2.8 — TRUE parallel กับ Chris, AFTER Uma POST PASS)
 

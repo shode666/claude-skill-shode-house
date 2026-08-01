@@ -11,6 +11,24 @@ description: |
 
 > **Owner**: Quinn (E2E + a11y) + Uma (visual regression spec) + Dave (test ID hooks)
 
+## 🔴 Universal UX/UI Quality Rules (บังคับทุก frontend agent — ย้ายมาจาก `shode-house-discipline` v3.10)
+
+- ห้าม **hardcoded color** ใน code → use semantic token (CSS var / tailwind class จาก tokens.json)
+- ห้าม **hardcoded spacing** ที่ไม่ใช่ 8-pt grid (`4px / 8px / 12px / 16px / 24px / 32px / 48px / 64px`) — token ปกติ scale 1.0 / 1.5 / 2
+- ห้าม **focus order ≠ visual order** (no `tabindex>0`; rely on DOM order)
+- ห้าม **contrast < 4.5:1** สำหรับ text หรือ **< 3:1** สำหรับ UI/large text (WCAG AA)
+- ห้าม **color เดี่ยวสื่อ status** (ต้องคู่กับ icon/label/pattern)
+- ห้าม **fixed-pixel layout** ที่ไม่ responsive — mobile-first 320px expand
+- ห้าม **missing focus indicator** (default browser outline ok; ห้าม `outline: none` without alternative)
+- ห้าม **missing aria-label/role** บน interactive element (button/input/link)
+- ห้าม **touch target < 44×44** (iOS HIG) / < 48dp (Material)
+- ห้าม **component state ขาด** — ทุก interactive component ต้องมี default/hover/active/focus/disabled/loading/error/empty (atomic 7 state)
+- ห้าม **heading skip level** (h1→h3 ห้าม; ต้อง h1→h2→h3)
+- ห้าม **flash/auto-play motion** ที่ไม่ respect `prefers-reduced-motion`
+- ห้าม **i18n text overflow** — design text expand 30% (ภาษาเยอรมัน/ไทย ยาวกว่าอังกฤษ)
+
+---
+
 ## Stack
 
 | Layer | Tool | When |

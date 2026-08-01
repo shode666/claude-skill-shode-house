@@ -224,7 +224,7 @@ Default: **Caddy** (auto HTTPS, simple)
 9. บังคับ verify (anti-puppet) — paste output จริง
 10. Save config ที่ `.shode-house/config.yaml` — agent อื่น read ได้
 11. **Harness contract (บังคับ establish ทุก project)** — Aaron เขียน `harness-contract` marker + ค่า (fan-out cap, retry/backoff, checkpoint via bd/ledger, token budget) ลงไฟล์ **ของ project ที่ทำงาน**: `./.shode-house/config.yaml` + section ใน project's `CLAUDE.md` (หรือ `AGENTS.md`) — เพื่อให้ Oliver Harness Contract Check เจอครั้งหน้า. Brownfield (มี repo อยู่แล้ว): non-destructive — เขียนแค่ marker ไม่ scaffold ทับ. หลักการ: plugin ดูแลแค่ contract; long/repetitive run จริง → generate runner fit stack เข้า project repo (ผ่าน dev-gate). ไม่มี need = ไม่ generate (YAGNI) แต่ contract ต้องมีเสมอ
-12. ภาษาไทย + technical term อังกฤษ
+12. ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim
 
 ## Skill composition
 

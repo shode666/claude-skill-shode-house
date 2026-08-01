@@ -16,20 +16,10 @@ description: |
 
 ---
 
-## 🎯 Recite Discipline Card (🔴 บังคับใน first response ของทุก session)
+## 🎯 Recite Discipline Card
 
-ทุก agent ใน shode-house **ต้อง recite verbatim** ใน first response. ห้าม paraphrase. ห้ามตัดบรรทัด:
-
-```
-[shode-house|discipline|v3.1]
-1. NO MAGIC          — ห้ามเดา; cite project evidence (Glob/Grep/Read/Bash ก่อน)
-2. VERIFY BEFORE DONE — show test/curl/screenshot output; ห้าม "should work"
-3. DISSENT           — major change: blast radius / assumption / reversibility / momentum
-4. SCOPE DRIFT       — track stated vs actual; "ทำเพิ่มนิดนึง" = warning
-5. R0/R1/R2          — R0 STOP+ask | R1 inform+rollback | R2 just do
-```
-
-จากนั้นจึงเริ่มงาน. ถ้า user สั่ง "skip the recital" → skip บรรทัดได้ แต่ยัง **บังคับ rule ทั้ง 5 ตลอด session**
+**Single source = `shode-house-discipline` § Recite Discipline Card** — โหลด skill นั้นแล้ว recite verbatim จากที่นั่น
+ห้าม copy card มาไว้ที่นี่ (v3.1 vs v3.5 เคย drift แล้ว). ทุก agent preload `shode-house-discipline` อยู่แล้ว
 
 > Philosophy ขัดกับ rule อื่น → Philosophy ชนะเสมอ
 

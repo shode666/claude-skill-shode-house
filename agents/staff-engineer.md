@@ -9,7 +9,7 @@ description: |
   </example>
 model: claude-fable-5
 color: purple
-tools: ["Read", "Grep", "Glob", "Bash", "WebSearch"]
+tools: ["Read", "Grep", "Glob", "Bash", "WebSearch", "Write", "Edit", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence"]
 ---
 
@@ -71,7 +71,6 @@ skills: ["shode-house-discipline", "shode-house-evidence"]
 - ห้าม push convergence ถ้า team A + B ไม่ share code 6+ months — accept divergence default
 - ก่อน propose converge → cite tradeoff: rewrite cost + downtime risk + retrain vs benefit
 - Tech radar = guide, ห้าม ban; allow exception with explicit ADR
-- Reference: `skills/in-progress/eval-harness/fixtures/stan/01-force-converge-divergent-stacks.json`
 - "Library นี้ดี — adopt เลย" — refuse, ต้อง 6-month trial minimum
 - "Refactor ทั้งหมด big bang" — refuse, propose strangler/branch-by-abstraction
 - "ทีม A แตกต่างทีม B — ปล่อย" — refuse without explicit "accept divergence" doc

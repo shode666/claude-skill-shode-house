@@ -3,6 +3,31 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.10.0] — enforcement repair (Skill tool + tool defects) + Oliver output style + report brevity — 2026-08-01
+
+> **Root-cause release #3.** v3.8 แก้ "discipline ไปไม่ถึง subagent" ด้วย `skills:` preload แต่แก้ไม่หมด: agent ทุกตัวระบุ `tools:` แบบ explicit โดยไม่มี `Skill` ซึ่ง [docs/en/sub-agents](https://code.claude.com/docs/en/sub-agents) ระบุว่าเท่ากับ **ห้าม subagent โหลด skill ใด ๆ** → 12 จาก 19 skill ไม่เคยถึง agent เลย
+
+### 🐛 Fixed
+- **`Skill` เพิ่มใน `tools:` ครบ 19 agents** + CI check #14 กัน regression
+- **Tool defects**: Oliver +`Bash` (เป็นเจ้าของ `bd`/`git worktree`/M8 `bd show` แต่รันไม่ได้) · Bella + Patrick +`Grep`+`Glob` (NO MAGIC บังคับ cite ด้วย Glob/Grep) · Stan +`Write`+`Edit` (Handoff Contract บังคับเขียน artifact)
+- **Recite Card 2 เวอร์ชันขัดกัน** (v3.1 ใน `meeting` / v3.5 ใน `discipline`) → source เดียว
+- **`dev-gate` 7 vs 11 gates** · **5 commands hardcode "ภาษาไทย"** ขัด mirror-the-user (v3.8) · **README** Phase 7 Learn ที่ลบแล้ว + ชื่อ gate ที่ไม่มีจริง · **`drift`** โฆษณา M1 ที่ย้ายออกไป v3.8 · dead ref `skills/in-progress/…` ใน 17 agent
+
+### ✨ Added
+- **`output-styles/oliver.md`** (`force-for-plugin: true`) — Oliver ยึด main session; output style แก้ system prompt ของ main loop โดยตรง ไม่กระทบ subagent
+- **Report Brevity** (`shode-house-discipline`, 19/19) — work deep, report short + return format ≤ ~15 บรรทัด
+- **`data-migration`** + **`api-contract`** skills · **prompt-injection §** ใน `secure` (0 hits ก่อนหน้านี้ ทั้งที่ 7 agent ถือ WebFetch) · **ADR lifecycle §** ใน `deliverable` (`Superseded by` = 0 hits ก่อนหน้านี้)
+- CI check #15 (output-style frontmatter) · `make pack` ship `output-styles/`
+
+### 🔄 Changed
+- ย้ายเข้า `shode-house-discipline` (ถึง 19/19): Handoff Contract (เดิม preload 1/19) · Agent Tag Prefix (เดิม 0/19) · Close-on-Done M8 · Skill-loading map
+- ย้ายออกจาก `shode-house-discipline` (ไม่ใช่ของทุกคน): Engagement Mode + phase-orchestration → `shode-house-workflow` · Universal UX/UI rules → `ui-test`
+- **`shode-house-discipline` 20,097 → 16,245 B = -71 KB ต่อ fan-out 19 ตัว**; No Man-Day 34→7 บรรทัด, Clarifying 82→17, PEV ASCII diagram ใน workflow → 8 บรรทัด
+
+> Skill 19 → **21**. Bias Discipline **ไม่ถูกแตะ** — ตรวจแล้วทั้ง 19 บล็อกเนื้อหาต่างกัน ไม่ใช่ copy ซ้ำ
+
+---
+
 ## [3.9.0] — backlog drain (worktree fan-out + serial merge) + M8 Close-on-Done Guard — 2026-07-30
 
 > **Root-cause release #2.** ปิด 2 failure mode ที่วัดได้จริง: (1) **stale-open bd** — งานเสร็จ merged แล้วแต่ไม่มีใครปิด issue -> backlog โกหก รอบถัดไปทำซ้ำ (2) **git race / tree collision** ตอน agent หลายตัว commit บน trunk พร้อมกัน

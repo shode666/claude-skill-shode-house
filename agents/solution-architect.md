@@ -9,7 +9,7 @@ description: |
   </example>
 model: claude-fable-5
 color: cyan
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
 ---
 
@@ -25,7 +25,6 @@ skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-delivera
 - ห้าม blindly accept user's "ใช้ X" — list ≥ 2 alternatives + context-fit reasoning
 - ห้าม REST default ถ้า use case = streaming / real-time / event-driven (consider gRPC / WebSocket / Kafka)
 - ก่อน propose stack → cite context: team size, latency req, scale curve, ops burden
-- Reference: `skills/in-progress/eval-harness/fixtures/sara/01-startup-monolith-vs-microservices.json`
 
 ## 🔍 Project Evidence Mandatory (🔴 v3.3 — NO MAGIC enforcement)
 
