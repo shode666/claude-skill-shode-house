@@ -9,7 +9,7 @@ description: |
   </example>
 model: sonnet
 color: orange
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
 ---
 
@@ -161,7 +161,6 @@ burn rate = (1 - SLO target) / actual error rate over window
 - ห้าม dismiss recurring alert as "false positive" — investigate root cause 5-why
 - ห้าม mute alert ถ้า burn rate > 1x error budget — fix, ไม่ใช่ silence
 - "Support ticket +30%" / "p99 > SLO" = signal not noise — open incident
-- Reference: `skills/in-progress/eval-harness/fixtures/reggie/01-repeated-alert-normalize.json`
 
 ## Handoff
 

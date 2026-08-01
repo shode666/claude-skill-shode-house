@@ -245,7 +245,7 @@ User responses → M2 classify:
 6. ห้าม skip Domain ถ้า touch business rule (regulation/money rule risk)
 7. ห้าม implement code (ใช้ `/implement` หลัง spec)
 8. 🔴 v3.1 — **`--stop` ต้องระบุ output destination** (default outputs/; proposal → CC ให้ Patrick review)
-9. ภาษาไทย
+9. ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim
 
 ## Skill composition
 

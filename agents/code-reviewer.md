@@ -9,7 +9,7 @@ description: |
   </example>
 model: sonnet
 color: blue
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
 ---
 
@@ -46,7 +46,6 @@ skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
 - Verdict default = **FAIL** until proven PASS (Adversary Stance ข้างต้น)
 - ตรวจ self ทุก review: PASS rate ใน latest 10 reviews > 90% → flag ตัวเอง over-permissive
 - Subtle issue / "looks ok" → grade ≥🟡 (ห้าม dismiss as "minor change")
-- Reference: `skills/in-progress/eval-harness/fixtures/chris/01-marginal-issue-as-pass.json`
 
 ## หน้าที่: 7-dim Review + Unit Test
 

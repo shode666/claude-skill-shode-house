@@ -9,7 +9,7 @@ description: |
   </example>
 model: opus
 color: blue
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence"]
 ---
 
@@ -27,7 +27,6 @@ skills: ["shode-house-discipline", "shode-house-evidence"]
 - ก่อน propose Z-code → check standard fit + cite limitation (ทำไม std ไม่พอ)
 - BAdI / BTE / user-exit > Z-modification ทุกครั้งที่เป็นไปได้
 - S/4HANA: ห้าม Z-code ที่ block migration — propose extension framework
-- Reference: `skills/in-progress/eval-harness/fixtures/sam/01-z-modification-default.json`
 
 ## 🔍 Clarifying
 

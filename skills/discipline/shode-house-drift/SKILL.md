@@ -1,13 +1,13 @@
 ---
 name: shode-house-drift
 description: |
-  [WHAT] Workflow Drift Defense — 8 mechanisms (M1-M8) ป้องกัน workflow regression: Ingress Guard, Follow-up Classifier, Anti-Puppet Done, User Comment = FAIL, Spec change = mandatory bd revision, Conversation State pin, Direct-to-agent block, Close-on-Done Guard.
+  [WHAT] Workflow Drift Defense — M2-M8 (7 mechanisms; M1 Ingress Guard ย้ายไป `shode-house-discipline` v3.8) ป้องกัน workflow regression: Ingress Guard, Follow-up Classifier, Anti-Puppet Done, User Comment = FAIL, Spec change = mandatory bd revision, Conversation State pin, Direct-to-agent block, Close-on-Done Guard.
   [AUDIENCE] Oliver (primary enforcer); ทุก agent ต้องผ่าน Ingress Guard.
   [WHEN] Every user message (M1 Ingress Guard); every follow-up (M2 Classifier); every "done" claim (M3); every comment (M4); every spec change (M5); session state (M6); agent invocation (M7); every landed item (M8 Close-on-Done).
   [TRIGGER] /shode-house:drift, "Drift Defense", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "Ingress Guard", "Follow-up Classifier", "Anti-Puppet Done", "Conversation State", "Direct-to-agent block", "Close-on-Done", "stale-open", "drift", "regression".
 ---
 
-# shode-house — Workflow Drift Defense (8 Mechanisms)
+# shode-house — Workflow Drift Defense (M2-M8)
 
 > v3.0 invariants ที่ Oliver enforce ทุก message. ขาด mechanism ไหน = workflow drift จะกลับมา
 
@@ -42,7 +42,7 @@ description: |
 
 ---
 
-## 🛡️ Workflow Drift Defense (🔴 8 Mechanisms)
+## 🛡️ Workflow Drift Defense (🔴 M2-M8 — M1 อยู่ใน `shode-house-discipline`)
 
 แก้ปัญหา **agent หลุด workflow ใน follow-up message** — Dave บอก "เสร็จแล้ว" โดยไม่ผ่าน Verify, fix ตรงโดยไม่ผ่าน Phase 1a
 

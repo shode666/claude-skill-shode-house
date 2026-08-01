@@ -6,8 +6,24 @@
 
 ออกแบบเน้น: **lean • token-optimized • production-ready • domain-driven • zero-overlap capability • ภาษาไทย**
 
-[![Version](https://img.shields.io/badge/version-3.9.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
+[![Version](https://img.shields.io/badge/version-3.10.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+---
+
+## 🆕 v3.10 — Enforcement repair + Oliver takes the main session
+
+**Root cause รอบนี้: rule ที่เขียนไว้ไปไม่ถึง agent ที่ต้องทำตาม** (ต่อจาก v3.8 ที่ยังแก้ไม่หมด)
+
+- 🔴 **19/19 agents ได้ `Skill` ใน `tools:`** — ก่อนหน้านี้ทุก agent ระบุ `tools:` แบบ explicit และไม่มี `Skill` → ตาม [docs/en/sub-agents](https://code.claude.com/docs/en/sub-agents) = subagent **โหลด skill ไม่ได้เลย**; 12 จาก 19 skill (dev-gate, secure, slo, incident, ui-test, web-q, diagnose, automate-test, caveman, broadcast, drift, meeting) เข้าไม่ถึง subagent มาตลอด. CI check #14 กันไม่ให้กลับมา
+- 🔴 **Tool defect**: Oliver ไม่มี `Bash` ทั้งที่เป็นเจ้าของ `bd ready/update/close`, `bd show` (M8) และ `git worktree` · Bella + Patrick ไม่มี `Grep`/`Glob` ทั้งที่ NO MAGIC บังคับ cite ด้วย Glob/Grep · Stan ไม่มี `Write`/`Edit` ทั้งที่ Handoff Contract บังคับเขียน artifact — แก้ครบ
+- 🔴 **ย้าย rule ที่ต้องถึง 19/19 เข้า `shode-house-discipline`**: Handoff Contract (เดิมอยู่ `shode-house-workflow` preload 1/19) · Agent Tag Prefix (เดิม `shode-house-broadcast` preload 0/19) · Close-on-Done M8 · Skill-loading map
+- ✍️ **Report Brevity — work deep, report short** (ใหม่, 19/19): artifact ยาวได้ tool output paste ได้ แต่ข้อความที่ส่งกลับต้องสั้น + return format บังคับ ≤ ~15 บรรทัด. ห้าม preamble / narrate ทุก tool call / เล่าซ้ำสิ่งที่อยู่ใน artifact
+- 🎭 **`output-styles/oliver.md` (`force-for-plugin: true`)** — Oliver ยึด **main session** ไม่ใช่แค่เป็น subagent. Output style แก้ system prompt ของ main loop โดยตรง และไม่กระทบ subagent (แต่ละตัวมี system prompt ของตัวเอง)
+- 📦 **Skill ใหม่**: `data-migration` (expand-contract, batched backfill, rollback drill, ledger append-only, gate `pre-data-migration`) · `api-contract` (breaking vs non-breaking, deprecation window ที่ใช้ metric ไม่ใช่ความรู้สึก, consumer-driven contract test)
+- 🛡️ **Prompt-injection section ใน `secure`** — 7 agent ถือ WebFetch/WebSearch แต่เดิม repo ไม่มีคำว่า injection เลย. **ADR lifecycle ใน `deliverable`** — เดิมไม่มี `Superseded by` ทั้ง repo
+- 🪶 **Token diet**: `shode-house-discipline` 20,097 → 16,245 B (**-71 KB ต่อ fan-out 19 ตัว**) โดยย้ายของที่ไม่ใช่ของทุกคนออก — Engagement Mode + phase-orchestration → `shode-house-workflow` (Oliver), Universal UX/UI rules → `ui-test` (frontend เท่านั้น), No Man-Day 34→7 บรรทัด, Clarifying 82→17
+- 🐛 **แก้ขัดแย้ง**: Recite Card เคยมี 2 เวอร์ชัน (v3.1 ใน `meeting` vs v3.5 ใน `discipline`) ทั้งคู่เขียน "verbatim ห้าม paraphrase" → เหลือ source เดียว · `dev-gate` บอก 7 gates แต่ body มี 11 · 5 commands hardcode "ภาษาไทย" ขัด rule mirror-the-user ของ v3.8 · README อ้าง Phase 7 Learn ที่ลบไปแล้ว + ชื่อ gate ที่ไม่มีจริง · `drift` โฆษณา M1 ที่ย้ายออกไปแล้ว · dead ref `skills/in-progress/…` ใน 17 agent
 
 ---
 
@@ -37,14 +53,14 @@
 - **`review-checklist` skill (DRY)** — Chris 7-dim + Quinn integration matrix อยู่ที่เดียว; `/implement` Phase 3b + `/review` อ้างที่นี่
 - **Recite Discipline Card** — ทุก agent recite 5 Philosophy verbatim ใน first response (anchor against drift)
 - **CLAUDE.md repo invariants** + `Makefile` + `.github/workflows/ci.yml` dev-loop (no Python; gate inline in CI: bash + jq)
-- **19 skills** (11 functional + 7 discipline modules + 1 review-checklist), **5 commands** (+ 2 deprecated). v3.3 drops sprint outer loop + Evan agent — **PEV loop per bd** (Plan/Execute/Verify/Triage), bias discipline embedded in 19 agent prompts, Chris/Quinn adversarial vs Dave + Claude in Chrome verify mandatory. ห้าม man-day negotiation
+- **21 skills** (13 functional + 7 discipline modules + 1 review-checklist), **5 commands**, **1 output style** (+ 2 deprecated). v3.3 drops sprint outer loop + Evan agent — **PEV loop per bd** (Plan/Execute/Verify/Triage), bias discipline embedded in 19 agent prompts, Chris/Quinn adversarial vs Dave + Claude in Chrome verify mandatory. ห้าม man-day negotiation
 
 ### v3.0 features ที่ยัง keep
 
 - 4 core agents: Patrick (PM), Stan (Staff Eng), Sentinel (Security Eng), Reggie (SRE)
-- 4 phases: 0 Discovery, 1c Threat Model, 6 Operate, 7 Learn
+- 3 phases: 0 Discovery, 1c Threat Model, 6 Operate (Phase 7 Learn ถูกลบใน v3.3 — reflect ย้ายไป Phase 4 Triage)
 - 7-team structure + single-owner capability matrix
-- Workflow Drift Defense (M1-M8 ตอนนี้อยู่ใน `shode-house-drift` skill)
+- Workflow Drift Defense (M1 อยู่ `shode-house-discipline`; M2-M8 อยู่ `shode-house-drift`)
 - Handoff Broadcast Protocol (caveman 1-line)
 - RACI matrix per phase + Multi-sig pre-deploy-prod gate
 
@@ -171,7 +187,7 @@ CLAUDE_CODE_SUBAGENT_MODEL=sonnet claude
 
 ---
 
-## 📚 Skills (19 lazy-load — bucket organized v3.1)
+## 📚 Skills (21 lazy-load — bucket organized v3.1)
 
 ### `skills/workflow/` — daily process
 | Skill | Owner | Trigger |
@@ -180,6 +196,8 @@ CLAUDE_CODE_SUBAGENT_MODEL=sonnet claude
 | [`dev-gate`](skills/workflow/dev-gate/SKILL.md) | Dave + Chris | TDD red-green-refactor + 7-gate quality |
 | [`automate-test`](skills/workflow/automate-test/SKILL.md) | Quinn + Chris + Aaron | CI test pyramid 70/20/10 + threshold |
 | [`diagnose`](skills/workflow/diagnose/SKILL.md) | Chris + Quinn + Dave | Bug + perf root cause (4-step) |
+| [`data-migration`](skills/workflow/data-migration/SKILL.md) 🆕 | Dave + Aaron + Sara | expand-contract + backfill + rollback drill |
+| [`api-contract`](skills/workflow/api-contract/SKILL.md) 🆕 | Dave + Sara + Quinn | semver + deprecation window + consumer contract |
 
 ### `skills/ops/` — operational discipline
 | Skill | Owner | Trigger |
@@ -209,7 +227,7 @@ CLAUDE_CODE_SUBAGENT_MODEL=sonnet claude
 | [`shode-house-deliverable`](skills/discipline/shode-house-deliverable/SKILL.md) 🆕 | Producers | DoD + Anti-Puppet + I Never Do + Postmortem template |
 | [`shode-house-broadcast`](skills/discipline/shode-house-broadcast/SKILL.md) 🆕 | ALL | Tag Prefix + Caveman broadcast + Handoff Protocol |
 | [`shode-house-workflow`](skills/discipline/shode-house-workflow/SKILL.md) 🆕 | Oliver | Phase Contract + Smart Coop + hooks + gates + worktree |
-| [`shode-house-drift`](skills/discipline/shode-house-drift/SKILL.md) 🆕 | Oliver enforcer | Drift Defense M1-M8 + Phase wiring (Discovery/Threat Model/Operate) |
+| [`shode-house-drift`](skills/discipline/shode-house-drift/SKILL.md) 🆕 | Oliver enforcer | Drift Defense M2-M8 + Phase wiring (Discovery/Threat Model/Operate) |
 | [`review-checklist`](skills/discipline/review-checklist/SKILL.md) 🆕 | Chris + Quinn + Sentinel + Domain | DRY checklist สำหรับ /implement Phase 3b + /review |
 
 ### `skills/in-progress/` + `skills/deprecated/` — not shipped
@@ -372,7 +390,9 @@ shode-house/
 │   │   ├── meeting/            🔄 v3.1 thin entry-point (180 lines, was 1316)
 │   │   ├── dev-gate/           TDD + 7-gate quality
 │   │   ├── automate-test/      CI test pyramid 70/20/10
-│   │   └── diagnose/           4-step bug methodology
+│   │   ├── diagnose/           4-step bug methodology
+│   │   ├── data-migration/     🆕 v3.10 expand-contract + rollback drill
+│   │   └── api-contract/       🆕 v3.10 semver + deprecation window
 │   ├── ops/                    operational discipline
 │   │   ├── incident/           runbook + war room + postmortem
 │   │   ├── slo/                SLI/SLO/error budget
@@ -390,10 +410,11 @@ shode-house/
 │   │   ├── shode-house-deliverable/  DoD + Anti-Puppet + Postmortem
 │   │   ├── shode-house-broadcast/    Tag Prefix + Caveman + Handoff
 │   │   ├── shode-house-workflow/     Phase Contract + hooks + gates
-│   │   ├── shode-house-drift/        Drift Defense M1-M8
+│   │   ├── shode-house-drift/        Drift Defense M2-M8
 │   │   └── review-checklist/         DRY for /implement Phase 3b + /review
 │   ├── in-progress/            not shipped (drafts)
 │   └── deprecated/             not shipped (retiring)
+├── output-styles/              🆕 v3.10 oliver.md (Oliver ยึด main session)
 ├── agents/                     19 expert agents (12 core + 7 domain)
 ├── commands/                   5 active (v3.5 — aliases removed)
 └── references/

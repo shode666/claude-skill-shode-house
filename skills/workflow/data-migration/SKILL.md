@@ -1,0 +1,114 @@
+---
+name: data-migration
+description: |
+  [WHAT] Schema/data migration discipline — expand-contract, backfill, dual-write, rollback drill, zero-downtime, money/ledger safety.
+  [AUDIENCE] Dave (write migration) + Aaron (run + rollback) + Sara (schema decision/ADR) + Chris/Quinn (verify) + Domain expert (Felix/Elena/Iris/Tara — money & regulated data).
+  [WHEN] ทุกครั้งที่ PR แตะ schema/DDL/seed/backfill; ก่อน gate `pre-data-migration`; ก่อน deploy ที่มี migration; หลัง incident ที่รากคือ schema change.
+  [TRIGGER] /shode-house:data-migration, "migration", "schema change", "alter table", "backfill", "zero downtime", "flyway", "alembic", "liquibase", "prisma migrate", "drop column", "ย้ายข้อมูล", "แก้ schema".
+---
+
+# Data Migration (expand-contract + backfill + rollback drill)
+
+> **Owner**: Dave (เขียน) + Aaron (รัน + rollback) + Sara (ตัดสิน schema + ADR). Money/regulated data → Domain expert sign
+> Migration = **R0 (irreversible)** by default — ต้องผ่าน approval gate `pre-data-migration` เสมอ
+
+## When NOT to use
+
+- **Dev/local DB ที่ทิ้งได้** — `docker compose down -v` แล้ว seed ใหม่ ไม่ต้องทำ ceremony
+- **แก้ข้อมูลแถวเดียวใน prod แบบ manual** — นั่นคือ incident/hotfix → `incident` + change ticket ห้ามเรียกว่า migration
+- **Schema ยังไม่นิ่ง (Phase 1a ยังไม่ sign-off)** — กลับไป `design-system` ก่อน อย่า migrate ตาม spec ที่ยังเปลี่ยน
+- **Data warehouse / analytics rebuild** — คนละ risk model (rebuild ได้) ใช้ pipeline discipline แทน
+
+## Required inputs — refuse without
+
+- [ ] **Migration tool + version ของ project** (Flyway / Liquibase / Alembic / Prisma / goose / Rails) — cite จาก repo จริง ห้ามเดา
+- [ ] **Row count + table size จริงของ prod** (`SELECT count(*)`, table bytes) — ตัดสิน online vs offline ไม่ได้ถ้าไม่รู้
+- [ ] **Downtime budget** (0 = zero-downtime บังคับ expand-contract)
+- [ ] **Rollback path** — down migration หรือ restore plan + RTO/RPO ที่ยอมรับได้
+- [ ] **Data classification** — มี money / PII / regulated field ไหม (ถ้ามี → Domain expert + Sentinel เข้า)
+
+ขาดข้อใด → list สิ่งที่ขาด ส่งกลับ ห้ามเขียน migration
+
+## Expand → Migrate → Contract (🔴 default สำหรับทุก breaking schema change)
+
+ห้าม `ALTER`/`DROP`/`RENAME` ในดีพลอยเดียว — แตกเป็น 3 release
+
+```
+E) EXPAND    เพิ่มของใหม่แบบ nullable/มี default — โค้ดเก่ายังรันได้
+             add column (NULL) · add table · add index CONCURRENTLY · dual-write เริ่มตรงนี้
+M) MIGRATE   backfill เป็น batch + verify + สลับ read ไปคอลัมน์ใหม่ (feature flag)
+C) CONTRACT  หยุด dual-write → drop คอลัมน์/ตารางเก่า  ← release แยก หลัง soak
+```
+
+**Soak time ขั้นต่ำก่อน CONTRACT**: 1 release cycle หรือจนกว่า metric ยืนยันว่าไม่มีใครอ่านของเก่าแล้ว (log/metric บน read path เก่า = 0 ต่อเนื่อง)
+
+## Backfill rules
+
+- **Batch เสมอ** (`LIMIT n` + คีย์เรียงลำดับ) ห้าม single `UPDATE` ทั้งตาราง — lock + WAL/undo ระเบิด
+- Batch size จาก row count จริง; มี sleep คั่น; วัด replica lag ทุก batch → lag เกิน threshold = หยุดเอง
+- **Idempotent + resumable** — เก็บ cursor ไว้; รันซ้ำต้องไม่พัง
+- **Kill switch** — หยุดกลางคันได้ ข้อมูลยัง consistent
+- Verify: `count(*) WHERE new IS NULL` = 0 + sample diff เทียบเก่า/ใหม่ → **paste ผลจริง**
+
+## Index / lock
+
+- Postgres: `CREATE INDEX CONCURRENTLY` · `ALTER TABLE ... ADD COLUMN` มี default = ตรวจว่า version ไหน rewrite ตาราง · ตั้ง `lock_timeout` + `statement_timeout` ทุก migration
+- MySQL: `ALGORITHM=INPLACE, LOCK=NONE` หรือ gh-ost / pt-online-schema-change
+- ห้าม migration ที่ถือ exclusive lock บนตาราง hot โดยไม่มี timeout — timeout แล้ว retry ดีกว่าค้างทั้งระบบ
+
+## Money / ledger / regulated (🔴 Domain expert บังคับ)
+
+- **ห้าม migrate ledger แบบ destructive** — ledger เป็น append-only: แก้ยอดผิดด้วย **correcting entry** ไม่ใช่ `UPDATE`
+- เปลี่ยนชนิดจำนวนเงิน → Decimal/integer minor-unit เท่านั้น (ห้าม float) + พิสูจน์ว่าไม่มี rounding drift: sum ก่อน = sum หลัง **paste ตัวเลขทั้งสองฝั่ง**
+- PII: migration ที่ copy PII ไปตารางใหม่ = ขยาย blast radius → Sentinel review + retention policy ของฟิลด์ใหม่
+- Regulated (BOT/OIC/SEC/IFRS): audit trail ต้องไม่ขาดตอน — เก็บ before/after ของแถวที่แตะ
+
+## Rollback drill (🔴 ห้าม deploy ถ้ายังไม่ซ้อม)
+
+```
+1. restore snapshot ลง staging (จับเวลา → นี่คือ RTO จริง ไม่ใช่ที่เดา)
+2. รัน migration ขึ้น → รัน down/rollback → verify schema + data กลับสภาพเดิม
+3. paste เวลาที่ใช้ + ผล verify
+```
+
+ถ้า migration **rollback ไม่ได้** (drop column/table) → บอกตรง ๆ ว่า one-way แล้ว rollback path = restore from backup พร้อม RTO ที่วัดแล้ว — ห้ามเขียนว่า "rollback ได้" ลอย ๆ
+
+## Gate `pre-data-migration` (⏸️ Oliver + owner approve)
+
+```
+□ expand-contract แยก release แล้ว (หรือระบุเหตุผลว่าทำไมไม่ต้อง)
+□ backfill batched + idempotent + resumable + kill switch
+□ lock_timeout / statement_timeout ตั้งแล้ว
+□ rollback drill รันบน staging + paste เวลา
+□ row count ของจริง + ประมาณเวลารัน
+□ Domain expert sign (ถ้าแตะ money/regulated) · Sentinel sign (ถ้าแตะ PII)
+□ observability: metric แถวที่ backfill แล้ว + replica lag + error rate
+```
+
+## Evidence
+
+```
+✅ "[psql] SELECT count(*) FROM orders → 48,213,004 rows; batch=5000, sleep=200ms, est 3h20m"
+✅ "[staging] restore snapshot 14m32s = RTO จริง; up→down→verify schema diff = empty"
+✅ "[Decimal check] sum(amount) before=1,204,883.55 after=1,204,883.55 diff=0"
+❌ "migration ปลอดภัย rollback ได้" (ไม่มี drill, ไม่มีตัวเลข)
+```
+
+## ห้าม
+
+- ห้าม `DROP`/`RENAME` column-table ใน release เดียวกับที่โค้ดใหม่ขึ้น
+- ห้าม backfill เป็น statement เดียวบนตารางใหญ่
+- ห้าม migration ที่ไม่มี timeout
+- ห้าม `UPDATE` ยอดใน ledger — ใช้ correcting entry
+- ห้าม deploy migration โดยไม่ซ้อม rollback
+- ห้ามให้ agent รัน migration บน prod เอง — Aaron เตรียม, มนุษย์กด (R0)
+
+## Skill composition
+
+| Situation | Next skill |
+|---|---|
+| เขียน migration + test | → `dev-gate` (TDD: test ที่ fail ก่อน migrate) |
+| verify หลัง migrate | → `review-checklist` (Chris data-integrity) · `automate-test` (regression) |
+| แตะ PII / auth | → `secure` (Sentinel) |
+| migration ทำ prod พัง | → `incident` (mitigate ก่อน) แล้ว `diagnose` |
+| schema decision ยังไม่นิ่ง | → `design-system` (Sara ADR) |

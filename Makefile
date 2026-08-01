@@ -19,6 +19,7 @@ pack build:
 > @zip -rq $(PLUGIN) \
 >   .claude-plugin agents commands \
 >   skills/workflow skills/ops skills/ui skills/style skills/discipline \
+>   output-styles \
 >   references docs \
 >   README.md CHANGELOG.md CLAUDE.md .pre-commit-config.yaml \
 >   -x '*.DS_Store' -x '*__pycache__*' -x '*/.git/*' -x '*.fuse_hidden*'

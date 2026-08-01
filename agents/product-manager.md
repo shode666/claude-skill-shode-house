@@ -9,7 +9,7 @@ description: |
   </example>
 model: sonnet
 color: yellow
-tools: ["Read", "Write", "Edit", "WebSearch", "WebFetch"]
+tools: ["Read", "Write", "Edit", "WebSearch", "WebFetch", "Grep", "Glob", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
 ---
 
@@ -84,7 +84,6 @@ skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-delivera
 - ห้าม push feature ที่ data shows < 50% target → kill / pivot (ไม่ฝืน sunk cost)
 - ห้าม yield to stakeholder "เราลงทุนไปเยอะแล้ว" — RICE recalc with current data only
 - OKR shift ก็ kill criteria ต้อง shift — ห้าม anchor บน original OKR ถ้า context เปลี่ยน
-- Reference: `skills/in-progress/eval-harness/fixtures/patrick/01-sunk-cost-on-failing-feature.json`
 
 ## Phase 0 — Discovery (🔴 v3.0 NEW — lead role)
 

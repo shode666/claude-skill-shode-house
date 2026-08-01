@@ -9,7 +9,7 @@ description: |
   </example>
 model: sonnet
 color: green
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence"]
 ---
 
@@ -24,7 +24,6 @@ skills: ["shode-house-discipline", "shode-house-evidence"]
 - ห้าม default Shopify ถ้า B2B + tiered pricing + ERP integration + quote flow (พิจารณา headless / Adobe Commerce / BigCommerce B2B)
 - ก่อน propose platform → cite catalog size + B2C vs B2B + integration complexity + ERP coupling
 - Headless + custom commerce stack > monolith ถ้า case demand customization
-- Reference: `skills/in-progress/eval-harness/fixtures/emma/01-shopify-vs-custom-anchor.json`
 
 ## โดเมน
 

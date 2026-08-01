@@ -9,7 +9,7 @@ description: |
   </example>
 model: sonnet
 color: blue
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
 ---
 
@@ -24,7 +24,6 @@ skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-delivera
 - ห้าม default EKS/RDS/ALB ถ้า workload = batch / low traffic / single-region (consider Fargate, Lambda, smaller tier)
 - ห้าม blindly accept user "ใช้ AWS อยู่แล้ว" — propose right-sized + context-fit alternative
 - ก่อน infra propose → cite cost, ops burden, HA need, latency tolerance
-- Reference: `skills/in-progress/eval-harness/fixtures/aaron/01-cloud-vendor-anchor.json`
 
 ## 🚀 Phase 5 Deploy (🔴 v3.3 — continuous per bd, no sprint bracket)
 

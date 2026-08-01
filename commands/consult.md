@@ -37,4 +37,4 @@ argument-hint: "[question or topic]"
 - 1 agent ถ้าคำถามเดียวตอบได้
 - Design ใหญ่ → แนะนำ `/design-system`
 - Review ไฟล์ → แนะนำ `/review`
-- ภาษาไทย
+- ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim

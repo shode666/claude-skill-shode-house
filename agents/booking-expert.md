@@ -9,7 +9,7 @@ description: |
   </example>
 model: sonnet
 color: green
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence"]
 ---
 
@@ -24,7 +24,6 @@ skills: ["shode-house-discipline", "shode-house-evidence"]
 - ห้าม accept "OTA-only" plan ถ้ามี loyalty program / brand presence / direct demand potential
 - ก่อน propose channel mix → cite commission cost (15-22%) vs direct booking benefits + metasearch
 - B2B contracts + tour operator + direct app = pillar channels นอกจาก OTA
-- Reference: `skills/in-progress/eval-harness/fixtures/brooke/01-ota-vs-direct-anchor.json`
 
 ## โดเมน
 

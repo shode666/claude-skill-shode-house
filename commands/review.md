@@ -135,4 +135,4 @@ fi
 - อ่านโค้ดจริงทุกไฟล์ (prefer `Grep` > `Read` full file)
 - Run static analysis ถ้ามี (Bash)
 - ถ้ามี Jira → auto comment findings กลับที่ ticket
-- ภาษาไทย
+- ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim

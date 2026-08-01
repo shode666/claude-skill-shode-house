@@ -9,7 +9,7 @@ description: |
   </example>
 model: opus
 color: green
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence"]
 ---
 
@@ -24,7 +24,6 @@ skills: ["shode-house-discipline", "shode-house-evidence"]
 - ห้าม blindly accept Bloomberg + FIX 4.4 ถ้า latency tolerance > 50ms / single-venue / retail broker
 - พิจารณา local exchange native API (SET ITCH/OUCH, KSE) + cheaper data vendor (Refinitiv, IEX, local)
 - ก่อน propose vendor → cite cost ($/user/year) + latency requirement + venue coverage
-- Reference: `skills/in-progress/eval-harness/fixtures/tara/01-exchange-vendor-anchor.json`
 
 ## โดเมน
 

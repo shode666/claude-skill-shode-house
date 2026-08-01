@@ -129,6 +129,25 @@ jobs:
           done
           [ $fail -eq 0 ] && ok "agent skills: preload resolves"
 
+          sec "14. every agent can invoke skills (Skill in tools:)"
+          # v3.10 regression guard: an explicit tools: array WITHOUT "Skill" means the
+          # subagent cannot load ANY skill at runtime (docs/en/sub-agents). 0/19 had it before.
+          for f in agents/*.md; do n=$(basename "$f" .md)
+            t=$(awk '/^---$/{c++;next} c==1&&/^tools:/{sub(/^tools:[ \t]*/,"");print;exit}' "$f")
+            [ -z "$t" ] && continue   # omitted tools: inherits everything, incl. Skill
+            echo "$t" | grep -q '"Skill"' || err "$n: tools: omits \"Skill\" -> cannot load any skill"
+          done
+          [ $fail -eq 0 ] && ok "all agents can invoke skills"
+
+          sec "15. output styles have name + description"
+          if [ -d output-styles ]; then
+            while IFS= read -r f; do
+              awk '/^---$/{c++;next} c==1&&/^name:/{nm=1} c==1&&/^description:/{de=1} END{exit !(nm&&de)}' "$f" \
+                || err "$f: missing name/description"
+            done < <(find output-styles -name '*.md')
+            [ $fail -eq 0 ] && ok "output styles ok"
+          else ok "no output-styles/ (skipped)"; fi
+
           echo
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi
           exit $fail

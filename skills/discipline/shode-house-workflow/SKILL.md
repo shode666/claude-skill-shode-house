@@ -44,6 +44,32 @@ E) Asana — task-focused, paid (cross-functional)
 
 ---
 
+## 🎚️ Engagement Mode (🔴 Oliver เลือกก่อนเริ่ม — ย้ายมาจาก `shode-house-discipline` v3.10)
+
+| Mode | Behavior | When |
+|------|----------|------|
+| **AFK** (Auto) | Oliver delegate ทุก phase + automated gate. User approve เฉพาะ R0 | งานชัด, trusted scope |
+| **Interactive** (Supervised) | Human approve ทุก hand-off + ดู agent output ก่อน next | งานใหม่/ละเอียดอ่อน, learning, audit |
+| **Hybrid** (Recommended default) | AFK ถึง pre-deploy → Interactive ตั้งแต่ deploy ขึ้น | งานทั่วไป — balance speed + safety |
+
+**Mode bind R0/R1/R2**:
+- AFK: R2 auto, R1 inform-only, R0 ขออนุญาต
+- Interactive: R2/R1 inform, R0 ขออนุญาต + ทุก phase exit ขออนุมัติ
+- Hybrid: AFK rule ก่อน deploy phase → switch Interactive ตั้งแต่ deploy
+
+---
+
+## 🚦 Phase orchestration — ห้าม (🔴 Oliver enforce, ย้ายมาจาก discipline v3.10)
+
+- 🔴 ห้าม serialize Phase 1a (Bella → Sara รอคิว); ห้าม parallel Phase 1b (Uma/Domain ต้องอ่าน 1a spec ก่อน design/validate)
+- 🔴 ห้าม skip Phase 3a Uma POST gate. Dave → Chris+Quinn ตรงเลย โดยไม่ผ่าน Uma = UI bug ลึกค่อย rework
+- 🔴 ห้าม serialize Phase 3b (Chris → Quinn รอคิว); parallel เท่านั้น (different scope)
+- 🔴 ห้าม skip Phase 4 Triage routing. Review fail → loop ไป phase ที่ตรง finding (code→2, UI→1b, spec→1a); ห้าม "ผ่านครึ่ง ๆ" ข้ามไป Deploy
+- 🔴 ห้าม close Phase 3 (3a/3b) ก่อน post review report. **bd active → `bd update <id> --notes` ONLY** (ห้ามเขียน markdown ซ้ำ). **No bd → `outputs/REVIEW-<feature>.md`** (markdown fallback). ใช้ template structure จาก "REVIEW Report Format" section
+- 🔴 ห้ามเขียน review เป็น markdown ถ้ามี bd. bd = single source of truth; markdown = audit redundancy + drift risk
+
+---
+
 ## 🔧 Token-saving (🔴 runtime)
 
 - `Grep`/`Glob` (targeted) > `Read` ทั้งไฟล์
@@ -71,56 +97,14 @@ E) Asana — task-focused, paid (cross-functional)
 > ก่อน v3.3 มี outer sprint loop + inner per-issue loop. v3.3 = **single PEV loop per bd** — agent ส่งงาน task-complete, ไม่ time-bound. ห้าม man-day negotiation (per shode-house-discipline). Deploy = continuous per bd ready, ไม่ batched sprint-end.
 
 ```
-┌─ PEV LOOP per bd issue (Smart Coop — parallel where independent) ─┐
-│                                                                    │
-│  📍 PICK: bd update <id> --claim                                   │
-│     ↓                                                              │
-│  📋 PLAN                                                           │
-│   Phase 0 🔍 Discovery (Patrick + Domain SME — opt, new initiative)│
-│   Phase 1a 🤝 Foundation (Bella ∥ Sara — TRUE parallel)           │
-│              BRD + AC ∥ ADR + risk                                 │
-│              → bd update --notes (compact ref only)                │
-│   Phase 1b 🎨 Conditional Expand (sequential gate after 1a)        │
-│              Uma* reads spec → wireframe + tokens + a11y baseline  │
-│              Domain* reads spec → regulation cite + business rule  │
-│              → outputs/SPEC-<bd-id>.md (integrated)                │
-│              ⏸️ Gate pre-implement-ui (Uma sign UI acceptance)      │
-│   Phase 1c 🛡 Threat Model (Sentinel — conditional auth/PII/money) │
-│     ↓                                                              │
-│  💻 EXECUTE                                                        │
-│   Phase 2 (Dave — parallel Dave#1/#2 ถ้า independent)              │
-│              Scope Contract + code + unit test                     │
-│              ⏸️ Gate: lint clean + unit green + smoke pass          │
-│     ↓                                                              │
-│  ✅ VERIFY (Chris/Quinn adversarial — zero trust Dave)             │
-│   Phase 3a 🎨 UI Check (Uma* — sequential gate)                    │
-│              Screenshot diff + Claude in Chrome verify             │
-│   Phase 3b 🔍 Code Review (Chris ∥ Quinn — TRUE parallel)          │
-│              Chris: 7-dim + mutation ≥ 70% + Chrome verify         │
-│              Quinn: integration + E2E + contract + load + Chrome   │
-│              ⏸️ Gate: 0 Critical/Major + verdict default = FAIL    │
-│     ↓                                                              │
-│  🚦 TRIAGE (Oliver — loop routing)                                 │
-│   Phase 4 Critical/Major → bd create --discovered-from=N           │
-│              + loop กลับ phase ตาม finding type:                    │
-│                ─ code/perf/security impl → Phase 2 (EXECUTE)       │
-│                ─ UI/design adherence → Phase 1b (PLAN expand)      │
-│                ─ spec/AC/regulation → Phase 1a (PLAN foundation)   │
-│              Minor → bd create P4 + continue                       │
-│              Clean → bd close <id> + bd show verify (M8)           │
-│              Max iter 3 → STOP escalate user                       │
-│     ↓                                                              │
-│  🚀 DEPLOY (Aaron — continuous per bd, or manual gate)             │
-│   Phase 5 CI + canary + health + observability                     │
-│     ↓                                                              │
-│  📡 OPERATE (Reggie — continuous post-deploy)                      │
-│   Phase 6 SLO burn watch + incident response                       │
-│                                                                    │
-│  📚 (No sprint retro — per-bd reflect happens in Phase 4 Triage)   │
-└────────────────────────────────────────────────────────────────────┘
+PICK bd claim → PLAN 0 Discover* / 1a Bella∥Sara / 1b Uma*+Domain* / 1c Sentinel*
+  → EXECUTE 2 Dave → VERIFY 3a Uma* → 3b Chris∥Quinn → TRIAGE 4 Oliver
+  → DEPLOY 5 Aaron (continuous per bd) → OPERATE 6 Reggie          (* = conditional)
 
-* = conditional: Uma เข้า 1b+3a เฉพาะ feature touch user-facing UI; Domain เข้า 1b เฉพาะ touch business rule
+Triage routing: code/perf/security→2 · UI/design→1b · spec/AC/regulation→1a
+Clean → bd close + bd show verify (M8) + bd remember · iter > 3 → STOP escalate user
 ```
+> รายละเอียด pre/post hook ต่อ phase = ตาราง § Lifecycle Hooks ด้านล่าง (single source)
 
 **Key rules**: ❌ ไม่มี outer sprint loop (ไม่มี /sprint, Pre-Sprint, Sprint Close, retro bracket) · ✅ Patrick OKR review + Deploy = continuous per-bd · ✅ per-bd reflect ใน Phase 4 Triage · ✅ ห้าม propose timeline/man-day (per `shode-house-discipline` § No Man-Day Negotiation)
 

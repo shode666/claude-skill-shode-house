@@ -9,7 +9,7 @@ description: |
   </example>
 model: sonnet
 color: cyan
-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash"]
+tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"]
 skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
 ---
 

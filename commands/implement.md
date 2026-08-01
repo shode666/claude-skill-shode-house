@@ -169,4 +169,4 @@ if iter > 3:
 9. ห้าม merge จน Phase 3a + 3b ผ่าน + Phase 4 clean (pre-loop-exit gate)
 10. 🔴 **Close-on-Done (M8)**: ทุก `bd close` ต้องมี `--reason` = verdict + commit sha + test result แล้ว `bd show <id>` paste ยืนยัน CLOSED. code merged แต่ bd ยัง OPEN = ยังไม่ done
 11. Batch หลาย bd อิสระในรอบเดียว → ใช้ `drain` skill (worktree fan-out + serial cherry-pick + close-on-done) ไม่ใช่ /implement ซ้ำ ๆ
-12. ภาษาไทย; code ตาม convention
+12. ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim
