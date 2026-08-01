@@ -6,7 +6,7 @@
 
 ออกแบบเน้น: **lean • token-optimized • production-ready • domain-driven • zero-overlap capability • ภาษาไทย**
 
-[![Version](https://img.shields.io/badge/version-3.10.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
+[![Version](https://img.shields.io/badge/version-3.10.1-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---

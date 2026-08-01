@@ -3,6 +3,20 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [3.10.1] — fix: Oliver output style skipped the Recite Card + tag prefix — 2026-08-01
+
+> **Measured on a real Cowork session.** `force-for-plugin: true` worked (Oliver took over the main loop) but the first response carried neither the Recite Card nor `[Oliver|state:...|bd:...]`.
+> Cause: the style's own § Report Brevity said "no preamble" and sat *after* § Recite, so the card read as preamble and lost (consistent with IFScale later-instruction dominance).
+
+### Fixed
+- Recite Card + tag prefix moved to the **top of the style, above everything**, and made unconditional: they fire even when the user only says hi or asks a one-liner
+- Report Brevity now carries an explicit carve-out: Recite Card, tag prefix and handoff line are **not preamble** and may never be trimmed
+- Card no longer duplicated inside the style (was top + section 1)
+
+> Also confirms what v3.10.0 could not: **Cowork does support plugin output styles and `force-for-plugin`.**
+
+---
+
 ## [3.10.0] — enforcement repair (Skill tool + tool defects) + Oliver output style + report brevity — 2026-08-01
 
 > **Root-cause release #3.** v3.8 แก้ "discipline ไปไม่ถึง subagent" ด้วย `skills:` preload แต่แก้ไม่หมด: agent ทุกตัวระบุ `tools:` แบบ explicit โดยไม่มี `Skill` ซึ่ง [docs/en/sub-agents](https://code.claude.com/docs/en/sub-agents) ระบุว่าเท่ากับ **ห้าม subagent โหลด skill ใด ๆ** → 12 จาก 19 skill ไม่เคยถึง agent เลย
