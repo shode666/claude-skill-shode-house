@@ -217,3 +217,44 @@ POSTMORTEM scheduled within 5 days
 | Root cause = security breach | → `secure` | Sentinel STRIDE + abuse case + threat model update |
 | Root cause = test gap ทำให้หลุด CI | → `automate-test` | Pyramid + regression coverage + CI gate (close the hole) |
 | Action item ต้อง deploy hot-fix | → `dev-gate` (followed by hot-fix release) | TDD applies even to hot-fix (no exception)
+
+## 📋 Postmortem Template (Oliver — ทุก incident, blameless)
+
+```markdown
+# Postmortem: [incident title] — [date]
+
+## Summary
+[1-2 บรรทัด: อะไรพัง, นานเท่าไหร่, กระทบใคร]
+
+## Timeline (UTC+7)
+- HH:MM — [event] (source: log/alert/user report)
+- HH:MM — [detection]
+- HH:MM — [response action]
+- HH:MM — [mitigation]
+- HH:MM — [resolution]
+
+## Impact
+- User: [count, %, region]
+- Revenue: [฿]
+- Data: [loss/integrity/none]
+- SLO: error budget burned [%]
+
+## Root Cause (5 Whys)
+1. Why X? → ...
+2. Why...? → ...
+5. Root: [structural cause, not "human mistake"]
+
+## What Went Well
+- [detection time, response, communication]
+
+## What Went Wrong
+- [delay, missing alert, no runbook]
+
+## Action Items (system change, not blame)
+| # | Action | Owner | Due | bd # |
+| 1 | Add alert for X | Aaron | YYYY-MM-DD | bd:N |
+| 2 | Test for regression | Quinn | YYYY-MM-DD | bd:N |
+| 3 | Update runbook | Aaron | YYYY-MM-DD | bd:N |
+```
+
+> ย้ายมาจาก `shode-house-deliverable` v3.11 (เคย preload 8 agent ทั้งที่ใช้เฉพาะตอน incident)

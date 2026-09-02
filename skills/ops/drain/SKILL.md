@@ -24,6 +24,7 @@ description: |
 
 ## Required inputs — refuse without
 
+- [ ] **Ready set ที่มี edge จริง** — ถ้า backlog ยังเป็นก้อนใหญ่/ไม่มี blocking edge → แตกด้วย **`decompose` skill** ก่อน อย่ามานั่ง verify independence เองที่นี่ (🆕 v3.12)
 - [ ] **Verified-open set** — union ของ `bd list` + tracked export id **แล้ว confirm ทีละตัวด้วย `bd show`** (อ่านได้เชื่อถือได้ตัวเดียว). ห้าม seed run จาก `bd list` count ดิบ
 - [ ] **Per-item concrete scope** — `file:line` + fix direction ฝังใน brief ของแต่ละ item.
       🔴 worktree agent **รัน `bd` ไม่ได้** (Dolt DB ไม่ได้อยู่ใน worktree) → AC ต้องอยู่ใน prompt ทั้งหมด
@@ -32,7 +33,7 @@ description: |
 
 ขาดข้อใด → list สิ่งที่ขาด ส่งกลับ caller **ก่อน** fan-out
 
-## 8 Invariants (map เข้า 5 Philosophy)
+## 9 Invariants (map เข้า 5 Philosophy)
 
 | # | Invariant | Maps to |
 |---|-----------|---------|
@@ -44,6 +45,7 @@ description: |
 | 6 | **No push in worktree** — agent commit บน `fix/<id>`; main loop merge serial (ไม่มี push-race) | SCOPE / safety |
 | 7 | **Scope-lock + no-delete** — agent แก้เฉพาะไฟล์ของ item ตัวเอง, **ห้ามลบไฟล์ที่ตัวเองไม่ได้สร้าง** | scope drift guard |
 | 8 | **Unit test เท่านั้นตอน parallel** — ห้าม fan-out Testcontainers/Playwright (resource blow-up); integration test ที่ต้องรัน → **ระบุชื่อ** ให้รันก่อน deploy | evidence realism |
+| 9 | **Conflict ต้องมีร่องรอย** — abort+regroup หรือ resolve+evidence; ห้ามจบเงียบ (ดู § Conflict protocol) | NO MAGIC / VERIFY |
 
 ## Flow
 
@@ -113,18 +115,50 @@ Return structured: verdict, branch (fix/<ID>), commit_sha (git rev-parse HEAD), 
 git worktree add ../$(basename $PWD)-<ID> -b fix/<ID>
 ```
 
-Runner ไหนก็ตาม: agent **return conclusion + path** ห้าม dump transcript (Handoff Contract, `shode-house-workflow`)
+Runner ไหนก็ตาม: agent **return conclusion + path** ห้าม dump transcript (Handoff Contract, `shode-house-discipline`)
 
 ## Step 4 — Serial merge (main loop เท่านั้น — 🔴 ห้ามอยู่ใน fan-out)
 
 ```bash
+# fast gate ของ target project — ห้าม hardcode; หาให้เจอก่อน (v3.12)
+FAST_GATE=$(ls scripts/ci/local.sh 2>/dev/null \
+  || (grep -qE '"(test|check)"' package.json 2>/dev/null && echo "npm test") \
+  || (test -f Makefile && grep -qE '^(test|check|ci):' Makefile && echo "make test") \
+  || (test -f pyproject.toml && echo "pytest") )
+[ -z "$FAST_GATE" ] && { echo "ไม่พบ fast gate — ถาม user ว่ารันอะไร ห้ามเดา"; exit 1; }
+
 for sha in $FIXED_SHAS; do git cherry-pick "$sha"; done   # serial → ไม่มี push-race; ไฟล์ disjoint → clean
-scripts/ci/local.sh                                        # 1 aggregate fast-gate run
+$FAST_GATE                                                 # 1 aggregate fast-gate run
 git push origin main                                       # 1 push
 git worktree prune                                         # เก็บกวาด worktree
 ```
 
-cherry-pick conflict = สัญญาณว่า **file-locality grouping ผิด** → หยุด, จัดกลุ่มใหม่, รันรอบใหม่ (ห้าม hand-merge เงียบ ๆ)
+### 🔀 Conflict protocol (🆕 v3.12 — เดิมบอกแค่ "จัดกลุ่มใหม่" ไม่ได้บอกว่าจะเอา tree ที่ค้างกลางคันไปไว้ไหน)
+
+cherry-pick conflict = สัญญาณว่า **file-locality grouping ผิด** (Step 2 พลาด) — แต่ก่อนจะจัดกลุ่มใหม่ ต้องจัดการสถานะที่ค้างอยู่ก่อน:
+
+```bash
+git cherry-pick --abort     # ✅ ที่นี่ abort ได้ — commit ของ agent ยังอยู่บน fix/<id> ไม่มีอะไรหาย
+git status                  # ยืนยันว่า tree สะอาดก่อนไปต่อ
+```
+> 🔴 `--abort` ปลอดภัย **เฉพาะที่ step นี้** เพราะงานที่ verify แล้วอยู่บน branch `fix/<id>` ครบ — ไม่ใช่การทิ้งงาน
+> ถ้าอยู่กลาง rebase/merge ที่ไม่มี branch สำรอง = **ห้าม abort** ต้อง resolve ให้จบ
+
+**เลือกทางไหน** — ตัดสินด้วยจำนวน item ที่ต้องรันซ้ำ ไม่ใช่ความรู้สึก:
+
+| สถานการณ์ | ทำ |
+|---|---|
+| ยัง cherry-pick ไปได้น้อย (≤2 item) | **abort → จัดกลุ่มใหม่ → รันรอบใหม่** (default) |
+| conflict ที่ item ท้าย ๆ ของรอบใหญ่ | abort เฉพาะตัวที่ชน → **ปล่อยที่ land แล้วให้อยู่** → เอา item ที่ชนไปรอบถัดไปพร้อมเพื่อนที่แตะไฟล์เดียวกัน |
+| ต้อง resolve จริง ๆ (owner สั่ง / งานเร่ง) | ทำตาม 4 ข้อล่าง **แล้วบันทึกไว้ใน bd ของทั้งสองฝั่ง** ว่า resolve ด้วยมือ |
+
+**ถ้าต้อง resolve ด้วยมือ (🔴 ห้าม hand-merge เงียบ ๆ)**
+1. หา **primary source ของแต่ละ hunk** — อ่าน commit message + `bd show` ของ **ทั้งสองฝั่ง** เข้าใจ intent เดิมก่อนตัดสิน
+2. เก็บ intent ทั้งคู่ถ้าเป็นไปได้; ขัดกันจริง → เลือกฝั่งที่ตรงเป้าของ item + **บันทึก trade-off ใน bd**
+3. **ห้ามคิด behaviour ใหม่ระหว่าง resolve** — resolve ไม่ใช่ที่สำหรับออกแบบ
+4. รัน fast-gate ก่อน commit และ **แนบ diff ของ hunk ที่ resolve เป็น evidence** (per invariant 1)
+
+> **Invariant 9 — Conflict ต้องมีร่องรอย**: ทุก conflict ที่เกิด ต้องจบด้วยอย่างใดอย่างหนึ่ง — abort + regroup (บันทึกว่ารอบนี้ตัด item ไหนออก) หรือ resolve + evidence. **ห้ามจบแบบไม่มีใครรู้ว่าเกิดอะไรขึ้น**
 
 ## Step 5 — Close on done (🔴 anti-puppet — run ยังไม่จบจนกว่าครบ)
 

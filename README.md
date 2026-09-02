@@ -6,8 +6,42 @@
 
 ออกแบบเน้น: **lean • token-optimized • production-ready • domain-driven • zero-overlap capability • ภาษาไทย**
 
-[![Version](https://img.shields.io/badge/version-3.10.1-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
+[![Version](https://img.shields.io/badge/version-3.12.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+---
+
+## 🆕 v3.12 — Review มีแกน Spec + debug เริ่มที่ loop + run ที่กู้ได้
+
+**Root cause รอบนี้: discipline ที่บอก "ให้ทำ" แต่ไม่ได้บอก "ทำยังไงถึงจะรู้ว่าจริง"**
+
+- 🎯 **Spec axis ใน `review-checklist`** — Chris 7-dim + Quinn 6-axis เป็น **standards ล้วน** ตอบแค่ "code เขียนถูกหลักไหม" ไม่มีใครตอบ "code ทำในสิ่งที่ spec ขอหรือเปล่า". เพิ่มแกนที่ 2 รันเป็น sub-agent แยก รายงาน (a) requirement ที่ขาด (b) scope creep (c) ดูเหมือนทำแล้วแต่ผิด — **ห้าม merge/rerank ข้ามแกน** เพราะแกนหนึ่งจะบังอีกแกน. บวก **pin fixed point** (`git diff <base>...HEAD` three-dot + verify ก่อน fan-out) เพราะเดิม `/review` รับ path/Jira ID โดยไม่มี diff range
+- 🔬 **`diagnose` เริ่มที่ feedback loop ไม่ใช่ "reproduce"** — Step 1 เปลี่ยนเป็นสร้าง loop ที่ **tight** + **red-capable** พร้อมบันได 10 วิธี และ **เงื่อนไขจบที่ตรวจได้**: ต้องมี *คำสั่งเดียว* ที่รันไปแล้วจริง + paste output ก่อนขึ้น step ถัดไป — จับได้ว่ากำลังอ่าน code เพื่อตั้งทฤษฎีก่อนมีคำสั่งนี้ = **STOP**. เพิ่ม **minimise** (เดิมไม่มีเลย), hypothesis 3-5 ข้อแบบ falsifiable + ranked, `[DEBUG-xxxx]` tag ให้ cleanup เป็น grep เดียว, perf branch (วัดก่อนแก้), **"ไม่มี seam ที่ถูกต้อง = นั่นแหละคือ finding"**
+- 🔒 **Redact ก่อน paste** — evidence protocol บังคับ paste tool output แต่ไม่เคยมีกฎ redact → log/HAR/curl พก auth header + PII มาด้วย. ตอนนี้เป็น section แรกของ `diagnose`
+- 🔐 **Run Durability (`shode-house-workflow`)** — session ของ agent ไม่ durable: **run stamp** (plugin version + model ต่อ run, เดิมไม่มี = reproduce/postmortem ไม่ได้) · **approval ผูก artifact sha** — artifact เปลี่ยนหลัง approve = **approval เป็นโมฆะ** (เดิม approve แล้วแก้ต่อได้เงียบ ๆ) · **resume protocol** สำหรับ session ตายกลาง pipeline (มี notes แต่ไม่มีไฟล์ = ยังไม่เสร็จจริง)
+- 📐 **`references/patterns/durable-agent-runtime.md`** — เดิม `CLAUDE.md` สั่งว่า "Aaron generate runner ที่มี retry/checkpoint" โดยไม่มีที่ไหนบอกว่า runner ที่ถูกต้องต้องมีอะไร → Aaron ต้องเดา. ตอนนี้มี contract: journal/step record · replay ที่ไม่รัน side-effect ซ้ำ · idempotency key ที่ tool boundary · version stamp · HITL approval hash · **crash injection test** · platform landscape (Temporal/Inngest/DBOS/Restate) + เกณฑ์ว่าเมื่อไหร่ **ไม่ต้องมี** durable engine
+- 🪶 **แตก `shode-house-workflow` 4,716 → 2,399 tok** — Smart Coop Pattern (61% ของไฟล์ ใช้เฉพาะตอนรัน pipeline) ย้ายไป `smart-coop.md`; Handoff Contract ที่ซ้ำกับ discipline ตัดออก. **Oliver ลงมาอยู่ใน budget 31,000 B เท่าทุก agent → CI check #16 ไม่มี exception อีกต่อไป**
+- ✂️ **`decompose` skill ใหม่** — epic → leaf task. `shode-house-routing` เขียนกฎ *"XL → split into smaller bd"* ไว้ตั้งนานแต่ **ไม่มี step ไหนทำจริง**: `/design-system` สรุปว่างานเป็น XL 4 module แล้วออกไปเป็น bd ใบเดียว. ตอนนี้มี **tracer bullet** เป็นเกณฑ์ (merge ใบเดียวแล้วต้องมีคนได้อะไร) · เกณฑ์ "เล็กพอหรือยัง" ที่ตรวจได้ · **blocking edge ประกาศตอนสร้าง + create-then-wire 2 pass + `bd ready` verify** · เข้า pipeline เป็น `/design-system` **Step 3.5** และป้อน `drain` ต่อได้ตรง ๆ
+- 🗺️ **Map mode** (`shode-house-workflow/wayfinding.md`) — เดิมไม่มีอะไรอยู่ระหว่าง *"ไอเดียก้อนใหญ่ที่ยังมองไม่เห็นทาง"* กับ *"item ที่ `drain` รันได้"*: `/design-system` สมมติว่ารูปงานนิ่งแล้ว จะได้ spec ยักษ์ที่เขียนจากการเดา. ตอนนี้มี **Map + decision ticket** บน `bd` (ticket ที่ผลลัพธ์คือ *การตัดสินใจ*) · **fog of war** (แผนที่ไม่สมบูรณ์โดยตั้งใจ — ticket เมื่อคำถามคม, fog เมื่อยังไม่คม) · **Out of scope section** = ที่บันทึกของ SCOPE DRIFT ที่เดิมเป็นกฎลอย ๆ ไม่มีที่เขียน · ticket type map เข้า agent (research/prototype/grilling/task) · **1 ticket ต่อ session** · เรียก ticket ด้วยชื่อ ห้ามด้วย `bd:42`
+- 🧪 **`dev-gate`: seam ต้องตกลงก่อนเขียน test** + 3 anti-pattern (implementation-coupled · **tautological** — assertion ที่คำนวณค่าคาดหวังแบบเดียวกับ code จึงเขียวตลอดกาล · horizontal slicing → vertical slice/tracer bullet) + **deep module** ใน Gate 0 (deletion test · 1 adapter = seam สมมติ 2 = seam จริง)
+- 🔀 **`drain` invariant #9 — conflict ต้องมีร่องรอย** — เดิมบอกแค่ "จัดกลุ่มใหม่" ไม่ได้บอกว่า tree ที่ค้างกลางคันไปไว้ไหน. ตอนนี้: `--abort` ปลอดภัยเฉพาะที่ step นี้ (งานอยู่บน `fix/<id>` ครบ) + ตารางเลือกทางด้วยจำนวน item ที่ต้องรันซ้ำ + ถ้า resolve ต้องหา primary source ของทั้งสองฝั่งและแนบ evidence
+
+---
+
+## 🆕 v3.11 — WCAG 2.2 ที่มี check จริง + preload rebalance + Uma มี lookup layer
+
+**Root cause รอบนี้: กฎที่ประกาศไว้แต่ไม่มีเครื่องมือรองรับ + ของที่ทุก agent แบกทั้งที่ใช้ไม่กี่ตัว**
+
+- 🔴 **WCAG 2.2 AA มี criterion จริงแล้ว** — เดิม Uma กับ `ui-test` เขียน "WCAG 2.1/2.2 AA" ไว้ 4 จุด แต่ **ไม่มี success criterion ของ 2.2 อยู่ที่ไหนเลย** และ axe-core ก็ auto-detect ให้ไม่ได้ = claim ที่ไม่มี check รองรับ (ผิด Philosophy #1). เพิ่ม 2.4.11 Focus Not Obscured · 2.5.7 Dragging Movements · 2.5.8 Target Size · 3.3.7 Redundant Entry · 3.3.8 Accessible Authentication พร้อมวิธีตรวจต่อข้อ, บังคับเขียน `N/A: <SC>` ถ้าหน้าจอไม่มีองค์ประกอบนั้น, และ `ui-test` § a11y coverage ระบุชัดว่า **"axe 0 violations ≠ WCAG 2.2 AA ผ่าน"**
+- 🪶 **Preload rebalance — 155k → 111k tok ต่อ fan-out 19 agent (-29%)** — v3.10 เปิดให้ agent โหลด skill เองได้ (`Skill` ใน `tools:`) แต่ **เนื้อหา preload ยังไม่ได้ rebalance ตาม** ยังยัดทุกอย่างไว้เหมือนตอนที่โหลดเองไม่ได้. ย้ายของที่เป็นของบาง role ออก: Recite Card (main session เท่านั้น) · Response Language (ตัดส่วน main-session) · No Man-Day → Oliver/Patrick · ตาราง skill-loading → agent file ของตัวเอง (แต่ละตัวเคยแบก row ของอีก 18 role) · UX Evidence → Uma · Domain Evidence → 7 domain expert · REVIEW format → ตัดทิ้ง (`review-checklist` เป็น DRY source-of-truth อยู่แล้ว) · Postmortem → `incident`
+  - `shode-house-evidence` 2,253 → **1,079 tok** (-52%) · `shode-house-discipline` 3,763 → **2,803 tok**
+  - **CI check #16 preload budget** (ratchet — ขึ้นไม่ได้ ลงได้อย่างเดียว) กันไม่ให้บวมกลับ
+- 🐛 **AI Persona Disclaimer preload ผิดกลุ่ม 100%** — กฎอยู่ใน `shode-house-deliverable` ซึ่ง **domain expert ทั้ง 7 ตัวไม่ได้ preload** → กฎไปไม่ถึงกลุ่มเป้าหมาย ขณะที่ 8 agent ที่ไม่ใช่เป้าหมายแบกไว้ทุกครั้ง. ย้ายลง agent file ของ 7 expert แล้ว
+- 🎨 **`references/design-intel` — lookup layer ของ Uma (1.2 MB, preload 0 tok)** — Uma Phase 1b สั่งให้ผลิต design token (primitive → semantic → component) แต่เดิม **ไม่มีแหล่งว่าค่าอะไร** → เสกจากหัว model ทุกครั้ง, reproduce ไม่ได้ และผลแปรผันตาม model. vendored subset ของ [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) (MIT): 192 palette · 74 font pairing · 119 UX guideline (ครอบ WCAG 2.2) · 88 style · 15 stack · GSAP preset — **ข้อมูลไม่เข้า context เข้าเฉพาะผล query**
+  - `check_contrast.py` (เขียนเอง) = gate **catalog → evidence**: palette จาก catalog เป็น *ข้อเสนอ* ยังไม่ใช่หลักฐาน จนกว่าจะผ่าน WCAG. พิสูจน์แล้วว่าจำเป็น — palette ของ catalog เองมี `Border` 1.36:1 ตกเกณฑ์ non-text 3:1 → gate block ถูกต้อง
+  - Phase 1b: **stack detection ห้ามเดา** · **design dials** (variance/motion/density) แทนคำถามเปิด "อยากได้แนวไหน" · **MASTER.md + pages/ override** (เดิม `tokens.json` เป็น artifact ราย bd จึง drift ข้าม bd ได้) · `--force` = R0
+  - **CI check #17** กัน pack หายเงียบ
+- 🧪 **Clarifying → frontier model** (จาก [mattpocock/skills](https://github.com/mattpocock/skills), MIT) — เดิม "batch 3-7 คำถาม" ไม่ได้บอกว่า *เลือก 7 ข้อไหน* → ถามคำถามที่คำตอบขึ้นกับคำถามที่ยังไม่ได้ตอบ. ตอนนี้: design tree → ถามทั้ง frontier รอบเดียว → คำถามที่ขึ้นกับข้อที่ยังเปิด = รอบถัดไป → dispatch sub-agent หา fact แบบไม่ block → **จบเมื่อ frontier ว่าง**
 
 ---
 
@@ -23,7 +57,7 @@
 - 📦 **Skill ใหม่**: `data-migration` (expand-contract, batched backfill, rollback drill, ledger append-only, gate `pre-data-migration`) · `api-contract` (breaking vs non-breaking, deprecation window ที่ใช้ metric ไม่ใช่ความรู้สึก, consumer-driven contract test)
 - 🛡️ **Prompt-injection section ใน `secure`** — 7 agent ถือ WebFetch/WebSearch แต่เดิม repo ไม่มีคำว่า injection เลย. **ADR lifecycle ใน `deliverable`** — เดิมไม่มี `Superseded by` ทั้ง repo
 - 🪶 **Token diet**: `shode-house-discipline` 20,097 → 16,245 B (**-71 KB ต่อ fan-out 19 ตัว**) โดยย้ายของที่ไม่ใช่ของทุกคนออก — Engagement Mode + phase-orchestration → `shode-house-workflow` (Oliver), Universal UX/UI rules → `ui-test` (frontend เท่านั้น), No Man-Day 34→7 บรรทัด, Clarifying 82→17
-- 🐛 **แก้ขัดแย้ง**: Recite Card เคยมี 2 เวอร์ชัน (v3.1 ใน `meeting` vs v3.5 ใน `discipline`) ทั้งคู่เขียน "verbatim ห้าม paraphrase" → เหลือ source เดียว · `dev-gate` บอก 7 gates แต่ body มี 11 · 5 commands hardcode "ภาษาไทย" ขัด rule mirror-the-user ของ v3.8 · README อ้าง Phase 7 Learn ที่ลบไปแล้ว + ชื่อ gate ที่ไม่มีจริง · `drift` โฆษณา M1 ที่ย้ายออกไปแล้ว · dead ref `skills/in-progress/…` ใน 17 agent
+- 🐛 **แก้ขัดแย้ง**: Recite Card เคยมี 2 เวอร์ชัน (v3.1 ใน `meeting` vs v3.5 ใน `discipline`) ทั้งคู่เขียน "verbatim ห้าม paraphrase" → เหลือ source เดียว · `dev-gate` บอก 7 gates แต่ body มี 11 · 5 commands hardcode "ภาษาไทย" ขัด rule mirror-the-user ของ v3.8 · README อ้าง Phase 7 Learn ที่ลบไปแล้ว + ชื่อ gate ที่ไม่มีจริง · `drift` โฆษณา M1 ที่ย้ายออกไปแล้ว · dead ref `skills/in-progress/` (ไม่ถูก pack) ใน 17 agent
 
 ---
 
@@ -53,7 +87,7 @@
 - **`review-checklist` skill (DRY)** — Chris 7-dim + Quinn integration matrix อยู่ที่เดียว; `/implement` Phase 3b + `/review` อ้างที่นี่
 - **Recite Discipline Card** — ทุก agent recite 5 Philosophy verbatim ใน first response (anchor against drift)
 - **CLAUDE.md repo invariants** + `Makefile` + `.github/workflows/ci.yml` dev-loop (no Python; gate inline in CI: bash + jq)
-- **21 skills** (13 functional + 7 discipline modules + 1 review-checklist), **5 commands**, **1 output style** (+ 2 deprecated). v3.3 drops sprint outer loop + Evan agent — **PEV loop per bd** (Plan/Execute/Verify/Triage), bias discipline embedded in 19 agent prompts, Chris/Quinn adversarial vs Dave + Claude in Chrome verify mandatory. ห้าม man-day negotiation
+- **22 skills** (14 functional + 7 discipline modules + 1 review-checklist), **5 commands**, **1 output style** (+ 2 deprecated). v3.3 drops sprint outer loop + Evan agent — **PEV loop per bd** (Plan/Execute/Verify/Triage), bias discipline embedded in 19 agent prompts, Chris/Quinn adversarial vs Dave + visual/interaction evidence mandatory (Playwright เป็นทางหลัก — ดู `review-checklist` § Mandatory Visual Verify). ห้าม man-day negotiation
 
 ### v3.0 features ที่ยัง keep
 
@@ -198,6 +232,7 @@ CLAUDE_CODE_SUBAGENT_MODEL=sonnet claude
 | [`diagnose`](skills/workflow/diagnose/SKILL.md) | Chris + Quinn + Dave | Bug + perf root cause (4-step) |
 | [`data-migration`](skills/workflow/data-migration/SKILL.md) 🆕 | Dave + Aaron + Sara | expand-contract + backfill + rollback drill |
 | [`api-contract`](skills/workflow/api-contract/SKILL.md) 🆕 | Dave + Sara + Quinn | semver + deprecation window + consumer contract |
+| [`decompose`](skills/workflow/decompose/SKILL.md) 🆕 | Bella + Oliver + Patrick | epic → leaf: tracer bullet + blocking edge + create-then-wire |
 
 ### `skills/ops/` — operational discipline
 | Skill | Owner | Trigger |
@@ -310,7 +345,8 @@ Ops    ▸ ✓    : prod stable
 
 ## 💬 Clarifying Style
 
-ทุก agent ใช้ **`AskUserQuestion` tool ก่อนเสมอ**:
+**`AskUserQuestion` ใช้ได้เฉพาะ main session** (`/init`, `/design-system`, `/implement` และ Oliver ที่ยึด main session ผ่าน `output-styles/oliver.md`) — **ไม่ใช่ `orchestrator` subagent**: Claude Code ยังไม่รองรับ tool นี้ใน agent ที่ spawn ผ่าน Task
+sub-agent ทุกตัว (รวม Oliver-as-subagent) **return question bundle** ขึ้นไปให้ main session เปิด popup แล้วเขียนคำตอบกลับ tracker. รูปแบบคำถาม option-style:
 
 ```
 Q: ใช้ database อะไร?
@@ -392,7 +428,8 @@ shode-house/
 │   │   ├── automate-test/      CI test pyramid 70/20/10
 │   │   ├── diagnose/           4-step bug methodology
 │   │   ├── data-migration/     🆕 v3.10 expand-contract + rollback drill
-│   │   └── api-contract/       🆕 v3.10 semver + deprecation window
+│   │   ├── api-contract/       🆕 v3.10 semver + deprecation window
+│   │   └── decompose/         🆕 v3.12 epic → leaf (tracer bullet + blocking edge)
 │   ├── ops/                    operational discipline
 │   │   ├── incident/           runbook + war room + postmortem
 │   │   ├── slo/                SLI/SLO/error budget
@@ -418,6 +455,8 @@ shode-house/
 ├── agents/                     19 expert agents (12 core + 7 domain)
 ├── commands/                   5 active (v3.5 — aliases removed)
 └── references/
+    ├── design-intel/           🆕 v3.11 Uma lookup layer (data + search.py, preload 0 tok)
+    ├── patterns/durable-agent-runtime.md  🆕 v3.12 contract ของ runner ที่ Aaron generate
     ├── modern-stack.md         2025+ tech recommendation
     ├── patterns/general.md     DB/API/Observability (Dave lazy-load)
     └── languages/<14 files>    per-language best practice (Dave lazy-load)

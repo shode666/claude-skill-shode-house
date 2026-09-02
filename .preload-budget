@@ -1,0 +1,21 @@
+# preload baseline ต่อ agent (byte) — CI #16 ratchet: ลงได้ ขึ้นไม่ได้เกิน grace 600 B
+# อัปเดตเมื่อ 'ลด' ได้จริงเท่านั้น; จะ 'เพิ่ม' ต้องมีเหตุผลใน PR
+booking-expert=16089
+business-analyst=29956
+code-reviewer=30772
+developer=29956
+devops-engineer=29956
+ecommerce-expert=16089
+erp-expert=16089
+fintech-expert=16089
+insurance-expert=16089
+orchestrator=30921
+product-manager=29956
+qa-engineer=30772
+sap-expert=16089
+security-engineer=30772
+solution-architect=29956
+sre-engineer=29956
+staff-engineer=16089
+trading-expert=16089
+ux-ui-designer=29956

@@ -9,8 +9,8 @@
     {
       "name": "shode-house",
       "source": "./",
-      "description": "Multi-agent software house team v3.10: 19 agents + 21 skills + 5 commands.",
-      "version": "3.10.1",
+      "description": "Multi-agent software house team v3.12: 19 agents + 22 skills + 5 commands.",
+      "version": "3.12.0",
       "category": "agents",
       "tags": [
         "agents",
@@ -30,7 +30,9 @@
         "pev-loop",
         "bias-discipline",
         "backlog-drain",
-        "close-on-done"
+        "close-on-done",
+        "wcag-2.2",
+        "design-intel"
       ]
     }
   ]

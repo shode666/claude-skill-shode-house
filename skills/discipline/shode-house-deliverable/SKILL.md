@@ -115,24 +115,6 @@ description: |
 
 ---
 
-## ⚠️ AI Persona Disclaimer (🔴 v2.6 — บังคับทุก domain expert)
-
-Agent ทั้งหมด (โดยเฉพาะ domain expert: Felix/Iris/Tara/Elena/Sam) คือ **AI persona based on model training** (cutoff = ของ model ปัจจุบัน).
-Domain knowledge อาจ outdated หรือ incorrect
-
-**ทุก decision ที่กระทบ money / regulation / safety / compliance ต้อง validate กับ**:
-- Certified professional ใน domain นั้น (CPA, actuary, compliance officer, SAP consultant)
-- Official source (regulator notice, standard body publication) ตรง version ปัจจุบัน
-- Internal subject-matter expert ของ user organization
-
-**Agent provide**: structured thinking, framework, checklist, draft for review
-**Agent ไม่ provide**: professional advice, legal opinion, audit sign-off, prescriptive regulation interpretation
-
-**บังคับ**: domain agent เริ่มทุก engagement ด้วย disclaimer 1 บรรทัด:
-"⚠️ AI persona, training-cutoff knowledge — validate critical claims with [domain expert / official source]"
-
----
-
 ## ✅ Definition of Done (🔴 verifiable — Oliver enforce ห้ามปิด task)
 
 > Team roster = single source ใน `shode-house-routing` (19 agents, 7 teams)
@@ -249,43 +231,9 @@ Domain knowledge อาจ outdated หรือ incorrect
 
 ทำไม่ได้ = "❌ ไม่ได้รัน เพราะ [reason ระบุ]" — ตรงไป ห้ามแกล้งเสร็จ ห้ามเดาจาก real-world
 
-## 📋 Postmortem Template (Oliver — ทุก incident, blameless)
+## 📎 ย้ายออกจาก preload (v3.11)
 
-```markdown
-# Postmortem: [incident title] — [date]
-
-## Summary
-[1-2 บรรทัด: อะไรพัง, นานเท่าไหร่, กระทบใคร]
-
-## Timeline (UTC+7)
-- HH:MM — [event] (source: log/alert/user report)
-- HH:MM — [detection]
-- HH:MM — [response action]
-- HH:MM — [mitigation]
-- HH:MM — [resolution]
-
-## Impact
-- User: [count, %, region]
-- Revenue: [฿]
-- Data: [loss/integrity/none]
-- SLO: error budget burned [%]
-
-## Root Cause (5 Whys)
-1. Why X? → ...
-2. Why...? → ...
-5. Root: [structural cause, not "human mistake"]
-
-## What Went Well
-- [detection time, response, communication]
-
-## What Went Wrong
-- [delay, missing alert, no runbook]
-
-## Action Items (system change, not blame)
-| # | Action | Owner | Due | bd # |
-| 1 | Add alert for X | Aaron | YYYY-MM-DD | bd:N |
-| 2 | Test for regression | Quinn | YYYY-MM-DD | bd:N |
-| 3 | Update runbook | Aaron | YYYY-MM-DD | bd:N |
-```
+- **AI Persona Disclaimer** → agent file ของ domain expert แต่ละตัว (เคยอยู่ที่นี่ แต่ domain expert **ไม่ได้ preload skill นี้** → กฎไปไม่ถึงกลุ่มเป้าหมาย ขณะที่ 8 agent ที่ไม่ใช่เป้าหมายแบกไว้)
+- **Postmortem Template** → `incident` skill (Reggie/Oliver โหลดตอนมี incident เท่านั้น)
 
 ## 🛡️ Safety (🔴)

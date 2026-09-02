@@ -68,7 +68,7 @@ skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
 - "ใส่ secret ใน .env ที่ commit" — block, escalate
 - "Pen test เดี๋ยวค่อยทำ" — refuse for features touching money/PII (ห้าม defer; ห้ามใช้ time เป็นเหตุผลต่อรอง — per shode-house-discipline § No Man-Day Negotiation)
 
-## 🎯 Bias Discipline (v3.3 — per shode-house-discipline § No-Bias + shode-house-evidence § cite-before-claim)
+## 🎯 Bias Discipline (v3.3 — embedded per-agent; cite-before-claim ตาม `shode-house-evidence` § Project Evidence Protocol)
 
 **Primary bias**: Sycophancy ("low risk feature" yielding)
 
@@ -164,3 +164,8 @@ Sentinel ▸ Aaron   : CSP enforce mode (cf-headers update)
 Sentinel ▸ Reggie  : runbook update for new attack surface
 Sentinel ▸ Oliver  : critical finding (bd-42) — block merge
 ```
+
+## 🧰 Skill loading — ของคุณ (v3.11)
+
+Preload มาแล้ว 3 ตัวตาม frontmatter. **โหลดเพิ่มเองด้วย `Skill` tool เมื่อจะใช้จริง**: `secure` (STRIDE/LINDDUN/CSP/injection) · `review-checklist` (preloaded)
+ห้าม paraphrase เนื้อหา skill จากความจำ — โหลดจริงแล้วอ้างอิง (NO MAGIC)

@@ -3,6 +3,188 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [Unreleased] — v3.13 plan: token footprint (จาก independent token scan)
+
+> v3.12 **หยุดไม่ให้โตต่อ** (CI #16 baseline ratchet + #20 agent+preload cap) แต่ยังไม่ได้ **ลด**
+> เป้าหมาย: full fan-out **702,788 B → 560,000–600,000 B (−15..20%)** โดยไม่ตัด safety / evidence / Spec axis / approval gates
+
+| ชั้น | ขนาดปัจจุบัน |
+|---|---:|
+| Agent prompts 19 ตัว | 241,147 B |
+| Agent + preload (full fan-out) | **702,788 B** |
+| Skill discovery frontmatter 22 ตัว | 15,658 B |
+| Commands | 46,694 B |
+| Runtime changelog/history wording | ~49,437 B |
+
+**ลำดับที่จะทำ (เรียงตามความเสี่ยงจากต่ำไปสูง)**
+
+1. **ตัด runtime changelog/history wording** (~49 KB, ตัดได้ 60-70% → ลด 30-35 KB) — บรรทัดแบบ "ย้ายมาจาก skill X เพราะก่อนหน้านี้ 18 agent แบก…" มีประโยชน์ใน CHANGELOG ไม่ใช่ใน prompt. หนักสุด: Oliver 5,891 B · Uma 2,974 B · Dave 2,082 B · domain agent ตัวละ ~1.8 KB · `/init` 1,679 B
+2. **`review-checklist` → thin orchestration core** (14,683 × 3 = 44,049 B; เป้าลด 25-32 KB ต่อ Phase 3b) — เหลือ axes + severity + aggregation + routing; Chris/Quinn ใช้ checklist ใน agent body ที่มีอยู่แล้ว (ตอนนี้ซ้ำ); Sentinel โหลด `secure`; Spec reviewer รับเฉพาะ spec-axis reference
+3. **`shode-house-deliverable` แยก core/lazy** (13,867 × 7 = 97,069 B; เป้าลด 60-75 KB) — `deliverable-core` 3-4 KB (Anti-Puppet + output contract) ส่วน DoD/ADR/UX/template → lazy-load ตอนจะ produce/finalize จริง
+4. **ย่อ domain evidence + disclaimer** (~4,345 B ซ้ำ × 7; เป้าลด 15-20 KB) — เหลือ citation 1 positive + 1 negative, ตัด historical notes, รวม disclaimer + protocol ให้เหลือ 1.5-2 KB
+5. **ย่อ skill description** (15,658 → 7-9 KB) — `[WHAT] 1 ประโยค · [WHEN] trigger 5-8 คำ · [NOT] ขอบเขตที่ไม่รับ`; ตัด audience list ยาวและ trigger synonym ซ้ำ (ชื่อ skill + routing ช่วยอยู่แล้ว)
+6. **`diagnose` ladder → lazy** (3,135 B) — 10 วิธีสร้าง loop เป็น reference ไม่ใช่ invariant → `diagnose/loop-ladder.md` โหลดเมื่อวิธี 1-3 ไม่สำเร็จ
+7. **แยก runbook ของ Oliver/Uma** — Oliver (29,507 B) เหลือ ingress/routing/state/approval; engagement template + historical phase + frontier detail + Map mode → reference. Uma (26,510 B) → core + `phase-1b.md` + `phase-3a.md`
+8. ทุกขั้นจบ → **อัปเดต `.preload-budget` ลงอย่างเดียว** (ratchet)
+
+**Workflow amplification วันนี้** (เฉพาะ prompt + preload ยังไม่รวม spec/diff/tool schema): Phase 1a 84,705 B · Phase 1b + Domain 82,565 B · **Phase 3b + Sentinel + Domain 193,330 B** · Sensitive UI full **292,247 B**
+> จุดแพงสุดคือ Phase 3b เพราะ reviewer ทุกตัวแบก evidence + checklist ซ้ำ **แต่ห้ามรวม Spec axis กลับเพื่อประหยัด token** — ความเป็นอิสระของสองแกนคือเหตุผลที่มันมีอยู่; ให้ลด prompt ที่แต่ละแกนแบกแทน
+
+---
+
+## [3.12.0] — Spec axis + feedback-loop diagnosis + run durability — 2026-09-01
+
+> **Root cause รอบนี้: discipline ที่บอก "ให้ทำ" แต่ไม่ได้บอก "ทำยังไงถึงจะรู้ว่าจริง"** — review ที่ไม่มีใครเทียบ spec, debug ที่เริ่มจากทฤษฎีแทน loop, approval ที่หายไปกับ session
+
+### 🔍 หลัง independent review (fresh sub-agent 2 ตัว, ไม่เห็น rationale ของผู้เขียน)
+
+รีวิวจับได้ 1 Critical + 4 High + stale pointer หลายจุด — แก้ครบก่อนปิดรุ่น:
+
+- 🔴 **`check_contrast.py` block ทุก palette ในแคตตาล็อก (5/5 query ที่ reviewer ลอง)** — สาเหตุ: ผู้เขียนใส่ `Border/Background` เป็น hard gate 3:1 ซึ่ง **ตีความ WCAG 1.4.11 ผิด** — 1.4.11 บังคับ 3:1 เฉพาะ non-text ที่ *สื่อความหมาย* (ขอบที่จำเป็นต่อการระบุ control, graphical object ที่สื่อข้อมูล) ส่วนเส้นคั่น/ขอบการ์ดที่ตกแต่งล้วนไม่เข้าข่าย. ผลคือ Uma Phase 1b จะถูก **hard-block ทุกครั้ง** (`ux-ui-designer.md` เขียนว่า exit≠0 → ห้ามเขียน tokens.json)
+  - แก้: แยก **HARD** (text pairs + `Ring/Background` = focus indicator ซึ่งสื่อความหมายเสมอ) ออกจาก **WARN** (`Border/*` — รายงานค่าจริง + บังคับให้ Uma ตัดสินต่อ component ว่า meaningful หรือ decorative แล้วบันทึกเหตุผลใน bd)
+  - ทดสอบใหม่ 18 query: block 0 · hard path ยังจับของพังได้ (`#9CA3AF` on `#FFFFFF` = 2.54:1 → BLOCKED)
+- 🔴 **CI #17 ตรวจแค่ว่าไฟล์มีอยู่** จึงปล่อย bug ข้างบนผ่าน — เปลี่ยนเป็น **รัน pipeline จริง** (search → check_contrast 3 query) + **negative test** (ถ้า gate ปล่อยคู่สี 2.54:1 ผ่าน = CI แดง)
+- 🟠 **CI check ใหม่ #11b** — ทุก shipped skill ต้องมี link ใน README (`decompose` หลุด index เพราะ #11 ตรวจแค่ทางกลับ ref→dir)
+- 🟠 `CLAUDE.md` dead ref: Handoff Contract ชี้ `shode-house-workflow` ทั้งที่ย้ายไป `shode-house-discipline` แล้ว · budget doc ยังเขียน "orchestrator 41,000 B" ที่ยกเลิกไปแล้ว · header ยังเป็น v3.7.0 · roster ไม่มี `decompose`
+- 🟠 `dev-gate` 401 บรรทัด เกิน cap 400 → ย้าย `.pre-commit-config.yaml` ตัวอย่างไป `dev-gate/pre-commit-config.md` (เหลือ 340)
+- 🟡 stale pointer: `code-reviewer` + `qa-engineer` ชี้ REVIEW format ไปที่ "(meeting skill)" ซึ่งไม่มี section นั้นแล้ว → ชี้ไป `report-format.md` · `workflow` ชี้ "§ Lifecycle Hooks ด้านล่าง" ที่ย้ายไป `smart-coop.md` แล้ว
+- 🟡 `drain` ตาราง invariant เรียงผิด (7 → 9 → 8)
+- ✍️ แก้ถ้อยคำ CHANGELOG ที่ review พบว่าเกินจริง: REVIEW format **ไม่ใช่** duplication (evidence เป็น SoT เดียวจริง) · drain conflict เป็นการ **ขยายของเดิม** ย้ายไป Changed · "8 agent" → 7 · WCAG จุดที่ 4 อยู่ใน `commands/design-system.md`
+
+**รอบสอง (verifier อิสระอีกตัว ตีกลับ NOT READY — แก้ครบแล้ว)**:
+- 🔴 CHANGELOG อ้างว่า "แก้ dead ref ครบ" ทั้งที่ `CLAUDE.md:29` ยังชี้ Handoff Contract ไป `shode-house-workflow` (ผู้เขียนแทนที่ผิด string) → แก้แล้ว
+- 🟠 **`§ No-Bias` ตายใน 19/19 agent** — ไม่เคยมี section นี้ใน `shode-house-discipline` เลย (v3.3 ตัดสินว่า embed bias discipline ในตัว agent) แต่ทุกไฟล์ยังอ้างถึง → เขียนใหม่เป็น "embedded per-agent" + ชี้ cite-before-claim ไป `§ Project Evidence Protocol` ที่มีจริง (+ แก้ใน `routing` และ `product-manager` ด้วย)
+- 🟠 **Border→WARN ผ่อนเกินไป**: WCAG ถูกตามตัวอักษร แต่ 12/12 palette แค่ WARN แล้วผ่าน และ**ไม่มีที่ไหนบันทึกคำตัดสินของ Uma** = เท่ากับไม่มี check → เปลี่ยนเป็น **block จนกว่าจะ ack**: `--border-decorative "<เหตุผล>"` พิมพ์บรรทัด ACK ให้ paste ลง bd; ไม่ ack = exit 1. CI #17 เพิ่ม negative test ว่า "ไม่ ack ต้องไม่ผ่าน"
+- 🟠 **cap 400 บรรทัดไม่มีใครบังคับ** — CI ยกเว้น `meeting`/`dev-gate` จาก check #1 แบบไม่มีเพดาน จึงปล่อย dev-gate โต 401 → เปลี่ยนเป็นยกเว้นจาก 300 แต่ **บังคับเพดาน 400**
+- 🟡 `ux-ui-designer:213` ชี้ anti-puppet ไป "(meeting skill)" → `shode-house-deliverable § Anti-Puppet Rule`
+- ✍️ ตัวเลขใน CHANGELOG ที่ verifier จับได้ว่าคลาด: Oliver 30,870 → **30,922 B** (margin 78 ไม่ใช่ 130) · fan-out **165,778 tok** · workflow **2,399 tok**
+
+**รอบสาม–สี่ (verifier ตัวเดิม ตีกลับอีก 1 รอบ)**:
+- 🔴 **การแก้ข้อ Border สร้าง regression ใหม่ในชั้น doc** — code เปลี่ยนเป็น block-until-ack แล้ว แต่ `agents/ux-ui-designer.md` และ `design-intel/README.md` ยังสอนให้รัน gate **โดยไม่มี `--border-decorative`** และยังเขียนว่า "ต้อง ALL PASS" → Uma ที่ทำตาม runbook ของตัวเองยังถูก hard-block ทุก Phase 1b เหมือนเดิม (defect ย้ายที่ ไม่ได้หายไป) → แก้ runbook + README ให้สอน flag พร้อมเกณฑ์ 1.4.11 และ **บังคับ paste บรรทัด ACK ลง bd** (เพิ่มเป็นข้อใน pre-implement-ui gate)
+- 🟡 CI #17 negative test พึ่ง `/tmp/ds.json` ที่ค้างจาก loop (ถ้าวันหนึ่ง palette นั้น border ผ่าน 3:1 จะ false-fail) → ปั้น payload เองแทน + เพิ่ม positive test ว่า ack ต้อง unblock. **พิสูจน์ด้วย mutation test**: patch `allok = False` ให้เป็น no-op → CI จับได้จริง
+- 🟡 `CLAUDE.md` กฎขนาด SKILL.md ขัดกันเองในบรรทัดเดียว ("≤ 300 บรรทัด (≤ 12 KB)" แล้วอธิบายท้ายบรรทัดว่าเลิก 12 KB) → เขียนใหม่ทั้งบรรทัด
+- ✅ verdict สุดท้าย **READY TO RELEASE** — verifier รันเองทุกข้อ: 12 query block-without-ack 12/12 · ack ผ่าน 12/12 · hard path ยังจับ text 2.54:1 · CI 19 section เขียว · ไม่มี dead ref ใหม่
+
+> **หมายเหตุ process**: ผู้เขียนเคลม "แก้ครบ" ผิด **2 ครั้ง** (รอบสองอ้างว่าแก้ dead ref ครบทั้งที่ replace ผิด string; รอบสามแก้ code แล้วลืม doc) — fresh reviewer จับได้ทั้งสองครั้ง. ข้อจำกัดที่เหลือ: การ paste ACK ลง bd เป็น self-attested — CI ตรวจ bd ไม่ได้ กลไกบังคับได้แค่ "ต้องตัดสินอย่างตั้งใจ" ไม่ใช่ "ต้องบันทึกจริง"
+
+### 🚨 หลัง full scan อิสระ (ไม่ถือว่า behavior รุ่นก่อนถูก) — verdict เดิม NOT READY, execution blocker 5 จุด
+
+จุดบอดของ review 4 รอบก่อนหน้า: **ตรวจ diff แต่ไม่เคยตรวจ execution path** — allowed-tools, dispatch list, tool ที่ plugin จัดหาจริง
+
+- 🔴 **Spec axis ซึ่งเป็น headline ของ 3.12 ไม่เคยถูก dispatch** — `review-checklist` บังคับให้รันคนละ sub-agent แต่ kickoff ของ `/implement` Phase 3b และ `/review` ส่งแค่ Chris/Quinn/Sentinel/Domain → feature มีอยู่ในเอกสารแต่**ไม่เกิดขึ้นจริง** → เพิ่มเลน Bella (Spec axis) เข้า kickoff ทั้งสอง command + **CI #19** ตรวจว่า axis ที่ checklist ประกาศต้องถูกส่งจริง
+- 🔴 **commands สั่งโหลด skill แต่ `allowed-tools` ไม่มี `Skill`** (design-system/implement/review) · **`/init` เรียก `AskUserQuestion` ที่ไม่ได้อนุญาต** → interactive wizard พังตั้งแต่ Phase 1 · **`/review` เขียน Jira comment ด้วย `addCommentToJiraIssue` ที่ไม่อยู่ใน allowed-tools** → เติมครบ + **CI #18 tool reachability**
+- 🔴 **reviewer ถูกบังคับใช้ browser MCP ที่ plugin ไม่ได้จัดหาและ agent ไม่มีสิทธิ์** — Chris/Quinn `tools:` ไม่มี MCP ใด ๆ, `.mcp.json` มีแค่ Context7 และไม่ถูก pack → เปลี่ยนจาก "บังคับ tool" เป็น **"บังคับ evidence + tool ladder"**: Playwright ผ่าน `Bash` เป็นทางหลัก (พึ่งพาได้เสมอ), browser MCP เฉพาะเมื่อ session มีจริง, ทำไม่ได้ = **BLOCKED ไม่ใช่ PASS** (ladder อยู่ใน `ui-test`)
+- 🟠 **`make pack` พังบน macOS** — `.RECIPEPREFIX` ต้องการ GNU Make ≥ 3.82 แต่ macOS มาพร้อม 3.81 → `missing separator` ทั้งที่ README ประกาศเป็น local dev-loop → เขียน Makefile ใหม่ด้วย TAB · **เพิ่ม `make validate`** ที่ดึง gate script จาก `ci.yml` มารัน (แหล่งความจริงเดียว ไม่ copy logic) — เดิม `.pre-commit-config.yaml` อ้าง target นี้ทั้งที่ไม่มีอยู่ · `make clean` ลบ temp archive `ziXXXXXX` ที่ `.gitignore` ซ่อนไว้
+- 🟠 **shipped-reference integrity** — Oliver อ้าง fixture ใน `skills/in-progress/` ที่ Makefile จงใจไม่ pack → ผู้ใช้ที่ติดตั้ง plugin เปิดไม่ได้; `fixtures/README.md` ชี้ path ผิด (`skills/discipline/eval-harness`) และอ้าง fixture `caveman/` ที่ไม่มี → แก้ทั้งหมด + **CI #12 ขยายขอบเขต** ไปตรวจ agents/skills/commands/references (เดิมตรวจแค่ README+CLAUDE จึงปล่อย broken link ทุกที่)
+- 🟠 **`/review` fixed-point policy บังคับเกินไป** — สั่ง "ไม่ระบุ → ถาม ห้ามเดา" ทั้งที่ `/review path` และ `/review <bug>` เป็น contract ที่โฆษณาไว้ → ย้ายไป `commands/review.md` § Scope resolution พร้อม **fallback ladder** (upstream branch → staged → working tree → full-file สำหรับ non-git/snippet → ค่อยถาม)
+- 🟠 **`diagnose` แข็งเกินไป** — ห้ามอ่าน code ก่อนมี one-command repro ทั้งที่หลายระบบต้องอ่าน route/test setup ก่อนถึงสร้าง harness ได้ และบังคับ 5 ขั้นเต็มกับ bug เล็ก → เพิ่ม **fast path vs full path** + แก้เส้นแบ่งเป็น "อ่านเพื่อ *จะ trigger ยังไง* ได้ / อ่านเพื่อ *น่าจะพังเพราะ* ไม่ได้" + แก้หัวข้อ "4 Steps" ที่มี 5 ขั้น
+- 🟠 **PCI ตัวอย่างใน 7 domain agent เป็น false authority** — `"Req 3.5.1 — store PAN encrypted at rest"` แคบกว่ามาตรฐานจริง (3.5.1 รับ truncation/tokenization/hashing/strong cryptography) และมี ✅ นำหน้าจนโมเดลอาจ reuse เป็น requirement → เขียนใหม่ + กำกับว่าเป็น **illustrative formatting เท่านั้น ต้องเปิด primary source ทุกครั้ง**
+- 🟡 `drain` ชี้ Handoff Contract ไป skill เก่า · hardcode `scripts/ci/local.sh` → เปลี่ยนเป็น `$FAST_GATE` ที่ detect เอง (npm test / make test / pytest) และหยุดถามถ้าหาไม่เจอ · เอกสารเขียน v3.12.1 ขณะ manifest 3.12.0 → รวมเป็น v3.12 (ยังไม่เคย release) · Makefile/CLAUDE เขียน "no Python" ทั้งที่ gate #17 ใช้ python3 → แก้ · trailing whitespace ใน `design_system.py`
+- ✅ **CI ใหม่ 3 ตัว พิสูจน์ด้วย mutation test ทุกตัว**: #18 tool reachability (ถอด AskUserQuestion → แดง) · #19 dispatch graph (ถอดเลน Spec → แดง) · #20 **context budget = agent prompt + preload** (เดิม #16 นับเฉพาะ skill จึงปล่อย Oliver/Uma โตได้ไม่จำกัดใน agent file; cap 62,000 B — Oliver 60,428 B)
+
+### 🧹 Full scan รอบสอง — ปิด 2 High ที่เหลือ + cleanup
+
+- 🟠 **`AskUserQuestion` ยังไปไม่ถึง Oliver** — แก้ `/init` ไปแล้วแต่ `smart-coop.md` สั่ง Oliver ใช้ tool นี้ขณะที่ `tools:` ของ Oliver ไม่มี · README ประกาศ "ทุก agent ใช้ AskUserQuestion" ทั้งที่มีแค่ `/init` ได้สิทธิ์ · **CI #18 ตรวจเฉพาะ `commands/*.md` จึงเขียวแบบ false negative**
+  → ให้สิทธิ์ **Oliver ตัวเดียว** (M7: Oliver เป็นตัวเดียวที่คุยกับ user โดยตรง; sub-agent ที่เจอความกำกวมส่งคำถามกลับ Oliver) · แก้ README ให้ตรง policy · **ขยาย CI #18** ให้ตรวจทั้ง agent prompt และ **skill/reference ที่สั่งให้ agent ใช้ tool** (map เจ้าของ → agent file)
+- 🟠 **browser policy ขัดกันเองใน agent prompt** — checklist บอก Playwright เป็นทางหลัก/MCP optional แต่ Chris/Quinn ยังเขียน *"ห้าม trust Playwright headless เพียงอย่างเดียว"* และ *"No Claude in Chrome installed → escalate Aaron install (ห้าม PASS)"* → agent อาจเลือกกฎเข้มกว่าแล้ว block review ด้วยของที่ plugin ไม่ได้จัดหา
+  → ลบคำสั่ง install ออก และระบุชัด: **Playwright evidence ที่ครบ (screenshot + console + network) = เพียงพอต่อ PASS** · browser MCP = second channel ที่ทำเพิ่มได้เมื่อมีอยู่แล้ว
+- 🟡 **`make validate` รายงาน PASS ทั้งที่ ASCII check ไม่เคยรัน** — macOS `grep` ไม่มี `-P` → exit 2 ถูกตีความว่า "ไม่พบ" → เปลี่ยนเป็น portable `LC_ALL=C grep '[^ -~]'` (mutation test: ใส่ non-ASCII ลง description → แดงทั้ง non-ASCII และ en-dash)
+- 🟡 **#16 ยังไม่ใช่ ratchet จริง** — เพดานกลาง 31 KB ปล่อยให้ domain agent โตจาก 16 KB ไป 31 KB ได้โดย CI ไม่รู้ตัว → เพิ่ม **`.preload-budget` baseline ต่อ agent** (19 บรรทัด) + grace 600 B: ลงได้เสมอ ขึ้นเกิน grace = แดง (mutation test: booking-expert 16,089 → 16,990 → แดง)
+- 🟡 **Standards Correctness ซ้ำกับ Spec axis** — ข้อแรกของ 7-dim ยังเป็น "Logic ตรง spec/AC" ทั้งที่ Spec axis ถูกสร้างมาตรวจเรื่องนี้ → เปลี่ยนเป็น **internal behavior/invariant/error-path** และปล่อย requirement conformity ให้ Spec axis (ลดการอ่าน diff ซ้ำ + finding ซ้ำ)
+- 🟡 **model cutoff hardcode "May 2025"** ใน 7 domain agent ทั้งที่ model เปลี่ยนได้และแต่ละตัว cutoff ไม่เท่ากัน → เปลี่ยนเป็น "training cutoff ของ model ที่รันอยู่"
+- 🟡 blank line ที่ EOF ใน `ux-ui-designer.md` + `shode-house-workflow/SKILL.md` → `git diff --check` สะอาดแล้ว
+
+### 🚨 Full scan รอบสาม — 2 release blocker ที่ CI ตรวจไม่ถึง
+
+- 🔴 **`make clean` ลบไฟล์ผู้ใช้ได้** — recipe ที่เพิ่มในรอบก่อนใช้ `rm -f ... zi[A-Za-z0-9]*` เพื่อกวาด temp archive ของ `zip` แต่ glob นี้ลบ **ทุกไฟล์ที่ขึ้นต้นด้วย `zi`** ในโฟลเดอร์ผู้ใช้ (`zig`, `zip-config`, `zinc-report`, …) = destructive cleanup ที่ scope กว้างเกิน
+  → ถอด glob ออกทั้งหมด · `make pack` เขียน archive ใน **`mktemp -d`** แล้ว `mv` เข้ามาเมื่อสำเร็จ (ไม่มี temp ตกค้างใน cwd ตั้งแต่แรก) · `make validate` เลิกเขียน `.gate.sh` ทับใน repo เปลี่ยนเป็น `mktemp`
+  → พิสูจน์: สร้าง `zig` `zip-config` `zinc-report` แล้วรัน `make clean` → ไฟล์ทั้งสามยังอยู่ครบ
+- 🔴 **`AskUserQuestion` แก้ permission แต่ execution model ยังผิด** — Claude Code ระบุว่า tool นี้**ไม่รองรับ subagent ที่ spawn ผ่าน Task** ([docs](https://code.claude.com/docs/en/agent-sdk/user-input)) การเพิ่ม tool ให้ `orchestrator` จึงทำให้ CI เขียวแต่ตายตอน runtime และ `smart-coop.md` ก็ยังสั่ง Oliver เปิด popup เอง
+  → เปลี่ยนเป็น **main-session relay**: subagent `return question bundle` → command/main session เรียก popup → เขียนคำตอบกลับ tracker → ส่ง path ให้รอบถัดไป
+  → ถอด `AskUserQuestion` ออกจาก `agents/*.md` · เพิ่มให้ `/design-system` + `/implement` (main session) · README ระบุชัดว่า **"main session เท่านั้น ไม่ใช่ `orchestrator` subagent"**
+  → **CI #18 กลับด้าน**: ประกาศ `AskUserQuestion` ใน agent `tools:` = **error** (เดิมบังคับให้มี), prompt ที่สั่ง subagent เรียก popup = error, และ skill/reference ที่พูดถึง tool นี้ต้องระบุว่าเป็น main-session (mutation test ผ่านทั้งสองทาง)
+- 🟠 **Chrome mandatory wording ค้าง 5 จุด** — `smart-coop.md` ×2, `orchestrator.md`, `review-checklist`, `README` ยังเขียน "Chrome verify" / "Claude in Chrome verify mandatory" ซึ่งขัดกับ evidence ladder ใหม่ที่เพิ่งวางไป → เปลี่ยนทั้งหมดเป็น "visual/interaction evidence ตาม ladder" (เหลือ 0 จุด)
+- 🟡 README ประกาศ 21 skills ทั้งที่จริง 22 · `.preload-budget` ของ orchestrator คลาด 1 B (refresh หลัง tools: เปลี่ยน) · **CI #12 path checker จับ path ที่มี placeholder ไม่ได้** (regex ต้องเจอ backtick ทันที) → เปลี่ยนเป็นจับ `` `<bucket>/...` `` แบบกว้างแล้วข้าม entry ที่มี `< > * ? { }` — จับ broken ref เพิ่มได้ทันที 1 จุดใน README
+
+**ยังไม่แก้ (บันทึกไว้ตัดสินใจ)**: preload margin เหลือ 76-487 B ต่อ agent (ratchet ทำงานตามเจตนา แต่ไม่มี headroom) · 7 domain expert ถือสำเนา 58 บรรทัดที่เหมือนกัน 100% โดยไม่มี CI คุม drift (trade-off ที่ยอมรับเพื่อลด preload) · กฎ "SKILL.md ≤ 12 KB" ใน `CLAUDE.md` **ถอดออกแล้ว** — ไม่เคยมี CI ตรวจและมี 7 ไฟล์เกินมาตลอด; ของที่ถูก preload คุมด้วย budget #16 อยู่แล้ว ที่เหลือคุมด้วย line cap
+
+---
+
+### ✨ Added
+- **Spec axis ใน `review-checklist`** — แกนที่ 2 ข้าง Standards (Chris 7-dim): รายงาน requirement ที่ขาด/ทำครึ่ง · behaviour ที่ spec ไม่ได้ขอ (scope creep) · requirement ที่ implement ผิด. รันเป็น **sub-agent แยก** ไม่ให้ context ปนกัน และ **ห้าม merge/rerank ข้ามแกน** (code ที่ standards ผ่านครบแต่ทำผิดเรื่อง = Standards PASS / Spec FAIL — รายงานรวมกันแล้วแกนหนึ่งบังอีกแกน)
+- **Pin fixed point** ใน Required inputs — `git rev-parse` + `git diff <base>...HEAD` (three-dot, merge-base) + `git log` ก่อน fan-out; ref พังหรือ diff ว่าง → fail ตรงนั้น ไม่ใช่ไปตายใน sub-agent
+- **`references/patterns/durable-agent-runtime.md`** — contract ของ runner ที่ Aaron generate (เดิม `CLAUDE.md` สั่งให้ generate runner ที่มี retry/checkpoint แต่ไม่มีที่ไหนนิยามว่าต้องมีอะไร = Aaron เดา): journal/step record · replay ที่ไม่รัน side-effect ซ้ำ · idempotency key ที่ tool boundary · version stamp · HITL approval hash · crash-injection test · platform landscape (Temporal/Inngest/DBOS/Restate) + เกณฑ์ว่าเมื่อไหร่ **ไม่ต้องมี** durable engine (YAGNI)
+- **Run Durability ใน `shode-house-workflow`** — run stamp (plugin version + model ต่อ run) · **approval ผูก artifact sha** (artifact เปลี่ยนหลัง approve = approval เป็นโมฆะ) · resume protocol (notes มีแต่ไฟล์ไม่มี = ยังไม่เสร็จจริง; R0 ที่ทำไปแล้วห้ามทำซ้ำโดยไม่ถาม)
+- **✂️ `decompose` skill ใหม่ (skills/workflow/)** — epic → leaf task ที่ลงมือได้. ปิดกฎที่ลอยอยู่: `shode-house-routing` เขียนว่า *"XL = cross-service/cross-domain → split into smaller bd"* แต่ **ไม่มี step ไหนในทั้ง pipeline ที่ทำ split จริง** — `/design-system` สรุปว่างานเป็น XL มี 4 module แล้วเดินออกไปเป็น **bd ใบเดียว** ให้ `/implement` รันรวด
+  - **tracer bullet** เป็นเกณฑ์ตัดสิน: leaf 1 ใบตัดทะลุทุก layer + merge เดี่ยว ๆ แล้วต้องมีคนได้อะไร (horizontal slicing = anti-pattern เดียวกับที่ `dev-gate` ห้ามในระดับ test แต่นี่คือระดับ backlog)
+  - **เกณฑ์ "เล็กพอหรือยัง" ที่ตรวจได้** — INVEST ของ Bella มี "Small" แต่ไม่เคยมีตัวเลข: 1 leaf = 1 pipeline run · AC ≤ ~5 · module เดียว · verify ได้ด้วยตัวเอง · ชื่อเป็นกริยาของผู้ใช้ไม่ใช่ชื่อ layer
+  - **blocking edge ประกาศตอนสร้าง** + **create-then-wire 2 pass** + `bd ready --json` verify (ว่าง = cycle หรือ edge ปลอม) — เดิม `--blocked-by` โผล่แค่ในตัวอย่างของ Bella ไม่ได้เป็นกฎ `drain` จึงต้องมาไล่ verify independence เอง
+  - แยกให้ชัดจาก priority: edge ที่ตอบไม่ได้ว่า "ใบหลังพังตรงไหน" = edge ปลอม ทำให้ `bd ready` ว่างทั้งที่ทำขนานได้
+  - wire: `/design-system` **Step 3.5 Decompose** (conditional XL) · routing (กฎ XL ชี้มาที่นี่) · Bella (story splitting) · Oliver/Patrick skill-loading · `drain` Required inputs · CI #11 regex
+  - **ทำไมเป็น skill ลอยไม่ใช่ section ใน routing**: routing ถูกโหลดทุกครั้งที่ triage แต่การแตกงานใช้นาน ๆ ที + มีเจ้าของ 5 คนข้าม phase → เกณฑ์ใหม่: *reference file* เมื่อมีเจ้าของ 1-2 คนที่ถือ pointer อยู่แล้ว (wayfinding) · *skill ลอย* เมื่อหลายเจ้าของข้าม phase และต้องการ trigger ของตัวเอง
+- **🗺️ Map mode (`shode-house-workflow/wayfinding.md`)** — ช่องที่ pipeline เดิม **ไม่มีเลย**: ระหว่าง "ไอเดียก้อนใหญ่ที่ยังมองไม่เห็นทาง" กับ "มี item concrete พอให้ `drain` รัน". `/design-system` สมมติว่ารูปงานนิ่งแล้ว (ใช้กับ fog = ได้ spec ยักษ์ที่เขียนจากการเดา), Patrick Phase 0 ตัดสินแค่ *ควรทำไหม*, `drain` ต้องการ ready set ที่มีอยู่แล้ว. adapted จาก [mattpocock/skills · wayfinder](https://github.com/mattpocock/skills) (MIT) port ไป `bd`:
+  - **Map = bd issue เดียว** + **decision ticket** เป็น child (ticket ที่ผลลัพธ์คือ *การตัดสินใจ* ไม่ใช่ชิ้นงาน) · blocking ใช้ native `bd link` เพื่อให้ `bd ready` คำนวณ frontier ให้เอง
+  - **Fog of war** — แผนที่ไม่สมบูรณ์โดยตั้งใจ; เกณฑ์ ticket-vs-fog คือ **ตั้งคำถามให้คมได้ตอนนี้ไหม** ไม่ใช่ตอบได้ไหม; ปิด ticket แล้วค่อย graduate fog ทีละก้อน
+  - **Out of scope section** = ที่บันทึกของ Philosophy #4 SCOPE DRIFT ซึ่งเดิมเป็นกฎเฝ้าระวังที่ **ไม่มีที่ให้เขียนว่า "อันนี้ตัดออกแล้ว"**
+  - **Ticket type → agent**: research (AFK, domain expert/Sara) · prototype (HITL, Uma/Dave throwaway) · grilling (HITL, frontier model ของ v3.11) · task (unblock decision, Aaron/owner) — HITL/AFK **ต่อ ticket** ละเอียดกว่า Engagement Mode ที่ตั้งครั้งเดียว
+  - 🔴 **1 ticket ต่อ 1 session** (ยกเว้น research ที่ fan-out ได้) · 🔴 **เรียก ticket ด้วยชื่อ ห้ามเรียกด้วย `bd:42`** ในสิ่งที่คนอ่าน
+  - wire เข้า Oliver (ถือแผนที่) + Patrick (destination + scope) + `/design-system` (guard ตอนเปิด command)
+- **`dev-gate`**: § Seams ต้อง confirm ก่อนเขียน test (coverage บอกว่า test เยอะพอ ไม่ได้บอกว่าถูกที่) · 3 anti-pattern (implementation-coupled / **tautological** / horizontal slicing → vertical slice + tracer bullet) · **deep module** ใน Gate 0 (deletion test · 1 adapter = seam สมมติ, 2 = seam จริง · interface คือ test surface)
+
+### 🐛 Fixed
+- **`diagnose` เริ่มผิดจุด** — Step 1 เดิมคือ "Reproduce" ซึ่งบอกให้ทำแต่ไม่บอกว่าทำยังไงตอนทำไม่ได้. เปลี่ยนเป็น **สร้าง feedback loop ที่ tight + red-capable** พร้อมบันได 10 วิธี และ **completion criterion ที่ตรวจได้**: ต้องมีคำสั่งเดียวที่รันไปแล้วจริง + paste output ก่อนขึ้น Step 2; อ่าน code เพื่อตั้งทฤษฎีก่อนมีคำสั่งนั้น = STOP
+- **`diagnose` ไม่มี minimise** — เพิ่มขั้นย่อ repro จนทุกองค์ประกอบ load-bearing (ลด hypothesis space + ได้ regression test สะอาดฟรี)
+- **hypothesis ไม่ falsifiable** — เดิม "เขียนสมมติฐาน 2-3 ข้อ"; ตอนนี้ 3-5 ข้อ **ranked ก่อนทดสอบข้อแรก** + บังคับรูป prediction + โชว์ list ให้ user (ไม่ block ถ้า AFK)
+- **debug log ไม่มีกลไกเก็บกวาด** — Universal Rule ห้าม `console.log` ติด prod มานาน แต่ไม่มีวิธี; ตอนนี้ทุก debug log ใส่ `[DEBUG-xxxx]` → cleanup = grep prefix เดียว + paste ยืนยันว่าไม่เหลือ
+- **🔒 ไม่มีกฎ redact** — evidence protocol บังคับ paste tool output/artifact แต่ไม่เคยบอกให้ลบ secret; log/HAR/curl พก auth header + PII มาด้วยเสมอ. เพิ่ม § Redact เป็นส่วนแรกของ `diagnose`
+- **`drain` ไม่ได้บอกว่า tree ที่ conflict ค้างกลางคันไปไว้ไหน** — เดิมมีแค่ "จัดกลุ่มใหม่ รันรอบใหม่"
+
+### 🪶 Changed
+- **`drain` conflict protocol — ขยายของเดิม ไม่ใช่เพิ่มของใหม่** (แก้ถ้อยคำหลัง independent review): HEAD มีกฎอยู่แล้ว 2 บรรทัด (`:18` group by file-locality กัน conflict · `:127` "conflict = grouping ผิด → หยุด จัดกลุ่มใหม่ ห้าม hand-merge เงียบ ๆ"). ที่เพิ่มจริงคือ **กลไก**: `--abort` ปลอดภัยเฉพาะที่ step นี้ (งาน verified อยู่บน `fix/<id>` ครบ) · ตารางเลือก abort-vs-resolve ด้วยจำนวน item ที่ต้องรันซ้ำ · ถ้า resolve ต้องอ่าน primary source ทั้งสองฝั่ง + แนบ diff · ยกเป็น invariant #9
+- **แตก `shode-house-workflow` 4,716 → 2,399 tok** (19,691 → 10,235 B) — Smart Coop Pattern (61% ของไฟล์, ใช้เฉพาะตอนรัน pipeline) → `smart-coop.md`; tracker options + Handoff Contract ที่ซ้ำกับ `shode-house-discipline` ตัดออก
+- **CI check #16 ไม่มี exception อีกต่อไป** — Oliver 40,378 → **30,922 B** อยู่ใน budget 31,000 B (margin 78 B) เท่าทุก agent (v3.11 ต้องยกเว้นให้ที่ 41,000 B)
+- `review-checklist`: REVIEW report template + Loop Routing + Domain routing → `report-format.md` (output template = reference ใช้ตอนท้าย ไม่ต้องแบกใน preload)
+- fan-out 19 agent: **165,778 tok** (v3.11 = 165,262 · v3.10 = 195,794) — preload 110,165 tok
+- `diagnose` + `review-checklist` แปลงบล็อก "ห้าม" เป็น **positive form** (per `writing-for-agents`: การสั่งด้วยข้อห้ามดึงพฤติกรรมต้องห้ามเข้า context และเป็น modifier ที่อ่อน)
+
+### ⚠️ หมายเหตุสำหรับรุ่นถัดไป
+Preload margin เหลือน้อยมาก — Oliver **78 B** · Chris/Quinn/Sentinel 201 B · อีก 7 ตัว 487 B. การแก้ skill ที่ถูก preload ครั้งหน้า **ต้องย้ายของออกก่อน** ไม่ใช่แก้แล้วค่อยดู CI
+
+---
+
+## [3.11.0] — WCAG 2.2 ที่มี check จริง + preload rebalance + design-intel lookup layer — 2026-09-01
+
+> **Root cause รอบนี้มี 2 อย่าง**: (1) กฎที่ประกาศไว้แต่ไม่มีเครื่องมือรองรับ (2) ของที่ทุก agent แบกทั้งที่ใช้จริงไม่กี่ตัว — v3.10 เปิดทางให้ agent โหลด skill เองได้แล้ว แต่ **เนื้อหา preload ยังไม่ได้ rebalance ตาม**
+
+### 🐛 Fixed
+- **WCAG 2.2 AA = claim ที่ไม่มี check รองรับ** — `agents/ux-ui-designer.md` (2 จุด) · `skills/ui/ui-test` · `commands/design-system.md` เขียน "WCAG 2.1/2.2 AA" รวม 4 จุด แต่ไม่มี success criterion ของ 2.2 อยู่ที่ใดใน repo และ axe-core ก็ auto-detect ข้อเหล่านี้ไม่ได้ → เพิ่ม 2.4.11 / 2.5.7 / 2.5.8 / 3.3.7 / 3.3.8 พร้อมวิธีตรวจต่อข้อ + บังคับเขียน `N/A: <SC> — ไม่มี <องค์ประกอบ>`
+- **`ui-test` § a11y coverage** — ระบุชัดว่า axe ครอบ 2.1 เป็นหลัก (~30-40% ของ SC ทั้งหมด) และ **"axe 0 violations" ≠ "WCAG 2.2 AA ผ่าน"**; แบ่งความรับผิดชอบ 3 ชั้น (axe CI / Playwright assertion เขียนเอง / manual + paste evidence)
+- **AI Persona Disclaimer preload ผิดกลุ่ม 100%** — กฎอยู่ใน `shode-house-deliverable` ที่ domain expert **ทั้ง 7 ตัวไม่ได้ preload** (frontmatter มีแค่ discipline + evidence) → กฎไปไม่ถึงกลุ่มเป้าหมาย ขณะที่ **7 agent** ที่ไม่ใช่เป้าหมายแบกไว้ทุก spawn. ย้ายลง agent file ของ 7 expert
+- **`tokens.json` drift ข้าม bd** — เดิม design token เป็น artifact ราย bd ไม่มี source of truth ระดับ project → bd คนละใบให้ค่าต่างกันได้โดยไม่มีใครจับ. แก้ด้วย MASTER.md + pages/ override
+
+### 🪶 Changed — preload rebalance (155k → 111k tok ต่อ fan-out 19 agent, -29%)
+- `shode-house-discipline` 3,763 → **2,803 tok**: Recite Card → main session เท่านั้น (output-style `oliver.md` §1 มีอยู่แล้ว; subagent ไม่มี first response กับ user) · Response Language ตัดส่วน main-session เหลือ core + verbatim list · No Man-Day → `orchestrator` + `product-manager` · ตาราง skill-loading → agent file ของตัวเอง (เดิมทุกตัวแบก row ของอีก 18 role) · Clarifying → 4 agent ที่ grill จริง
+- `shode-house-evidence` 2,253 → **1,079 tok (-52%)**: UX Evidence → Uma · Domain Evidence → 7 domain expert · REVIEW Report Format → ตัดทิ้ง (`review-checklist` ประกาศตัวเป็น DRY source-of-truth อยู่แล้ว = duplication)
+- `shode-house-deliverable`: Postmortem Template → `incident` skill (ใช้เฉพาะตอน incident)
+- Clarifying ที่ย้ายออกไป upgrade เป็น **frontier model**: design tree → ถามทั้ง frontier รอบเดียว (recommended answer ทุกข้อ) → คำถามที่ขึ้นกับข้อที่ยังเปิด = รอบถัดไป → dispatch sub-agent หา fact แบบ **ไม่ block** → จบเมื่อ frontier ว่าง
+
+### ✨ Added
+- **`references/design-intel/`** — lookup layer ของ Uma (1.2 MB บนดิสก์, **preload 0 tok** เพราะข้อมูลไม่เข้า context เข้าเฉพาะผล query). vendored subset ของ `nextlevelbuilder/ui-ux-pro-max-skill` (MIT): 192 product palette · 74 font pairing · 119 UX guideline (ครอบ WCAG 2.2) · 88 style · 15 stack · GSAP preset · 25 chart type
+  - ตัดจาก upstream 2.5 MB → 1.2 MB: `phosphor-icons-upstream.json` + `google-font-licenses.json` (เป็น input ของ refresh tooling ไม่ใช่ของ search) · google-fonts เหลือ 250 แถว · stack เหลือ 15 ตัวที่ทีมใช้ · ตัด `validate_data.py` + `scripts/tests/`
+  - **`scripts/check_contrast.py`** (เขียนเอง) — gate **catalog → evidence**: palette จาก catalog = *ข้อเสนอ* ยังไม่ใช่หลักฐานจนกว่าจะผ่าน WCAG. จับของจริงได้ตั้งแต่รันแรก — palette ของ catalog เองมี `Border #BFDBFE` บน `#F8FAFC` = **1.36:1** ตกเกณฑ์ non-text 3:1
+  - Uma Phase 1b ขั้น 2.5: **stack detection ห้ามเดา** (hardcoded default = misroute ทุกคำแนะนำแบบเงียบ ๆ) · **design dials** variance/motion/density แทนคำถามเปิด · **MASTER.md + pages/ override** · `--force` = R0
+- **CI check #16 preload budget** — ratchet เป็น byte (bash-only, ไม่พึ่ง Python ตามกฎ dev-loop): 31,000 B ต่อ agent, orchestrator 41,000 B. ขึ้นไม่ได้ ลงได้อย่างเดียว — เพิ่ม section ใน skill ที่ถูก preload = CI แดง
+- **CI check #17 design-intel integrity** — scripts + CSV หลัก + README ต้องอยู่ครบ และ Uma ต้องอ้างถึง มิฉะนั้น Phase 1b lookup จะ no-op เงียบ
+
+### 📎 Attribution
+- [mattpocock/skills](https://github.com/mattpocock/skills) (MIT) — frontier clarifying model
+- [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) (MIT) — design-intel data + search engine
+
+### ⏭️ ยังไม่ทำ (ตอนนั้น) → ✅ ทำครบใน [3.12.0]
+- ~~แตก `shode-house-workflow`~~ · ~~`diagnose` feedback-loop-first + redact~~ · ~~`review-checklist` Spec axis + pin fixed point~~ · ~~`drain` conflict protocol~~
+
+---
+
 ## [3.10.1] — fix: Oliver output style skipped the Recite Card + tag prefix — 2026-08-01
 
 > **Measured on a real Cowork session.** `force-for-plugin: true` worked (Oliver took over the main loop) but the first response carried neither the Recite Card nor `[Oliver|state:...|bd:...]`.

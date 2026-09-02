@@ -66,6 +66,17 @@ YAGNI/compression ตัดได้เฉพาะ "ความซับซ้
 > ทุกครั้งที่ตัด (ขั้น 1) หรือใช้ทางลัด → mark ด้วย `shortcut(bd:N):` comment (ดู Gate 3) เพื่อให้ debt harvest เก็บได้
 > เพดานความขี้เกียจ = carve-out ด้านบน (validation/security/a11y/regulation ห้ามตัด)
 
+### 0.5 🎯 Seams — ตกลงก่อนเขียน test (🆕 v3.12)
+
+**seam** = public boundary ที่เราสังเกต behavior ได้โดยไม่เอื้อมเข้าไปข้างใน. test อยู่ที่ seam เท่านั้น ไม่ใช่ที่ internal
+
+🔴 **เขียน test ไม่ได้จนกว่าจะ list seam ที่จะ test แล้ว confirm** (กับ user หรือกับ AC ใน spec). ห้ามมี test ตัวไหนเขียนที่ seam ที่ยังไม่ confirm
+> เหตุผล: test ทุกอย่างไม่ได้ — ตกลง seam ล่วงหน้าคือวิธีให้แรงเทสต์ลงที่ critical path + logic ซับซ้อน แทนที่จะกระจายไปทุก edge case
+> `coverage ≥ 80%` (Gate 8) บอกว่า test **เยอะพอ** — ไม่ได้บอกว่า test **ถูกที่**. Seam list คือสิ่งที่ตอบข้อหลัง
+
+ถามตรง ๆ ก่อนเริ่ม: *"public interface คืออะไร แล้วจะ test ที่ seam ไหนบ้าง?"*
+รูปร่างของ interface เองยังไม่นิ่ง (ลึกแค่ไหน seam อยู่ตรงไหน) → ดู § Gate 0 § Deep module
+
 ### 1. 🔴 Red — เขียน test ที่ fail ก่อน
 - Test เล็กที่สุด — 1 behavior
 - Naming: `should_<behavior>_when_<condition>` หรือ G-W-T
@@ -90,6 +101,16 @@ def test_calculate_total_with_vat_includes_7_percent():
 ### TDD scope
 ✅ **เหมาะ**: business logic, calc, validation, state machine, parser, algorithm, bug-fix regression
 ❌ **ไม่เหมาะ**: UI prototype, spike, pure framework integration
+
+### 🚫 3 anti-pattern ที่ทำให้ coverage สูงแต่ test ไร้ค่า (🆕 v3.12)
+
+- **Implementation-coupled** — mock collaborator ภายใน / test private method / verify ผ่านช่องข้าง (query DB แทนใช้ interface)
+  *สัญญาณ*: refactor แล้ว test แตก ทั้งที่ behavior ไม่เปลี่ยน
+- **Tautological** — assertion คำนวณค่าที่คาดหวังด้วยวิธีเดียวกับ code (`expect(add(a,b)).toBe(a+b)` · snapshot ที่ derive มาด้วยมือแบบเดียวกัน · constant assert เท่ากับตัวเอง) → **ผ่านโดยโครงสร้าง ไม่มีวันเถียงกับ code ได้**
+  *ทางแก้*: ค่าที่คาดหวังต้องมาจาก **แหล่งอิสระ** — literal ที่รู้ว่าถูก, worked example, ตัวเลขจาก spec
+  > นี่คือเหตุผลที่ coverage 80% เขียวตลอดกาลโดยไม่เคยจับ bug อะไรเลย
+- **Horizontal slicing** — เขียน test ทั้งชุดก่อน แล้วค่อย implement ทั้งชุด → test ตรวจ behavior **ในจินตนาการ**, ล็อค test structure ก่อนเข้าใจ implementation, และ test จะด้านต่อการเปลี่ยนแปลงจริง
+  *ทางแก้*: **vertical slice** — 1 test → 1 implementation → ทำซ้ำ. แต่ละ test คือ **tracer bullet** ที่ตอบสนองสิ่งที่รอบก่อนสอน
 
 ---
 
@@ -126,6 +147,12 @@ def test_calculate_total_with_vat_includes_7_percent():
 - [ ] **High cohesion** — code ในไฟล์เดียวกันแก้ปัญหาเดียว. ถ้า "และ" ปะปน → แตก module
 - [ ] **Low coupling** — module A ไม่ควรรู้ internal ของ module B. ผ่าน interface/event/DTO
 - [ ] **Stable dependency** — depend ไปทาง stable (lower layer). ห้าม domain → infra direct
+
+**Deep module — abstraction นี้ควรมีอยู่ไหม (🆕 v3.12, คู่กับ YAGNI ladder)**:
+- [ ] **Deep ไม่ใช่ shallow** — behaviour เยอะหลัง interface เล็ก. shallow = interface ซับซ้อนพอ ๆ กับ implementation (ตัวส่งผ่าน). ถาม: ลด method ได้ไหม? ลด parameter ได้ไหม? ซ่อนความซับซ้อนเพิ่มได้ไหม?
+- [ ] **The deletion test** — ลอง "ลบ module นี้ทิ้ง": ความซับซ้อนหายไป = มันเป็น pass-through (ลบจริง); ความซับซ้อนโผล่ที่ caller N ที่ = มันคุ้มค่าตัว
+- [ ] **1 adapter = seam สมมติ · 2 adapters = seam จริง** — ห้ามสร้าง seam ถ้ายังไม่มีอะไรแปรผันข้ามมันจริง (= Speculative Generality)
+- [ ] **interface คือ test surface** — caller กับ test ข้าม seam เดียวกัน. ถ้าอยากเทสต์ *เลย* interface เข้าไป = module รูปร่างผิด ไม่ใช่ test เขียนยาก
 
 **Human readability (ก่อน push อ่าน diff ตัวเอง 1 รอบ)**:
 - [ ] **Intent revealing** — ชื่อ + structure บอกเจตนาได้โดยไม่ต้องอ่าน implementation
@@ -228,71 +255,10 @@ Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
 
 ---
 
-## Pre-commit hook (🔴 v3.1 — บังคับทุก repo)
+## Pre-commit hook (🔴 บังคับทุก repo)
 
-ติดตั้ง `pre-commit` ([pre-commit.com](https://pre-commit.com)) + `.pre-commit-config.yaml`:
-
-```yaml
-# .pre-commit-config.yaml — Python project example
-repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.0
-    hooks:
-      - id: ruff-format         # Gate 1
-      - id: ruff                # Gate 2+3+4 (--fix organize+unused+lint)
-        args: [--fix, --exit-non-zero-on-fix]
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.0
-    hooks:
-      - id: mypy                # Gate 5
-        args: [--strict]
-  - repo: https://github.com/pycqa/bandit
-    rev: 1.7.9
-    hooks:
-      - id: bandit              # Gate 9
-        args: [-c, pyproject.toml]
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.4
-    hooks:
-      - id: gitleaks            # Gate 9 secret scan
-```
-
-```yaml
-# .pre-commit-config.yaml — TS/JS project example
-repos:
-  - repo: https://github.com/biomejs/pre-commit
-    rev: v0.5.0
-    hooks:
-      - id: biome-check         # Gate 1+2+3+4 (format + imports + unused + lint)
-        args: [--apply]
-  - repo: local
-    hooks:
-      - id: tsc
-        name: TypeScript strict
-        entry: npx tsc --noEmit --strict
-        language: system
-        types: [ts]
-      - id: ts-unused-exports
-        name: Unused exports
-        entry: npx ts-unused-exports tsconfig.json
-        language: system
-        pass_filenames: false
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.4
-    hooks:
-      - id: gitleaks
-```
-
-**Setup steps**:
-```bash
-pip install pre-commit              # หรือ brew install pre-commit
-pre-commit install                  # ติด git hook
-pre-commit run --all-files          # รัน lint ทั้ง repo ครั้งแรก
-```
-
-ทุก `git commit` จะถูก block ถ้า gate ใด fail. ห้าม `--no-verify` (bypass) ใน production code
-
----
+ติดตั้ง [`pre-commit`](https://pre-commit.com) + `.pre-commit-config.yaml` ให้ครอบ Gate 1-5 + 9 → ทุก `git commit` ถูก block ถ้า gate ใด fail. **ห้าม `--no-verify`** ใน production code
+ตัวอย่าง config เต็ม (Python / TS) + setup steps → **`pre-commit-config.md`** (ไฟล์ข้าง SKILL.md นี้)
 
 ## Quality Smells (🚫 reject)
 

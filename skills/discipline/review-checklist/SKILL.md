@@ -23,20 +23,24 @@ description: |
 
 ## Required inputs — refuse without
 
-- [ ] **Code locatable** (path / Jira PR / commit SHA — ห้าม "review โค้ดทั่ว ๆ ไป")
-- [ ] **Spec context** (BRD AC / bd issue / Jira description — review เทียบ spec, ไม่ใช่ลอย ๆ)
+- [ ] **ขอบเขต diff ถูก pin มาแล้ว** — caller (Oliver/`/review`) ต้องส่ง **fixed point + diff command ที่รันได้จริง** มาให้ ไม่ใช่ให้ reviewer เดาเอง
+      วิธี resolve (มี fallback ladder สำหรับ path/snippet/non-git) = `commands/review.md` § Scope resolution · reviewer ตรวจแค่ว่า diff ไม่ว่างและ ref resolve ได้
+- [ ] **Spec source ระบุได้** (🆕 v3.12) — หาตามลำดับ: bd-id/issue ref ใน commit message → path ที่ user ส่ง → `outputs/SPEC-<bd-id>.md` / `outputs/<bd-id>/` → ถามผู้ใช้. ไม่มี spec จริง ๆ → Spec axis รายงาน **"no spec available"** ห้าม pass เงียบ
 - [ ] **Static analysis tool พร้อม** (lint/SAST configured — Chris ใช้ Bash จริง, ไม่ใช่ "ดู visually")
 - [ ] **Tracker available** (bd active หรือ Jira key — finding ต้อง track, ไม่ใช่ chat message)
 - [ ] **Severity scale agreed** (project ใช้ 🔴/🟠/🟡/🔵/💡 default — ห้าม "minor/major" loose)
 
 ---
 
-## Chris — 7 Dimensions (รัน parallel เป็น 7 pass)
+## Chris — 7 Dimensions = **Standards axis** (รัน parallel เป็น 7 pass)
+
+> ตอบคำถามเดียว: *code เขียนถูกหลักไหม*. คำถาม *code ทำตรงกับที่ spec ขอไหม* = § Spec Axis ด้านล่าง (คนละ sub-agent)
 
 ทุกมิติ output: 🔴 Critical / 🟠 High / 🟡 Medium / 🔵 Low / 💡 Suggestion
 
-### 1. Correctness
-- Logic ตรง spec/AC
+### 1. Correctness — **internal behavior เท่านั้น** (v3.12)
+> requirement conformity (ตรง spec/AC ไหม) = งานของ **Spec axis** ห้ามตรวจซ้ำที่นี่ — อ่าน diff สองรอบ + finding ซ้ำ
+- Invariant ของ module ไม่ถูกทำลาย (state machine, ordering, idempotency)
 - Edge case (null/empty/boundary/overflow/unicode)
 - Error path (catch + re-throw + meaningful message)
 - Concurrent: race / deadlock / lost update
@@ -99,6 +103,25 @@ description: |
 
 ---
 
+## 🎯 Spec Axis (🆕 v3.12 — แกนที่ 2, รัน **parallel sub-agent แยกจาก Chris**)
+
+> Chris 7-dim + Quinn 6-axis เป็น **standards ล้วน** — ตอบแค่ "code เขียนถูกหลักไหม" ไม่มีใครตอบ **"code ทำในสิ่งที่ spec ขอหรือเปล่า"**. code ที่ตามมาตรฐานครบแต่ทำผิดเรื่อง = **Standards PASS / Spec FAIL**; รายงานรวมกันเมื่อไหร่ แกนหนึ่งบังอีกแกน — นี่คือช่องที่ Anti-Puppet Gate เดิมเจาะไม่ถึง
+
+**รายงาน 3 อย่าง — quote บรรทัดของ spec ทุก finding**
+- **(a) ขาด/ทำครึ่งเดียว** — AC บอก retry 3 ครั้ง โค้ด retry ครั้งเดียว
+- **(b) scope creep** — behaviour ใน diff ที่ spec ไม่ได้ขอ (เช่นแอบใส่ caching layer) → Philosophy #4 SCOPE DRIFT
+- **(c) ดูเหมือนทำแล้วแต่ผิด** — คำนวณ VAT ก่อนหักส่วนลด ทั้งที่ spec บอกหลัง
+
+**กฎการรัน (🔴)**
+1. Spec axis กับ Standards axis (Chris) **รันเป็น sub-agent คนละตัว** — ไม่ให้ context ปนกัน (per Handoff Contract: ส่ง path ของ diff + spec ไม่ส่งเนื้อหา)
+2. รายงานแยกหัวข้อ `## Standards` และ `## Spec` — **ห้าม merge หรือ rerank ข้ามแกน** เพราะการแยกแกนมีไว้กันการบังกันเอง
+3. ปิดท้าย 1 บรรทัด: จำนวน finding ต่อแกน + ตัวแย่สุด **ในแต่ละแกน** — ห้ามเลือกผู้ชนะข้ามแกน
+4. ไม่มี spec → ข้าม Spec axis แล้วเขียน **"no spec available"** ใน report (ไม่ใช่ pass เงียบ ๆ)
+
+**Routing**: finding ของ Spec axis ส่วนใหญ่ route → **Phase 1a** (Bella ∥ Sara revise spec/AC) ไม่ใช่ Phase 2 — ยกเว้นข้อ (c) ที่ spec ถูกแต่ code ผิด → Phase 2
+
+---
+
 ## Quinn — Integration Matrix (รัน 6 axes)
 
 ### 1. Integration (Testcontainers + real dep)
@@ -145,23 +168,10 @@ description: |
 
 ---
 
-## Domain Expert — Conditional Validation (parallel กับ Chris+Quinn)
+## Domain Expert — Conditional Validation
 
-Trigger ตาม code path:
-
-| Keyword in changed code | Domain Expert |
-|---|---|
-| payment / ledger / money / settle | → **Felix** |
-| accounting / journal / inventory (generic) | → **Elena** |
-| SAP / ABAP / Fiori / BAPI / IDoc / S4HANA | → **Sam** |
-| order / market / matching / FIX | → **Tara** |
-| policy / claim / premium / actuarial | → **Iris** |
-| booking / rate / yield (hotel/airline) | → **Brooke** |
-| cart / checkout / promotion / catalog | → **Emma** |
-
-Domain Expert verify: regulation cite (`shode-house-evidence`) + business rule + edge case ที่เฉพาะ domain. ห้าม skip ถ้า domain-sensitive
-
----
+changed code แตะ keyword ของ domain ไหน → **domain expert ตัวนั้นต้อง validate parallel กับ Chris+Quinn** (money/regulation = ห้าม merge โดยไม่มีลายเซ็น)
+ตาราง keyword → expert (payment/ledger→Felix · policy/claim→Iris · SAP/ABAP→Sam · order/matching→Tara · accounting/inventory→Elena · booking/yield→Brooke · cart/promotion→Emma) → **`report-format.md` § Domain routing**
 
 ## Severity Grading (consistent)
 
@@ -175,44 +185,10 @@ Domain Expert verify: regulation cite (`shode-house-evidence`) + business rule +
 
 ---
 
-## REVIEW Report Format (bd-native primary, markdown fallback)
+## REVIEW Report Format + Loop Routing → `report-format.md` (v3.12)
 
-ใช้ format ใน `shode-house-evidence` (REVIEW Report Format section). สรุป:
-
-### bd notes (≤ 500 chars compact)
-```
-[Chris|Quinn|Sentinel review bd-42] verdict: FAIL
-- 🔴 1: <file:line> <issue>
-- 🟠 2: <count + summary>
-- 🟡 5: <count, see md fallback>
-Coverage: unit 78% → 81% target hit; mutation 72%
-UX: Uma POST PASS (separate)
-Loop route: code → Phase 2
-```
-
-### Markdown fallback (no bd) — `outputs/REVIEW-<feature>.md`
-Full template per finding (file:line · why it matters · evidence path · suggested change)
-
-### Always: link external tracker
-- ถ้ามี Jira key → `addCommentToJiraIssue` กลับ ticket ด้วย bd link หรือ md path
-- ถ้ามี GitHub PR → `gh pr review --comment "..."` หรือ inline comment
-
----
-
-## Loop Routing Recommendation (Phase 4 input)
-
-Chris/Quinn/Sentinel **must recommend** loop route ใน report:
-
-| Finding type | Route → |
-|---|---|
-| Code logic / SOLID / perf | Phase 2 (Dave fix) |
-| UI / visual / a11y manual | Phase 1b (Uma redesign) |
-| Spec / AC / regulation gap | Phase 1a (Bella ∥ Sara revise) |
-| Test gap | Phase 2 (Dave) + invoke `automate-test` skill (Quinn) |
-| Security finding | Phase 1c (Sentinel threat model update) → Phase 2 |
-| Multi-route | Oliver triage (don't recommend; defer) |
-
----
+เขียน report เมื่อไหร่ → อ่าน **`report-format.md`** (ไฟล์ข้าง SKILL.md นี้): bd-native template · markdown fallback · storage rule (ห้ามเขียนซ้ำ 2 ที่) · ตาราง Loop Routing ต่อชนิด finding
+เป็น output template = reference ที่ใช้ตอนท้าย ไม่ต้องแบกไว้ตลอด (preload budget, CI #16)
 
 ## Anti-Puppet Gate
 
@@ -221,36 +197,26 @@ Chris/Quinn/Sentinel **must recommend** loop route ใน report:
 - ห้าม skip 7-dim เพราะ "minor change" — minor = bypass ก็ minor effort
 - ห้าม domain skip ถ้า code touches money/regulation/PII
 
-## 🔴 Adversary Stance (v3.3 — Chris ∥ Quinn vs Dave)
+## 🔴 Adversary Stance
 
-- **Verdict default = FAIL** until proven PASS with paste-output evidence
-- **Zero trust on Dave's claims** — "Dave บอก test ผ่าน" ≠ พอ; Chris/Quinn ต้อง run เอง
-- **Pessimistic mindset** — assume hidden bug; ค้นจนแน่ใจ
-- เจอ marginal issue → grade ≥🟡 (ห้าม dismiss)
-- Counter Dave push-back ด้วย **evidence** เท่านั้น (ห้าม "should be fine" volley)
+verdict default = **FAIL จนกว่าจะพิสูจน์ PASS ด้วย evidence ที่รันเอง** · zero trust ต่อคำอ้างของ Dave · Dave push back "should be fine" → counter ด้วย own-run evidence เท่านั้น
+ตารางเต็ม (ใครเชื่อใครได้แค่ไหน) → `shode-house-routing` § Adversarial RACI
 
-## 🌐 Mandatory Visual Verify (Claude in Chrome MCP)
 
-ถ้า code/feature touches **frontend / API observable / user journey**:
-- **บังคับ** Chris ∥ Quinn open `mcp__Claude_in_Chrome__navigate` + execute critical journey
-- Capture: `screenshot` + `read_console_messages` + `read_network_requests`
-- Paste path + finding ลง bd note ก่อน PASS
-- ห้าม trust Playwright headless / unit test only — Chrome MCP = human-visible truth
-- No Chrome MCP installed → escalate Aaron install ก่อน (block, no PASS)
+## 🌐 Mandatory Visual Verify
 
----
+Frontend/API/observable ถูกแตะ → **ต้องมี visual/interaction evidence ก่อน PASS**: screenshot path จริง · console error (หรือยืนยันว่าไม่มี) · network status ของ request หลัก
+🔴 บังคับ *หลักฐาน* ไม่ใช่บังคับ *tool ตัวใดตัวหนึ่ง* — plugin ไม่ได้จัดหา browser MCP (`.mcp.json` มีแค่ Context7) และชื่อ tool ต่างกันตาม config ผู้ใช้
+**tool ladder + วิธีเก็บหลักฐานแต่ละทาง → `ui-test` skill § Visual evidence ladder** (Chris/Quinn โหลดตอนแตะ frontend อยู่แล้ว) · ทำไม่ได้ทุกทาง = **BLOCKED ไม่ใช่ PASS**
 
-## ห้าม (consolidated)
 
-- ห้าม review โดยไม่อ่าน code จริง (prefer `Grep` > `Read` full file สำหรับ pattern; full file ถ้าต้องเข้าใจ flow)
-- ห้าม approve ที่ static analysis ไม่ผ่าน (Chris รัน lint + SAST จริง)
-- ห้าม merge ถ้า 🔴 Critical ติด
-- ห้าม invent finding (cite line + evidence ทุกครั้ง)
-- ห้าม blame author (review = code-on-the-page, ไม่ใช่ engineer-on-the-team)
-- ห้าม skip Domain Expert validation ถ้า code touches sensitive area
-- ห้ามเก็บ finding ทั้ง bd และ markdown — เลือกตาม project state (CLAUDE.md storage rule)
+## กฎที่ต้องทำ (positive form — v3.12)
 
----
+- **verdict ทุกข้อมี evidence ที่รันเอง** (command + output ที่ paste) — verdict default = FAIL จนกว่าจะพิสูจน์ PASS
+- **finding ทุกข้อระบุ file:line + severity + วิธีแก้** และถูก track ใน tracker ไม่ใช่ค้างในแชท
+- **UI change → paste visual/interaction evidence ตาม ladder** (Playwright screenshot + console + network; axe สำหรับ a11y) ก่อนให้ผ่าน
+- **money/PII/auth → Domain Expert + Sentinel ต้องลงชื่อ** ก่อน merge
+- **ขอบเขต review = diff จาก fixed point ที่ pin ไว้** — นอกขอบเขตนั้นบันทึกเป็น 💡 Suggestion ไม่ใช่ block
 
 ## Used by
 

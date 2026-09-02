@@ -1,6 +1,6 @@
 ---
 description: "[shode-house] Implement (Dave) + UI Check (Uma) + Code Review (Chris ∥ Quinn) + Triage — Smart Coop Phase 2-4"
-allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
+allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash, Skill, AskUserQuestion
 argument-hint: "[bd-id]"
 ---
 
@@ -105,19 +105,25 @@ Verdict:
 
 ⏸️ **Gate: pre-code-review** — Uma POST PASS → unlock Phase 3b. Pure backend (no frontend trigger) skip Phase 3a → ผ่าน gate อัตโนมัติ
 
-### 6. Code Review (Chris ∥ Quinn — Phase 3b, TRUE parallel)
+### 6. Code Review (Phase 3b — TRUE parallel, **2 แกน**)
 
-> 🔴 **v3.1**: ใช้ `review-checklist` skill เป็น source-of-truth. Phase นี้ = invoke skill + ส่ง parallel ไปยัง 3 axes
-
-Chris + Quinn (+ optional Sentinel/Domain Expert) ทำงาน parallel ผ่าน **`review-checklist` skill**:
+> 🔴 ใช้ `review-checklist` skill เป็น source-of-truth (`Skill` tool — อยู่ใน allowed-tools แล้ว)
+> 🔴 **v3.12**: Spec axis ต้องถูก **dispatch จริง** ไม่ใช่มีแค่ในเอกสาร — ก่อนหน้านี้ kickoff ส่งแต่ Standards จึงไม่มีใครเทียบ diff ↔ spec เลย
 
 ```bash
-[Oliver|state:3b|bd:42] Phase 3b kickoff
+[Oliver|state:3b|bd:42] Phase 3b kickoff  (pin fixed point ก่อน fan-out — see review-checklist § Required inputs)
+# ── แกน Standards (code เขียนถูกหลักไหม)
 - Chris  → 7-dim (Correctness/Security/SOLID/Perf/Maintain/Test/Observ) — see review-checklist § Chris
 - Quinn  → integration matrix (6 axes: Integration/E2E/Contract/Load/a11y/Pen) — see review-checklist § Quinn
 - Sentinel (conditional, if security trigger) → SAST/SCA/CSP/abuse — see review-checklist § Sentinel
 - Domain (conditional, if code touches sensitive area) → see review-checklist § Domain Expert
+# ── แกน Spec (code ทำตรงกับที่ spec ขอไหม) — sub-agent แยก ห้ามรวม context กับ Chris
+- Bella  → Spec axis: (a) requirement ที่ขาด/ทำครึ่ง (b) scope creep (c) implement ผิด
+           input = diff range ที่ pin ไว้ + `outputs/SPEC-<bd-id>.md` (ส่ง path ไม่ส่งเนื้อหา)
+           ไม่มี spec → รายงาน "no spec available" ห้าม pass เงียบ
 ```
+
+🔴 **aggregate ห้าม merge/rerank ข้ามแกน** — รายงานแยกหัวข้อ `## Standards` / `## Spec` + ปิดท้าย 1 บรรทัดบอกจำนวน finding และตัวแย่สุด **ในแต่ละแกน**
 
 **ทุกคน apply**:
 - Severity grading (🔴/🟠/🟡/🔵/💡) — see `review-checklist` § Severity Grading

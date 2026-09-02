@@ -1,6 +1,6 @@
 ---
 description: "[shode-house] Init — scaffold project ใหม่. Default: interactive wizard (Aaron + Bella + tracker). `--quick <stack>`: direct Aaron Docker-first (replaces /setup-project)"
-allowed-tools: Read, Write, Edit, Bash, Task
+allowed-tools: Read, Write, Edit, Bash, Task, Skill, AskUserQuestion
 argument-hint: '[project-name | --quick "stack description"]'
 ---
 

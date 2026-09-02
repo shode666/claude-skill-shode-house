@@ -1,8 +1,11 @@
 ---
 description: "[shode-house] Smart Spec pipeline (Phase 1a Bella + Sara parallel; Phase 1b Uma + Domain conditional). Flags: --stop = หยุดที่ spec ไม่ suggest implement (proposal mode); --estimate = เพิ่ม T-shirt sizing step"
-allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
+allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash, Skill, AskUserQuestion
 argument-hint: "[bd-id | system description] [--stop] [--estimate]"
 ---
+
+> 🗺️ **ก่อนเริ่ม — งานนี้ใหญ่เกิน 1 spec ไหม?** ถ้า user มาด้วยไอเดียก้อนใหญ่ที่ยังมองไม่เห็นทาง (ตอบไม่ได้ว่า "เสร็จ" หน้าตายังไง / มี decision ต้องตัดก่อนถึงจะ spec ได้) → **หยุด แล้วทำ Map ก่อน** (`shode-house-workflow/wayfinding.md`). command นี้สมมติว่ารูปงานนิ่งแล้ว — ใช้กับ fog จะได้ spec ที่เขียนจากการเดา
+
 
 📝 **Spec phase** สำหรับ: **$ARGUMENTS**
 
@@ -104,7 +107,7 @@ Uma reads `bd show <id>` (Phase 1a notes) → produces:
 - IA + user flow (happy + edge + error) — Mermaid
 - Wireframe low-fi → mid-fi (Figma frame link + frame ID)
 - Design tokens (W3C DTCG primitive → semantic → component) → `tokens.json`
-- a11y checklist (WCAG 2.1/2.2 AA)
+- a11y checklist (WCAG 2.1 AA + 2.2 AA — SC ของ 2.2 ที่ axe จับไม่ได้: ดู `agents/ux-ui-designer.md` § 5 Accessibility; ไม่มีองค์ประกอบนั้น = เขียน `N/A: <SC>`)
 - Component state inventory: default/hover/active/focus/disabled/loading/error/empty
 - **Baseline screenshot** ของ current UI (สำหรับ Phase 3a diff)
 - **Acceptance criteria จาก UX angle** (Uma's own AC ที่ Phase 3a verify)
@@ -165,6 +168,20 @@ bd update <id> --notes "
 
 → `outputs/04-estimation.md`
 
+## Step 3.5 — Decompose (Oliver + Bella — 🆕 v3.12, conditional)
+
+**เข้าเมื่อ**: T-shirt รวม = **XL** · spec ครอบมากกว่า 1 module/service · หรือ AC เยอะจน 1 pipeline run ไม่จบ
+**ข้ามเมื่อ**: S/M ที่ 1 bd จบได้ (แตกแล้วจ่ายค่า coordination ฟรี ๆ)
+
+> เดิม pipeline สรุปว่างานเป็น XL มี 4 module แล้ว **เดินออกไปเป็น bd ใบเดียว** ให้ `/implement` รันรวด —
+> `shode-house-routing` เขียนกฎ "XL → split into smaller bd" ไว้ แต่ไม่มี step ไหนทำจริง. Step นี้คือ step นั้น
+
+```
+โหลด `decompose` skill → แตกจาก AC (ไม่ใช่จาก layer) → เช็คขนาด → wire blocking edge (create-then-wire 2 pass)
+→ bd ready --json verify (ต้องได้ ≥ 1 ใบ) → paste output
+```
+Output: ชุด bd ที่มี edge + `parent-child` กลับไปหา bd เดิม (เป็น epic) — **แทนที่จะออกไปใบเดียว**
+
 ## Step 4 — Exit Gate (Oliver)
 
 ### If `--stop` (proposal mode)
@@ -195,7 +212,7 @@ Generate `outputs/00-proposal-summary.md`:
 ✅ Uma's AC documented
 ✅ Domain (ถ้า trigger): regulation cite + business rule signed
 ✅ outputs/SPEC-<bd-id>.md saved
-→ Unlock Phase 2 — call /implement bd-<id>
+→ Unlock Phase 2 — frontier ใบเดียว: `/implement bd-<id>` · frontier หลายใบ concrete + file-disjoint: `drain`
 ```
 
 ### 🔄 Conversation-flow auto-handoff (🆕 v3.2 — Oliver M2 classifier)

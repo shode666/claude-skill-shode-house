@@ -1,6 +1,6 @@
 # shode-house Eval Fixtures (v3.2)
 
-Bias-aware regression test fixtures — 1 starter fixture per agent, organized by `<agent>/<NN>-<topic>.json`. Methodology + thresholds defined in `skills/discipline/eval-harness/SKILL.md`.
+Bias-aware regression test fixtures — 1 starter fixture per agent, organized by `<agent>/<NN>-<topic>.json`. Methodology + thresholds defined in `skills/in-progress/eval-harness/SKILL.md`.
 
 ## Coverage (19 agents = 19 starter fixtures)
 
@@ -28,7 +28,7 @@ Bias-aware regression test fixtures — 1 starter fixture per agent, organized b
 
 ## Fixture schema
 
-ดู `skills/discipline/eval-harness/SKILL.md` § Fixture Schema. ทุก fixture ต้องมี:
+ดู `skills/in-progress/eval-harness/SKILL.md` § Fixture Schema. ทุก fixture ต้องมี:
 - `id`, `agent`, `bias_type`
 - `input` (user_prompt + context)
 - `expected_behavior` (must_consider_alternative / must_not_blindly_accept / expected_keywords)

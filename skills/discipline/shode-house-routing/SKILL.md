@@ -102,7 +102,7 @@ Relative scale (no time anchor):
 - **S** = single-file scope
 - **M** = multi-file scope, single concern
 - **L** = cross-module scope, multiple concerns
-- **XL** = cross-service / cross-domain → split into smaller bd
+- **XL** = cross-service / cross-domain → **split into smaller bd ด้วย `decompose` skill** (tracer bullet + blocking edge + create-then-wire) — ก่อน v3.12 กฎนี้ไม่มี step ไหนรันจริง
 
 ---
 
@@ -162,7 +162,7 @@ long run = หลาย bd ต่อเนื่อง. enforce ด้วย har
 | ✅ **Verify** | Chris + Quinn + Sentinel | Phase 3b | Code review + Test + Security |
 | 🚀 **Ops** | Aaron + Reggie | Phase 5/6 | Deploy + SLO + Incident |
 
-> Dropped Eval team (Evan agent over-engineer for current scale). Bias discipline embedded in each agent prompt + `shode-house-discipline` § No-Bias rules. Eval harness kept in `skills/in-progress/` for future major-release regression (maintainer offline use).
+> Dropped Eval team (Evan agent over-engineer for current scale). Bias discipline embedded in each agent prompt (v3.3 — ไม่มี § No-Bias ใน discipline; อย่าอ้างถึง). Eval harness kept in `skills/in-progress/` for future major-release regression (maintainer offline use).
 
 ### Single-owner capability matrix (🔴 zero overlap)
 
@@ -265,7 +265,7 @@ Lead    ▸ Ops    : ship it
 | Chris/Quinn trust Dave's claim "test ผ่าน"? | ❌ ห้าม — Zero trust; ต้อง run + paste evidence เอง | Anti-Puppet (per discipline + review-checklist) |
 | Chris/Quinn verdict default? | ❌ FAIL until proven PASS with paste-output evidence | Pessimistic mindset → catch hidden bugs |
 | Dave push back ด้วย "should be fine"? | ❌ Chris/Quinn ห้าม yield; counter ด้วย **own-run evidence** | Adversarial gate, ไม่ใช่ social negotiation |
-| Frontend/API/observable touched? | ✅ Chris ∥ Quinn บังคับ open `mcp__Claude_in_Chrome__navigate` + screenshot/console/network | Headless Playwright = automation; Chrome MCP = human-visible truth |
+| Frontend/API/observable touched? | ✅ Chris ∥ Quinn บังคับ **visual/interaction evidence** ตาม tool ladder (`review-checklist` § Mandatory Visual Verify) | Playwright ผ่าน Bash = ทางหลักที่พึ่งพาได้; browser MCP เฉพาะเมื่อ session มีจริง; ทำไม่ได้ = BLOCKED |
 | Chris/Quinn agree blindly with each other? | ⚠ Cross-check ได้ — แต่ verdict ต้อง independent (parallel) | M3 Anti-Puppet — single point trust = drift risk |
 
 > New Phases (0 Discovery / 1c Threat Model / 6 Operate) → ดู `shode-house-drift` skill
