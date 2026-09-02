@@ -1,0 +1,121 @@
+{
+  "baseline": "3.12.1",
+  "measured_at": "2026-09-02",
+  "agents": {
+    "orchestrator": {
+      "body": 19214,
+      "preload": 29642,
+      "total": 48856
+    },
+    "qa-engineer": {
+      "body": 14911,
+      "preload": 24482,
+      "total": 39393
+    },
+    "product-manager": {
+      "body": 15100,
+      "preload": 21360,
+      "total": 36460
+    },
+    "solution-architect": {
+      "body": 14085,
+      "preload": 21360,
+      "total": 35445
+    },
+    "code-reviewer": {
+      "body": 10926,
+      "preload": 24482,
+      "total": 35408
+    },
+    "ux-ui-designer": {
+      "body": 13213,
+      "preload": 21360,
+      "total": 34573
+    },
+    "devops-engineer": {
+      "body": 12680,
+      "preload": 21360,
+      "total": 34040
+    },
+    "developer": {
+      "body": 12471,
+      "preload": 21360,
+      "total": 33831
+    },
+    "security-engineer": {
+      "body": 8349,
+      "preload": 24482,
+      "total": 32831
+    },
+    "business-analyst": {
+      "body": 10620,
+      "preload": 21360,
+      "total": 31980
+    },
+    "sre-engineer": {
+      "body": 7505,
+      "preload": 21360,
+      "total": 28865
+    },
+    "sap-expert": {
+      "body": 10470,
+      "preload": 15237,
+      "total": 25707
+    },
+    "ecommerce-expert": {
+      "body": 10067,
+      "preload": 15237,
+      "total": 25304
+    },
+    "booking-expert": {
+      "body": 9451,
+      "preload": 15237,
+      "total": 24688
+    },
+    "fintech-expert": {
+      "body": 9388,
+      "preload": 15237,
+      "total": 24625
+    },
+    "erp-expert": {
+      "body": 9257,
+      "preload": 15237,
+      "total": 24494
+    },
+    "insurance-expert": {
+      "body": 9237,
+      "preload": 15237,
+      "total": 24474
+    },
+    "trading-expert": {
+      "body": 8711,
+      "preload": 15237,
+      "total": 23948
+    },
+    "staff-engineer": {
+      "body": 7231,
+      "preload": 15237,
+      "total": 22468
+    }
+  },
+  "scenarios": {
+    "/consult": 37004,
+    "Phase 1a (Bella ∥ Sara)": 80088,
+    "Phase 1b UI (Uma)": 34573,
+    "Phase 1b UI + Domain": 59198,
+    "Phase 3b base (Chris ∥ Quinn + Bella spec)": 117927,
+    "Phase 3b + Sentinel + Domain": 175383,
+    "Implement UI full (2→3a→3b)": 186331,
+    "Sensitive UI full": 243787,
+    "Full fan-out 19 agents": 587390
+  },
+  "skill_frontmatter_total": 9398,
+  "output_style_oliver": 10720,
+  "commands": {
+    "implement": 11146,
+    "init": 10809,
+    "design-system": 12663,
+    "review": 10463,
+    "consult": 1559
+  }
+}

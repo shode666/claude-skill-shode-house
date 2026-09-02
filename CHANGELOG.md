@@ -3,6 +3,18 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
+## [Unreleased] — v3.13: Prompt Architecture · Lazy-load Topology · Token Usage Observability
+
+แผนเต็ม → **`docs/PLAN-v3.13.md`** · static baseline ของ 3.12.1 → **`.baseline-3.12.1.json`**
+
+10 workstream: enforcement map · discipline core · deliverable core · review axes · domain core · Oliver/Uma runbook · lazy-load contract ที่ตรวจได้ · eval harness เป็น release gate · token budget รุ่นใหม่ · **token usage observability**
+
+🔴 หลักการกำกับ: **byte ที่ลดลงไม่เท่ากับ usage ที่ลดลง** — agent อาจโหลด reference ซ้ำ, fan-out มากขึ้น หรือเขียน output ยาวกว่าเดิม. DoD ของ 3.13 คือ **token ที่ใช้จริงลด · cost/latency ดีขึ้น · enforcement accuracy ไม่ลด** ไม่ใช่แค่ไฟล์เล็กลง
+
+Baseline 3.12.1 (static): full fan-out 587,390 B · Phase 3b + Sentinel + Domain 175,383 B · sensitive UI full 243,787 B · `/consult` 37,004 B
+
+---
+
 ## [3.12.1] — token diet: full fan-out 702,788 → 587,398 B (−16.4%) — 2026-09-02
 
 > **patch ไม่ใช่ minor**: ลดขนาด context อย่างเดียว ไม่เปลี่ยน behavior · ไม่ตัด safety / evidence / Spec axis / approval gates ข้อใดเลย
