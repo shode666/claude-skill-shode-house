@@ -1,0 +1,16 @@
+{
+  "run_id": "3.12.1-diagnose-fast",
+  "plugin_version": "3.12.1",
+  "model": "claude-opus-5",
+  "command": "diagnose",
+  "phase": "diagnose-fast",
+  "agent": "developer",
+  "input_tokens": 0,
+  "cache_read_tokens": 400099,
+  "cache_write_tokens": 86605,
+  "output_tokens": 728,
+  "duration_ms": 0,
+  "turns": 12,
+  "source": "agent-a5b8f2b7a645adf48.jsonl",
+  "note": "Cowork subagent (fresh context) via Agent tool; harness=Cowork ไม่ใช่ CLI"
+}

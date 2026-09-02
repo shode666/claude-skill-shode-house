@@ -52,7 +52,7 @@
   - ขั้นต่ำ `shode-house-discipline`; ≤ 3 skill/agent (คุม instruction density — IFScale: instruction เยอะ = following เสื่อม)
   - ห้ามชี้ `in-progress/` หรือ `deprecated/` — **Claude Code ข้ามเงียบ ๆ** (debug log เท่านั้น) ไม่ error
   - **enforce**: CI gate check #13
-- ทุก agent reference `shode-house-discipline` (Recite Card) + `shode-house-evidence` ขั้นต่ำ
+- ทุก agent reference `shode-house-discipline` (core universal rules) + `shode-house-evidence` ขั้นต่ำ; Recite Card อยู่ที่ `output-styles/oliver.md` §1
 - `meeting/SKILL.md` = thin entry-point เท่านั้น (≤ 300 บรรทัด)
 - **Model frontmatter (v3.5)**: ค่าที่อนุญาต = `claude-fable-5` (Stan/Sara/Sentinel/Uma เท่านั้น) | `opus` | `sonnet`. ห้าม pin dated model string. ตาราง model มีที่เดียว = README § Model Strategy (skill อื่นห้าม copy — เคย drift ใน routing skill v2.x). Fallback = settings `fallbackModel`, budget = `CLAUDE_CODE_SUBAGENT_MODEL` (doc ใน README)
 - **enforce**: CI gate (`.github/workflows/ci.yml`) ตรวจ model value + Fable-5 whitelist + ห้าม model table นอก README
@@ -144,7 +144,7 @@
 - **Embed in agent prompts**: 19 agents มี `## Bias Discipline` (Chris/Quinn = verdict default FAIL; Felix/Tara = "ห้าม blindly accept vendor"; Sentinel = hold on "low risk" ถ้า trigger)
 - **No separate eval agent**: v3.2 Evan = over-engineer → reverted; methodology kept in `skills/in-progress/eval-harness/` (reference only, maintainer offline)
 - **In-progress harness**: `skills/in-progress/eval-harness/{SKILL.md,fixtures/}` — agent-orchestrated (Task tool, no script; run_eval.py ลบ v3.6); future major-release regression; ไม่ ship
-- **Anti-bias source-of-truth**: agent prompt + `shode-house-discipline` Recite Card
+- **Anti-bias source-of-truth**: agent prompt + `output-styles/oliver.md` §1 Recite Card
 
 ## PEV Loop (🆕 v3.3 — replaces sprint)
 

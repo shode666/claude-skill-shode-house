@@ -28,6 +28,19 @@ description: |
 
 ---
 
+## When NOT to use
+
+- ยังไม่มี UI ที่ render ได้ (ยังอยู่ Phase 1b design) — ยังไม่มีอะไรให้ test
+- Backend-only diff · CLI tool ที่ไม่มีหน้าจอ
+- Prototype ทิ้ง / spike ที่ไม่ merge
+
+## Required inputs — refuse without
+
+- [ ] URL หรือ dev server ที่เปิดได้จริง (ไม่มี = BLOCKED ไม่ใช่ PASS)
+- [ ] Stable selector (`data-testid`) หรือสิทธิ์เพิ่มให้ได้
+- [ ] Design source (Figma/wireframe/token) ที่จะเทียบ — ไม่มี = ไม่มี baseline ของ "ถูก"
+- [ ] Baseline screenshot (รอบแรกให้สร้างแล้วบันทึกไว้)
+
 ## Stack
 
 | Layer | Tool | When |
@@ -55,7 +68,7 @@ axe-core auto-detect ครอบ **WCAG 2.1 AA เป็นหลัก** — �
 | Playwright assertion เขียนเอง | 2.4.11 focus not obscured · 2.5.8 target size ≥24×24 CSS px | Quinn (เขียน) + Dave (test id) |
 | Manual walkthrough + paste evidence | 2.5.7 dragging alternative · 3.3.7 redundant entry · 3.3.8 accessible auth (paste + password manager) | Uma (Phase 3a) |
 
-ดูรายละเอียด criterion + วิธีตรวจต่อข้อที่ `agents/ux-ui-designer.md` § 5 Accessibility
+ดูรายละเอียด criterion + วิธีตรวจต่อข้อที่ `agents/ux-ui-designer.md` § 5. Accessibility
 
 ## 🌐 Visual evidence ladder
 

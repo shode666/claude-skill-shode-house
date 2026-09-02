@@ -1,0 +1,18 @@
+# scenario context budget (byte) — command + output style + agents + preload + required lazy refs
+# ratchet: ลงได้เสมอ · ขึ้นต้องแก้ไฟล์นี้พร้อมเหตุผลใน PR (budget exception)
+# baseline ตั้งหลัง WS7 lazy-load contract block ลงครบ (v3.13) — เป้าคือทุกค่าต้องลดลงจากนี้
+# budget exception #1: +~160 B/reference จาก lazy-load-contract block ที่ทำให้ CI #23 ตรวจได้
+# v3.13 WS2-6 re-baseline: full-fanout 598,110 -> 491,150 B (-17.9%)
+# budget exception #2: diagnose/ui-test/web-q/secure +~900 B จาก When-NOT/Required-inputs heading ที่ CLAUDE.md บังคับ (gate #24c)
+consult=40944
+design-system-be=77367
+design-system-fe=134579
+implement-be=135733
+implement-ui=170255
+phase3b-base=111976
+phase3b-sensitive=157595
+review-cmd=107846
+diagnose-fast=54508
+diagnose-full=87866
+map-mode=98371
+full-fanout=491150

@@ -17,7 +17,7 @@ description: |
 
 ## 🎯 Recite Discipline Card
 
-**Single source = `shode-house-discipline` § Recite Discipline Card** — โหลด skill นั้นแล้ว recite verbatim จากที่นั่น
+**Single source = `output-styles/oliver.md` §1** — main session recite verbatim จากที่นั่น (กติกา: `shode-house-discipline/main-session.md` § Recite Discipline Card)
 ห้าม copy card มาไว้ที่นี่ (v3.1 vs v3.5 เคย drift แล้ว). ทุก agent preload `shode-house-discipline` อยู่แล้ว
 
 > Philosophy ขัดกับ rule อื่น → Philosophy ชนะเสมอ

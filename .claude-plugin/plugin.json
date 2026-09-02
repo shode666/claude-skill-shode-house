@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.12.1",
-  "description": "Multi-agent software house team v3.12.1: 19 agents + 22 skills + 5 commands. Spec-axis review, feedback-loop diagnosis, durable run contract.",
+  "version": "3.13.0",
+  "description": "Multi-agent software house team v3.13.0: 19 agents + 23 skills + 5 commands. Lazy-load contract, context budget from dispatch graph, rule-conservation gate.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"

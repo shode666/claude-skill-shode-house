@@ -3,6 +3,13 @@ name: spec-axis
 description: Reference (lazy-load) ของ `review-checklist` — แกน Spec: เทียบ diff กับ spec. โหลดโดย reviewer ที่รับแกนนี้ (Bella) เท่านั้น
 ---
 
+```lazy-load-contract
+LOAD: skills/discipline/review-checklist/spec-axis.md
+WHEN: review_axis=spec
+OWNER: business-analyst
+REQUIRED-BEFORE: spec_axis_verdict
+```
+
 # Spec Axis — reference
 
 > แยกจาก `SKILL.md` v3.12.1: Chris/Quinn/Sentinel preload `review-checklist` แต่ **ไม่ได้ทำแกนนี้** จึงแบกไว้เปล่า ๆ ×3

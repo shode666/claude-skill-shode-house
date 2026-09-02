@@ -11,6 +11,18 @@ description: |
 > Port + adapt จาก [`addyosmani/web-quality-skills`](https://github.com/addyosmani/web-quality-skills) (MIT)
 > **Owners cross-cutting**: Uma (Phase 1b AC + 3a Lighthouse) + Dave (impl) + Quinn (Phase 3b CI gate) + Aaron + **Sentinel** (security headers)
 
+## When NOT to use
+
+- Internal tool / admin ที่ไม่ public-facing และไม่มี SEO/CWV requirement
+- Backend-only หรือ API-only service
+- Prototype ที่ยังไม่ deploy
+
+## Required inputs — refuse without
+
+- [ ] URL ที่ deploy แล้ว (staging/prod) — Lighthouse บน localhost ไม่ใช่ตัวแทน field data
+- [ ] Threshold ที่ตกลงกันแล้ว (LCP/INP/CLS budget) — ไม่มี = ไม่มีเส้นแบ่ง pass/fail
+- [ ] Device/network profile ที่จะวัด (mobile 4G เป็น default)
+
 ## 🎯 4 Axes (ผ่านทั้งหมด ก่อน prod)
 
 | Axis | Metric | Target (p75) | Tool |

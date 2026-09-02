@@ -3,6 +3,13 @@ name: adr
 description: Reference (lazy-load) ของ `shode-house-deliverable` — ADR lifecycle + template. โหลดตอนจะ produce/finalize deliverable
 ---
 
+```lazy-load-contract
+LOAD: skills/discipline/shode-house-deliverable/adr.md
+WHEN: adr_create_or_edit=true
+OWNER: solution-architect
+REQUIRED-BEFORE: adr_commit
+```
+
 # ADR lifecycle + template
 
 > แยกจาก `SKILL.md` v3.12.1 — 7 agent preload skill นี้ แต่ส่วนนี้ใช้เฉพาะตอนกำลังจะส่งงานจริง

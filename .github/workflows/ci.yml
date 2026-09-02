@@ -131,6 +131,8 @@ jobs:
           for f in agents/*.md; do n=$(basename "$f" .md)
             line=$(awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "$f")
             [ -z "$line" ] && { err "$n: missing 'skills:' frontmatter (discipline will not reach subagent)"; continue; }
+            n_pre=$(echo "$line" | tr -d '[]"' | tr ',' '\n' | grep -c '[a-z]')
+            [ "$n_pre" -le 3 ] || err "$n: preload $n_pre skills -- cap คือ 3 (CLAUDE.md)"
             for s in $(echo "$line" | tr -d '[]",' ); do
               echo "$shipped" | grep -qx "$s" || err "$n: skills: '$s' not a shipped skill"
               # in-progress/ + deprecated/ are not packaged -> would silently no-op
@@ -296,10 +298,127 @@ jobs:
               case "$p" in *"*"*) ls $p >/dev/null 2>&1 || err "enforcement-map: glob '$p' matches nothing" ;;
                             *) [ -e "$p" ] || err "enforcement-map: source of truth '$p' missing" ;; esac
             done < <(jq -r '.rules[].source_of_truth' .enforcement-map.json)
+            # v3.13: ไฟล์มีอยู่ไม่พอ -- ต้องพิสูจน์ว่ากฎ 'อยู่ในไฟล์นั้นจริง' ด้วย anchor
+            while IFS=$'\t' read -r id p anchor; do
+              [ -n "$anchor" ] || { err "enforcement-map: rule '$id' ไม่มี anchor (กฎอาจถูกย้ายออกโดยไม่มีใครรู้)"; continue; }
+              [ ${#anchor} -ge 12 ] || err "enforcement-map: rule '$id' anchor '$anchor' สั้นเกินไป (<12 ตัวอักษร = กว้างจนไม่พิสูจน์อะไร)"
+              case "$p" in *"*"*) grep -q -- "$anchor" $p 2>/dev/null || err "enforcement-map: rule '$id' anchor '$anchor' ไม่พบใน $p" ;;
+                            *) grep -q -F -- "$anchor" "$p" 2>/dev/null || err "enforcement-map: rule '$id' anchor '$anchor' ไม่พบใน $p" ;; esac
+            done < <(jq -r '.rules[] | [.id, .source_of_truth, (.anchor // "")] | @tsv' .enforcement-map.json)
+            # preload:true = ต้องมี agent preload skill ที่เป็นเจ้าของกฎจริง (ไม่ใช่ 1 ตัว)
+            while IFS=$'\t' read -r id p; do
+              case "$p" in skills/*/*/SKILL.md)
+                sk=$(echo "$p" | cut -d/ -f3)
+                c=$(grep -l "\"$sk\"" agents/*.md 2>/dev/null | wc -l)
+                [ "$c" -ge 7 ] || err "enforcement-map: rule '$id' ประกาศ preload:true แต่มีแค่ $c agent ที่ preload '$sk'" ;;
+              esac
+            done < <(jq -r '.rules[] | select(.preload==true) | [.id, .source_of_truth] | @tsv' .enforcement-map.json)
             n=$(jq '.rules|length' .enforcement-map.json)
             [ "$n" -ge 15 ] || err "enforcement-map: only $n rules -- inventory looks incomplete"
-            [ $fail -eq 0 ] && ok "enforcement map resolves ($n rules)"
+            [ $fail -eq 0 ] && ok "enforcement map resolves + anchor ครบ ($n rules)"
           else ok "no .enforcement-map.json (skipped)"; fi
+
+          sec "22. context budget จาก dispatch graph จริง (v3.13 WS9)"
+          # #16/#20 ดู agent เดี่ยว ๆ; อันนี้ดูทั้ง scenario: command + output style + agents + preload + lazy refs
+          if [ -f scripts/context-budget.py ] && command -v python3 >/dev/null; then
+            python3 scripts/context-budget.py --check || fail=1
+            while IFS= read -r line; do
+              case "$line" in \#*|"") continue ;; esac
+              k=${line%%=*}; v=${line##*=}
+              case "$k" in __total__) cur=$(awk '/^---$/{c++;next} c==1{n+=length($0)+1} c==2{exit} END{print n}' skills/*/*/SKILL.md 2>/dev/null || echo 0) ;;
+                           *) f=$(find skills -mindepth 3 -name SKILL.md -path "*/$k/*" | head -1)
+                              cur=$(awk '/^---$/{c++;next} c==1{n+=length($0)+1} c>1{exit} END{print n+0}' "$f" 2>/dev/null) ;;
+              esac
+              [ -n "$cur" ] && [ "$cur" -gt "$((v + 200))" ] && err "skill metadata '$k': ${cur}B > budget ${v}B"
+            done < .skill-metadata-budget
+            for f in agents/*.md; do n2=$(basename "$f" .md); b=$(grep -E "^$n2=" .agent-core-budget | cut -d= -f2)
+              [ -n "$b" ] && [ "$(wc -c < "$f")" -gt "$((b + 400))" ] && err "$n2: agent body $(wc -c < "$f")B > budget ${b}B"
+            done
+            [ $fail -eq 0 ] && ok "context budgets within ratchet"
+          else ok "no context-budget script (skipped)"; fi
+
+          sec "23. lazy-load contract (v3.13 WS7)"
+          # ทุก lazy reference ต้องประกาศ LOAD/WHEN/OWNER/REQUIRED-BEFORE และต้องมีคนเรียกจริง
+          while IFS= read -r ref; do
+            grep -q '^LOAD:' "$ref" || { err "$ref: lazy reference ไม่มี lazy-load-contract block"; continue; }
+            L=$(grep -m1 '^LOAD:' "$ref" | sed 's/^LOAD: *//')
+            W=$(grep -m1 '^WHEN:' "$ref" | sed 's/^WHEN: *//')
+            O=$(grep -m1 '^OWNER:' "$ref" | sed 's/^OWNER: *//')
+            B=$(grep -m1 '^REQUIRED-BEFORE:' "$ref" | sed 's/^REQUIRED-BEFORE: *//')
+            [ "$L" = "$ref" ] || err "$ref: LOAD path '$L' ไม่ตรงกับตำแหน่งไฟล์จริง"
+            [ -n "$W" ] || err "$ref: ไม่มี WHEN trigger"
+            [ -n "$B" ] || err "$ref: ไม่มี REQUIRED-BEFORE gate"
+            [ -f "agents/$O.md" ] || err "$ref: OWNER '$O' ไม่ใช่ agent ที่มีอยู่"
+            t=$(awk '/^---$/{c++;next} c==1&&/^tools:/{print;exit}' "agents/$O.md")
+            [ -z "$t" ] || echo "$t" | grep -q '"Read"' || err "$ref: OWNER $O ไม่มี Read tool จึงโหลด reference นี้ไม่ได้"
+            # ต้องมีคนอ้างถึง (ไม่นับตัวเอง) ไม่งั้นคือ reference กำพร้า
+            n_ref=$(grep -rl "$(basename "$ref")" agents skills commands references 2>/dev/null | grep -v "^$ref$" | wc -l)
+            [ "$n_ref" -ge 1 ] || err "$ref: ไม่มี caller อ้างถึงเลย (orphan lazy reference)"
+            # v3.13: OWNER ต้อง 'เอื้อมถึง' จริง -- pointer ต้องอยู่ใน agent body ของ OWNER
+            # หรือใน skill ที่ OWNER preload (ไม่ใช่แค่มีใครสักคนพิมพ์ชื่อไฟล์ไว้ที่ไหนก็ได้)
+            closure="agents/$O.md"
+            pre=$(awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "agents/$O.md")
+            for sk in $(echo "$pre" | tr -d '[]",'); do
+              for d in workflow ops ui style discipline; do
+                [ -d "skills/$d/$sk" ] && closure="$closure skills/$d/$sk"
+              done
+            done
+            grep -rq "$(basename "$ref")" $closure 2>/dev/null \
+              || err "$ref: OWNER $O ไม่มี pointer ไปไฟล์นี้เลยใน body หรือ preload closure ของตัวเอง (กฎย้ายไปที่ที่เจ้าของโหลดไม่ถึง)"
+            # ต้องถูก pack
+            case "$ref" in skills/in-progress/*|skills/deprecated/*) err "$ref: อยู่ใน bucket ที่ไม่ถูก pack" ;; esac
+          done < <(grep -rl '^LOAD:' skills references 2>/dev/null | sort)
+          n_c=$(grep -rl '^LOAD:' skills references 2>/dev/null | wc -l)
+          [ "$n_c" -ge 10 ] || err "lazy-load contract: เจอแค่ $n_c ไฟล์ -- reference ที่แยกออกไปน่าจะยังไม่ได้ประกาศ contract"
+          [ $fail -eq 0 ] && ok "lazy-load contract ครบ ($n_c references)"
+
+          sec "24. section refs + repo invariants + rule conservation (v3.13)"
+          # 24a. `X` § Y  -> heading Y ต้องมีจริงใน X (dead section ref คือวิธีที่กฎหายแบบเงียบ ๆ)
+          # รองรับ 3 รูปแบบ: repo path · skill-relative (dir/file.md) · ชื่อ skill เปล่า
+          while IFS= read -r line; do
+            f=${line%%:*}; rest=${line#*:}
+            case "$f" in skills/in-progress/*|skills/deprecated/*|CHANGELOG.md) continue ;; esac
+            tgt=$(echo "$rest" | sed -n 's/.*`\([A-Za-z0-9/_.-]*\)` § \([^·`|(),;:]*\).*/\1|\2/p')
+            [ -z "$tgt" ] && continue
+            file=${tgt%%|*}; secn=$(echo "${tgt#*|}" | sed 's/[[:space:]]*$//' | cut -c1-18)
+            [ ${#secn} -lt 4 ] && continue
+            cand=""
+            if [ -f "$file" ]; then cand="$file"
+            else
+              case "$file" in
+                */*)  cand=$(find skills references agents -path "*/$file" -type f 2>/dev/null | head -1) ;;
+                *.md) cand=$(find skills references agents -name "$file" -type f 2>/dev/null | head -1) ;;
+                *)    cand=$(ls -d skills/*/"$file"/SKILL.md 2>/dev/null | head -1) ;;
+              esac
+            fi
+            [ -n "$cand" ] || { err "$f: อ้าง '$file § $secn' แต่หาไฟล์ '$file' ไม่เจอในรีโป"; continue; }
+            grep -qi "^#.*$secn" "$cand" || err "$f: อ้าง '$file § $secn' แต่ไม่พบ heading นั้นใน $cand"
+          done < <(grep -rn '` § ' agents skills commands output-styles references README.md CLAUDE.md 2>/dev/null)
+
+          # 24b. relative *.md pointer ในไฟล์ skill ต้อง resolve ได้ (sibling ก่อน, ไม่งั้นต้องมีในรีโปจริง)
+          while IFS= read -r line; do
+            f=${line%%:*}; d=$(dirname "$f")
+            case "$f" in skills/in-progress/*|skills/deprecated/*) continue ;; esac
+            for m in $(echo "${line#*:}" | grep -o '`[a-z0-9-]*\.md`' | tr -d '`'); do
+              [ -f "$d/$m" ] && continue
+              find . -name "$m" -not -path './.git/*' | grep -q . \
+                || err "$f: pointer '$m' ไม่มีไฟล์นี้อยู่ในรีโปเลย"
+            done
+          done < <(grep -rn '`[a-z0-9-]*\.md`' skills 2>/dev/null | grep -av '^[^:]*:[0-9]*:LOAD:')
+
+          # 24c. CLAUDE.md invariant: skill ที่ผลิต deliverable ต้องมี 2 gate heading
+          # ยกเว้นเฉพาะ thin entry-point / style skill ที่ไม่ผลิต artifact
+          for f in skills/workflow/*/SKILL.md skills/ops/*/SKILL.md skills/ui/*/SKILL.md \
+                   skills/discipline/review-checklist/SKILL.md; do
+            case "$f" in skills/workflow/meeting/*) continue ;; esac
+            grep -q '^## When NOT to use' "$f" || err "$f: ขาด '## When NOT to use' (CLAUDE.md invariant)"
+            grep -q '^## Required inputs' "$f" || err "$f: ขาด '## Required inputs' (CLAUDE.md invariant)"
+          done
+
+          # 24d. rule conservation -> scripts/rule-conservation.py (รันเดี่ยวก็ได้)
+          python3 scripts/rule-conservation.py || fail=1
+
+          [ $fail -eq 0 ] && ok "section refs + invariants + rule conservation"
 
           echo
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi

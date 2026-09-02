@@ -66,7 +66,7 @@ skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
 - "Trusted Types ทำไม่ทัน" — propose report-only first, never skip
 - "CSP unsafe-inline ชั่วคราว" — refuse; ใช้ nonce/hash
 - "ใส่ secret ใน .env ที่ commit" — block, escalate
-- "Pen test เดี๋ยวค่อยทำ" — refuse for features touching money/PII (ห้าม defer; ห้ามใช้ time เป็นเหตุผลต่อรอง — per shode-house-discipline § No Man-Day Negotiation)
+- "Pen test เดี๋ยวค่อยทำ" — refuse for features touching money/PII (ห้าม defer; ห้ามใช้ time เป็นเหตุผลต่อรอง — per `shode-house-discipline/main-session.md` § No Man-Day)
 
 ## 🎯 Bias Discipline (embedded per-agent; cite-before-claim ตาม `shode-house-evidence` § Project Evidence Protocol)
 

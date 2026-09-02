@@ -38,7 +38,7 @@
 
 **Root cause รอบนี้: กฎที่ประกาศไว้แต่ไม่มีเครื่องมือรองรับ + ของที่ทุก agent แบกทั้งที่ใช้ไม่กี่ตัว**
 
-- 🔴 **WCAG 2.2 AA มี criterion จริงแล้ว** — เดิม Uma กับ `ui-test` เขียน "WCAG 2.1/2.2 AA" ไว้ 4 จุด แต่ **ไม่มี success criterion ของ 2.2 อยู่ที่ไหนเลย** และ axe-core ก็ auto-detect ให้ไม่ได้ = claim ที่ไม่มี check รองรับ (ผิด Philosophy #1). เพิ่ม 2.4.11 Focus Not Obscured · 2.5.7 Dragging Movements · 2.5.8 Target Size · 3.3.7 Redundant Entry · 3.3.8 Accessible Authentication พร้อมวิธีตรวจต่อข้อ, บังคับเขียน `N/A: <SC>` ถ้าหน้าจอไม่มีองค์ประกอบนั้น, และ `ui-test` § a11y coverage ระบุชัดว่า **"axe 0 violations ≠ WCAG 2.2 AA ผ่าน"**
+- 🔴 **WCAG 2.2 AA มี criterion จริงแล้ว** — เดิม Uma กับ `ui-test` เขียน "WCAG 2.1/2.2 AA" ไว้ 4 จุด แต่ **ไม่มี success criterion ของ 2.2 อยู่ที่ไหนเลย** และ axe-core ก็ auto-detect ให้ไม่ได้ = claim ที่ไม่มี check รองรับ (ผิด Philosophy #1). เพิ่ม 2.4.11 Focus Not Obscured · 2.5.7 Dragging Movements · 2.5.8 Target Size · 3.3.7 Redundant Entry · 3.3.8 Accessible Authentication พร้อมวิธีตรวจต่อข้อ, บังคับเขียน `N/A: <SC>` ถ้าหน้าจอไม่มีองค์ประกอบนั้น, และ `ui-test` § a11y coverage — axe จับได้แค่ไหน ระบุชัดว่า **"axe 0 violations ≠ WCAG 2.2 AA ผ่าน"**
 - 🪶 **Preload rebalance — 155k → 111k tok ต่อ fan-out 19 agent (-29%)** — v3.10 เปิดให้ agent โหลด skill เองได้ (`Skill` ใน `tools:`) แต่ **เนื้อหา preload ยังไม่ได้ rebalance ตาม** ยังยัดทุกอย่างไว้เหมือนตอนที่โหลดเองไม่ได้. ย้ายของที่เป็นของบาง role ออก: Recite Card (main session เท่านั้น) · Response Language (ตัดส่วน main-session) · No Man-Day → Oliver/Patrick · ตาราง skill-loading → agent file ของตัวเอง (แต่ละตัวเคยแบก row ของอีก 18 role) · UX Evidence → Uma · Domain Evidence → 7 domain expert · REVIEW format → ตัดทิ้ง (`review-checklist` เป็น DRY source-of-truth อยู่แล้ว) · Postmortem → `incident`
   - `shode-house-evidence` 2,253 → **1,079 tok** (-52%) · `shode-house-discipline` 3,763 → **2,803 tok**
   - **CI check #16 preload budget** (ratchet — ขึ้นไม่ได้ ลงได้อย่างเดียว) กันไม่ให้บวมกลับ
@@ -93,7 +93,7 @@
 - **`review-checklist` skill (DRY)** — Chris 7-dim + Quinn integration matrix อยู่ที่เดียว; `/implement` Phase 3b + `/review` อ้างที่นี่
 - **Recite Discipline Card** — ทุก agent recite 5 Philosophy verbatim ใน first response (anchor against drift)
 - **CLAUDE.md repo invariants** + `Makefile` + `.github/workflows/ci.yml` dev-loop (no Python; gate inline in CI: bash + jq)
-- **22 skills** (14 functional + 7 discipline modules + 1 review-checklist), **5 commands**, **1 output style** (+ 2 deprecated). v3.3 drops sprint outer loop + Evan agent — **PEV loop per bd** (Plan/Execute/Verify/Triage), bias discipline embedded in 19 agent prompts, Chris/Quinn adversarial vs Dave + visual/interaction evidence mandatory (Playwright เป็นทางหลัก — ดู `review-checklist` § Mandatory Visual Verify). ห้าม man-day negotiation
+- **23 skills** (14 functional + 8 discipline modules + 1 review-checklist), **5 commands**, **1 output style** (+ 2 deprecated). v3.3 drops sprint outer loop + Evan agent — **PEV loop per bd** (Plan/Execute/Verify/Triage), bias discipline embedded in 19 agent prompts, Chris/Quinn adversarial vs Dave + visual/interaction evidence mandatory (Playwright เป็นทางหลัก — ดู `review-checklist` § Gate ที่ทุกแกนต้องผ่าน). ห้าม man-day negotiation
 
 ### v3.0 features ที่ยัง keep
 
@@ -232,7 +232,7 @@ CLAUDE_CODE_SUBAGENT_MODEL=sonnet claude
 ### `skills/workflow/` — daily process
 | Skill | Owner | Trigger |
 |-------|-------|---------|
-| [`meeting`](skills/workflow/meeting/SKILL.md) | ALL | **Entry-point** + Recite Discipline Card + index (v3.1 thin) |
+| [`meeting`](skills/workflow/meeting/SKILL.md) | ALL | **Entry-point** + index ไป discipline skills (Recite Card อยู่ที่ `output-styles/oliver.md` §1) |
 | [`dev-gate`](skills/workflow/dev-gate/SKILL.md) | Dave + Chris | TDD red-green-refactor + 7-gate quality |
 | [`automate-test`](skills/workflow/automate-test/SKILL.md) | Quinn + Chris + Aaron | CI test pyramid 70/20/10 + threshold |
 | [`diagnose`](skills/workflow/diagnose/SKILL.md) | Chris + Quinn + Dave | Bug + perf root cause (4-step) |
@@ -262,14 +262,15 @@ CLAUDE_CODE_SUBAGENT_MODEL=sonnet claude
 ### `skills/discipline/` — v3.1 split modules (from meeting god-skill)
 | Skill | Owner | Role |
 |-------|-------|------|
-| [`shode-house-discipline`](skills/discipline/shode-house-discipline/SKILL.md) 🆕 | ALL (mandatory) | Recite Card + 5 Philosophy + Safety + Universal Rules + Clarifying |
+| [`shode-house-discipline`](skills/discipline/shode-house-discipline/SKILL.md) 🆕 | ALL (mandatory) | 5 Philosophy + Safety + Universal Rules + M1 + handoff min fields |
 | [`shode-house-evidence`](skills/discipline/shode-house-evidence/SKILL.md) 🆕 | Claimers, Domain experts | Project + UX + Domain Evidence + REVIEW format |
 | [`shode-house-routing`](skills/discipline/shode-house-routing/SKILL.md) 🆕 | Oliver | Routing + RACI + T-shirt + Trust Levels + Team v3.0 |
-| [`shode-house-deliverable`](skills/discipline/shode-house-deliverable/SKILL.md) 🆕 | Producers | DoD + Anti-Puppet + I Never Do + Postmortem template |
+| [`shode-house-deliverable`](skills/discipline/shode-house-deliverable/SKILL.md) 🆕 | Producers | Output contract + Anti-Puppet rule + pointer ไป DoD/ADR/UX evidence |
 | [`shode-house-broadcast`](skills/discipline/shode-house-broadcast/SKILL.md) 🆕 | ALL | Tag Prefix + Caveman broadcast + Handoff Protocol |
 | [`shode-house-workflow`](skills/discipline/shode-house-workflow/SKILL.md) 🆕 | Oliver | Phase Contract + Smart Coop + hooks + gates + worktree |
 | [`shode-house-drift`](skills/discipline/shode-house-drift/SKILL.md) 🆕 | Oliver enforcer | Drift Defense M2-M8 + Phase wiring (Discovery/Threat Model/Operate) |
-| [`review-checklist`](skills/discipline/review-checklist/SKILL.md) 🆕 | Chris + Quinn + Sentinel + Domain | DRY checklist สำหรับ /implement Phase 3b + /review |
+| [`review-checklist`](skills/discipline/review-checklist/SKILL.md) 🆕 | Chris + Quinn + Sentinel + Domain | Review orchestration core (แกน/severity/gate) + axis reference |
+| [`domain-core`](skills/discipline/domain-core/SKILL.md) 🆕 | Domain experts (7) | AI Persona Disclaimer + citation contract + source validation |
 
 ### `skills/in-progress/` + `skills/deprecated/` — not shipped
 Skill ที่อยู่นี่จะไม่ถูกใส่ใน plugin.json (CLAUDE.md invariant)

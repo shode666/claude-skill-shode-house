@@ -3,6 +3,13 @@ name: uma-phase-1b
 description: Runbook (lazy-load) ของ Uma — Phase 1b PRE-Design. โหลดเมื่อเข้า phase นี้จริงเท่านั้น
 ---
 
+```lazy-load-contract
+LOAD: references/runbooks/uma-phase-1b.md
+WHEN: phase=1b AND frontend_changed=true
+OWNER: ux-ui-designer
+REQUIRED-BEFORE: pre_implement_ui_gate
+```
+
 # Phase 1b PRE-Design — Uma
 
 > แยกจาก agent prompt v3.12.1 — consultation สั้น ๆ ไม่ต้องแบก runbook ของทุก phase

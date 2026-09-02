@@ -99,12 +99,12 @@ pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง comma
 > v3.1: review checklist รวบศูนย์ใน `skills/discipline/review-checklist/SKILL.md`. Command นี้ = router + context-aware invoke
 
 ```bash
-[Oliver|review|target:$ARGUMENTS] kickoff   # pin fixed point ก่อน — see review-checklist § Required inputs
+[Oliver|review|target:$ARGUMENTS] kickoff   # pin fixed point ก่อน — see `review-checklist/intake.md`
 # ── แกน Standards
-- Chris   → 7-dim — see review-checklist § Chris (Correctness/Security/SOLID/Perf/Maintain/Test/Observ)
-- Quinn   → Security scan section (SAST/SCA/secret/OWASP manual) — see review-checklist § Quinn
-- Sentinel (conditional, if security trigger detected) — see review-checklist § Sentinel
-- Domain (conditional, keyword trigger) — see review-checklist § Domain Expert
+- Chris   → 7-dim — see `agents/code-reviewer.md` § 7 มิติ (Correctness/Security/SOLID/Perf/Maintain/Test/Observ)
+- Quinn   → Security scan section (SAST/SCA/secret/OWASP manual) — see `agents/qa-engineer.md` § ขอบเขต
+- Sentinel (conditional, if security trigger detected) — see `review-checklist/security-sentinel.md`
+- Domain (conditional, keyword trigger) — see `review-checklist/domain-validation.md`
 # ── แกน Spec (ต้อง dispatch จริง)
 - Bella   → Spec axis — see `review-checklist/spec-axis.md`
             spec source ตามลำดับ: Jira/bd description → path ที่ user ส่ง → outputs/SPEC-*.md → ถาม user

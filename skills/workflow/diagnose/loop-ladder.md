@@ -3,6 +3,13 @@ name: loop-ladder
 description: Reference (lazy-load) ของ `diagnose` — 10 วิธีสร้าง feedback loop เรียงตามลำดับ. โหลดเมื่อวิธี 1-3 ใน SKILL.md ไม่สำเร็จ
 ---
 
+```lazy-load-contract
+LOAD: skills/workflow/diagnose/loop-ladder.md
+WHEN: feedback_loop_method_1_3_failed=true
+OWNER: developer
+REQUIRED-BEFORE: hypothesis_step
+```
+
 # Feedback loop ladder — 10 วิธี
 
 > แยกจาก `SKILL.md` v3.12.1 — เป็น reference material ไม่ใช่ invariant ที่ต้องอ่านทุก diagnosis

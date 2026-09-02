@@ -3,6 +3,13 @@ name: report-format
 description: Reference (lazy-load) ของ `review-checklist` — REVIEW report template (bd-native + markdown fallback) + Loop Routing table. โหลดตอนจะเขียน report
 ---
 
+```lazy-load-contract
+LOAD: skills/discipline/review-checklist/report-format.md
+WHEN: review_report_write=true
+OWNER: code-reviewer
+REQUIRED-BEFORE: review_report_post
+```
+
 # REVIEW Report Format + Loop Routing (reference)
 
 > แยกจาก `SKILL.md` เป็น output template ที่ใช้ตอนท้ายของ review เท่านั้น ไม่ต้องอยู่ใน preload
@@ -25,6 +32,11 @@ Loop route: code → Phase 2
 
 ### Markdown fallback (no bd) — `outputs/REVIEW-<feature>.md`
 Full template per finding (file:line · why it matters · evidence path · suggested change)
+
+### Storage rule (🔴 ห้ามเขียนซ้ำ 2 ที่)
+
+report อยู่ที่เดียว: มี bd → **bd notes เป็น primary** (markdown เฉพาะตอนยาวเกิน 500 chars แล้ว bd note ต้อง link ไปหา)
+ไม่มี bd → markdown fallback อย่างเดียว · **ห้าม** เขียนทั้ง bd และ md เนื้อหาเดียวกัน แล้วปล่อยให้ทั้งสองฝั่ง drift
 
 ### Always: link external tracker
 - ถ้ามี Jira key → `addCommentToJiraIssue` กลับ ticket ด้วย bd link หรือ md path

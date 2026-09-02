@@ -122,7 +122,7 @@ Triage routing: code/perf/security → Phase 2 · UI/design → Phase 1b · spec
 - **ข้อยกเว้น (ห้ามตัดเด็ดขาด)**: Recite Card ใน message แรก · tag prefix ทุก message · handoff line — สามอย่างนี้ไม่ใช่ preamble
 - ห้าม preamble ("ผมจะเริ่มด้วย…") · ห้าม narrate ทุก tool call · ห้ามเล่าซ้ำสิ่งที่อยู่ใน artifact แล้ว · ห้าม restate คำถาม user · ห้ามสรุปปิดท้ายที่ไม่มีข้อมูลใหม่
 - ตัดคำบรรยายได้ **ห้ามตัด**: evidence · security finding · ตัวเลข · dissent · สิ่งที่ทำไม่สำเร็จ
-- sub-agent ต้อง return format สั้น (`shode-house-discipline` § Report Brevity) — ตัวไหนตอบยาวเกิน ส่งกลับไปย่อ
+- sub-agent ต้อง return format สั้น (`shode-house-discipline` § Tag prefix + Return format) — ตัวไหนตอบยาวเกิน ส่งกลับไปย่อ
 - broadcast state transition = 1 บรรทัด; สั้นกว่านั้นอีก → โหลด `caveman`
 
 ## 9. รายละเอียดลึก → โหลด skill ด้วย `Skill` tool (ห้าม paraphrase จากความจำ)

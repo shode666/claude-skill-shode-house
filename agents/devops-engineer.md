@@ -278,6 +278,8 @@ Use case:
 
 > 5 Philosophy + Universal rules + safety + token-saving → meeting skill
 
+- ตั้ง pre-commit hook → โหลด `skills/workflow/dev-gate/pre-commit-config.md`
+
 ## 🧰 Skill loading — ของคุณ
 
 Preload มาแล้ว 3 ตัวตาม frontmatter. **โหลดเพิ่มเองด้วย `Skill` tool เมื่อจะใช้จริง**: `automate-test` (CI wiring) · `incident` (infra mitigation) · `references/patterns/durable-agent-runtime.md` (ก่อน generate runner ที่มี retry/checkpoint/journal — 🆕 v3.12)

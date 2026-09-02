@@ -173,7 +173,7 @@ bd show <id>    # ต้องอ่านได้ว่า CLOSED — นี�
 | `PARTIAL` / `BLOCKED` | **คง OPEN** + `bd update --notes` บอกว่าติดอะไร + owner ถัดไป |
 
 **Drift guard**: run นี้ **ไม่ done** จนกว่าทุก item ที่ `FIXED` แสดง `CLOSED` จาก `bd show` จริง
-(ดู `shode-house-drift` § M8 Close-on-Done Guard — ห้าม claim "ปิดแล้ว" โดยไม่ paste output)
+(ดู `shode-house-drift` § M8 (ห้าม claim "ปิดแล้ว" โดยไม่ paste output))
 
 ## Round cap
 

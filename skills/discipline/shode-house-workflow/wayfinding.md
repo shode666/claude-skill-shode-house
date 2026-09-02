@@ -3,6 +3,13 @@ name: wayfinding
 description: Reference (lazy-load) ของ `shode-house-workflow` — Map mode สำหรับงานที่ใหญ่เกิน 1 session และยังมองไม่เห็นทาง. โหลดเมื่อ user มาด้วยไอเดียก้อนใหญ่ที่ยังไม่รู้ว่าจะเริ่มตรงไหน
 ---
 
+```lazy-load-contract
+LOAD: skills/discipline/shode-house-workflow/wayfinding.md
+WHEN: idea_has_fog=true
+OWNER: orchestrator
+REQUIRED-BEFORE: map_creation
+```
+
 # Wayfinding — Map mode (งานใหญ่เกิน 1 session, ยังมองไม่เห็นทาง)
 
 > Adapted จาก [mattpocock/skills · wayfinder](https://github.com/mattpocock/skills) (MIT) — port ไป `bd` + PEV loop ของเรา
@@ -86,9 +93,9 @@ out of scope ไม่มีวัน graduate; จะกลับมาได�
 
 | Type | HITL? | ใครรับ | ใช้เมื่อ |
 |---|---|---|---|
-| **research** | AFK | Domain expert (regulation/business) · Sara (tech/vendor) — โหลด `shode-house-evidence` § Project/Domain Evidence, **primary source เท่านั้น** | ต้องรู้ข้อเท็จจริงนอก working directory ก่อนตัดสินใจ |
+| **research** | AFK | Domain expert (regulation/business) · Sara (tech/vendor) — โหลด `shode-house-evidence` § Project Evidence Protocol, **primary source เท่านั้น** | ต้องรู้ข้อเท็จจริงนอก working directory ก่อนตัดสินใจ |
 | **prototype** | HITL | Uma (หน้าตา/flow) · Dave (logic/state) — throwaway ตาม `dev-gate` § When NOT to use, จบแล้ว commit ไว้ throwaway branch + บันทึก verdict | คำถามคือ "หน้าตาควรเป็นยังไง / behave ยังไง" |
-| **grilling** | HITL | Oliver · Bella · Patrick · Sara — ใช้ **frontier model** ใน `shode-house-discipline` § Clarifying | ค่าเริ่มต้น: เป็นการคุยเพื่อตัดสินใจ |
+| **grilling** | HITL | Oliver · Bella · Patrick · Sara — ใช้ **frontier model** ใน `shode-house-discipline/main-session.md` § Clarifying | ค่าเริ่มต้น: เป็นการคุยเพื่อตัดสินใจ |
 | **task** | ทั้งคู่ | Aaron (provision/access) · owner (สมัคร service, ขอสิทธิ์) | ไม่มีอะไรให้ตัดสินใจ แต่ decision ติดอยู่จนกว่างานนี้จะเสร็จ. ปิดแล้วบันทึก fact ที่ ticket หลังต้องใช้ (ที่อยู่ credential, URL ใหม่, จำนวนแถว) |
 
 ## เรียกด้วยชื่อ ห้ามเรียกด้วยเลข (🔴)
@@ -129,4 +136,4 @@ out of scope ไม่มีวัน graduate; จะกลับมาได�
 ทางชัด (ไม่เหลือ decision) → destination กลายเป็น input ของ pipeline ปกติ:
 - destination = spec → `/design-system` (Bella ∥ Sara) ต่อได้ทันที เพราะรูปงานนิ่งแล้ว
 - destination = ชุดงานที่ concrete + independent → `drain`
-- destination = decision ล้วน ๆ (เช่นเลือก platform) → `bd close` map + บันทึกเป็น ADR (`shode-house-deliverable` § ADR Lifecycle)
+- destination = decision ล้วน ๆ (เช่นเลือก platform) → `bd close` map + บันทึกเป็น ADR (`shode-house-deliverable/adr.md` § ADR Lifecycle)

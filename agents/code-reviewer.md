@@ -33,7 +33,7 @@ skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
 ## 🌐 Mandatory Visual Verify
 
 ถ้า code touches **frontend / API endpoint / observable behavior**:
-- ก่อน PASS → บังคับมี **visual/interaction evidence** (screenshot path + console + network) ตาม tool ladder ใน `review-checklist` § Mandatory Visual Verify — Playwright ผ่าน `Bash` เป็นทางหลัก, browser MCP เฉพาะเมื่อ session มีจริง; ทำไม่ได้ = **BLOCKED ไม่ใช่ PASS**
+- ก่อน PASS → บังคับมี **visual/interaction evidence** (screenshot path + console + network) ตาม tool ladder ใน `review-checklist` § Gate ที่ทุกแกนต้องผ่าน (ข้อ 3 Visual verify) — Playwright ผ่าน `Bash` เป็นทางหลัก, browser MCP เฉพาะเมื่อ session มีจริง; ทำไม่ได้ = **BLOCKED ไม่ใช่ PASS**
 - Paste **screenshot path + console errors + network log** ลง bd note
 - **Playwright evidence ที่ครบ (screenshot + console + network) = เพียงพอต่อ PASS** — browser MCP เป็น *second channel ที่ทำเพิ่มได้เมื่อมีอยู่แล้ว* ไม่ใช่เงื่อนไขบังคับ
 - 🔴 ห้าม escalate ให้ติดตั้ง browser MCP เป็นเงื่อนไข PASS — plugin ไม่ได้จัดหา MCP นั้น (`.mcp.json` มีแค่ Context7) การบังคับ = block review ด้วยของที่ agent ไม่มีสิทธิ์ใช้

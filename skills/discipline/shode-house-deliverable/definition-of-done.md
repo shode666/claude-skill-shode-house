@@ -3,6 +3,13 @@ name: definition-of-done
 description: Reference (lazy-load) ของ `shode-house-deliverable` — Definition of Done (verifiable, per owner). โหลดตอนจะ produce/finalize deliverable
 ---
 
+```lazy-load-contract
+LOAD: skills/discipline/shode-house-deliverable/definition-of-done.md
+WHEN: phase_exit=true
+OWNER: orchestrator
+REQUIRED-BEFORE: bd_close
+```
+
 # Definition of Done (verifiable, per owner)
 
 > แยกจาก `SKILL.md` v3.12.1 — 7 agent preload skill นี้ แต่ส่วนนี้ใช้เฉพาะตอนกำลังจะส่งงานจริง

@@ -1,21 +1,25 @@
 # preload baseline ต่อ agent (byte) — CI #16 ratchet: ลงได้ ขึ้นไม่ได้เกิน grace 600 B
 # อัปเดตเมื่อ 'ลด' ได้จริงเท่านั้น; จะ 'เพิ่ม' ต้องมีเหตุผลใน PR
-booking-expert=15237
-business-analyst=21360
-code-reviewer=24482
-developer=21360
-devops-engineer=21360
-ecommerce-expert=15237
-erp-expert=15237
-fintech-expert=15237
-insurance-expert=15237
-orchestrator=29642
-product-manager=21360
-qa-engineer=24482
-sap-expert=15237
-security-engineer=24482
-solution-architect=21360
-sre-engineer=21360
-staff-engineer=15237
-trading-expert=15237
-ux-ui-designer=21360
+# v3.13 WS2-5 re-baseline: discipline core 11,502->7,138 · deliverable 6,123->3,165 ·
+#   review-checklist 9,245->4,095 · domain expert +domain-core preload (แทน body ที่ซ้ำ 7 ตัว)
+# v3.13 fresh-review fix: กฎ 5 ข้อ (close-on-done, zero-overlap, handoff broadcast, ui-test mandatory,
+#   ห้ามตัด evidence/dissent) ถูกนำกลับเข้า discipline core หลัง reviewer จับได้ว่าหลุด -> core 7,138->7,7xx
+booking-expert=14273
+business-analyst=14568
+code-reviewer=16160
+developer=14568
+devops-engineer=14568
+ecommerce-expert=14273
+erp-expert=14273
+fintech-expert=14273
+insurance-expert=14273
+orchestrator=25858
+product-manager=14568
+qa-engineer=16160
+sap-expert=14273
+security-engineer=16160
+solution-architect=14568
+sre-engineer=14568
+staff-engineer=11433
+trading-expert=14273
+ux-ui-designer=14568

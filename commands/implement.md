@@ -111,12 +111,12 @@ Verdict:
 > 🔴 **v3.12**: Spec axis ต้องถูก **dispatch จริง** ไม่ใช่มีแค่ในเอกสาร — ก่อนหน้านี้ kickoff ส่งแต่ Standards จึงไม่มีใครเทียบ diff ↔ spec เลย
 
 ```bash
-[Oliver|state:3b|bd:42] Phase 3b kickoff  (pin fixed point ก่อน fan-out — see review-checklist § Required inputs)
+[Oliver|state:3b|bd:42] Phase 3b kickoff  (pin fixed point ก่อน fan-out — see `review-checklist/intake.md`)
 # ── แกน Standards (code เขียนถูกหลักไหม)
-- Chris  → 7-dim (Correctness/Security/SOLID/Perf/Maintain/Test/Observ) — see review-checklist § Chris
-- Quinn  → integration matrix (6 axes: Integration/E2E/Contract/Load/a11y/Pen) — see review-checklist § Quinn
-- Sentinel (conditional, if security trigger) → SAST/SCA/CSP/abuse — see review-checklist § Sentinel
-- Domain (conditional, if code touches sensitive area) → see review-checklist § Domain Expert
+- Chris  → 7-dim (Correctness/Security/SOLID/Perf/Maintain/Test/Observ) — see `agents/code-reviewer.md` § 7 มิติ
+- Quinn  → integration matrix (6 axes: Integration/E2E/Contract/Load/a11y/Pen) — see `agents/qa-engineer.md` § ขอบเขต
+- Sentinel (conditional, if security trigger) → SAST/SCA/CSP/abuse — see `review-checklist/security-sentinel.md`
+- Domain (conditional, if code touches sensitive area) → see `review-checklist/domain-validation.md`
 # ── แกน Spec (code ทำตรงกับที่ spec ขอไหม) — sub-agent แยก ห้ามรวม context กับ Chris
 - Bella  → Spec axis: (a) requirement ที่ขาด/ทำครึ่ง (b) scope creep (c) implement ผิด — รายละเอียด `review-checklist/spec-axis.md`
            input = diff range ที่ pin ไว้ + `outputs/SPEC-<bd-id>.md` (ส่ง path ไม่ส่งเนื้อหา)
@@ -127,9 +127,9 @@ Verdict:
 
 **ทุกคน apply**:
 - Severity grading (🔴/🟠/🟡/🔵/💡) — see `review-checklist` § Severity Grading
-- bd-native primary, markdown fallback — see `review-checklist` § REVIEW Report Format
-- Loop routing recommendation — see `review-checklist` § Loop Routing Recommendation
-- Anti-Puppet gate (paste tool output, no "should be fine") — see `review-checklist` § Anti-Puppet Gate
+- bd-native primary, markdown fallback — see `review-checklist/report-format.md`
+- Loop routing recommendation — see `review-checklist/report-format.md` § Loop Routing
+- Anti-Puppet gate (paste tool output, no "should be fine") — see `review-checklist` § Gate ที่ทุกแกนต้องผ่าน
 
 Output: bd notes OR `outputs/REVIEW-<bd-id>.md` (consolidated)
 

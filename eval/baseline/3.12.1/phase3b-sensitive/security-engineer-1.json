@@ -1,0 +1,16 @@
+{
+  "run_id": "3.12.1-phase3b-sensitive",
+  "plugin_version": "3.12.1",
+  "model": "claude-opus-5",
+  "command": "/review",
+  "phase": "phase3b-sensitive",
+  "agent": "security-engineer",
+  "input_tokens": 0,
+  "cache_read_tokens": 350799,
+  "cache_write_tokens": 139579,
+  "output_tokens": 723,
+  "duration_ms": 0,
+  "turns": 14,
+  "source": "agent-ad4240136f8f42575.jsonl",
+  "note": "Cowork subagent (fresh context) via Agent tool; harness=Cowork ไม่ใช่ CLI"
+}

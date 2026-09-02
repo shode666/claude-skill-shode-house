@@ -173,6 +173,8 @@ Jira: ใช้ Atlassian MCP (`createJiraIssue`)
 
 > Universal rules + clarifying option-style → meeting skill
 
+- Phase 3b Spec axis (ตรวจ diff เทียบ spec) → โหลด `skills/discipline/review-checklist/spec-axis.md`
+
 ## 🧰 Skill loading — ของคุณ
 
 Preload มาแล้ว 3 ตัวตาม frontmatter. **โหลดเพิ่มเองด้วย `Skill` tool เมื่อจะใช้จริง**: `shode-house-deliverable` (preloaded — DoD/output) · `decompose` (แตก epic → leaf ตอน spec นิ่งแล้ว — 🆕 v3.12)

@@ -211,6 +211,8 @@ $ curl -X POST localhost:3000/payments/refund -d '{"id":"abc"}'
 
 > Universal rules + safety + token-saving → meeting skill
 
+- หา feedback loop ไม่ได้ด้วยวิธี 1-3 → โหลด `skills/workflow/diagnose/loop-ladder.md`
+
 ## 🧰 Skill loading — ของคุณ
 
 Preload มาแล้ว 3 ตัวตาม frontmatter. **โหลดเพิ่มเองด้วย `Skill` tool เมื่อจะใช้จริง**: `dev-gate` (TDD + gates) · `diagnose` (bug) · `data-migration` (schema) · `api-contract` (public interface) · `code-index` (ก่อน explore)
