@@ -94,7 +94,7 @@ trade/order/exchange/FIX → Tara
 
 ## 📏 T-shirt (🔴 internal routing heuristic only, ไม่ส่งต่อ user)
 
-> T-shirt = **internal signal** สำหรับ Oliver decide parallel vs sequential delegation. **ห้ามใช้เป็น time estimate ส่งให้ user** (per shode-house-discipline § No Man-Day Negotiation). ถ้า user explicit ขอ effort → ใช้ `/design-system --estimate`.
+> T-shirt = **internal signal** สำหรับ Oliver decide parallel vs sequential delegation. **ห้ามใช้เป็น time estimate ส่งให้ user** (per `shode-house-discipline/main-session.md` § No Man-Day). ถ้า user explicit ขอ effort → ใช้ `/design-system --estimate`.
 
 Relative scale (no time anchor):
 - **XS** = trivial atomic change (one-line tweak / typo)
@@ -111,7 +111,7 @@ Relative scale (no time anchor):
 
 Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly independent **AND** ≥ 3 subtasks
 > Implementation: Worktree Isolation (ดู Workflow Discipline)
-> ห้ามใช้ "deadline matter" เป็น reason parallel — agent ไม่มี deadline ของตัวเอง (per discipline § No Man-Day Negotiation)
+> ห้ามใช้ "deadline matter" เป็น reason parallel — agent ไม่มี deadline ของตัวเอง (per `shode-house-discipline/main-session.md` § No Man-Day)
 
 ### Pipeline parallel (cross-bd staggered — producer/consumer)
 
@@ -264,7 +264,7 @@ Lead    ▸ Ops    : ship it
 | Chris/Quinn trust Dave's claim "test ผ่าน"? | ❌ ห้าม — Zero trust; ต้อง run + paste evidence เอง | Anti-Puppet (per discipline + review-checklist) |
 | Chris/Quinn verdict default? | ❌ FAIL until proven PASS with paste-output evidence | Pessimistic mindset → catch hidden bugs |
 | Dave push back ด้วย "should be fine"? | ❌ Chris/Quinn ห้าม yield; counter ด้วย **own-run evidence** | Adversarial gate, ไม่ใช่ social negotiation |
-| Frontend/API/observable touched? | ✅ Chris ∥ Quinn บังคับ **visual/interaction evidence** ตาม tool ladder (`review-checklist` § Mandatory Visual Verify) | Playwright ผ่าน Bash = ทางหลักที่พึ่งพาได้; browser MCP เฉพาะเมื่อ session มีจริง; ทำไม่ได้ = BLOCKED |
+| Frontend/API/observable touched? | ✅ Chris ∥ Quinn บังคับ **visual/interaction evidence** ตาม tool ladder (`review-checklist` § Gate ที่ทุกแกนต้องผ่าน) | Playwright ผ่าน Bash = ทางหลักที่พึ่งพาได้; browser MCP เฉพาะเมื่อ session มีจริง; ทำไม่ได้ = BLOCKED |
 | Chris/Quinn agree blindly with each other? | ⚠ Cross-check ได้ — แต่ verdict ต้อง independent (parallel) | M3 Anti-Puppet — single point trust = drift risk |
 
 > New Phases (0 Discovery / 1c Threat Model / 6 Operate) → ดู `shode-house-drift` skill

@@ -42,6 +42,12 @@ When NOT to use
 - [ ] **Asset inventory** (service / DB / queue / cache / secret store — STRIDE บน asset ที่ไม่ระบุ = วน asset เรื่อย ๆ)
 - [ ] **Regulation scope confirmed** (PCI-DSS? GDPR/PDPA? HIPAA? BOT? — ดึง Felix/Iris ตาม domain)
 
+## When NOT to use
+
+- Diff ที่ไม่แตะ auth / money / PII / crypto / secret / external input
+- Doc-only change
+- Spike ที่ไม่ merge
+
 ## หลักการ
 
 **Threat-driven design** — security AC ไหลเข้าจาก Phase 1c ก่อน Dave code; ไม่ใช่ add-on ปลาย sprint

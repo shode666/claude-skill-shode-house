@@ -82,7 +82,7 @@ bd update <id> --notes "approved: gate=<gate> by=<who> at=<ISO8601> artifact=<pa
 5. R0/destructive ที่ทำไปแล้วก่อนตาย → ห้ามทำซ้ำโดยไม่ถาม (ไม่มี idempotency key)
 ```
 
-**Pointer**: DoD checklist = `shode-house-deliverable` § Definition of Done (single source) — Oliver enforce ก่อนปิด bd: ทุก DoD item ต้องมี evidence path
+**Pointer**: DoD checklist = `shode-house-deliverable/definition-of-done.md` § Definition of Done (single source) — Oliver enforce ก่อนปิด bd: ทุก DoD item ต้องมี evidence path
 
 ## 🔁 Workflow Discipline (🔴 Archon-inspired)
 

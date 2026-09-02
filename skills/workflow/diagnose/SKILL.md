@@ -24,6 +24,19 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 - captured artifact (HAR / log dump / request trace) พก auth header มาด้วยเสมอ → quote **เฉพาะบรรทัดที่มี signal**
 - redact แล้วข้อมูลไม่พอวินิจฉัย → บอก user ตรง ๆ แล้วขอเพิ่ม ห้ามเดาต่อ
 
+## When NOT to use
+
+- ยังไม่มี symptom ที่ reproduce ได้และไม่มี log/error — ไปเก็บหลักฐานก่อน
+- Feature request ที่ถูกเรียกว่า "bug" — นั่นคืองานของ Bella/Patrick
+- Known issue ที่มี bd + root cause แล้ว — ไป fix ตรง ๆ
+
+## Required inputs — refuse without
+
+- [ ] Symptom ที่ระบุได้ (error message / behavior ที่ผิด / metric ที่เปลี่ยน)
+- [ ] วิธี reproduce หรือช่องทางที่จะหามาได้ (env, ข้อมูล, ขั้นตอน)
+- [ ] Access ไป log / trace / ตัว service — ไม่มี = ระบุว่าติดตรงไหน ห้ามเดา root cause
+- [ ] Redact ผ่านแล้ว (§ Redact ก่อน paste)
+
 ## เลือกความเข้มก่อน (ไม่ใช่ทุก bug คุ้มกับ 5 ขั้น)
 
 | ระดับ | เมื่อไหร่ | ทำอะไร |

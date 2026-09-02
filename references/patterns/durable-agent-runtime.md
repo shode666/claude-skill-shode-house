@@ -9,7 +9,7 @@ REQUIRED-BEFORE: runner_generate
 
 > **Audience**: Aaron (generate runner ระดับ infra/CI) · Sara (ADR ตอนเลือก platform) · Dave (app-level idempotency)
 > **โหลดเมื่อ**: target project ต้องการ long-running agent / fan-out cap / retry / checkpoint / human approval ที่กินเวลาเป็นวัน
-> **ห้าม ship engine ใน plugin** (`CLAUDE.md` § Runtime guarantee = generate, don't ship) — ไฟล์นี้คือ *contract ว่า runner ที่ถูกต้องต้องมีอะไร* ไม่ใช่ตัว runner
+> **ห้าม ship engine ใน plugin** (`CLAUDE.md` (invariant "Runtime guarantee = generate, don't ship")) — ไฟล์นี้คือ *contract ว่า runner ที่ถูกต้องต้องมีอะไร* ไม่ใช่ตัว runner
 > **YAGNI**: ไม่มี need = ไม่ generate. Agent ที่รันจบใน session เดียว ไม่ต้องมีอะไรในนี้เลย
 
 ---

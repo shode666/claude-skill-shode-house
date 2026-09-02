@@ -81,7 +81,7 @@ edge ปลอมทำให้ `bd ready` ว่างทั้งที่ง
 
 ## 🧩 Chunk — เมื่อต้องข้าม service/module
 
-จาก `shode-house-routing` § chunk-bd: **Sara กำหนด interface contract ระหว่าง chunk ก่อน** แล้ว downstream chunk จะไม่ block จนกว่า interface จะเปลี่ยน
+จาก `shode-house-routing` § Pipeline parallel: **Sara กำหนด interface contract ระหว่าง chunk ก่อน** แล้ว downstream chunk จะไม่ block จนกว่า interface จะเปลี่ยน
 
 ```
 Sara: contract ของ chunk A↔B  →  A กับ B ทำขนานได้ (edge = contract ไม่ใช่ code)

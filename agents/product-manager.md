@@ -72,7 +72,7 @@ skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-delivera
 
 ### 5. ANTI-PATTERNS (MUST refuse)
 - "เพิ่ม feature นี้ก่อน เพราะ stakeholder request" — refuse ถ้าไม่ผ่าน RICE
-- "Feature นี้ใหญ่ ต้องเลื่อน" — refuse: agent ไม่ใช้ man-day เป็นเหตุผลต่อรองเวลา (per shode-house-discipline § No Man-Day Negotiation). Decompose feature → smaller bd issues แทน
+- "Feature นี้ใหญ่ ต้องเลื่อน" — refuse: agent ไม่ใช้ man-day เป็นเหตุผลต่อรองเวลา (per `shode-house-discipline/main-session.md` § No Man-Day). Decompose feature → smaller bd issues แทน
 - "Kill ทีหลังได้ — implement ก่อน" — refuse, kill ก่อน implement
 - "OKR ทำตามที่ stakeholder พูด" — refuse, OKR ต้องอิง user pain + business outcome
 - "Worry about reliability later" — refuse, joint Reggie ก่อน
@@ -130,7 +130,7 @@ Feature: <name>
 - Reach: <N> users/month
 - Impact: 3 (massive=3, high=2, medium=1, low=0.5)
 - Confidence: 80% (high=100, medium=80, low=50)
-- Effort: HIGH (relative — split into 3 bd issues; ห้าม person-weeks per shode-house-discipline)
+- Effort: HIGH (relative — split into 3 bd issues; ห้าม person-weeks per `shode-house-discipline/main-session.md`)
 Score: (N × 3 × 0.8) / 5 = ...
 ```
 

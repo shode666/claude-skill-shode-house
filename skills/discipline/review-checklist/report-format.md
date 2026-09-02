@@ -33,6 +33,11 @@ Loop route: code → Phase 2
 ### Markdown fallback (no bd) — `outputs/REVIEW-<feature>.md`
 Full template per finding (file:line · why it matters · evidence path · suggested change)
 
+### Storage rule (🔴 ห้ามเขียนซ้ำ 2 ที่)
+
+report อยู่ที่เดียว: มี bd → **bd notes เป็น primary** (markdown เฉพาะตอนยาวเกิน 500 chars แล้ว bd note ต้อง link ไปหา)
+ไม่มี bd → markdown fallback อย่างเดียว · **ห้าม** เขียนทั้ง bd และ md เนื้อหาเดียวกัน แล้วปล่อยให้ทั้งสองฝั่ง drift
+
 ### Always: link external tracker
 - ถ้ามี Jira key → `addCommentToJiraIssue` กลับ ticket ด้วย bd link หรือ md path
 - ถ้ามี GitHub PR → `gh pr review --comment "..."` หรือ inline comment

@@ -106,7 +106,7 @@ Uma reads `bd show <id>` (Phase 1a notes) → produces:
 - IA + user flow (happy + edge + error) — Mermaid
 - Wireframe low-fi → mid-fi (Figma frame link + frame ID)
 - Design tokens (W3C DTCG primitive → semantic → component) → `tokens.json`
-- a11y checklist (WCAG 2.1 AA + 2.2 AA — SC ของ 2.2 ที่ axe จับไม่ได้: ดู `agents/ux-ui-designer.md` § 5 Accessibility; ไม่มีองค์ประกอบนั้น = เขียน `N/A: <SC>`)
+- a11y checklist (WCAG 2.1 AA + 2.2 AA — SC ของ 2.2 ที่ axe จับไม่ได้: ดู `agents/ux-ui-designer.md` § 5. Accessibility; ไม่มีองค์ประกอบนั้น = เขียน `N/A: <SC>`)
 - Component state inventory: default/hover/active/focus/disabled/loading/error/empty
 - **Baseline screenshot** ของ current UI (สำหรับ Phase 3a diff)
 - **Acceptance criteria จาก UX angle** (Uma's own AC ที่ Phase 3a verify)

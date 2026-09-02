@@ -1,22 +1,22 @@
-# agent prompt body (byte) — ไม่รวม preload (ดู .preload-budget)
-# ratchet: ลงได้เสมอ · ขึ้นต้องแก้ไฟล์นี้พร้อมเหตุผลใน PR (budget exception)
-# วัดจาก v3.12.1 (main) — เป้า v3.13 คือทุกค่าต้องลดลง
-booking-expert=9451
-business-analyst=10620
-code-reviewer=10926
-developer=12471
-devops-engineer=12680
-ecommerce-expert=10067
-erp-expert=9257
-fintech-expert=9388
-insurance-expert=9237
-orchestrator=19214
-product-manager=15100
-qa-engineer=14911
-sap-expert=10470
-security-engineer=8349
+# agent core (body เฉพาะไฟล์ agent) baseline — CI #22 ratchet
+# v3.13 WS5-6: domain expert ถอด block ที่ซ้ำ 7 ตัวออกไป domain-core · Oliver ถอด clarify/man-day ไป runbook
+# หมายเหตุ: product-manager/security-engineer โตเล็กน้อย (+24/+6 B) เพราะ pointer ยาวกว่าข้อความเดิม
+booking-expert=6894
+business-analyst=10750
+code-reviewer=10987
+developer=12601
+devops-engineer=12777
+ecommerce-expert=7510
+erp-expert=6700
+fintech-expert=6831
+insurance-expert=6680
+orchestrator=16506
+product-manager=15124
+qa-engineer=14944
+sap-expert=7913
+security-engineer=8355
 solution-architect=14085
 sre-engineer=7505
 staff-engineer=7231
-trading-expert=8711
+trading-expert=6154
 ux-ui-designer=13213

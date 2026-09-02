@@ -56,7 +56,7 @@ description: |
 | Protocol | อยู่ที่ | ใครใช้ |
 |---|---|---|
 | UX Evidence | `agents/ux-ui-designer.md` § UX Evidence | Uma |
-| Domain Evidence | agent file ของ domain expert แต่ละตัว | 7 domain experts |
+| Domain Evidence | `skills/discipline/domain-core/SKILL.md` § Citation contract | 7 domain experts |
 | REVIEW Report Format | `review-checklist/report-format.md` | Chris/Quinn/Sentinel |
 
 ทั้งหมดเป็น extension ของ Project Evidence ข้างบน — cite-before-claim บังคับทุก agent เสมอ
