@@ -3,6 +3,13 @@ name: smart-coop
 description: Reference (lazy-load) ของ `shode-house-workflow` — Smart Coop pattern เต็ม, lifecycle hooks, approval gates, state persistence. โหลดเมื่อจะรัน pipeline จริงเท่านั้น
 ---
 
+```lazy-load-contract
+LOAD: skills/discipline/shode-house-workflow/smart-coop.md
+WHEN: pipeline_kickoff OR phase_transition
+OWNER: orchestrator
+REQUIRED-BEFORE: phase_dispatch
+```
+
 # Smart Coop Pattern — reference เต็ม (lazy-load)
 
 > แยกออกจาก `SKILL.md` ใน v3.12: เนื้อหานี้ = 61% ของ skill ทั้งไฟล์ แต่ใช้เฉพาะตอน **รัน pipeline จริง**

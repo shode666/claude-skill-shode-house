@@ -1,3 +1,10 @@
+```lazy-load-contract
+LOAD: references/patterns/durable-agent-runtime.md
+WHEN: runner_needs_retry_or_checkpoint=true
+OWNER: devops-engineer
+REQUIRED-BEFORE: runner_generate
+```
+
 # Durable agent runtime — contract สำหรับ runner ที่ Aaron generate (v3.12)
 
 > **Audience**: Aaron (generate runner ระดับ infra/CI) · Sara (ADR ตอนเลือก platform) · Dave (app-level idempotency)

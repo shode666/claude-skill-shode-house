@@ -3,6 +3,13 @@ name: report-format
 description: Reference (lazy-load) ของ `review-checklist` — REVIEW report template (bd-native + markdown fallback) + Loop Routing table. โหลดตอนจะเขียน report
 ---
 
+```lazy-load-contract
+LOAD: skills/discipline/review-checklist/report-format.md
+WHEN: review_report_write=true
+OWNER: code-reviewer
+REQUIRED-BEFORE: review_report_post
+```
+
 # REVIEW Report Format + Loop Routing (reference)
 
 > แยกจาก `SKILL.md` เป็น output template ที่ใช้ตอนท้ายของ review เท่านั้น ไม่ต้องอยู่ใน preload

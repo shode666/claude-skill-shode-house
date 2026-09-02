@@ -3,6 +3,13 @@ name: wayfinding
 description: Reference (lazy-load) ของ `shode-house-workflow` — Map mode สำหรับงานที่ใหญ่เกิน 1 session และยังมองไม่เห็นทาง. โหลดเมื่อ user มาด้วยไอเดียก้อนใหญ่ที่ยังไม่รู้ว่าจะเริ่มตรงไหน
 ---
 
+```lazy-load-contract
+LOAD: skills/discipline/shode-house-workflow/wayfinding.md
+WHEN: idea_has_fog=true
+OWNER: orchestrator
+REQUIRED-BEFORE: map_creation
+```
+
 # Wayfinding — Map mode (งานใหญ่เกิน 1 session, ยังมองไม่เห็นทาง)
 
 > Adapted จาก [mattpocock/skills · wayfinder](https://github.com/mattpocock/skills) (MIT) — port ไป `bd` + PEV loop ของเรา

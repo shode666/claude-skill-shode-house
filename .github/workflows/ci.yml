@@ -301,6 +301,49 @@ jobs:
             [ $fail -eq 0 ] && ok "enforcement map resolves ($n rules)"
           else ok "no .enforcement-map.json (skipped)"; fi
 
+          sec "22. context budget จาก dispatch graph จริง (v3.13 WS9)"
+          # #16/#20 ดู agent เดี่ยว ๆ; อันนี้ดูทั้ง scenario: command + output style + agents + preload + lazy refs
+          if [ -f scripts/context-budget.py ] && command -v python3 >/dev/null; then
+            python3 scripts/context-budget.py --check || fail=1
+            while IFS= read -r line; do
+              case "$line" in \#*|"") continue ;; esac
+              k=${line%%=*}; v=${line##*=}
+              case "$k" in __total__) cur=$(awk '/^---$/{c++;next} c==1{n+=length($0)+1} c==2{exit} END{print n}' skills/*/*/SKILL.md 2>/dev/null || echo 0) ;;
+                           *) f=$(find skills -mindepth 3 -name SKILL.md -path "*/$k/*" | head -1)
+                              cur=$(awk '/^---$/{c++;next} c==1{n+=length($0)+1} c>1{exit} END{print n+0}' "$f" 2>/dev/null) ;;
+              esac
+              [ -n "$cur" ] && [ "$cur" -gt "$((v + 200))" ] && err "skill metadata '$k': ${cur}B > budget ${v}B"
+            done < .skill-metadata-budget
+            for f in agents/*.md; do n2=$(basename "$f" .md); b=$(grep -E "^$n2=" .agent-core-budget | cut -d= -f2)
+              [ -n "$b" ] && [ "$(wc -c < "$f")" -gt "$((b + 400))" ] && err "$n2: agent body $(wc -c < "$f")B > budget ${b}B"
+            done
+            [ $fail -eq 0 ] && ok "context budgets within ratchet"
+          else ok "no context-budget script (skipped)"; fi
+
+          sec "23. lazy-load contract (v3.13 WS7)"
+          # ทุก lazy reference ต้องประกาศ LOAD/WHEN/OWNER/REQUIRED-BEFORE และต้องมีคนเรียกจริง
+          while IFS= read -r ref; do
+            grep -q '^LOAD:' "$ref" || { err "$ref: lazy reference ไม่มี lazy-load-contract block"; continue; }
+            L=$(grep -m1 '^LOAD:' "$ref" | sed 's/^LOAD: *//')
+            W=$(grep -m1 '^WHEN:' "$ref" | sed 's/^WHEN: *//')
+            O=$(grep -m1 '^OWNER:' "$ref" | sed 's/^OWNER: *//')
+            B=$(grep -m1 '^REQUIRED-BEFORE:' "$ref" | sed 's/^REQUIRED-BEFORE: *//')
+            [ "$L" = "$ref" ] || err "$ref: LOAD path '$L' ไม่ตรงกับตำแหน่งไฟล์จริง"
+            [ -n "$W" ] || err "$ref: ไม่มี WHEN trigger"
+            [ -n "$B" ] || err "$ref: ไม่มี REQUIRED-BEFORE gate"
+            [ -f "agents/$O.md" ] || err "$ref: OWNER '$O' ไม่ใช่ agent ที่มีอยู่"
+            t=$(awk '/^---$/{c++;next} c==1&&/^tools:/{print;exit}' "agents/$O.md")
+            [ -z "$t" ] || echo "$t" | grep -q '"Read"' || err "$ref: OWNER $O ไม่มี Read tool จึงโหลด reference นี้ไม่ได้"
+            # ต้องมีคนอ้างถึง (ไม่นับตัวเอง) ไม่งั้นคือ reference กำพร้า
+            n_ref=$(grep -rl "$(basename "$ref")" agents skills commands references 2>/dev/null | grep -v "^$ref$" | wc -l)
+            [ "$n_ref" -ge 1 ] || err "$ref: ไม่มี caller อ้างถึงเลย (orphan lazy reference)"
+            # ต้องถูก pack
+            case "$ref" in skills/in-progress/*|skills/deprecated/*) err "$ref: อยู่ใน bucket ที่ไม่ถูก pack" ;; esac
+          done < <(grep -rl '^LOAD:' skills references 2>/dev/null | sort)
+          n_c=$(grep -rl '^LOAD:' skills references 2>/dev/null | wc -l)
+          [ "$n_c" -ge 10 ] || err "lazy-load contract: เจอแค่ $n_c ไฟล์ -- reference ที่แยกออกไปน่าจะยังไม่ได้ประกาศ contract"
+          [ $fail -eq 0 ] && ok "lazy-load contract ครบ ($n_c references)"
+
           echo
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi
           exit $fail

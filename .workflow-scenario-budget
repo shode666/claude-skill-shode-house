@@ -1,0 +1,16 @@
+# scenario context budget (byte) — command + output style + agents + preload + required lazy refs
+# ratchet: ลงได้เสมอ · ขึ้นต้องแก้ไฟล์นี้พร้อมเหตุผลใน PR (budget exception)
+# baseline ตั้งหลัง WS7 lazy-load contract block ลงครบ (v3.13) — เป้าคือทุกค่าต้องลดลงจากนี้
+# budget exception #1: +~160 B/reference จาก lazy-load-contract block ที่ทำให้ CI #23 ตรวจได้
+consult=47724
+design-system-be=90808
+design-system-fe=158333
+diagnose-fast=60225
+diagnose-full=101872
+full-fanout=598110
+implement-be=165512
+implement-ui=206826
+map-mode=111594
+phase3b-base=134548
+phase3b-sensitive=192004
+review-cmd=130998

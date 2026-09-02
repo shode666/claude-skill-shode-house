@@ -3,6 +3,13 @@ name: oliver-engagement
 description: Runbook (lazy-load) ของ Oliver — Engagement Plan template + Phase 0/1c/6/7 + multi-sig gates. โหลดตอนเปิด engagement ใหม่หรือเข้า phase เหล่านั้น
 ---
 
+```lazy-load-contract
+LOAD: references/runbooks/oliver-engagement.md
+WHEN: engagement_start=true OR phase IN (0,1c,6)
+OWNER: orchestrator
+REQUIRED-BEFORE: phase_dispatch
+```
+
 # Engagement Plan + Phase 0/1c/6/7 — Oliver
 
 > แยกจาก agent prompt v3.12.1 — งาน triage/route/state ประจำวันไม่ต้องแบก template นี้

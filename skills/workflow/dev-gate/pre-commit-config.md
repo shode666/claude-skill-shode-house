@@ -3,6 +3,13 @@ name: pre-commit-config
 description: Reference (lazy-load) ของ `dev-gate` — .pre-commit-config.yaml ตัวอย่างเต็มสำหรับ Python และ TS/JS + setup steps
 ---
 
+```lazy-load-contract
+LOAD: skills/workflow/dev-gate/pre-commit-config.md
+WHEN: project_setup=true
+OWNER: devops-engineer
+REQUIRED-BEFORE: first_commit
+```
+
 # Pre-commit config (reference)
 
 > แยกจาก `SKILL.md` เป็น config ที่ copy ไปใช้ตอน setup project ครั้งเดียว ไม่ใช่สิ่งที่ต้องอ่านทุกครั้งที่เขียน code

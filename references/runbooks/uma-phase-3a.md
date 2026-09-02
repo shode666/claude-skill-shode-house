@@ -3,6 +3,13 @@ name: uma-phase-3a
 description: Runbook (lazy-load) ของ Uma — Phase 3a POST-Check. โหลดเมื่อเข้า phase นี้จริงเท่านั้น
 ---
 
+```lazy-load-contract
+LOAD: references/runbooks/uma-phase-3a.md
+WHEN: phase=3a AND frontend_changed=true
+OWNER: ux-ui-designer
+REQUIRED-BEFORE: phase_3a_verdict
+```
+
 # Phase 3a POST-Check — Uma
 
 > แยกจาก agent prompt v3.12.1 — consultation สั้น ๆ ไม่ต้องแบก runbook ของทุก phase

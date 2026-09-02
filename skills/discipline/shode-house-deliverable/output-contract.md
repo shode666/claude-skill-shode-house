@@ -3,6 +3,13 @@ name: output-contract
 description: Reference (lazy-load) ของ `shode-house-deliverable` — Standard output + "I Never Do" ต่อ agent. โหลดตอนจะ produce/finalize deliverable
 ---
 
+```lazy-load-contract
+LOAD: skills/discipline/shode-house-deliverable/output-contract.md
+WHEN: deliverable_produce=true
+OWNER: developer
+REQUIRED-BEFORE: handoff
+```
+
 # Standard output + "I Never Do" ต่อ agent
 
 > แยกจาก `SKILL.md` v3.12.1 — 7 agent preload skill นี้ แต่ส่วนนี้ใช้เฉพาะตอนกำลังจะส่งงานจริง

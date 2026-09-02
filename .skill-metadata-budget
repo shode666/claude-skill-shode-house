@@ -1,0 +1,28 @@
+# skill frontmatter (byte) — อยู่ใน discovery context ทุก turn จึงต้องสั้นที่สุด
+# ratchet: ลงได้เสมอ · ขึ้นต้องแก้ไฟล์นี้พร้อมเหตุผลใน PR (budget exception)
+# วัดจาก v3.12.1 (main) — เป้า v3.13 คือทุกค่าต้องลดลง
+__total__=9398
+api-contract=443
+automate-test=325
+caveman=356
+data-migration=369
+decompose=565
+dev-gate=361
+diagnose=406
+drain=535
+eval-harness=410
+incident=306
+learning-loop=474
+meeting=376
+review-checklist=481
+secure=301
+shode-house-broadcast=360
+shode-house-deliverable=375
+shode-house-discipline=375
+shode-house-drift=507
+shode-house-evidence=482
+shode-house-routing=382
+shode-house-workflow=345
+slo=265
+ui-test=289
+web-q=310
