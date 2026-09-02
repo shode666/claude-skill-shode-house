@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agent usage record",
+  "type": "object",
+  "required": [
+    "run_id",
+    "plugin_version",
+    "model",
+    "command",
+    "phase",
+    "agent",
+    "input_tokens",
+    "cache_read_tokens",
+    "cache_write_tokens",
+    "output_tokens",
+    "duration_ms"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string"
+    },
+    "plugin_version": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "command": {
+      "type": "string"
+    },
+    "phase": {
+      "type": "string"
+    },
+    "agent": {
+      "type": "string"
+    },
+    "verdict": {
+      "type": "string"
+    },
+    "input_tokens": {
+      "type": "integer"
+    },
+    "cache_read_tokens": {
+      "type": "integer"
+    },
+    "cache_write_tokens": {
+      "type": "integer"
+    },
+    "output_tokens": {
+      "type": "integer"
+    },
+    "duration_ms": {
+      "type": "integer"
+    },
+    "tool_calls": {
+      "type": "integer"
+    },
+    "tool_output_chars": {
+      "type": "integer"
+    },
+    "files_read": {
+      "type": "integer"
+    },
+    "duplicate_files_read": {
+      "type": "integer"
+    },
+    "largest_tool_output": {
+      "type": "integer"
+    },
+    "loaded_skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "loaded_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cost": {
+      "type": "object"
+    }
+  }
+}

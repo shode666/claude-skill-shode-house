@@ -290,6 +290,17 @@ jobs:
           done
           [ $fail -eq 0 ] && ok "agent+preload within budget"
 
+          sec "21. enforcement map — source of truth ของทุกกฎยัง resolve ได้ (v3.13 WS1)"
+          if [ -f .enforcement-map.json ]; then
+            while IFS= read -r p; do
+              case "$p" in *"*"*) ls $p >/dev/null 2>&1 || err "enforcement-map: glob '$p' matches nothing" ;;
+                            *) [ -e "$p" ] || err "enforcement-map: source of truth '$p' missing" ;; esac
+            done < <(jq -r '.rules[].source_of_truth' .enforcement-map.json)
+            n=$(jq '.rules|length' .enforcement-map.json)
+            [ "$n" -ge 15 ] || err "enforcement-map: only $n rules -- inventory looks incomplete"
+            [ $fail -eq 0 ] && ok "enforcement map resolves ($n rules)"
+          else ok "no .enforcement-map.json (skipped)"; fi
+
           echo
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi
           exit $fail

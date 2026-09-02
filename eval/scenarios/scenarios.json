@@ -1,0 +1,138 @@
+{
+  "version": "3.13",
+  "runs_per_scenario": 5,
+  "report": [
+    "median",
+    "p90"
+  ],
+  "scenarios": [
+    {
+      "id": "consult-single",
+      "command": "/consult",
+      "desc": "คำถามเดียว routing ไป 1 agent",
+      "agents": [
+        "solution-architect"
+      ],
+      "target_total_token_reduction": 0.25
+    },
+    {
+      "id": "design-system-backend",
+      "command": "/design-system",
+      "desc": "backend-only (ไม่มี frontend/domain trigger)",
+      "agents": [
+        "business-analyst",
+        "solution-architect"
+      ],
+      "target_total_token_reduction": 0.15
+    },
+    {
+      "id": "design-system-fe-domain",
+      "command": "/design-system",
+      "desc": "frontend + domain trigger",
+      "agents": [
+        "business-analyst",
+        "solution-architect",
+        "ux-ui-designer",
+        "fintech-expert"
+      ],
+      "target_total_token_reduction": 0.15
+    },
+    {
+      "id": "implement-backend",
+      "command": "/implement",
+      "desc": "backend ไม่มี UI",
+      "agents": [
+        "developer",
+        "code-reviewer",
+        "qa-engineer",
+        "business-analyst"
+      ],
+      "target_total_token_reduction": 0.15
+    },
+    {
+      "id": "implement-ui",
+      "command": "/implement",
+      "desc": "UI เต็ม flow 2->3a->3b",
+      "agents": [
+        "developer",
+        "ux-ui-designer",
+        "code-reviewer",
+        "qa-engineer",
+        "business-analyst"
+      ],
+      "target_total_token_reduction": 0.15
+    },
+    {
+      "id": "phase3b-base",
+      "command": "/implement",
+      "desc": "Phase 3b: Chris + Quinn + Spec",
+      "agents": [
+        "code-reviewer",
+        "qa-engineer",
+        "business-analyst"
+      ],
+      "target_total_token_reduction": 0.2
+    },
+    {
+      "id": "phase3b-sensitive",
+      "command": "/implement",
+      "desc": "Phase 3b + Sentinel + Domain",
+      "agents": [
+        "code-reviewer",
+        "qa-engineer",
+        "business-analyst",
+        "security-engineer",
+        "fintech-expert"
+      ],
+      "target_total_token_reduction": 0.2
+    },
+    {
+      "id": "diagnose-fast",
+      "command": "diagnose",
+      "desc": "bug deterministic ชี้ตรงจุด",
+      "agents": [
+        "developer"
+      ],
+      "target_total_token_reduction": 0.25
+    },
+    {
+      "id": "diagnose-full",
+      "command": "diagnose",
+      "desc": "flaky / perf regression",
+      "agents": [
+        "developer",
+        "qa-engineer"
+      ],
+      "target_total_token_reduction": 0.1
+    },
+    {
+      "id": "map-mode",
+      "command": "wayfinding",
+      "desc": "ไอเดียก้อนใหญ่ยังมีหมอก",
+      "agents": [
+        "orchestrator",
+        "product-manager"
+      ],
+      "target_total_token_reduction": 0.1
+    },
+    {
+      "id": "resume-run",
+      "command": "/implement",
+      "desc": "session ตายกลาง pipeline แล้ว resume",
+      "agents": [
+        "orchestrator",
+        "developer"
+      ],
+      "target_total_token_reduction": 0.1
+    },
+    {
+      "id": "full-fanout",
+      "command": "synthetic",
+      "desc": "19 agents พร้อมกัน",
+      "agents": [
+        "*"
+      ],
+      "target_total_token_reduction": 0.15
+    }
+  ]
+}
