@@ -2,9 +2,8 @@
 name: data-migration
 description: |
   [WHAT] Schema/data migration discipline — expand-contract, backfill, dual-write, rollback drill, zero-downtime, money/ledger safety.
-  [AUDIENCE] Dave (write migration) + Aaron (run + rollback) + Sara (schema decision/ADR) + Chris/Quinn (verify) + Domain expert (Felix/Elena/Iris/Tara — money & regulated data).
-  [WHEN] ทุกครั้งที่ PR แตะ schema/DDL/seed/backfill; ก่อน gate `pre-data-migration`; ก่อน deploy ที่มี migration; หลัง incident ที่รากคือ schema change.
-  [TRIGGER] /shode-house:data-migration, "migration", "schema change", "alter table", "backfill", "zero downtime", "flyway", "alembic", "liquibase", "prisma migrate", "drop column", "ย้ายข้อมูล", "แก้ schema".
+  [WHEN] ทุกครั้งที่ PR แตะ schema/DDL/seed/backfill.
+  [TRIGGER] /shode-house:data-migration, "migration", "schema change", "alter table", "backfill", "zero downtime".
 ---
 
 # Data Migration (expand-contract + backfill + rollback drill)

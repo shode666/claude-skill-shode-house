@@ -2,14 +2,13 @@
 name: eval-harness
 description: |
   [WHAT] Bias-aware evaluation harness — orchestrate fixture runs across 19 agents + detect 4 bias types (sycophancy, anchoring, verbosity, pattern-bias, position) + cross-LLM judge methodology.
-  [AUDIENCE] Maintainer (offline — sole runner; Evan agent reverted in v3.3); Patrick (retro consumer); Stan (cross-team calibration).
-  [WHEN] Pre-major-release (v3→v4 prompt refactor); Phase 4 Triage (PEV loop, per-bd) ถ้า dispute_rate > 20% per agent (per drift M3); ก่อน promote prompt change to default.
-  [TRIGGER] /shode-house:eval-harness, "eval", "bias detection", "agent regression", "sycophancy test", "no-bias evaluation", "harness".
+  [WHEN] Pre-major-release (v3→v4 prompt refactor).
+  [TRIGGER] /shode-house:eval-harness, "eval", "bias detection", "agent regression", "sycophancy test", "no-bias evaluation".
 ---
 
-# Eval Harness (v3.2 — bias-aware, no-bias evaluation methodology)
+# Eval Harness (bias-aware, no-bias evaluation methodology)
 
-> Offline tool. **ไม่** อยู่ใน `/implement` Phase loop. Run โดย **maintainer (offline)** ตอน major release / dispute_rate spike. (Evan evaluator agent = reverted v3.3 — methodology เก็บที่นี่ reference-only, ไม่ ship)
+> Offline tool. **ไม่** อยู่ใน `/implement` Phase loop. Run โดย **maintainer (offline)** ตอน major release / dispute_rate spike. (Evan evaluator agent = reverted methodology เก็บที่นี่ reference-only, ไม่ ship)
 > **Owner**: Maintainer (offline). Co-pilot: Patrick (consume retro), Stan (cross-team calibration).
 
 ---

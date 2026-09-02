@@ -1,4 +1,4 @@
-# shode-house — Repo Invariants (v3.7.0)
+# shode-house — Repo Invariants (v3.12.0)
 
 > ทุก rule = invariant ที่ script ตรวจ. จะแหก → แก้ script ก่อน
 > หมายเหตุ: ไฟล์นี้ terse อยู่แล้ว → caveman-compress ไม่คุ้ม (วัดแล้ว delta ≈ 0). compress capability ใช้กับ verbose memory file อื่น (project notes) แทน
@@ -13,20 +13,20 @@
 
 - **bucket folders** ใต้ `skills/`:
   - `workflow/` (meeting, dev-gate, automate-test, diagnose) · `ops/` (incident, slo, secure) · `ui/` (ui-test, web-q) · `style/` (caveman)
-  - `workflow/` เพิ่ม data-migration + api-contract (v3.10)
+  - `workflow/` เพิ่ม data-migration + api-contract (v3.10) + decompose (v3.12)
   - `discipline/` (shode-house-discipline, -evidence, -routing, -deliverable, -broadcast, -drift, -workflow, review-checklist)
   - `in-progress/` + `deprecated/` — **ไม่ ship**
 - 5 bucket แรก → ต้องอยู่ใน `.claude-plugin/plugin.json` skills list + `README.md` index
 - `in-progress/` + `deprecated/` → **ไม่** อยู่
 - SKILL.md description = **4-section format**: `[WHAT] · [AUDIENCE] · [WHEN] · [TRIGGER]`
-- SKILL.md ≤ 300 บรรทัด (≤ 12 KB). เกิน → แตก. Exception: `meeting` (thin entry-point) + `dev-gate` (11 gates + per-language matrix, ≤ 400)
+- SKILL.md **≤ 300 บรรทัด** เกิน → แตกเป็น reference file ข้าง ๆ. Exception: `meeting` (thin entry-point) + `dev-gate` (11 gates + per-language matrix) — **ยกเว้นจาก 300 แต่เพดาน 400 บังคับด้วย CI #1** (v3.12). ขนาดเป็น byte ไม่มี cap แยก: skill ที่ถูก preload คุมด้วย budget CI #16 อยู่แล้ว ที่เหลือคุมด้วย line cap (กฎ "≤ 12 KB" เดิมไม่เคยมี CI ตรวจและมี 7 ไฟล์เกินมาตลอด → ถอดออก)
 - Skill ผลิต deliverable ต้องมี: `## When NOT to use` + `## Required inputs — refuse without`
 
 ## Handoff (🆕 v3.8)
 
 - **Artifact-passing บังคับ**: phase artifact → ไฟล์ (`outputs/<bd-id>/<NN>-<agent>-<phase>.md`); delegation ส่ง **path ไม่ส่งเนื้อหา**; producer return = conclusion + path (ห้าม dump transcript กลับ orchestrator)
 - Delegation message ต้องมี **bd-id + artifact paths + phase + iter** เสมอ — sub-agent ไม่เห็น conversation history
-- Source-of-truth = `shode-house-workflow § Handoff Contract`
+- Source-of-truth = `shode-house-discipline § Handoff Contract` (ย้ายมาจาก `shode-house-workflow` v3.10; workflow ไม่มี section นี้แล้ว)
 
 ## Language (🆕 v3.8)
 
@@ -41,6 +41,10 @@
 
 ## Agents
 
+- 🔴 **Redact ก่อน paste** (v3.12) — evidence protocol บังคับ paste command/output/artifact เป็นหลักฐาน ⇒ ต้องเขียน `<REDACTED>` แทน secret/token/auth header/PII **ทุกครั้ง** · build loop ผ่าน env var · captured artifact (HAR/log dump) quote เฉพาะบรรทัดที่มี signal · redact แล้วข้อมูลไม่พอ → บอก user ตรง ๆ ห้ามเดาต่อ. เต็มที่ `diagnose` § Redact
+- 🔴 **Review มี 2 แกน** (v3.12) — Standards (Chris 7-dim: *เขียนถูกหลักไหม*) กับ Spec (*ทำตรงกับที่ spec ขอไหม*) เป็นคนละ sub-agent และ **ห้าม merge/rerank ข้ามแกน**; code ที่ standards ผ่านครบแต่ทำผิดเรื่อง = Standards PASS / Spec FAIL. ทุก review ต้อง **pin fixed point** ด้วย `git diff <base>...HEAD` (three-dot) ก่อน fan-out
+- 🔴 **Preload budget** (v3.11) — `skills:` cap 3 คุม *จำนวน* แต่ไม่คุม *ขนาด*. ก่อน v3.11 agent จ่าย preload ~10k tok ก่อนอ่าน delegation message ด้วยซ้ำ. กฎ: **skill ที่ถูก preload ต้องเป็นสิ่งที่ *ทุก branch* ใช้** — rule ที่เป็นของบาง role ให้อยู่ใน agent file ของ role นั้น หรือให้โหลดเองด้วย `Skill` tool ตอน runtime. **enforce CI gate check #16** (ratchet เป็น byte: **31,000 B/agent ทุกตัวไม่มีข้อยกเว้น** ตั้งแต่ v3.12 — ขึ้นไม่ได้ ลงได้อย่างเดียว)
+- 🔴 **Catalog ≠ Evidence** (v3.11) — `references/design-intel` เป็น *ข้อเสนอ* (palette/pairing/pattern จาก CSV ที่ upstream ระบุเองว่า `derived` / `needs-review`) ส่วน **หลักฐาน** คือ WCAG/axe/Lighthouse/Playwright output เท่านั้น. ขัดกันเมื่อไหร่ **มาตรฐานชนะ catalog**; ห้าม cite ตัวเลขจาก CSV ในระดับเดียวกับ tool output (ผิด UX Evidence Protocol). 0 result → retry แคบลง 1 ครั้ง → ยังว่าง = บอกตรง ๆ ว่าใช้ built-in default. **enforce CI gate check #17** + `check_contrast.py` gate ก่อนเขียน `tokens.json`
 - 🔴 **`Skill` บังคับใน `tools:` ทุก agent** (v3.10) — `tools:` ที่ระบุ explicit และ **ไม่มี** `Skill` = subagent โหลด skill ไม่ได้เลย (ไม่ใช่แค่ที่ไม่ได้ preload — *ทั้งหมด*). ก่อน v3.10 เป็น 0/19 → 12 skill ตายอยู่ในไฟล์. `skills:` = preload (inject full content, cap 3); `Skill` ใน `tools:` = โหลดเพิ่มเองตอน runtime. **ต้องมีทั้งคู่** — enforce CI gate check #14
 - 🔴 **rule ที่ "ทุก agent ต้องทำตาม" ต้องอยู่ใน `shode-house-discipline`** (ตัวเดียวที่ preload 19/19). rule ที่เป็นของบาง role ห้ามอยู่ที่นี่ — ย้ายไป skill ของ role นั้นแล้วให้เขาโหลดเอง (discipline โดน ×19 ทุกไบต์)
 
@@ -125,7 +129,7 @@
 - README → link skill name ไปยัง SKILL.md เสมอ
 - CHANGELOG → ทุก minor/major bump เพิ่ม entry
 - ทุก PR run CI gate (`.github/workflows/ci.yml`) ผ่านก่อน merge
-- **Dev-loop (no Python, v3.7)**: invariant + lint gate inline ใน `.github/workflows/ci.yml` (bash + jq, CI-only — no local script) · `make pack` (zip) · `make stats` · `make skills`; publish via `gh` / GitHub Actions
+- **Dev-loop (bash + jq; python3 เฉพาะ design-intel smoke ใน gate #17 — v3.12)**: invariant + lint gate inline ใน `.github/workflows/ci.yml` (bash + jq, CI-only — no local script) · `make pack` (zip) · `make stats` · `make skills`; publish via `gh` / GitHub Actions
 
 ## Lazy ≠ Negligent (🆕 v3.6 — ponytail/caveman adoption)
 
@@ -133,7 +137,7 @@
 - **ห้ามตัด**: trust-boundary validation · data-loss handling · security control · accessibility (WCAG) · regulation/compliance
 - ทางลัดที่ defer → `shortcut(bd:<id>): <reason>; upgrade → <path>` → `grep -rn 'shortcut(bd' .` / `/review --debt`
 - Memory-file compress → เก็บ `<file>.full.md` + verify CI gate (push → CI เขียว) เหมือนเดิม
-- **Runtime guarantee = generate, don't ship**: plugin ดูแลแค่หลักการ+วิธีการ (contract). Harness contract ต้อง **establish ทุกครั้งที่เข้า project** (`/init` rule 11 → `.shode-house/config.yaml`). guarantee ที่ต้อง enforced runtime (long-run fan-out cap/retry/checkpoint, ฯลฯ) → **Aaron** generate runner (infra/CI-level; app-level → Dave) ที่ fit project เข้า **target project repo** (ผ่าน dev-gate); ห้าม ship generic script ใน plugin. ไม่มี need = ไม่ generate (YAGNI) แต่ contract ต้องมี
+- **Runtime guarantee = generate, don't ship**: plugin ดูแลแค่หลักการ+วิธีการ (contract). Harness contract ต้อง **establish ทุกครั้งที่เข้า project** (`/init` rule 11 → `.shode-house/config.yaml`). guarantee ที่ต้อง enforced runtime (long-run fan-out cap/retry/checkpoint, ฯลฯ) → **Aaron** generate runner **ตาม contract ใน `references/patterns/durable-agent-runtime.md`** (v3.12 — journal/idempotency/replay boundary/version stamp/HITL hash/crash injection; ก่อนหน้านี้ contract ระบุแค่ชื่อ guarantee ไม่ได้บอกว่าต้องมีอะไร Aaron จึงต้องเดา = ผิด NO MAGIC) (infra/CI-level; app-level → Dave) ที่ fit project เข้า **target project repo** (ผ่าน dev-gate); ห้าม ship generic script ใน plugin. ไม่มี need = ไม่ generate (YAGNI) แต่ contract ต้องมี
 
 ## Bias Discipline (🆕 v3.3 — replaces v3.2 Evan agent)
 

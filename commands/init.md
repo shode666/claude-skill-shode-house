@@ -1,10 +1,10 @@
 ---
 description: "[shode-house] Init — scaffold project ใหม่. Default: interactive wizard (Aaron + Bella + tracker). `--quick <stack>`: direct Aaron Docker-first (replaces /setup-project)"
-allowed-tools: Read, Write, Edit, Bash, Task
+allowed-tools: Read, Write, Edit, Bash, Task, Skill, AskUserQuestion
 argument-hint: '[project-name | --quick "stack description"]'
 ---
 
-# /init — Project Scaffold (v3.1 merged with setup-project)
+# /init — Project Scaffold
 
 **Mode detection** (Oliver):
 
@@ -17,7 +17,7 @@ else
 fi
 ```
 
-## 🛡️ Phase 0 — Brownfield guard (🔴 v3.6 — บังคับก่อนทุก mode; ห้ามทำลายโครงสร้างเดิม)
+## 🛡️ Phase 0 — Brownfield guard (บังคับก่อนทุก mode; ห้ามทำลายโครงสร้างเดิม)
 
 ตรวจว่า fresh หรือ brownfield ก่อน scaffold:
 

@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.10.1",
-  "description": "Multi-agent software house team v3.10: 19 agents + 21 skills + 5 commands + Oliver main-session output style. Enforcement repair.",
+  "version": "3.12.1",
+  "description": "Multi-agent software house team v3.12.1: 19 agents + 22 skills + 5 commands. Spec-axis review, feedback-loop diagnosis, durable run contract.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"
@@ -55,7 +55,14 @@
     "output-style",
     "prompt-injection",
     "api-contract",
-    "data-migration"
+    "data-migration",
+    "wcag-2.2",
+    "design-intel",
+    "preload-budget",
+    "retrieval-augmented",
+    "durable-execution",
+    "spec-axis",
+    "tdd-seams"
   ],
   "skills": [
     "./skills/workflow/",

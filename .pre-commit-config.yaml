@@ -2,9 +2,10 @@
 # Install: brew install pre-commit && pre-commit install
 #
 # Local commits run only off-the-shelf hygiene hooks below — no custom script
-# executes on your machine. The full invariant + lint gate runs in CI
-# (.github/workflows/ci.yml -> `make validate`, bash + jq). Run it locally on
-# demand with `make validate` if you want.
+# executes on your machine. The full invariant + lint gate lives in
+# .github/workflows/ci.yml (inline bash + jq). `make validate` extracts and runs
+# that exact script locally — same source of truth, no duplicated logic.
+# (v3.12.1: ก่อนหน้านี้ไฟล์นี้อ้าง `make validate` ทั้งที่ Makefile ไม่มี target นั้น)
 
 repos:
   # Built-in basic hygiene

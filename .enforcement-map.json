@@ -1,0 +1,185 @@
+{
+  "version": "3.13-planning",
+  "rules": [
+    {
+      "id": "safety-r0r1r2",
+      "rule": "Safety R0/R1/R2",
+      "owner": "ทุก agent",
+      "trigger": "ทุกงาน",
+      "preload": true,
+      "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
+      "verification": "mutation"
+    },
+    {
+      "id": "no-magic",
+      "rule": "NO MAGIC / evidence-before-claim",
+      "owner": "ทุก agent",
+      "trigger": "ทุก claim",
+      "preload": true,
+      "source_of_truth": "skills/discipline/shode-house-evidence/SKILL.md",
+      "verification": "fixture"
+    },
+    {
+      "id": "verify-before-done",
+      "rule": "VERIFY BEFORE DONE",
+      "owner": "ทุก agent",
+      "trigger": "ก่อน claim done",
+      "preload": true,
+      "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
+      "verification": "fixture"
+    },
+    {
+      "id": "handoff-contract",
+      "rule": "Handoff contract (min fields)",
+      "owner": "ทุกตัวที่ delegate",
+      "trigger": "delegation",
+      "preload": true,
+      "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
+      "verification": "ci:path-tool"
+    },
+    {
+      "id": "response-language",
+      "rule": "Response language mirror",
+      "owner": "ทุก agent",
+      "trigger": "ทุก message",
+      "preload": true,
+      "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
+      "verification": "fixture"
+    },
+    {
+      "id": "recite-card",
+      "rule": "Recite Discipline Card",
+      "owner": "main session",
+      "trigger": "first response",
+      "preload": false,
+      "source_of_truth": "output-styles/oliver.md",
+      "verification": "output-style-test"
+    },
+    {
+      "id": "askuser-relay",
+      "rule": "AskUserQuestion main-session relay",
+      "owner": "main session",
+      "trigger": "ambiguity",
+      "preload": false,
+      "source_of_truth": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "verification": "ci:18 + fixture"
+    },
+    {
+      "id": "spec-axis",
+      "rule": "Spec axis (diff vs spec)",
+      "owner": "business-analyst",
+      "trigger": "Phase 3b / review",
+      "preload": false,
+      "source_of_truth": "skills/discipline/review-checklist/spec-axis.md",
+      "verification": "ci:19 + fixture"
+    },
+    {
+      "id": "standards-axis",
+      "rule": "Standards axis 7-dim",
+      "owner": "code-reviewer",
+      "trigger": "Phase 3b",
+      "preload": false,
+      "source_of_truth": "agents/code-reviewer.md",
+      "verification": "fixture"
+    },
+    {
+      "id": "integration-axis",
+      "rule": "Integration/E2E matrix",
+      "owner": "qa-engineer",
+      "trigger": "Phase 3b",
+      "preload": false,
+      "source_of_truth": "agents/qa-engineer.md",
+      "verification": "fixture"
+    },
+    {
+      "id": "dod",
+      "rule": "Definition of Done",
+      "owner": "orchestrator + producer",
+      "trigger": "phase exit",
+      "preload": false,
+      "source_of_truth": "skills/discipline/shode-house-deliverable/definition-of-done.md",
+      "verification": "close-gate"
+    },
+    {
+      "id": "anti-puppet",
+      "rule": "Anti-Puppet (no false done)",
+      "owner": "ทุก producer",
+      "trigger": "claim done",
+      "preload": true,
+      "source_of_truth": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "verification": "fixture"
+    },
+    {
+      "id": "close-on-done",
+      "rule": "Close-on-done M8",
+      "owner": "orchestrator",
+      "trigger": "item land",
+      "preload": true,
+      "source_of_truth": "skills/discipline/shode-house-drift/SKILL.md",
+      "verification": "fixture"
+    },
+    {
+      "id": "ux-evidence",
+      "rule": "UX/visual evidence ladder",
+      "owner": "ux-ui-designer, qa-engineer, code-reviewer",
+      "trigger": "frontend touched",
+      "preload": false,
+      "source_of_truth": "skills/ui/ui-test/SKILL.md",
+      "verification": "frontend fixture"
+    },
+    {
+      "id": "wcag22",
+      "rule": "WCAG 2.2 AA manual SC",
+      "owner": "ux-ui-designer",
+      "trigger": "frontend touched",
+      "preload": false,
+      "source_of_truth": "agents/ux-ui-designer.md",
+      "verification": "a11y fixture"
+    },
+    {
+      "id": "contrast-ack",
+      "rule": "Contrast gate + border ACK",
+      "owner": "ux-ui-designer",
+      "trigger": "Phase 1b tokens",
+      "preload": false,
+      "source_of_truth": "references/design-intel/README.md",
+      "verification": "ci:17 smoke"
+    },
+    {
+      "id": "domain-citation",
+      "rule": "Domain citation + persona disclaimer",
+      "owner": "7 domain experts",
+      "trigger": "domain claim",
+      "preload": true,
+      "source_of_truth": "agents/*-expert.md",
+      "verification": "citation fixture x7"
+    },
+    {
+      "id": "scope-drift",
+      "rule": "Scope discipline / out-of-scope record",
+      "owner": "ทุก agent",
+      "trigger": "spec change",
+      "preload": true,
+      "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
+      "verification": "fixture"
+    },
+    {
+      "id": "preload-budget",
+      "rule": "Preload + agent budget ratchet",
+      "owner": "maintainer",
+      "trigger": "ทุก PR",
+      "preload": false,
+      "source_of_truth": ".preload-budget",
+      "verification": "ci:16 + ci:20"
+    },
+    {
+      "id": "redact",
+      "rule": "Redact ก่อน paste evidence",
+      "owner": "ทุก agent ที่ paste output",
+      "trigger": "ทุก evidence",
+      "preload": true,
+      "source_of_truth": "skills/workflow/diagnose/SKILL.md",
+      "verification": "fixture"
+    }
+  ]
+}

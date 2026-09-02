@@ -2,9 +2,8 @@
 name: slo
 description: |
   [WHAT] กำหนด SLI/SLO/error budget + capacity plan + observability + Grafana dashboard + burn-rate formula.
-  [AUDIENCE] Reggie (sole). Co-pilot: Aaron (infra metric scrape), Patrick (error budget conversation).
-  [WHEN] หลัง service production-ready; ก่อน on-call rotation; ตอน sprint review error budget; หลัง incident เพื่อ recalibrate.
-  [TRIGGER] /shode-house:slo, "SLO", "SLI", "error budget", "p95", "p99", "availability target", "burn rate", "uptime", "reliability target", "capacity plan".
+  [WHEN] หลัง service production-ready.
+  [TRIGGER] /shode-house:slo, "SLO", "SLI", "error budget", "p95", "p99".
 ---
 
 # SLO (Service Level Objective discipline)

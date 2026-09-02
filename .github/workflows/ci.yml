@@ -33,7 +33,10 @@ jobs:
           sec "1. skill size <= 300 (except meeting, dev-gate)"
           while IFS= read -r f; do
             n=$(basename "$(dirname "$f")"); l=$(wc -l < "$f")
-            if [ "$l" -gt 300 ] && [ "$n" != meeting ] && [ "$n" != dev-gate ]; then err "$f: $l lines > 300"; fi
+            if [ "$n" = meeting ] || [ "$n" = dev-gate ]; then
+              # v3.12: exception เดิมไม่มีเพดาน -> dev-gate โตถึง 401 โดยไม่มีใครจับ
+              [ "$l" -gt 400 ] && err "$f: $l lines > 400 (exception cap)"
+            elif [ "$l" -gt 300 ]; then err "$f: $l lines > 300"; fi
           done < <(find skills -mindepth 3 -name SKILL.md)
           [ $fail -eq 0 ] && ok "all skills within limit"
 
@@ -49,7 +52,8 @@ jobs:
           sec "4. Cowork caps (length + ASCII + no em-dash)"
           chk(){ local L="$1" t="$2" lim="$3"
             [ "${#t}" -gt "$lim" ] && err "$L length ${#t} > $lim"
-            printf '%s' "$t" | LC_ALL=C grep -qP '[^\x00-\x7F]' && err "$L non-ASCII"
+            # portable: macOS grep ไม่มี -P -> exit 2 ซึ่งถูกตีความว่า "ไม่พบ" -> check ผ่านทั้งที่ไม่เคยรัน (v3.12)
+            printf '%s' "$t" | LC_ALL=C grep -q '[^ -~]' && err "$L non-ASCII"
             printf '%s' "$t" | grep -q '—\|–' && err "$L em/en-dash"; }
           chk "plugin.json description"      "$(jq -r '.description//""' "$PJ")" 200
           chk "marketplace.json description" "$(jq -r '.description//""' "$MK")" 200
@@ -99,15 +103,24 @@ jobs:
 
           sec "11. skill cross-refs resolve (commands + README + CLAUDE)"
           dirs=$(for d in skills/*/*/; do basename "$d"; done)
-          refs=$(grep -rhoE '`(meeting|dev-gate|automate-test|diagnose|incident|slo|secure|drain|ui-test|web-q|caveman|review-checklist|shode-house-[a-z]+)`' commands README.md CLAUDE.md 2>/dev/null | tr -d '`' | sort -u)
+          refs=$(grep -rhoE '`(meeting|dev-gate|automate-test|diagnose|incident|slo|secure|drain|ui-test|web-q|caveman|decompose|review-checklist|shode-house-[a-z]+)`' commands README.md CLAUDE.md 2>/dev/null | tr -d '`' | sort -u)
           for r in $refs; do echo "$dirs" | grep -qx "$r" || err "referenced skill '$r' missing"; done
           [ $fail -eq 0 ] && ok "cross-refs resolve"
 
-          sec "12. path refs in README + CLAUDE resolve"
-          for src in README.md CLAUDE.md; do [ -f "$src" ] || continue
+          sec "11b. every shipped skill is linked in README (v3.12)"
+          # #11 ตรวจ ref -> dir; ทางกลับไม่มีใครตรวจ -> skill ใหม่หลุด index ได้เงียบ ๆ
+          while IFS= read -r d; do n=$(basename "$d")
+            grep -q "skills/[a-z]*/$n/SKILL.md" README.md || err "README: skill '$n' has no link to its SKILL.md"
+          done < <(find skills/workflow skills/ops skills/ui skills/style skills/discipline -mindepth 1 -maxdepth 1 -type d)
+          [ $fail -eq 0 ] && ok "all shipped skills linked in README"
+
+          sec "12. path refs resolve (README + CLAUDE + agents + skills + commands — v3.12)"
+          # เดิมตรวจแค่ README/CLAUDE -> broken link ใน agents/ skills/ ผ่านมาตลอด
+          while IFS= read -r src; do
             while read -r p; do [ -e "$p" ] || err "$src: broken ref '$p'"
-            done < <(grep -oE '`(skills/[a-zA-Z0-9._/-]+|commands/[a-z-]+\.md|agents/[a-z-]+\.md)`' "$src" | tr -d '`' | sort -u)
-          done
+            done < <(grep -oE '`(skills|commands|agents|references|output-styles|docs)/[^`]+`' "$src" | tr -d '`' \
+                     | grep -vE '[<>*?{}]' | sed 's:/$::' | sort -u)
+          done < <(printf '%s\n' README.md CLAUDE.md agents/*.md commands/*.md; find skills -name '*.md' -not -path '*/deprecated/*')
           [ $fail -eq 0 ] && ok "path refs resolve"
 
           sec "13. agent skills: preload resolves to a shipped skill"
@@ -147,6 +160,146 @@ jobs:
             done < <(find output-styles -name '*.md')
             [ $fail -eq 0 ] && ok "output styles ok"
           else ok "no output-styles/ (skipped)"; fi
+
+          sec "16. preload budget per agent (v3.11)"
+          # skills: cap 3 controls instruction density but NOT size. Before v3.11 an agent
+          # paid ~10k tok of preload before reading its delegation message. Budget is in
+          # BYTES (bash-only gate): ~18000 B of Thai-heavy markdown ~= 4000 tokens.
+          # Ratchet, not an aspiration: these are today's actual maxima after the v3.11
+          # rebalance. They may only ever go DOWN. Adding a section to a preloaded skill
+          # now fails CI -> put it in the agent file, or let the agent load it at runtime.
+          # v3.12: ratchet จริง = baseline ต่อ agent (เพดานกลางอย่างเดียวปล่อยให้ domain agent
+          # โตจาก 16 KB ไป 31 KB ได้โดย CI ไม่รู้ตัว). baseline อยู่ใน .preload-budget
+          BUDGET=31000          # เพดานแข็ง — ห้ามเกินไม่ว่ากรณีใด
+          GRACE=600             # ยอมให้ขยับจาก baseline ได้เท่านี้ (แก้คำผิด/เติมบรรทัดสั้น ๆ)
+          BASELINE_FILE=.preload-budget
+          for f in agents/*.md; do n=$(basename "$f" .md)
+            line=$(awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "$f")
+            total=0
+            for s in $(echo "$line" | tr -d '[]",' ); do
+              sf=$(find skills -mindepth 3 -name SKILL.md -path "*/$s/*" | head -1)
+              [ -n "$sf" ] && total=$((total + $(wc -c < "$sf")))
+            done
+            [ "$total" -gt "$BUDGET" ] && err "$n: preload ${total}B > ${BUDGET}B hard cap -- move role-specific sections into the agent file, or let it load the skill at runtime"
+            base=$(grep -E "^$n=" "$BASELINE_FILE" 2>/dev/null | cut -d= -f2)
+            if [ -n "$base" ]; then
+              [ "$total" -gt "$((base + GRACE))" ] && err "$n: preload ${total}B > baseline ${base}B + ${GRACE}B grace -- ratchet only goes down; ถ้าตั้งใจโตจริงให้อัปเดต $BASELINE_FILE พร้อมเหตุผลใน PR"
+              [ "$total" -lt "$base" ] && echo "  (ratchet: $n ลดจาก ${base}B -> ${total}B -- อัปเดต $BASELINE_FILE ได้เลย)"
+            else err "$n: ไม่มี baseline ใน $BASELINE_FILE (agent ใหม่ต้องบันทึก baseline)"; fi
+          done
+          [ $fail -eq 0 ] && ok "preload within budget"
+
+          sec "17. design-intel pack integrity (v3.11)"
+          # Uma's lookup layer: data must never enter context, so it is NOT a skill --
+          # but the scripts + CSVs must ship, or every Phase 1b lookup silently no-ops.
+          DI=references/design-intel
+          if [ -d "$DI" ]; then
+            for req in scripts/search.py scripts/check_contrast.py scripts/core.py scripts/design_system.py \
+                       data/ux-guidelines.csv data/colors.csv data/typography.csv data/styles.csv README.md; do
+              [ -f "$DI/$req" ] || err "design-intel: missing $req"
+            done
+            [ -d "$DI/data/stacks" ] || err "design-intel: missing data/stacks/"
+            grep -q 'design-intel' agents/ux-ui-designer.md || err "Uma does not reference design-intel"
+            # v3.12: เช็คว่าไฟล์มีอยู่ไม่พอ -- gate ที่ Uma ต้องผ่านทุก Phase 1b ต้องรันได้จริง
+            # (รอบก่อนหน้า pack ผ่าน #17 ทั้งที่ check_contrast block ทุก palette ในแคตตาล็อก)
+            if command -v python3 >/dev/null; then
+              for q in "saas dashboard" "fintech app" "ecommerce store"; do
+                python3 "$DI/scripts/search.py" "$q" --design-system --json > /tmp/ds.json 2>/dev/null \
+                  || { err "design-intel: search.py failed for '$q'"; continue; }
+                python3 "$DI/scripts/check_contrast.py" --design-system-json /tmp/ds.json --border-decorative "CI smoke" > /tmp/cc.txt 2>&1 \
+                  || { err "design-intel: contrast gate BLOCKS catalog palette for '$q' -> Uma Phase 1b would hard-block"; sed -n '1,12p' /tmp/cc.txt; }
+              done
+              python3 "$DI/scripts/check_contrast.py" --pair "#9CA3AF,#FFFFFF" >/dev/null 2>&1 \
+                && err "design-intel: contrast gate PASSES a 2.54:1 pair -- gate is not enforcing"
+              # ปั้น payload ที่มีขอบต่ำกว่า 3:1 แน่นอน แทนการพึ่ง /tmp/ds.json ที่ค้างจาก loop
+              printf '{"design_system":{"colors":{"background":"#FFFFFF","border":"#F2F2F2"}}}' > /tmp/ds-border.json
+              python3 "$DI/scripts/check_contrast.py" --design-system-json /tmp/ds-border.json >/dev/null 2>&1 \
+                && err "design-intel: sub-3:1 border passes without --border-decorative ack -- decision not forced"
+              python3 "$DI/scripts/check_contrast.py" --design-system-json /tmp/ds-border.json --border-decorative "ci" >/dev/null 2>&1 \
+                || err "design-intel: --border-decorative ack does not unblock -- Uma runbook would dead-end"
+            else err "python3 missing -- design-intel smoke skipped"; fi
+            [ $fail -eq 0 ] && ok "design-intel pack intact + gate runs"
+          else ok "no references/design-intel (skipped)"; fi
+
+          sec "18. tool reachability — command/agent เรียก tool ที่ตัวเองไม่ได้รับอนุญาต (v3.12)"
+          # blocker ที่ full-scan เจอ: /init สั่งใช้ AskUserQuestion, commands สั่งโหลด skill,
+          # /review สั่ง addComment, reviewer ถูกบังคับใช้ browser MCP -- ทั้งหมดไม่อยู่ใน allowed-tools/tools
+          for f in commands/*.md; do n=$(basename "$f")
+            at=$(awk '/^---$/{c++;next} c==1&&/^allowed-tools:/{sub(/^allowed-tools:[ \t]*/,"");print;exit}' "$f")
+            body=$(awk '/^---$/{c++;next} c>=2' "$f")
+            echo "$body" | grep -q 'AskUserQuestion' && ! echo "$at" | grep -q 'AskUserQuestion' \
+              && err "$n: body uses AskUserQuestion but allowed-tools omits it"
+            echo "$body" | grep -qE '(invoke|โหลด|ใช้)[^\n]*`[a-z-]+` skill|Skill tool' && ! echo "$at" | grep -q '\bSkill\b' \
+              && err "$n: body loads a skill but allowed-tools omits Skill"
+            for t in $(echo "$body" | grep -oE 'mcp__[A-Za-z0-9_]+' | sort -u); do
+              echo "$at" | grep -q "$t" || err "$n: body calls $t but allowed-tools omits it"
+            done
+          done
+          for f in agents/*.md; do n=$(basename "$f" .md)
+            tl=$(awk '/^---$/{c++;next} c==1&&/^tools:/{print;exit}' "$f")
+            [ -z "$tl" ] && continue
+            for t in $(awk '/^---$/{c++;next} c>=2' "$f" | grep -oE 'mcp__[A-Za-z0-9_]+' | sort -u); do
+              echo "$tl" | grep -q "$t" || err "$n: prompt requires $t but tools: omits it (plugin ships no such MCP)"
+            done
+            # AskUserQuestion ไม่รองรับใน subagent ที่ spawn ผ่าน Task (code.claude.com/docs/en/agent-sdk/user-input)
+            # -> agent file ห้ามประกาศใน tools: และห้ามสั่ง subagent เรียกเอง
+            echo "$tl" | grep -q 'AskUserQuestion' \
+              && err "$n: tools: declares AskUserQuestion -- subagents cannot call it; ให้ return question bundle แล้วให้ command/main session เปิด popup"
+            awk '/^---$/{c++;next} c>=2' "$f" | grep -qE '(ใช้|เรียก|Use) *`?AskUserQuestion' \
+              && err "$n: prompt tells the subagent to call AskUserQuestion -- main-session only"
+          done
+          # skill/reference ที่สั่งให้ agent ใช้ tool -> agent ที่ preload/โหลดมันต้องมีสิทธิ์
+          # (blocker: smart-coop สั่ง Oliver ใช้ AskUserQuestion ขณะที่ tools: ของ Oliver ไม่มี)
+          while IFS= read -r ref; do
+            grep -q 'AskUserQuestion' "$ref" || continue
+            # skill/reference ที่พูดถึง AskUserQuestion ต้องระบุชัดว่าเป็น main session
+            grep -q 'main session' "$ref" \
+              || err "$ref mentions AskUserQuestion without saying it is main-session only (subagents cannot call it)"
+            owner=$(grep -oiE '(Oliver|Bella|Patrick|Sara|Aaron|Dave|Chris|Quinn|Uma)' "$ref" | head -1 | tr 'A-Z' 'a-z')
+            case "$owner" in
+              oliver) af=agents/orchestrator.md ;; bella) af=agents/business-analyst.md ;;
+              patrick) af=agents/product-manager.md ;; sara) af=agents/solution-architect.md ;;
+              aaron) af=agents/devops-engineer.md ;; dave) af=agents/developer.md ;;
+              chris) af=agents/code-reviewer.md ;; quinn) af=agents/qa-engineer.md ;;
+              uma) af=agents/ux-ui-designer.md ;; *) continue ;;
+            esac
+            :  # owner map เก็บไว้เพื่อรายงานบริบท; การบังคับอยู่ที่กฎ main-session ข้างบน
+          done < <(find skills -name '*.md' -not -path '*/deprecated/*' -not -path '*/in-progress/*')
+          [ $fail -eq 0 ] && ok "every referenced tool is reachable"
+
+          sec "19. review dispatch graph — axis ที่ checklist ประกาศ ต้องถูกส่งจริง (v3.12)"
+          # blocker: Spec axis เป็น headline ของ 3.12 แต่ kickoff ไม่เคยส่ง agent ไปทำ
+          if [ -f skills/discipline/review-checklist/spec-axis.md ]; then
+            for c in commands/implement.md commands/review.md; do
+              grep -q 'Spec axis' "$c" || err "$c: review-checklist declares a Spec axis but this command never dispatches it"
+            done
+            [ $fail -eq 0 ] && ok "Spec axis dispatched in implement + review"
+          else err "review-checklist lost spec-axis.md"; fi
+
+          sec "20. context budget = agent prompt + preload (v3.12)"
+          # #16 นับเฉพาะ skill -> Oliver/Uma โตได้ไม่จำกัดใน agent file. อันนี้นับรวมของจริง
+          TOTAL_BUDGET=50000   # v3.12.1 ratchet: Oliver 48,856 B
+          for f in agents/*.md; do n=$(basename "$f" .md)
+            line=$(awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "$f")
+            t=$(wc -c < "$f")
+            for s in $(echo "$line" | tr -d '[]",' ); do
+              sf=$(find skills -mindepth 3 -name SKILL.md -path "*/$s/*" | head -1)
+              [ -n "$sf" ] && t=$((t + $(wc -c < "$sf")))
+            done
+            [ "$t" -gt "$TOTAL_BUDGET" ] && err "$n: agent+preload ${t}B > ${TOTAL_BUDGET}B -- trim the agent prompt, not just the skills"
+          done
+          [ $fail -eq 0 ] && ok "agent+preload within budget"
+
+          sec "21. enforcement map — source of truth ของทุกกฎยัง resolve ได้ (v3.13 WS1)"
+          if [ -f .enforcement-map.json ]; then
+            while IFS= read -r p; do
+              case "$p" in *"*"*) ls $p >/dev/null 2>&1 || err "enforcement-map: glob '$p' matches nothing" ;;
+                            *) [ -e "$p" ] || err "enforcement-map: source of truth '$p' missing" ;; esac
+            done < <(jq -r '.rules[].source_of_truth' .enforcement-map.json)
+            n=$(jq '.rules|length' .enforcement-map.json)
+            [ "$n" -ge 15 ] || err "enforcement-map: only $n rules -- inventory looks incomplete"
+            [ $fail -eq 0 ] && ok "enforcement map resolves ($n rules)"
+          else ok "no .enforcement-map.json (skipped)"; fi
 
           echo
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi

@@ -2,9 +2,8 @@
 name: web-q
 description: |
   [WHAT] Web quality discipline — Core Web Vitals (LCP/INP/CLS) + Lighthouse + SEO + structured data + CSP + security headers + measured threshold/budget.
-  [AUDIENCE] Uma (Phase 1b AC + 3a Lighthouse) + Dave (impl) + Quinn (Phase 3b CI gate) + Aaron + Sentinel (security headers).
-  [WHEN] Public-facing frontend project; Phase 1b acceptance criteria; Phase 3a measure; Phase 3b CI gate; ก่อน production launch.
-  [TRIGGER] /shode-house:web-q, "Core Web Vitals", "LCP", "INP", "CLS", "Lighthouse", "SEO", "structured data", "security headers", "page speed", "web audit", "performance budget".
+  [WHEN] Public-facing frontend project.
+  [TRIGGER] /shode-house:web-q, "Core Web Vitals", "LCP", "INP", "CLS", "Lighthouse".
 ---
 
 # Web-Q (Web Quality discipline — CWV + SEO + Sec headers)

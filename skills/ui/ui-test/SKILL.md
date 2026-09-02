@@ -2,9 +2,8 @@
 name: ui-test
 description: |
   [WHAT] E2E + visual regression + a11y (axe) + mobile/responsive UI automation — บังคับ stable selector (`data-testid`).
-  [AUDIENCE] Quinn (E2E + a11y) + Uma (visual regression spec) + Dave (test ID hooks).
-  [WHEN] Phase 3a UI done; Phase 3b verify; ก่อน frontend deploy; หลัง design system change.
-  [TRIGGER] /shode-house:ui-test, "test UI", "E2E", "Playwright", "Cypress", "visual regression", "accessibility test", "axe", "Storybook test", "ทดสอบหน้าเว็บ", "ทดสอบแอป", "UI automation".
+  [WHEN] Phase 3a UI done.
+  [TRIGGER] /shode-house:ui-test, "test UI", "E2E", "Playwright", "Cypress", "visual regression".
 ---
 
 # UI Test (E2E + Visual + a11y automation)
@@ -42,9 +41,34 @@ description: |
 |  | Percy | cross-browser |
 |  | BackstopJS | self-hosted |
 |  | Playwright snapshot | inline (cheap) |
-| **a11y** | **axe-core** (Playwright/Storybook addon) | WCAG 2.1/2.2 AA |
+| **a11y** | **axe-core** (Playwright/Storybook addon) | WCAG 2.1 AA (auto) — 2.2 ดู § a11y coverage |
 |  | Lighthouse a11y | full audit |
 |  | Pa11y | CLI |
+
+## a11y coverage — axe จับได้แค่ไหน (🔴)
+
+axe-core auto-detect ครอบ **WCAG 2.1 AA เป็นหลัก** — ประมาณ 30-40% ของ success criteria ทั้งหมด และ **แทบไม่ครอบ 2.2 เลย**. "axe 0 violations" ≠ "WCAG 2.2 AA ผ่าน" — เขียนแบบนั้นคือ Anti-Puppet claim
+
+| ชั้น | ครอบ | ใครรับผิดชอบ |
+|---|---|---|
+| axe-core ใน CI | contrast, alt, label, ARIA misuse, heading order, landmark | Quinn (gate) |
+| Playwright assertion เขียนเอง | 2.4.11 focus not obscured · 2.5.8 target size ≥24×24 CSS px | Quinn (เขียน) + Dave (test id) |
+| Manual walkthrough + paste evidence | 2.5.7 dragging alternative · 3.3.7 redundant entry · 3.3.8 accessible auth (paste + password manager) | Uma (Phase 3a) |
+
+ดูรายละเอียด criterion + วิธีตรวจต่อข้อที่ `agents/ux-ui-designer.md` § 5 Accessibility
+
+## 🌐 Visual evidence ladder
+
+**Visual/interaction evidence — บังคับก่อน PASS (v3.12: บังคับ *หลักฐาน* ไม่ใช่บังคับ *tool ตัวใดตัวหนึ่ง*)**
+
+plugin **ไม่ได้จัดหา** browser MCP (`.mcp.json` มีแค่ Context7) และชื่อ tool ต่างกันตาม config ของผู้ใช้ → บังคับ MCP ตรง ๆ = ออกแบบให้ block ด้วยของที่ agent ใช้ไม่ได้
+
+ไล่จากบนลงล่าง หยุดที่ตัวแรกที่ใช้ได้จริง:
+1. **Playwright script ผ่าน `Bash`** (พึ่งพาได้เสมอ — `Bash` อยู่ใน `tools:` ของ Chris/Quinn อยู่แล้ว): navigate → screenshot → `console` + network log → paste path + บรรทัดที่มี signal
+2. **browser MCP** ถ้า session นั้นมีจริง (เช็คว่ามี tool ชื่อขึ้นต้น `mcp__` ที่เป็น browser ก่อนเรียก — ห้าม hardcode ชื่อ)
+3. ทำทั้งสองทางไม่ได้ → **verdict = BLOCKED ไม่ใช่ PASS** + ระบุว่าขาด browser automation แล้วขอจาก user
+
+หลักฐานที่ต้องได้เหมือนกันทุกทาง: **screenshot path จริง · console error (หรือยืนยันว่าไม่มี) · network status ของ request หลัก**
 
 ## Selector Strategy (🔴)
 

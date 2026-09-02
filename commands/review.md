@@ -1,6 +1,6 @@
 ---
 description: "[shode-house] Code review + security (Chris + Quinn + Domain) — รับ path, Jira ID, หรือ bug description (+ screenshot)"
-allowed-tools: Task, Read, Grep, Glob, Bash, mcp__atlassian__getJiraIssue, mcp__atlassian__searchJiraIssuesUsingJql, mcp__atlassian__getJiraIssueRemoteIssueLinks
+allowed-tools: Task, Read, Grep, Glob, Bash, Skill, mcp__atlassian__getJiraIssue, mcp__atlassian__searchJiraIssuesUsingJql, mcp__atlassian__getJiraIssueRemoteIssueLinks, mcp__atlassian__addCommentToJiraIssue
 argument-hint: "[path | KJERP-402 | คำอธิบายบั๊กภาษาไทย (+ screenshot ได้) | --debt]"
 ---
 
@@ -77,24 +77,48 @@ Review ตาม path ตรงๆ
 
 "`$ARGUMENTS` ตีความได้หลายแบบ — หมาย Jira key, path, หรือคำอธิบายบั๊ก?"
 
-## Step 1 — Invoke review-checklist skill (🔴 v3.1 DRY)
+## Step 0.5 — Scope resolution (pin ก่อน fan-out เสมอ)
+
+pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง command ที่รันได้จริงไปกับ delegation:
+      ```bash
+      git rev-parse <fixed-point>            # ref ใช้ได้จริงไหม (commit/branch/tag/main/HEAD~5)
+      git diff <fixed-point>...HEAD          # 🔴 three-dot = เทียบกับ merge-base
+      git log <fixed-point>..HEAD --oneline  # commit list ส่งเข้า sub-agent
+      ```
+      **user ไม่ระบุ → ไล่ fallback ตามลำดับ อย่าถามทันที** (`/review path` และ `/review <bug>` เป็น contract ที่โฆษณาไว้ การบังคับ git fixed point ทุกกรณีทำให้ path ปกติหยุดเปล่า ๆ):
+      1. มี branch ต้นทาง (`git rev-parse --abbrev-ref @{u}` หรือ `main`/`master`) → ใช้เป็น fixed point
+      2. ไม่มี upstream แต่มี staged/working change → review **`git diff --cached`** แล้ว **`git diff`** (ระบุใน report ว่าขอบเขตคือ uncommitted)
+      3. **ไม่ใช่ repo git / เป็นไฟล์เดี่ยว / เป็น snippet-screenshot ที่ user แปะมา** → ขอบเขต = **ไฟล์/เนื้อหานั้นทั้งชิ้น** (บันทึกใน report ว่า "no diff range — full-file review")
+      4. ทุกทางไม่ได้ผลและงานเป็นชนิดที่ต้องมี diff จริง ๆ → ค่อยถาม
+      ref ที่ user ระบุมาแล้วพัง หรือ diff ว่างทั้งที่ควรมี → **fail ตรงนี้** ไม่ใช่ไปตายใน sub-agent
+
+ผลลัพธ์ที่ต้องได้ก่อนไป Step 1: **diff command 1 บรรทัดที่รันแล้วไม่ว่าง** + ประโยคเดียวบอกขอบเขตที่จะเขียนใน report
+
+## Step 1 — Invoke review-checklist skill
 
 > v3.1: review checklist รวบศูนย์ใน `skills/discipline/review-checklist/SKILL.md`. Command นี้ = router + context-aware invoke
 
 ```bash
-[Oliver|review|target:$ARGUMENTS] kickoff
+[Oliver|review|target:$ARGUMENTS] kickoff   # pin fixed point ก่อน — see review-checklist § Required inputs
+# ── แกน Standards
 - Chris   → 7-dim — see review-checklist § Chris (Correctness/Security/SOLID/Perf/Maintain/Test/Observ)
 - Quinn   → Security scan section (SAST/SCA/secret/OWASP manual) — see review-checklist § Quinn
 - Sentinel (conditional, if security trigger detected) — see review-checklist § Sentinel
 - Domain (conditional, keyword trigger) — see review-checklist § Domain Expert
+# ── แกน Spec (ต้อง dispatch จริง)
+- Bella   → Spec axis — see `review-checklist/spec-axis.md`
+            spec source ตามลำดับ: Jira/bd description → path ที่ user ส่ง → outputs/SPEC-*.md → ถาม user
+            Pattern C (bug description) ที่ไม่มี spec → รายงาน "no spec available" แล้วรันเฉพาะ Standards
 ```
+
+🔴 aggregate แยกหัวข้อ `## Standards` / `## Spec` — **ห้าม merge/rerank ข้ามแกน**
 
 **Context-aware focus**:
 - Pattern A (Jira) → cross-check code vs AC ใน description; bd link `bd create -t review-finding --links=$BUG_ID`
 - Pattern C (bug description) → focus 7-dim เฉพาะ "เส้นทาง bug" ก่อน (calc logic / edge / expected vs actual); มิติอื่นเป็น secondary
 - Pattern B (path) → full 7-dim + integration matrix
 
-## Step 2 — Consolidated Report (🔴 v3.1)
+## Step 2 — Consolidated Report (🔴)
 
 Format + storage rules + severity grading + loop routing — **ทั้งหมดอยู่ใน `review-checklist` skill**:
 - § Severity Grading (🔴/🟠/🟡/🔵/💡)
