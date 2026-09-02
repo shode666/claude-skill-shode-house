@@ -17,3 +17,5 @@ ziq*
 # Plugin build artifacts — ship via GitHub Releases / make pack, keep only current
 shode-house-v*.plugin
 !shode-house-v3.7.0.plugin
+
+/eval/prompts/resolved/
