@@ -189,9 +189,9 @@ fi
 
 # ── prompt ที่ resolve sha จริงแล้ว ────────────────────────────────────
 mkdir -p "$PLUGIN_REPO/eval/prompts/resolved"
-sed "s/abc1234/$SHA_A/" "$PLUGIN_REPO/eval/prompts/phase3b-base.md" \
+sed "s/abc1234/$BASE_SHA/" "$PLUGIN_REPO/eval/prompts/phase3b-base.md" \
   > "$PLUGIN_REPO/eval/prompts/resolved/phase3b-base.md"
-sed "s/def5678/$SHA_B/" "$PLUGIN_REPO/eval/prompts/phase3b-sensitive.md" \
+sed "s/def5678/$SHA_A/" "$PLUGIN_REPO/eval/prompts/phase3b-sensitive.md" \
   > "$PLUGIN_REPO/eval/prompts/resolved/phase3b-sensitive.md"
 for s in implement-backend implement-ui resume-run consult-single design-system-backend \
          design-system-fe-domain diagnose-fast diagnose-full map-mode; do
@@ -202,8 +202,8 @@ cat <<EOF
 
 ═══ fixture พร้อมแล้ว: $DEST
   base commit      : $BASE_SHA
-  phase3b-base     : $SHA_A   (src/notification.py)
-  phase3b-sensitive: $SHA_B   (src/ledger.py)
+  phase3b-base     : diff จาก $BASE_SHA -> ได้ notification retry (+ ledger ที่ตามมา)
+  phase3b-sensitive: diff จาก $SHA_A     -> ได้ ledger + card masking
   spec bd-101      : outputs/SPEC-bd-101.md
   Uma artifact 102 : outputs/bd-102/01-ux-ui-designer-phase-1b.md
   run stamp 103    : outputs/bd-103/00-run-stamp.md
