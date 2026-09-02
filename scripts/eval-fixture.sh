@@ -6,10 +6,18 @@ set -euo pipefail
 DEST="${1:-$HOME/workspace/shode-eval}"
 PLUGIN_REPO="$(cd "$(dirname "$0")/.." && pwd)"
 
-[ -e "$DEST" ] && { echo "!! $DEST มีอยู่แล้ว -- ลบก่อนหรือระบุ path อื่น"; exit 1; }
+# ยอมให้ dir ที่มีอยู่ได้ถ้าว่าง (หรือมีแค่ .git ที่ยังไม่มี commit) -- บางที่ลบ dir ไม่ได้
+if [ -e "$DEST" ]; then
+  extra=$(ls -A "$DEST" 2>/dev/null | grep -v '^\.git$' | grep -v '^outputs$' || true)
+  if [ -n "$extra" ]; then
+    echo "!! $DEST มีไฟล์อยู่แล้ว -- ใช้ path ว่าง ๆ แทน"; exit 1
+  fi
+  echo "-- ใช้ $DEST ที่มีอยู่ (ว่าง)"
+fi
 mkdir -p "$DEST"/{src,outputs,tests}
 cd "$DEST"
-git init -q && git config user.email eval@local && git config user.name eval
+git rev-parse --git-dir >/dev/null 2>&1 || git init -q
+git config user.email eval@local && git config user.name eval
 
 # ── commit 0: baseline ────────────────────────────────────────────────
 cat > README.md <<'EOF'

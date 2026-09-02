@@ -1,0 +1,26 @@
+{
+  "run": "3.12.1",
+  "records": 1,
+  "by_agent": {
+    "solution-architect": {
+      "input_tokens": 10,
+      "cache_read_tokens": 60836,
+      "cache_write_tokens": 100598,
+      "output_tokens": 545,
+      "invocations": 1
+    }
+  },
+  "totals": {
+    "input_tokens": 10,
+    "cache_read_tokens": 60836,
+    "cache_write_tokens": 100598,
+    "output_tokens": 545,
+    "total_effective_tokens": 101153
+  },
+  "tool": {
+    "tool_calls": 0,
+    "tool_output_chars": 0,
+    "files_read": 0,
+    "duplicate_files_read": 0
+  }
+}
