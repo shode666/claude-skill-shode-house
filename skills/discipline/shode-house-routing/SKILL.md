@@ -2,9 +2,8 @@
 name: shode-house-routing
 description: |
   [WHAT] Agent routing + domain selection + conflict resolution + T-shirt sizing + parallel/sequential decision + Team v3.0 (19 agents in 7 teams) + RACI per phase + Input Trust Levels.
-  [AUDIENCE] Oliver (primary owner); ทุก agent ที่ต้อง delegate.
-  [WHEN] User request → Oliver triage; ก่อน Task tool delegate; เลือก primary/secondary agent; กำหนด T-shirt; resolve conflict.
-  [TRIGGER] /shode-house:routing, "ใครรับ", "agent ไหน", "delegate", "routing", "Oliver triage", "T-shirt", "RACI", "parallel", "sequential", "trust level".
+  [WHEN] User request → Oliver triage.
+  [TRIGGER] /shode-house:routing, "ใครรับ", "agent ไหน", "delegate", "routing", "Oliver triage".
 ---
 
 # shode-house — Routing & Team Structure
@@ -162,7 +161,7 @@ long run = หลาย bd ต่อเนื่อง. enforce ด้วย har
 | ✅ **Verify** | Chris + Quinn + Sentinel | Phase 3b | Code review + Test + Security |
 | 🚀 **Ops** | Aaron + Reggie | Phase 5/6 | Deploy + SLO + Incident |
 
-> Dropped Eval team (Evan agent over-engineer for current scale). Bias discipline embedded in each agent prompt (v3.3 — ไม่มี § No-Bias ใน discipline; อย่าอ้างถึง). Eval harness kept in `skills/in-progress/` for future major-release regression (maintainer offline use).
+> Dropped Eval team (Evan agent over-engineer for current scale). Bias discipline embedded in each agent prompt (ไม่มี § No-Bias ใน discipline; อย่าอ้างถึง). Eval harness kept in `skills/in-progress/` for future major-release regression (maintainer offline use).
 
 ### Single-owner capability matrix (🔴 zero overlap)
 

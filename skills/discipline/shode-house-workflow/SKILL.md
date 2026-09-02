@@ -2,9 +2,8 @@
 name: shode-house-workflow
 description: |
   [WHAT] Workflow discipline — Phase Contract (Smart Coop) + lifecycle hooks + approval gates + worktree isolation + task tracking + token-saving runtime rules.
-  [AUDIENCE] Oliver (sole owner); ทุก agent (Phase Contract compliance).
-  [WHEN] Pipeline kickoff; phase transition; pre-deploy multi-sig; ทุก hook event.
-  [TRIGGER] /shode-house:workflow, "Phase Contract", "Smart Coop", "lifecycle hook", "approval gate", "worktree", "task tracking", "token-saving", "bd issue".
+  [WHEN] Pipeline kickoff.
+  [TRIGGER] /shode-house:workflow, "Phase Contract", "Smart Coop", "lifecycle hook", "approval gate", "worktree".
 ---
 
 # shode-house — Workflow Discipline
@@ -55,7 +54,7 @@ bd close <id> --reason "<sha> <test>"  &&  bd show <id>   # 🔴 M8 close-on-don
 
 ---
 
-## 🔒 Run Durability (🆕 v3.12 — 3 กฎที่ session ตายแล้วยังกู้ได้)
+## 🔒 Run Durability (3 กฎที่ session ตายแล้วยังกู้ได้)
 
 > Session ของ agent **ไม่ durable** — process ตาย/context เต็ม/user ปิด = state หายหมด. เรากู้ด้วย `bd` ที่มีอยู่แล้ว ไม่ต้องมี engine
 > Runtime guarantee ระดับ target project (journal/idempotency/replay) = **Aaron generate** ตาม `references/patterns/durable-agent-runtime.md` — ห้าม ship engine ใน plugin
@@ -89,7 +88,7 @@ bd update <id> --notes "approved: gate=<gate> by=<who> at=<ISO8601> artifact=<pa
 
 ### Phase Contract — 🔴 v3.3 PEV Loop per bd (Oliver enforce)
 
-**Single loop: PEV (Plan → Execute → Verify → Triage) per bd** (🔴 v3.3 — sprint outer loop removed)
+**Single loop: PEV (Plan → Execute → Verify → Triage) per bd** (sprint outer loop removed)
 
 > ก่อน v3.3 มี outer sprint loop + inner per-issue loop. v3.3 = **single PEV loop per bd** — agent ส่งงาน task-complete, ไม่ time-bound. ห้าม man-day negotiation (per shode-house-discipline). Deploy = continuous per bd ready, ไม่ batched sprint-end.
 

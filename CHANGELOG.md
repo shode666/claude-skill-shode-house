@@ -3,32 +3,33 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
-## [Unreleased] — v3.13 plan: token footprint (จาก independent token scan)
+## [3.12.1] — token diet: full fan-out 702,788 → 587,398 B (−16.4%) — 2026-09-02
 
-> v3.12 **หยุดไม่ให้โตต่อ** (CI #16 baseline ratchet + #20 agent+preload cap) แต่ยังไม่ได้ **ลด**
-> เป้าหมาย: full fan-out **702,788 B → 560,000–600,000 B (−15..20%)** โดยไม่ตัด safety / evidence / Spec axis / approval gates
+> **patch ไม่ใช่ minor**: ลดขนาด context อย่างเดียว ไม่เปลี่ยน behavior · ไม่ตัด safety / evidence / Spec axis / approval gates ข้อใดเลย
+> CI 21 checks เขียวทุกขั้นระหว่างทาง
 
-| ชั้น | ขนาดปัจจุบัน |
-|---|---:|
-| Agent prompts 19 ตัว | 241,147 B |
-| Agent + preload (full fan-out) | **702,788 B** |
-| Skill discovery frontmatter 22 ตัว | 15,658 B |
-| Commands | 46,694 B |
-| Runtime changelog/history wording | ~49,437 B |
+| ชั้น | ก่อน | หลัง |
+|---|---:|---:|
+| **Full fan-out (agent + preload)** | 702,788 B | **587,398 B** (−115,390) |
+| Agent prompts 19 ตัว | 241,147 B | 218,061 B |
+| `shode-house-deliverable` (×7 agent) | 13,844 B | **6,453 B** (−51,737 B ที่ fan-out) |
+| `review-checklist` (×3 reviewer) | 14,637 B | **9,547 B** |
+| Skill discovery frontmatter (22) | 15,658 B | **9,398 B** |
+| Oliver (body) | 29,283 B | **19,214 B** |
+| Uma (body) | 26,295 B | **13,214 B** |
 
-**ลำดับที่จะทำ (เรียงตามความเสี่ยงจากต่ำไปสูง)**
+**วิธี** — ทุกอย่างเป็นการ *ย้ายไป lazy reference* ไม่ใช่การลบกฎ:
 
-1. **ตัด runtime changelog/history wording** (~49 KB, ตัดได้ 60-70% → ลด 30-35 KB) — บรรทัดแบบ "ย้ายมาจาก skill X เพราะก่อนหน้านี้ 18 agent แบก…" มีประโยชน์ใน CHANGELOG ไม่ใช่ใน prompt. หนักสุด: Oliver 5,891 B · Uma 2,974 B · Dave 2,082 B · domain agent ตัวละ ~1.8 KB · `/init` 1,679 B
-2. **`review-checklist` → thin orchestration core** (14,683 × 3 = 44,049 B; เป้าลด 25-32 KB ต่อ Phase 3b) — เหลือ axes + severity + aggregation + routing; Chris/Quinn ใช้ checklist ใน agent body ที่มีอยู่แล้ว (ตอนนี้ซ้ำ); Sentinel โหลด `secure`; Spec reviewer รับเฉพาะ spec-axis reference
-3. **`shode-house-deliverable` แยก core/lazy** (13,867 × 7 = 97,069 B; เป้าลด 60-75 KB) — `deliverable-core` 3-4 KB (Anti-Puppet + output contract) ส่วน DoD/ADR/UX/template → lazy-load ตอนจะ produce/finalize จริง
-4. **ย่อ domain evidence + disclaimer** (~4,345 B ซ้ำ × 7; เป้าลด 15-20 KB) — เหลือ citation 1 positive + 1 negative, ตัด historical notes, รวม disclaimer + protocol ให้เหลือ 1.5-2 KB
-5. **ย่อ skill description** (15,658 → 7-9 KB) — `[WHAT] 1 ประโยค · [WHEN] trigger 5-8 คำ · [NOT] ขอบเขตที่ไม่รับ`; ตัด audience list ยาวและ trigger synonym ซ้ำ (ชื่อ skill + routing ช่วยอยู่แล้ว)
-6. **`diagnose` ladder → lazy** (3,135 B) — 10 วิธีสร้าง loop เป็น reference ไม่ใช่ invariant → `diagnose/loop-ladder.md` โหลดเมื่อวิธี 1-3 ไม่สำเร็จ
-7. **แยก runbook ของ Oliver/Uma** — Oliver (29,507 B) เหลือ ingress/routing/state/approval; engagement template + historical phase + frontier detail + Map mode → reference. Uma (26,510 B) → core + `phase-1b.md` + `phase-3a.md`
-8. ทุกขั้นจบ → **อัปเดต `.preload-budget` ลงอย่างเดียว** (ratchet)
+1. **runtime changelog wording** — ตัด provenance/version tail ออกจาก 43 ไฟล์ (−5,724 B). *หมายเหตุ*: scan ประเมินไว้ ~49 KB แต่ส่วนใหญ่เป็นบรรทัดที่ **มีเลขเวอร์ชันแต่เนื้อในเป็นกฎปัจจุบัน** — ตัดจริงได้เท่านี้ ที่เหลือต้องแยกโครงสร้าง
+2. **`review-checklist` → orchestration core** — Chris 7-dim (3,057 B) และ Quinn matrix (1,142 B) **ซ้ำกับ agent body ของเจ้าตัวอยู่แล้ว** จึงเหลือแต่ตารางแกน + severity + aggregation; Spec axis → `spec-axis.md` (Chris/Quinn/Sentinel ไม่ได้ทำแกนนี้แต่แบกไว้ ×3)
+3. **`shode-house-deliverable` → core + 3 reference** — เหลือ Anti-Puppet ที่ต้องอยู่ในหัวตลอด; `output-contract.md` · `definition-of-done.md` · `adr.md` โหลดตอนจะ produce/finalize
+4. **domain agents** — citation เหลือ 1 positive + 1 negative, ตัด historical note (−1,715 B รวม 7 ตัว)
+5. **skill frontmatter** — ตัด `[AUDIENCE]`, `[TRIGGER]` เหลือ 6 คำ, `[WHEN]` เหลือประโยคแรก (15,658 → 9,398 B)
+6. **`diagnose` loop ladder** — SKILL.md เหลือ 3 วิธีแรกที่ครอบเกือบทุกเคส; อีก 7 วิธี → `loop-ladder.md`
+7. **แยก runbook** — `references/runbooks/uma-phase-1b.md` · `uma-phase-3a.md` · `oliver-engagement.md` (Engagement template + Phase 0/1c/6/7 + multi-sig)
+8. **ratchet ลงตามจริง** — `.preload-budget` อัปเดตทุกค่า · CI #20 `TOTAL_BUDGET` 62,000 → **50,000 B**
 
-**Workflow amplification วันนี้** (เฉพาะ prompt + preload ยังไม่รวม spec/diff/tool schema): Phase 1a 84,705 B · Phase 1b + Domain 82,565 B · **Phase 3b + Sentinel + Domain 193,330 B** · Sensitive UI full **292,247 B**
-> จุดแพงสุดคือ Phase 3b เพราะ reviewer ทุกตัวแบก evidence + checklist ซ้ำ **แต่ห้ามรวม Spec axis กลับเพื่อประหยัด token** — ความเป็นอิสระของสองแกนคือเหตุผลที่มันมีอยู่; ให้ลด prompt ที่แต่ละแกนแบกแทน
+**Workflow amplification หลังลด** (เฉพาะ prompt + preload): Phase 3b + Sentinel + Domain **193,330 → ~150,000 B** · Sensitive UI full **292,247 → ~235,000 B**
 
 ---
 

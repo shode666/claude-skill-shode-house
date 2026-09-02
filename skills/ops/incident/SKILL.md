@@ -2,9 +2,8 @@
 name: incident
 description: |
   [WHAT] Production incident response + runbook + on-call rotation + blameless postmortem + 5-why + action items.
-  [AUDIENCE] Reggie (lead IC) + Oliver (escalation routing) + Aaron (infra mitigation) + Sentinel (security incident).
-  [WHEN] หลัง alert ดัง / customer report; ก่อน mitigation; ห้ามใช้ถ้าไม่ใช่ production outage (ใช้ diagnose แทน).
-  [TRIGGER] /shode-house:incident, "พังใน prod", "service down", "alert ดัง", "P0", "P1", "outage", "rollback", "war room", "incident commander", "postmortem".
+  [WHEN] หลัง alert ดัง / customer report.
+  [TRIGGER] /shode-house:incident, "พังใน prod", "service down", "alert ดัง", "P0", "P1".
 ---
 
 # Incident (response + runbook + postmortem)
@@ -256,5 +255,3 @@ POSTMORTEM scheduled within 5 days
 | 2 | Test for regression | Quinn | YYYY-MM-DD | bd:N |
 | 3 | Update runbook | Aaron | YYYY-MM-DD | bd:N |
 ```
-
-> ย้ายมาจาก `shode-house-deliverable` v3.11 (เคย preload 8 agent ทั้งที่ใช้เฉพาะตอน incident)

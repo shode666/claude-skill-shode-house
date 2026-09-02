@@ -269,16 +269,16 @@ jobs:
 
           sec "19. review dispatch graph — axis ที่ checklist ประกาศ ต้องถูกส่งจริง (v3.12)"
           # blocker: Spec axis เป็น headline ของ 3.12 แต่ kickoff ไม่เคยส่ง agent ไปทำ
-          if grep -q '## 🎯 Spec Axis' skills/discipline/review-checklist/SKILL.md; then
+          if [ -f skills/discipline/review-checklist/spec-axis.md ]; then
             for c in commands/implement.md commands/review.md; do
               grep -q 'Spec axis' "$c" || err "$c: review-checklist declares a Spec axis but this command never dispatches it"
             done
             [ $fail -eq 0 ] && ok "Spec axis dispatched in implement + review"
-          else err "review-checklist lost its Spec Axis section"; fi
+          else err "review-checklist lost spec-axis.md"; fi
 
           sec "20. context budget = agent prompt + preload (v3.12)"
           # #16 นับเฉพาะ skill -> Oliver/Uma โตได้ไม่จำกัดใน agent file. อันนี้นับรวมของจริง
-          TOTAL_BUDGET=62000
+          TOTAL_BUDGET=50000   # v3.12.1 ratchet: Oliver 48,856 B
           for f in agents/*.md; do n=$(basename "$f" .md)
             line=$(awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "$f")
             t=$(wc -c < "$f")

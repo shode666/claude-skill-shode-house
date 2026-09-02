@@ -81,7 +81,7 @@ Agent maintain state ใน `outputs/<bd-id>/state.json` via Read/Write tools.
 
 แต่ละ phase มี pre/post hook สำหรับ automated check:
 
-### 📋 Phase 0 scope-clarification flow (🔴 v3.3 — when SME flags ambiguity)
+### 📋 Phase 0 scope-clarification flow (when SME flags ambiguity)
 
 When Domain SME (Felix/Iris/Sam/Tara/Elena/Brooke/Emma) flags scope gap in Phase 0:
 1. Patrick state CONDITIONAL PASS (not full PASS) — list clarification questions verbatim from SME
@@ -160,7 +160,7 @@ Use case: parallel Dave, hotfix-while-feature, A/B. **Batch backlog (N item อ�
 
 ---
 
-## 🧵 Tracker options (ย้ายมาจาก SKILL.md v3.12 — ใช้ตอนตั้ง engagement เท่านั้น)
+## 🧵 Tracker options
 
 **Single source of truth** สำหรับ status/dep — เลือก tracker ตาม project (config ใน Engagement Plan):
 

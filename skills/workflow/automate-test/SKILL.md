@@ -2,9 +2,8 @@
 name: automate-test
 description: |
   [WHAT] ตั้ง test pyramid 70/20/10 (unit/integration/E2E) + CI gate + threshold + contract/load test strategy.
-  [AUDIENCE] Quinn (design + integration/E2E) + Chris (unit) + Aaron (CI wiring).
-  [WHEN] Project bootstrap (Phase 0/setup); หลัง dev-gate; ก่อนเปิด CI; ตอน sprint plan test budget.
-  [TRIGGER] /shode-house:automate-test, "automate test", "ตั้ง test pyramid", "CI test", "test gate", "coverage gate", "contract test", "load test", "test strategy".
+  [WHEN] Project bootstrap (Phase 0/setup).
+  [TRIGGER] /shode-house:automate-test, "automate test", "ตั้ง test pyramid", "CI test", "test gate", "coverage gate".
 ---
 
 # Automate Test (CI test gate + pyramid)

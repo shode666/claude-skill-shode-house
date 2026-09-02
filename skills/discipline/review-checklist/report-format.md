@@ -5,7 +5,7 @@ description: Reference (lazy-load) ของ `review-checklist` — REVIEW repor
 
 # REVIEW Report Format + Loop Routing (reference)
 
-> แยกจาก `SKILL.md` v3.12 — เป็น output template ที่ใช้ตอนท้ายของ review เท่านั้น ไม่ต้องอยู่ใน preload
+> แยกจาก `SKILL.md` เป็น output template ที่ใช้ตอนท้ายของ review เท่านั้น ไม่ต้องอยู่ใน preload
 > `shode-house-evidence` ชี้มาที่นี่ (single source of truth ของ REVIEW format)
 
 ## REVIEW Report Format (bd-native primary, markdown fallback)

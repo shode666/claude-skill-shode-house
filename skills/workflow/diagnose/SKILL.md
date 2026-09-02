@@ -2,9 +2,8 @@
 name: diagnose
 description: |
   [WHAT] Structured debugging methodology — บังคับ reproduce → isolate → fix → prevent ก่อน "ลอง fix"; ห้าม patch โดยไม่มี root cause.
-  [AUDIENCE] Chris (review) + Quinn (test) + Dave (implement) — เปิดเมื่อมี bug/perf.
-  [WHEN] ทันทีที่ user รายงาน bug; ก่อน propose fix; ก่อน dev-gate; ก่อน incident escalation (ถ้าไม่ใช่ prod outage).
-  [TRIGGER] /shode-house:diagnose, "พัง", "ไม่ทำงาน", "ช้า", "ทำไมถึง", "bug", "error", "debug", "perf issue", "ผิดปกติ", "root cause analysis", "RCA".
+  [WHEN] ทันทีที่ user รายงาน bug.
+  [TRIGGER] /shode-house:diagnose, "พัง", "ไม่ทำงาน", "ช้า", "ทำไมถึง", "bug".
 ---
 
 # Diagnose (structured debugging)
@@ -25,7 +24,7 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 - captured artifact (HAR / log dump / request trace) พก auth header มาด้วยเสมอ → quote **เฉพาะบรรทัดที่มี signal**
 - redact แล้วข้อมูลไม่พอวินิจฉัย → บอก user ตรง ๆ แล้วขอเพิ่ม ห้ามเดาต่อ
 
-## เลือกความเข้มก่อน (🆕 v3.12 — ไม่ใช่ทุก bug คุ้มกับ 5 ขั้น)
+## เลือกความเข้มก่อน (ไม่ใช่ทุก bug คุ้มกับ 5 ขั้น)
 
 | ระดับ | เมื่อไหร่ | ทำอะไร |
 |---|---|---|
@@ -41,17 +40,9 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 มี loop ที่แดงกับ bug ตัวนี้ = เจอสาเหตุแน่ (bisect / test hypothesis / instrument ล้วนกิน loop นี้ทั้งนั้น)
 ไม่มี loop = จ้อง code ให้ตายก็ไม่เจอ → **ทุ่มเวลาตรงนี้มากเป็นพิเศษ ก้าวร้าว สร้างสรรค์ ห้ามยอมแพ้**
 
-**วิธีสร้าง เรียงตามลำดับที่ควรลอง**
-1. **Failing test** ที่ seam ซึ่งเข้าถึง bug (unit / integration / e2e)
-2. **curl / HTTP script** ยิงใส่ dev server
-3. **CLI + fixture input** diff stdout กับ snapshot ที่รู้ว่าถูก
-4. **Headless browser script** (Playwright) ขับ UI + assert DOM/console/network
-5. **Replay captured trace** — เซฟ request/payload/event log จริงลงดิสก์ แล้ว replay ผ่าน code path นั้นแบบโดด ๆ
-6. **Throwaway harness** — ยกระบบส่วนน้อยที่สุด (1 service + mock dep) ให้เรียก code path ของ bug ด้วย function เดียว
-7. **Property / fuzz loop** — bug แบบ "บางทีก็ผิด" → ยิง 1000 input สุ่มแล้วดู failure mode
-8. **Bisect harness** — bug โผล่ระหว่าง 2 สถานะที่รู้ (commit/dataset/version) → automate "boot ที่สถานะ X, เช็ค, ทำซ้ำ" ให้ `git bisect run` ได้
-9. **Differential loop** — input เดียวกันผ่าน version เก่า vs ใหม่ (หรือ 2 config) แล้ว diff output
-10. **HITL script** — ทางเลือกสุดท้าย ถ้าจำเป็นต้องให้คนคลิก ให้เขียน script ขับ *คน* เพื่อให้ loop ยังมีโครงสร้าง
+**วิธีสร้าง — 3 อันแรกครอบเกือบทุกเคส**
+1. **Failing test** ที่ seam ซึ่งเข้าถึง bug · 2. **curl / HTTP script** ยิงใส่ dev server · 3. **CLI + fixture** diff stdout กับ snapshot ที่รู้ว่าถูก
+ทั้งสามไม่ได้ผล → เปิด **`loop-ladder.md`** (ไฟล์ข้าง SKILL.md นี้): headless browser · replay captured trace · throwaway harness · property/fuzz · bisect harness · differential loop · HITL script
 
 **ลับ loop ให้คม** (treat the loop as a product) — ได้ loop แล้วยังไม่พอ:
 - เร็วขึ้นได้ไหม (cache setup, ข้าม init ที่ไม่เกี่ยว, แคบ scope ของ test)

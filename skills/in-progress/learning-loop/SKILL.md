@@ -2,9 +2,8 @@
 name: learning-loop
 description: |
   [WHAT] Self-improving loop (Hermes-inspired) แบบ gated — capture lesson อัตโนมัติ (non-blocking) + distill/gate offline; project-level ต่อเนื่อง, plugin-level เฉพาะ cross-project ผ่าน invariant gate.
-  [AUDIENCE] Oliver (Phase 4 capture trigger); maintainer (offline distill+gate — sole promoter); Patrick (retro consume).
-  [WHEN] Phase 4 Triage (capture, non-blocking); offline cadence (distill+gate); ก่อน promote candidate → plugin bucket. ห้ามรัน distill/gate ใน hot loop.
-  [TRIGGER] /shode-house:learning-loop, "self-improving", "learning loop", "capture lesson", "distill skill", "promote skill", "Hermes loop".
+  [WHEN] Phase 4 Triage (capture, non-blocking).
+  [TRIGGER] /shode-house:learning-loop, "self-improving", "learning loop", "capture lesson", "distill skill", "promote skill".
 ---
 
 # Learning Loop (self-improving — gated, non-blocking)

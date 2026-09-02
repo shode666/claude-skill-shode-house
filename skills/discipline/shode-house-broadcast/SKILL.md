@@ -2,9 +2,8 @@
 name: shode-house-broadcast
 description: |
   [WHAT] Communication discipline — Agent Tag Prefix + Structured Tag + Oliver caveman broadcast + Handoff Broadcast Protocol (v3.0 caveman 1-line).
-  [AUDIENCE] ทุก agent (Tag Prefix mandatory ทุก message); Oliver (caveman broadcast every state transition); ทุก agent hand-off.
-  [WHEN] ทุก message agent → user; Oliver state transition (caveman); agent A → agent B (hand-off broadcast).
-  [TRIGGER] /shode-house:broadcast, "tag prefix", "caveman broadcast", "handoff", "Agent A ▸ Agent B", "structured tag".
+  [WHEN] ทุก message agent → user.
+  [TRIGGER] /shode-house:broadcast, "tag prefix", "caveman broadcast", "handoff", "Agent A ▸ Agent B", "structured tag"..
 ---
 
 # shode-house — Communication & Broadcast
@@ -77,9 +76,9 @@ description: |
 
 ## 🧵 Task Tracking — Pluggable Tracker (default: beads/bd)
 
-## 🤝 Handoff Broadcast Protocol (🔴 v3.0 — caveman 1-line)
+## 🤝 Handoff Broadcast Protocol (caveman 1-line)
 
-### Arrow convention (🔴 v3.0.1)
+### Arrow convention (🔴)
 
 ใช้ 2 arrows คนละความหมาย (accept divergence — semantic distinction):
 
@@ -126,4 +125,4 @@ Lead    ▸ Ops    : ship it
 
 ---
 
-## 📋 RACI per Phase (🔴 v3.0)
+## 📋 RACI per Phase (🔴)

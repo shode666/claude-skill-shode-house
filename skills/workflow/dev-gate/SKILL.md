@@ -2,9 +2,8 @@
 name: dev-gate
 description: |
   [WHAT] บังคับ TDD cycle (red → green → refactor) + quality gate (format/lint/type/complexity/naming/test/doc) ก่อน hand-off production code.
-  [AUDIENCE] Dave (implement) + Chris (verify) — sole owners.
-  [WHEN] Phase 2 implement / refactor / bug-fix; ก่อน push หรือ open PR; หลัง spec ครบจาก Phase 1.
-  [TRIGGER] /shode-house:dev-gate, "TDD", "test first", "red-green-refactor", "clean code", "เน้น quality", "production code", "refactor", "เริ่มเขียน code".
+  [WHEN] Phase 2 implement / refactor / bug-fix.
+  [TRIGGER] /shode-house:dev-gate, "TDD", "test first", "red-green-refactor", "clean code", "เน้น quality".
 ---
 
 # Dev Gate (TDD + Quality Gates) — v3.0 merged
@@ -66,7 +65,7 @@ YAGNI/compression ตัดได้เฉพาะ "ความซับซ้
 > ทุกครั้งที่ตัด (ขั้น 1) หรือใช้ทางลัด → mark ด้วย `shortcut(bd:N):` comment (ดู Gate 3) เพื่อให้ debt harvest เก็บได้
 > เพดานความขี้เกียจ = carve-out ด้านบน (validation/security/a11y/regulation ห้ามตัด)
 
-### 0.5 🎯 Seams — ตกลงก่อนเขียน test (🆕 v3.12)
+### 0.5 🎯 Seams — ตกลงก่อนเขียน test
 
 **seam** = public boundary ที่เราสังเกต behavior ได้โดยไม่เอื้อมเข้าไปข้างใน. test อยู่ที่ seam เท่านั้น ไม่ใช่ที่ internal
 
@@ -102,7 +101,7 @@ def test_calculate_total_with_vat_includes_7_percent():
 ✅ **เหมาะ**: business logic, calc, validation, state machine, parser, algorithm, bug-fix regression
 ❌ **ไม่เหมาะ**: UI prototype, spike, pure framework integration
 
-### 🚫 3 anti-pattern ที่ทำให้ coverage สูงแต่ test ไร้ค่า (🆕 v3.12)
+### 🚫 3 anti-pattern ที่ทำให้ coverage สูงแต่ test ไร้ค่า
 
 - **Implementation-coupled** — mock collaborator ภายใน / test private method / verify ผ่านช่องข้าง (query DB แทนใช้ interface)
   *สัญญาณ*: refactor แล้ว test แตก ทั้งที่ behavior ไม่เปลี่ยน
@@ -116,7 +115,7 @@ def test_calculate_total_with_vat_includes_7_percent():
 
 ## Part 2: Quality Gates (🔴 11 gates — รัน local + pre-commit + CI)
 
-> **เปลี่ยน v3.1.1**: เพิ่ม Gate 0 Architecture self-check (SOLID/cohesion/readable) + เพิ่ม Gate 9 Security Lint. แตก Format เป็น Format / Imports / Remove-Unused เพราะ 3 หมวดใช้ tool ต่างกัน
+> เพิ่ม Gate 0 Architecture self-check (SOLID/cohesion/readable) + เพิ่ม Gate 9 Security Lint. แตก Format เป็น Format / Imports / Remove-Unused เพราะ 3 หมวดใช้ tool ต่างกัน
 
 | # | Gate | Read/Write | ตรวจอะไร | บล็อก hand-off ถ้า fail |
 |---|---|---|---|---|
@@ -132,7 +131,7 @@ def test_calculate_total_with_vat_includes_7_percent():
 | 9 | **Security Lint** | Read (SAST) | injection/secret/insecure dep | 🔴 |
 | 10 | **Doc** | Read (existence) | docstring on public API + "why" comment | 🟠 |
 
-### Gate 0: Architecture self-check (🔴 v3.1.1 added — Dave's judgment ก่อน hand-off)
+### Gate 0: Architecture self-check
 
 > Tool ตรวจ Gate 1-10 ได้ครบ แต่ **SOLID/cohesion/readable ต้องคนตัดสิน**. Dave self-check ก่อน hand-off ลด round-trip กับ Chris
 
@@ -192,13 +191,13 @@ Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
 - Auto-format on save (IDE) + pre-commit hook + CI gate (3 จุด)
 - **ห้าม**: manual format / "ไม่ตรง project standard but readable"
 
-### Gate 2: Organize Imports (🔴 v3.1 split out)
+### Gate 2: Organize Imports
 - Sort + group: stdlib → 3rd-party → local
 - Alpha-sort within group
 - ห้าม wildcard import (`from x import *` / `import *`)
 - ห้าม relative `..` import เกิน 1 level
 
-### Gate 3: Remove Unused (🔴 v3.1 split out)
+### Gate 3: Remove Unused
 - Unused **import** → ลบ (F401 / no-unused-vars)
 - Unused **local variable** → ลบ (F841)
 - Unused **function parameter** → ลบ หรือ prefix `_` ถ้าจำเป็นต้องเก็บ signature
@@ -242,7 +241,7 @@ Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
 - Edge case + error path
 - ห้าม skipped/disabled test ไม่มี bd track
 
-### Gate 9: Security Lint (🔴 v3.1 added)
+### Gate 9: Security Lint
 - SAST per language (ดู matrix Gate 9 column)
 - Secret scan (gitleaks / `git-secrets`) — block commit ที่มี API key / password / cert
 - Dependency audit (`npm audit` / `pip-audit` / `cargo audit`) — block critical/high vulns
@@ -276,7 +275,7 @@ Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
 
 ---
 
-## Pre-Push Checklist (🔴 v3.1.1 — all 11 gates)
+## Pre-Push Checklist (all 11 gates)
 
 ```bash
 # Gate 0 — Architecture self-check (Dave answers each checkbox above ก่อนรัน mechanical gates)

@@ -6,8 +6,14 @@
 
 ออกแบบเน้น: **lean • token-optimized • production-ready • domain-driven • zero-overlap capability • ภาษาไทย**
 
-[![Version](https://img.shields.io/badge/version-3.12.0-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
+[![Version](https://img.shields.io/badge/version-3.12.1-blue.svg)](https://github.com/shode666/claude-skill-shode-house)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+---
+
+## 🆕 v3.12.1 — token diet (patch)
+
+**full fan-out 702,788 → 587,398 B (−16.4%)** โดยไม่ตัด safety / evidence / Spec axis / approval gates — ทุกอย่างเป็นการย้ายไป **lazy reference** ไม่ใช่ลบกฎ: `review-checklist` เหลือ orchestration core (7-dim ของ Chris กับ matrix ของ Quinn ซ้ำกับ agent body อยู่แล้ว) · `deliverable` เหลือ Anti-Puppet + 3 reference · skill frontmatter 15.6 → 9.4 KB · แยก runbook ของ Oliver/Uma · `diagnose` ladder lazy · CI #20 ratchet 62 → 50 KB
 
 ---
 

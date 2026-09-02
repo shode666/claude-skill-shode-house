@@ -2,15 +2,14 @@
 name: decompose
 description: |
   [WHAT] แตกงานก้อนใหญ่ที่ **spec นิ่งแล้ว** เป็น leaf task ที่ลงมือได้ — tracer bullet (ตัดทะลุทุก layer) + blocking edge ประกาศตอนสร้าง + create-then-wire 2 pass + เกณฑ์ "เล็กพอหรือยัง".
-  [AUDIENCE] Bella (story splitting) · Oliver (XL triage → split) · Patrick (roadmap slice) · Sara (interface contract ระหว่าง chunk) · Dave/Quinn (รับ leaf ไปทำ) · `drain` (ready set มาจากที่นี่).
-  [WHEN] หลัง spec/BRD นิ่ง (Phase 1a sign-off); Oliver triage ได้ XL/cross-service; `/design-system` Step 3.5; ก่อนส่งเข้า `drain`; ตอน backlog grooming.
-  [TRIGGER] /shode-house:decompose, "แตกงาน", "แตก epic", "split", "ซอยงาน", "epic", "leaf task", "story splitting", "backlog grooming", "งานใหญ่เกินไป", "XL", "แตกเป็น bd", "vertical slice", "tracer bullet".
+  [WHEN] หลัง spec/BRD นิ่ง (Phase 1a sign-off).
+  [TRIGGER] /shode-house:decompose, "แตกงาน", "แตก epic", "split", "ซอยงาน", "epic".
 ---
 
 # Decompose (epic → leaf task ที่ลงมือได้)
 
 > **Owner**: Bella (จาก user story) + Oliver (จาก XL triage). Co-pilot: Sara (interface contract), Patrick (ลำดับตาม outcome), Quinn (test slice)
-> แก้ปัญหาที่วัดได้: `shode-house-routing` เขียนไว้ว่า **"XL = cross-service/cross-domain → split into smaller bd"** แต่ **ไม่มี step ไหนในทั้ง pipeline ที่ทำ split จริง** — เป็นกฎที่ไม่มีใครรัน (v3.12)
+> แก้ปัญหาที่วัดได้: `shode-house-routing` เขียนไว้ว่า **"XL = cross-service/cross-domain → split into smaller bd"** แต่ **ไม่มี step ไหนในทั้ง pipeline ที่ทำ split จริง** — เป็นกฎที่ไม่มีใครรัน
 
 ## When NOT to use
 

@@ -2,9 +2,8 @@
 name: caveman
 description: |
   [WHAT] Ultra-compressed communication mode — ตัด filler/article/พิธีการ; เก็บเฉพาะ technical accuracy + security/number/code verbatim.
-  [AUDIENCE] Oliver broadcast (default); ทุก agent ตอน long task; user-on-demand.
-  [WHEN] User ขอ explicitly; Oliver broadcast state transition; long loop progress update; ห้ามใช้กับ user ใหม่ที่ยังไม่เข้าใจ context.
-  [TRIGGER] /shode-house:caveman, "caveman", "พูดสั้น", "compress", "compress mode", "สั้นๆ", "ประหยัด token", "terse", "broadcast".
+  [WHEN] User ขอ explicitly.
+  [TRIGGER] /shode-house:caveman, "caveman", "พูดสั้น", "compress", "compress mode", "สั้นๆ".
 ---
 
 # Caveman Mode (compressed style)

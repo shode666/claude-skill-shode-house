@@ -118,7 +118,7 @@ Verdict:
 - Sentinel (conditional, if security trigger) → SAST/SCA/CSP/abuse — see review-checklist § Sentinel
 - Domain (conditional, if code touches sensitive area) → see review-checklist § Domain Expert
 # ── แกน Spec (code ทำตรงกับที่ spec ขอไหม) — sub-agent แยก ห้ามรวม context กับ Chris
-- Bella  → Spec axis: (a) requirement ที่ขาด/ทำครึ่ง (b) scope creep (c) implement ผิด
+- Bella  → Spec axis: (a) requirement ที่ขาด/ทำครึ่ง (b) scope creep (c) implement ผิด — รายละเอียด `review-checklist/spec-axis.md`
            input = diff range ที่ pin ไว้ + `outputs/SPEC-<bd-id>.md` (ส่ง path ไม่ส่งเนื้อหา)
            ไม่มี spec → รายงาน "no spec available" ห้าม pass เงียบ
 ```

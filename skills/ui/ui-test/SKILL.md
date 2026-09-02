@@ -2,9 +2,8 @@
 name: ui-test
 description: |
   [WHAT] E2E + visual regression + a11y (axe) + mobile/responsive UI automation — บังคับ stable selector (`data-testid`).
-  [AUDIENCE] Quinn (E2E + a11y) + Uma (visual regression spec) + Dave (test ID hooks).
-  [WHEN] Phase 3a UI done; Phase 3b verify; ก่อน frontend deploy; หลัง design system change.
-  [TRIGGER] /shode-house:ui-test, "test UI", "E2E", "Playwright", "Cypress", "visual regression", "accessibility test", "axe", "Storybook test", "ทดสอบหน้าเว็บ", "ทดสอบแอป", "UI automation".
+  [WHEN] Phase 3a UI done.
+  [TRIGGER] /shode-house:ui-test, "test UI", "E2E", "Playwright", "Cypress", "visual regression".
 ---
 
 # UI Test (E2E + Visual + a11y automation)
@@ -46,7 +45,7 @@ description: |
 |  | Lighthouse a11y | full audit |
 |  | Pa11y | CLI |
 
-## a11y coverage — axe จับได้แค่ไหน (🔴 v3.11)
+## a11y coverage — axe จับได้แค่ไหน (🔴)
 
 axe-core auto-detect ครอบ **WCAG 2.1 AA เป็นหลัก** — ประมาณ 30-40% ของ success criteria ทั้งหมด และ **แทบไม่ครอบ 2.2 เลย**. "axe 0 violations" ≠ "WCAG 2.2 AA ผ่าน" — เขียนแบบนั้นคือ Anti-Puppet claim
 
@@ -58,8 +57,7 @@ axe-core auto-detect ครอบ **WCAG 2.1 AA เป็นหลัก** — �
 
 ดูรายละเอียด criterion + วิธีตรวจต่อข้อที่ `agents/ux-ui-designer.md` § 5 Accessibility
 
-
-## 🌐 Visual evidence ladder (🆕 v3.12 — ย้ายมาจาก `review-checklist`)
+## 🌐 Visual evidence ladder
 
 **Visual/interaction evidence — บังคับก่อน PASS (v3.12: บังคับ *หลักฐาน* ไม่ใช่บังคับ *tool ตัวใดตัวหนึ่ง*)**
 

@@ -2,9 +2,8 @@
 name: shode-house-discipline
 description: |
   [WHAT] Discipline foundation ของ shode-house — Recite 5 Philosophy + Engagement Mode + Safety + Universal Rules + Clarifying option-style.
-  [AUDIENCE] ทุก agent (mandatory load); Oliver (recite ก่อน session start).
-  [WHEN] First response ของ session กับ shode-house team; ก่อนเรียก agent อื่น; ก่อน clarifying.
-  [TRIGGER] /shode-house:discipline, "5 Philosophy", "NO MAGIC", "VERIFY BEFORE DONE", "DISSENT", "SCOPE DRIFT", "R0", "R1", "R2", "Engagement Mode", "AFK", "Hybrid", "Interactive", "Clarifying option-style".
+  [WHEN] First response ของ session กับ shode-house team.
+  [TRIGGER] /shode-house:discipline, "5 Philosophy", "NO MAGIC", "VERIFY BEFORE DONE", "DISSENT", "SCOPE DRIFT".
 ---
 
 # shode-house — Discipline Foundation
@@ -27,7 +26,6 @@ Card อยู่ที่ output-style `oliver.md` §1 (main session ผลิ�
 > Philosophy ขัดกับ rule อื่น → Philosophy ชนะ
 
 ---
-
 
 ## 🚫 No Man-Day Negotiation (🔴 universal)
 
@@ -72,7 +70,6 @@ Artifact ใน `outputs/` = ภาษาเดียวกับ user เว้
 - ห้าม merge ถ้า UI changed แต่ไม่มี Playwright/visual/axe evidence
 - ห้าม start implement frontend โดยไม่มี Uma artifact (Figma/wireframe/tokens) — pre-implement-ui gate (🔴)
 
-
 ## 🧪 Clarifying — option-style (🔴 ห้ามเดา → ห้ามทำ)
 
 กำกวม → **ห้ามเดา ห้ามทำต่อ**. ตอบเองได้จาก code/file → อ่านเอง อย่าถาม
@@ -80,8 +77,6 @@ Artifact ใน `outputs/` = ภาษาเดียวกับ user เว้
 Agent ที่ไม่ใช่ Oliver/Bella/Patrick/Sara: กำกวม = ส่งกลับ Oliver ไม่ใช่ถาม user เอง (M7)
 
 ## 🚧 M1 — Ingress Guard (🔴 บังคับ ทุก agent ก่อน respond ทุก message)
-
-> ย้ายมาจาก `shode-house-drift` (v3.8) — M1 บังคับที่ **ทุก agent** จึงต้องอยู่ใน skill ที่ทุก agent preload. M2–M7 = Oliver enforcer, ยังอยู่ใน `shode-house-drift`
 
 ทุก agent ก่อนตอบ user message ใน active engagement:
 ```
@@ -121,7 +116,7 @@ sub-agent เกิดใน **context ว่าง** เห็นแค่ agen
 4. Producer return = verdict + artifact path + open questions (ห้าม dump transcript)
 ```
 
-## ✍️ Report Brevity — work deep, report short (🆕 v3.10 🔴 ทุก agent)
+## ✍️ Report Brevity — work deep, report short
 
 **ทำละเอียด ≠ พูดเยอะ.** ความละเอียดอยู่ใน artifact file + tool output ที่ paste ไม่ใช่ในคำบรรยาย
 

@@ -2,9 +2,8 @@
 name: drain
 description: |
   [WHAT] Drain backlog ที่ verified แล้ว N item — 1 worktree-isolated agent ต่อ item (TDD, no push) → serial cherry-pick เข้า trunk → ปิด bd ทุก item พร้อม evidence.
-  [AUDIENCE] Oliver (route + own the run) · Dave/Chris/Quinn/Aaron/Uma (impl/verify per item) · Sentinel (security item) · owner (greenlight + scope).
-  [WHEN] หลังมี routing plan (Oliver) AND item ถูก code-verify ว่า independent + concrete; post-milestone burn-down; ห้ามใช้กับงาน interdependent/design/owner-decision.
-  [TRIGGER] /shode-house:drain, "drain backlog", "จัดงานที่พร้อม", "batch fix", "ปิด bd ที่เหลือ", "clear the ready set", "run the ready items", "เคลียร์ backlog".
+  [WHEN] หลังมี routing plan (Oliver) AND item ถูก code-verify ว่า independent + concrete.
+  [TRIGGER] /shode-house:drain, "drain backlog", "จัดงานที่พร้อม", "batch fix", "ปิด bd ที่เหลือ", "clear the ready set".
 ---
 
 # Drain (verified backlog → parallel worktree → serial merge → close-on-done)
@@ -24,7 +23,7 @@ description: |
 
 ## Required inputs — refuse without
 
-- [ ] **Ready set ที่มี edge จริง** — ถ้า backlog ยังเป็นก้อนใหญ่/ไม่มี blocking edge → แตกด้วย **`decompose` skill** ก่อน อย่ามานั่ง verify independence เองที่นี่ (🆕 v3.12)
+- [ ] **Ready set ที่มี edge จริง** — ถ้า backlog ยังเป็นก้อนใหญ่/ไม่มี blocking edge → แตกด้วย **`decompose` skill** ก่อน อย่ามานั่ง verify independence เองที่นี่
 - [ ] **Verified-open set** — union ของ `bd list` + tracked export id **แล้ว confirm ทีละตัวด้วย `bd show`** (อ่านได้เชื่อถือได้ตัวเดียว). ห้าม seed run จาก `bd list` count ดิบ
 - [ ] **Per-item concrete scope** — `file:line` + fix direction ฝังใน brief ของแต่ละ item.
       🔴 worktree agent **รัน `bd` ไม่ได้** (Dolt DB ไม่ได้อยู่ใน worktree) → AC ต้องอยู่ใน prompt ทั้งหมด
@@ -120,7 +119,7 @@ Runner ไหนก็ตาม: agent **return conclusion + path** ห้าม
 ## Step 4 — Serial merge (main loop เท่านั้น — 🔴 ห้ามอยู่ใน fan-out)
 
 ```bash
-# fast gate ของ target project — ห้าม hardcode; หาให้เจอก่อน (v3.12)
+# fast gate ของ target project — ห้าม hardcode; หาให้เจอก่อน
 FAST_GATE=$(ls scripts/ci/local.sh 2>/dev/null \
   || (grep -qE '"(test|check)"' package.json 2>/dev/null && echo "npm test") \
   || (test -f Makefile && grep -qE '^(test|check|ci):' Makefile && echo "make test") \
@@ -133,7 +132,7 @@ git push origin main                                       # 1 push
 git worktree prune                                         # เก็บกวาด worktree
 ```
 
-### 🔀 Conflict protocol (🆕 v3.12 — เดิมบอกแค่ "จัดกลุ่มใหม่" ไม่ได้บอกว่าจะเอา tree ที่ค้างกลางคันไปไว้ไหน)
+### 🔀 Conflict protocol (เดิมบอกแค่ "จัดกลุ่มใหม่" ไม่ได้บอกว่าจะเอา tree ที่ค้างกลางคันไปไว้ไหน)
 
 cherry-pick conflict = สัญญาณว่า **file-locality grouping ผิด** (Step 2 พลาด) — แต่ก่อนจะจัดกลุ่มใหม่ ต้องจัดการสถานะที่ค้างอยู่ก่อน:
 

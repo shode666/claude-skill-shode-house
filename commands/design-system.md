@@ -6,7 +6,6 @@ argument-hint: "[bd-id | system description] [--stop] [--estimate]"
 
 > 🗺️ **ก่อนเริ่ม — งานนี้ใหญ่เกิน 1 spec ไหม?** ถ้า user มาด้วยไอเดียก้อนใหญ่ที่ยังมองไม่เห็นทาง (ตอบไม่ได้ว่า "เสร็จ" หน้าตายังไง / มี decision ต้องตัดก่อนถึงจะ spec ได้) → **หยุด แล้วทำ Map ก่อน** (`shode-house-workflow/wayfinding.md`). command นี้สมมติว่ารูปงานนิ่งแล้ว — ใช้กับ fog จะได้ spec ที่เขียนจากการเดา
 
-
 📝 **Spec phase** สำหรับ: **$ARGUMENTS**
 
 > v3.1: รวม `/spec-only` เข้ามาเป็น `--stop --estimate` flags. Pipeline = parallel foundation (Bella + Sara) → conditional sequential expand (Uma + Domain) → optional estimation → optional stop.
@@ -215,7 +214,7 @@ Generate `outputs/00-proposal-summary.md`:
 → Unlock Phase 2 — frontier ใบเดียว: `/implement bd-<id>` · frontier หลายใบ concrete + file-disjoint: `drain`
 ```
 
-### 🔄 Conversation-flow auto-handoff (🆕 v3.2 — Oliver M2 classifier)
+### 🔄 Conversation-flow auto-handoff (Oliver M2 classifier)
 
 หลัง spec done, Oliver suggest /implement และ **classify user response** ตาม drift M2:
 

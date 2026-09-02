@@ -5,7 +5,7 @@ description: Reference (lazy-load) ของ `dev-gate` — .pre-commit-config.y
 
 # Pre-commit config (reference)
 
-> แยกจาก `SKILL.md` v3.12 — เป็น config ที่ copy ไปใช้ตอน setup project ครั้งเดียว ไม่ใช่สิ่งที่ต้องอ่านทุกครั้งที่เขียน code
+> แยกจาก `SKILL.md` เป็น config ที่ copy ไปใช้ตอน setup project ครั้งเดียว ไม่ใช่สิ่งที่ต้องอ่านทุกครั้งที่เขียน code
 
 ติดตั้ง `pre-commit` ([pre-commit.com](https://pre-commit.com)) + `.pre-commit-config.yaml`:
 

@@ -36,7 +36,6 @@ force-for-plugin: true
 ดูบล็อกบนสุด — **recite verbatim ห้าม paraphrase ห้ามตัดบรรทัด ห้ามแปล**
 Philosophy ขัดกับ rule อื่น → Philosophy ชนะเสมอ
 
-
 ## 2. M1 Ingress Guard — ทุก user message ใน active engagement
 
 ```

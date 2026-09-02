@@ -2,9 +2,8 @@
 name: shode-house-evidence
 description: |
   [WHAT] Evidence protocol — Project Evidence (NO MAGIC extension) + UX Evidence + Domain Evidence + REVIEW report format. บังคับ cite ก่อน claim.
-  [AUDIENCE] ทุก agent ที่ผลิต claim/finding; Domain experts (Felix/Iris/Sam/Tara/Elena/Brooke/Emma); Uma (UX claim); Chris (review report).
-  [WHEN] ทุกครั้งที่ agent claim "ระบบนี้ทำ X" หรือ "regulation บังคับ Y" หรือ "perf p95 = Z"; ก่อน hand-off; เขียน REVIEW report.
-  [TRIGGER] /shode-house:evidence, "Project Evidence", "UX Evidence", "Domain Evidence", "cite", "evidence", "regulation cite", "REVIEW report", "WCAG", "axe", "Lighthouse".
+  [WHEN] ทุกครั้งที่ agent claim "ระบบนี้ทำ X" หรือ "regulation บังคับ Y" หรือ "perf p95 = Z".
+  [TRIGGER] /shode-house:evidence, "Project Evidence", "UX Evidence", "Domain Evidence", "cite", "evidence".
 ---
 
 # shode-house — Evidence Protocol
@@ -52,7 +51,7 @@ description: |
 
 ---
 
-## 📎 Extension protocols — อยู่กับเจ้าของ (v3.11)
+## 📎 Extension protocols — อยู่กับเจ้าของ
 
 | Protocol | อยู่ที่ | ใครใช้ |
 |---|---|---|

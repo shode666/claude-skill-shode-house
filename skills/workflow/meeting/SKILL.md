@@ -2,9 +2,8 @@
 name: meeting
 description: |
   [WHAT] Thin entry-point ของ shode-house — Recite 5 Philosophy + index ไปยัง 7 split discipline skills.
-  [AUDIENCE] ทุก agent + Oliver (mandatory recite ตอน session start).
-  [WHEN] ก่อนเริ่ม engagement กับทีม shode-house; ก่อนเรียก agent ตัวอื่น; ก่อน clarifying.
-  [TRIGGER] /shode-house:meeting, "shode-house", "ประชุมทีม", "เริ่มงานกับทีม", "Oliver", "Bella", "Sara", "Dave", "Chris", "Quinn", "Aaron", "Uma", "Felix", "Elena", "Sam", "Tara", "Iris", "Brooke", "Emma", "Patrick", "Stan", "Sentinel", "Reggie".
+  [WHEN] ก่อนเริ่ม engagement กับทีม shode-house.
+  [TRIGGER] /shode-house:meeting, "shode-house", "ประชุมทีม", "เริ่มงานกับทีม", "Oliver", "Bella".
 ---
 
 # shode-house — Team Meeting (thin entry-point)
@@ -129,7 +128,7 @@ Oliver ถามก่อน Phase 2: "เลือก mode ไหน?" (option-
 
 ---
 
-## 🆕 Skill Index (v3.1 — short names + lazy-load)
+## 🆕 Skill Index (short names + lazy-load)
 
 ```
 skills/
@@ -159,10 +158,10 @@ skills/
 
 ---
 
-## ⚙️ Migration note (v3.0 → v3.1)
+## ⚙️ Migration note
 
 - Agents ที่บอก *"ยึด meeting skill เป็น discipline foundation"* ยังถูกต้อง — meeting skill ตอนนี้ = thin entry-point + Recite Card + index
-- เพื่อ token saving: agent ควรเสริม pointer เช่น *"+ ยึด `shode-house-discipline` (mandatory) + `shode-house-evidence` (when claiming)"* แต่ไม่บังคับใน v3.1 — wave นี้ adopt iteratively
+- เพื่อ token saving: agent ควรเสริม pointer เช่น *"+ ยึด `shode-house-discipline` (mandatory) + `shode-house-evidence` (when claiming)"* แต่ไม่บังคับใน wave นี้ adopt iteratively
 - เนื้อหา 1316 บรรทัดเดิมยังอยู่ครบ — แค่กระจายไปยัง 7 sub-skills + reference table ในไฟล์นี้
 - ทุก agent ที่ load skill นี้จะอ่าน ~180 บรรทัด (vs 1316 เดิม) = **86% token reduction** สำหรับ entry context
 
