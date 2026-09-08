@@ -126,15 +126,38 @@ def main():
             print(f'  run-{run_no} ({bd_id}): FAIL -- score.json not found at {sp}')
             fail = True
             continue
-        data = json.load(open(sp, encoding='utf-8'))
+        try:
+            data = json.load(open(sp, encoding='utf-8'))
+        except json.JSONDecodeError as e:
+            print(f'FATAL: {sp} is not valid JSON -- {e}')
+            return 2
         verdict = data.get('verdict')
         cost = data.get('cost', {}).get('total_effective_tokens')
-        ok = verdict == 'PASS' and table_verdict == 'PASS'
+        # F2 fix: accept both int and float (json.dump can legally emit either for the same
+        # value) -- bool excluded because isinstance(True, int) is True in Python and a JSON
+        # `true`/`false` here would never be a real token count.
+        cost_is_valid = isinstance(cost, (int, float)) and not isinstance(cost, bool)
+        verdict_ok = verdict == 'PASS' and table_verdict == 'PASS'
+        # F1 fix: cost presence/type is now part of the per-run ok check, not silently absorbed
+        # into the aggregation step below -- a PASS/PASS run with missing or non-numeric cost
+        # must fail loud, not just quietly skip the median/p90 sample.
+        ok = verdict_ok and cost_is_valid
+        if cost_is_valid:
+            cost_repr = f'{cost:,.0f}'
+        elif cost is None:
+            cost_repr = 'MISSING'
+        else:
+            cost_repr = f'INVALID({cost!r})'
+        reason = ''
+        if not verdict_ok:
+            reason = ' -- verdict/table mismatch'
+        elif not cost_is_valid:
+            reason = ' -- cost missing or non-numeric, cannot verify regression'
         print(f'  run-{run_no} ({bd_id}): score.json verdict={verdict} table={table_verdict} '
-              f"cost={cost if cost is None else format(cost, ',')} tok -- {'PASS' if ok else 'FAIL'}")
+              f"cost={cost_repr} tok -- {'PASS' if ok else 'FAIL'}{reason}")
         if not ok:
             fail = True
-        if isinstance(cost, int):
+        if cost_is_valid:
             costs.append(cost)
 
     if not costs:
