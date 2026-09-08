@@ -505,11 +505,17 @@ def cost_dimension(session):
 
 # ---------- bd end_state (user decision: scorer calls `bd` itself) ----------
 
-def bd_end_state(scenario):
-    bd_id = scenario.get('bd_id')
+def bd_end_state(scenario, bd_id_override=None):
+    """iter8 (Oliver bd:B1): golden.json's `bd_id` is now optional -- a scenario like
+    GS1-reference-refund is scored against a real project's bd tracker where the id is assigned
+    at run time, not known ahead in golden.json. `--bd-id <id>` (CLI) lets the caller supply it
+    at run time instead; the override always wins over a scenario's own (possibly absent) bd_id.
+    If neither is given, bd end_state is UNSCORABLE with its own reason (never PASS/FAIL) --
+    same independent-dimension treatment as every other missing-input case (iter1 fix)."""
+    bd_id = bd_id_override or scenario.get('bd_id')
     end = scenario.get('end_state') or {}
     if not bd_id:
-        return 'UNSCORABLE', 'no bd_id configured for scenario — cannot check end_state'
+        return 'UNSCORABLE', 'no bd_id configured for scenario and no --bd-id override given — cannot check end_state'
     if shutil.which('bd') is None:
         return 'UNSCORABLE', 'bd CLI not found on PATH — cannot verify end_state'
     try:
@@ -543,7 +549,7 @@ def load_golden(golden_path, scenario_id):
 CRITICAL_DIMS = ['routing', 'spec_fidelity', 'security_trigger', 'evidence', 'anti_puppet']
 
 
-def score(session_path, scenario, fixture_root):
+def score(session_path, scenario, fixture_root, bd_id_override=None):
     """Each dimension is computed independently — a dimension lacking its own input becomes
     UNSCORABLE with its own reason; it never wipes the other dimensions (iter 1 fix, Oliver bd:B1).
     Overall: FAIL if any critical dim FAIL; else UNSCORABLE if any critical dim UNSCORABLE; else PASS.
@@ -559,7 +565,7 @@ def score(session_path, scenario, fixture_root):
     dims['security_trigger'] = security_trigger(scenario, session)
     dims['evidence'] = evidence_dimension(session)
     dims['anti_puppet'] = anti_puppet_dimension(scenario, session)
-    dims['bd_end_state'] = bd_end_state(scenario)
+    dims['bd_end_state'] = bd_end_state(scenario, bd_id_override)
     cost_tok = cost_dimension(session)
 
     crit_verdicts = [dims[k][0] for k in CRITICAL_DIMS]
@@ -623,11 +629,14 @@ def main(argv=None):
     ap.add_argument('--golden', default=os.path.join('eval', 'scenarios', 'golden.json'))
     ap.add_argument('--outputs-dir', default=os.path.join(os.getcwd(), 'outputs'))
     ap.add_argument('--out', default=None)
+    ap.add_argument('--bd-id', default=None,
+                     help='override/supply bd id for end_state check when golden.json\'s scenario '
+                          'has no bd_id (e.g. a real project where the id is assigned at run time)')
     args = ap.parse_args(argv)
 
     scenario = load_golden(args.golden, args.scenario)
     fixture_root = os.path.dirname(args.outputs_dir.rstrip('/')) or '.'
-    result, code = score(args.session, scenario, fixture_root)
+    result, code = score(args.session, scenario, fixture_root, args.bd_id)
     print_report(result)
 
     if args.out:

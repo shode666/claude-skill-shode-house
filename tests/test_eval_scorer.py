@@ -639,3 +639,96 @@ def test_iter7_oliver_state_summary_lowercase_closed_not_flagged_as_claim():
 
     # sanity: the real uppercase token still matches (case-sensitivity isn't blanket-disabling it)
     assert scorer._claim_match(scorer.CLAIM_RE, 'bd:42 CLOSED') is not None
+
+
+# ===== iter8 (Oliver bd:B1, data fix, tiny) — GS1-reference-refund in golden.json was copied from
+# phase3b-sensitive assumptions (bd-107, Sentinel pattern `mask_card`) that don't exist in the real
+# reference project shode666/shode-house-example-refund (partial refund + ledger; docs/pipeline/
+# 01..08; SEC-01..03; ledger accounts 1010/4010/4090; Felix marks "not source-verified"). =====
+
+# --- iter8: golden.json GS1 uses run-time-assigned bd id (wildcard glob, bd_id optional) and the
+# real reference-project evidence patterns, not the copied phase3b-sensitive assumptions. ---------
+def test_iter8_gs1_golden_uses_wildcard_glob_and_reference_patterns():
+    scen = scorer.load_golden(GOLDEN, 'GS1-reference-refund')
+    assert scen.get('bd_id') is None, 'GS1 bd id is assigned at run time, not known ahead in golden.json'
+    assert all('outputs/*/' in g for g in scen['required_artifacts']), scen['required_artifacts']
+    ev_globs = [ev['glob'] for ev in scen['required_evidence']]
+    assert all('outputs/*/' in g for g in ev_globs), ev_globs
+    patterns = {ev['glob']: ev['pattern'] for ev in scen['required_evidence']}
+    sentinel_pattern = next(p for g, p in patterns.items() if 'security-engineer' in g)
+    felix_pattern = next(p for g, p in patterns.items() if 'fintech-expert' in g)
+    assert sentinel_pattern == 'SEC-0[1-3]|STRIDE|idempotency'
+    assert felix_pattern == '4090|ledger|not source-verified|cite'
+    # the old copied-over assumptions must be gone, not just added-alongside
+    assert 'mask_card' not in sentinel_pattern
+    # security_triggers keywords kept unchanged per Oliver's instruction
+    assert scen['security_triggers']['keywords'] == ['ledger', 'money', 'refund', 'เลขบัตร', 'card']
+
+
+# --- iter8: the new GS1 evidence patterns actually match real reference-project-shaped artifact
+# content (SEC-0x/STRIDE/idempotency for Sentinel; 4090/ledger/"not source-verified" for Felix),
+# and reject the old copied phase3b-sensitive content (mask_card) that no longer applies here. ----
+def test_iter8_gs1_spec_fidelity_matches_reference_project_evidence(tmp_path):
+    scen = scorer.load_golden(GOLDEN, 'GS1-reference-refund')
+    bd_dir = tmp_path / 'outputs' / 'bd-999-runtime-assigned'
+    bd_dir.mkdir(parents=True)
+    (bd_dir / '01-code-reviewer-review.md').write_text('reviewed diff, no blocking findings')
+    (bd_dir / '02-qa-engineer-review.md').write_text('regression suite green')
+    (bd_dir / '03-security-engineer-review.md').write_text(
+        'SEC-02 idempotency check on partial-refund endpoint — STRIDE tampering considered')
+    (bd_dir / '04-fintech-expert-review.md').write_text(
+        'ledger account 4090 posting reviewed; primary source not source-verified, cite BOT circular pending')
+    verdict, detail = scorer.spec_fidelity(scen, str(tmp_path))
+    assert verdict == 'PASS', detail
+
+
+def test_iter8_gs1_spec_fidelity_rejects_old_mask_card_content(tmp_path):
+    scen = scorer.load_golden(GOLDEN, 'GS1-reference-refund')
+    bd_dir = tmp_path / 'outputs' / 'bd-999-runtime-assigned'
+    bd_dir.mkdir(parents=True)
+    (bd_dir / '01-code-reviewer-review.md').write_text('reviewed diff, no blocking findings')
+    (bd_dir / '02-qa-engineer-review.md').write_text('regression suite green')
+    # old copied-over phase3b-sensitive content -- must NOT satisfy the new reference-project pattern
+    (bd_dir / '03-security-engineer-review.md').write_text('mask_card applied to logging output')
+    (bd_dir / '04-fintech-expert-review.md').write_text(
+        'ledger account 4090 posting reviewed; not source-verified')
+    verdict, detail = scorer.spec_fidelity(scen, str(tmp_path))
+    assert verdict == 'FAIL', detail
+    assert 'SEC-0[1-3]|STRIDE|idempotency' in detail
+
+
+# --- iter8: `--bd-id` CLI override lets bd_end_state resolve a scenario whose golden.json has no
+# bd_id (GS1's real project id is assigned at run time, not known ahead) ---------------------------
+def test_iter8_bd_end_state_uses_bd_id_override_when_scenario_has_none(tmp_path, monkeypatch):
+    bd_bin = tmp_path / 'bd'
+    bd_bin.write_text('#!/bin/sh\necho "bd-999-runtime-assigned: CLOSED verdict=CLOSED"\n')
+    bd_bin.chmod(bd_bin.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+    scen = scorer.load_golden(GOLDEN, 'GS1-reference-refund')
+    assert scen.get('bd_id') is None
+    verdict, detail = scorer.bd_end_state(scen, bd_id_override='bd-999-runtime-assigned')
+    assert verdict == 'PASS', detail
+
+
+def test_iter8_bd_end_state_unscorable_when_neither_golden_nor_override_has_bd_id():
+    scen = scorer.load_golden(GOLDEN, 'GS1-reference-refund')
+    assert scen.get('bd_id') is None
+    verdict, detail = scorer.bd_end_state(scen, bd_id_override=None)
+    assert verdict == 'UNSCORABLE'
+    assert 'no bd_id' in detail
+    assert 'never PASS' not in detail  # (sanity: just confirming it's a plain reason string, not FAIL)
+
+
+# --- iter8: score()'s new bd_id_override param threads through to bd_end_state without disturbing
+# the other 5 independent dimensions (same independent-dimension contract as iter1) ---------------
+def test_iter8_score_threads_bd_id_override_through_to_bd_end_state(tmp_path, monkeypatch):
+    bd_bin = tmp_path / 'bd'
+    bd_bin.write_text('#!/bin/sh\necho "bd-101: CLOSED verdict=CLOSED"\n')
+    bd_bin.chmod(bd_bin.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+    scen = dict(scorer.load_golden(GOLDEN, 'GS2-implement-backend'))
+    scen['bd_id'] = None  # simulate a scenario with no golden bd_id
+    result, code = scorer.score(os.path.join(FIX, 'routing-ok'), scen, FIXTURE_ROOT,
+                                 bd_id_override='bd-101')
+    assert result['dimensions']['bd_end_state']['verdict'] == 'PASS'
+    assert result['dimensions']['routing']['verdict'] == 'PASS'

@@ -7,18 +7,18 @@
       "id": "GS1-reference-refund",
       "command": "/review",
       "golden": true,
-      "desc": "reference project refund — full pipeline, Sentinel+Felix money trigger",
-      "bd_id": "bd-107",
+      "desc": "reference project shode666/shode-house-example-refund — partial refund + ledger pipeline (docs/pipeline/01..08), Sentinel+Felix money trigger",
+      "bd_id": null,
       "agents": ["code-reviewer", "qa-engineer", "security-engineer", "fintech-expert"],
       "expected_routing": [
         {"agents": ["shode-house:code-reviewer", "shode-house:qa-engineer"], "parallel": true},
         {"agents": ["shode-house:security-engineer"]},
         {"agents": ["shode-house:fintech-expert"]}
       ],
-      "required_artifacts": ["outputs/bd-107/*code-reviewer*.md", "outputs/bd-107/*qa-engineer*.md"],
+      "required_artifacts": ["outputs/*/*code-reviewer*.md", "outputs/*/*qa-engineer*.md"],
       "required_evidence": [
-        {"glob": "outputs/bd-107/*security-engineer*.md", "pattern": "mask_card"},
-        {"glob": "outputs/bd-107/*fintech-expert*.md", "pattern": "cite|regulation|PENDING"}
+        {"glob": "outputs/*/*security-engineer*.md", "pattern": "SEC-0[1-3]|STRIDE|idempotency"},
+        {"glob": "outputs/*/*fintech-expert*.md", "pattern": "4090|ledger|not source-verified|cite"}
       ],
       "forbidden_phrases": ["merge โดยไม่มี domain+security", "APPROVED โดยไม่ cite"],
       "security_triggers": {"keywords": ["ledger", "money", "refund", "เลขบัตร", "card"],
