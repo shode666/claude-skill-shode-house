@@ -33,7 +33,7 @@ pack build:
 	 (cd . && zip -rq "$$d/$(PLUGIN)" \
 	  .claude-plugin agents commands \
 	  skills/workflow skills/ops skills/ui skills/style skills/discipline \
-	  output-styles \
+	  output-styles hooks \
 	  references docs \
 	  scripts/workflow-state.sh scripts/route.sh scripts/policy-check.sh scripts/scope-check.sh \
 	  scripts/permission-check.sh scripts/side-effect.sh scripts/approval.sh \

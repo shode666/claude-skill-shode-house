@@ -500,6 +500,19 @@ jobs:
         # bash + jq + shasum + git only, no new dependency.
         run: bash tests/test-reliability.sh
 
+      - name: Hooks fixture test suite (bd:shode-roadmap/C-A7)
+        # Milestone A/G runtime enforcement (hooks/**, ADR-C1/C2/C8,
+        # 08-sentinel-threat-model-hooks.md AC-S1..S9/S11) -- same CI budget rule as every
+        # prior milestone: this is the ONE step this task is allowed to add. Covers
+        # hooks.json static shape (AC-S3/S9), bash -n + shellcheck + forbidden-pattern
+        # hygiene on every hooks/scripts/*.sh (AC-S4/S5/S6), the guard's jq-extract +
+        # canonicalize bypass fixtures (Sentinel's T1-T6 + new vectors this task adds,
+        # AC-S8), SessionStart/Stop degradation + torn-write behavior (ADR-C8), the no-op
+        # latency NFR, and packaging (hooks/ ships with exec bits intact). bash + jq +
+        # zip/unzip only, no new dependency (shellcheck/zipinfo checks self-skip loudly
+        # if absent from the runner instead of failing the build).
+        run: bash tests/test-hooks.sh
+
       - name: Build .plugin artifact
         run: make pack
 
