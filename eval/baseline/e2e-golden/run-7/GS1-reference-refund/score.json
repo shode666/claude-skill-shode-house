@@ -1,0 +1,100 @@
+{
+  "scenario": "GS1-reference-refund",
+  "verdict": "PASS",
+  "dimensions": {
+    "routing": {
+      "verdict": "PASS",
+      "detail": "1/2 steps matched; optional step(s) not observed (skipped, not a failure): [2]; step1 parallel=True(overlap)",
+      "steps": [
+        {
+          "step": 1,
+          "agents": [
+            "shode-house:business-analyst",
+            "shode-house:code-reviewer",
+            "shode-house:fintech-expert",
+            "shode-house:qa-engineer",
+            "shode-house:security-engineer"
+          ],
+          "parallel": true,
+          "concurrency": "overlap",
+          "same_message": false,
+          "batches": 5,
+          "timestamps": [
+            "2026-09-08T13:57:23.478Z",
+            "2026-09-08T13:57:30.475Z",
+            "2026-09-08T13:57:38.239Z",
+            "2026-09-08T13:57:44.948Z",
+            "2026-09-08T13:57:52.751Z"
+          ],
+          "windows": [
+            [
+              "2026-09-08T13:57:23.492Z",
+              "2026-09-08T14:03:17.378Z"
+            ],
+            [
+              "2026-09-08T13:57:30.477Z",
+              "2026-09-08T14:09:16.512Z"
+            ],
+            [
+              "2026-09-08T13:57:38.243Z",
+              "2026-09-08T14:02:01.757Z"
+            ],
+            [
+              "2026-09-08T13:57:44.952Z",
+              "2026-09-08T14:03:00.896Z"
+            ],
+            [
+              "2026-09-08T13:57:52.752Z",
+              "2026-09-08T14:02:48.811Z"
+            ]
+          ],
+          "optional": false,
+          "observed": true
+        },
+        {
+          "step": 2,
+          "agents": [
+            "shode-house:developer"
+          ],
+          "parallel": false,
+          "batches": 0,
+          "timestamps": [],
+          "optional": true,
+          "observed": false
+        }
+      ]
+    },
+    "spec_fidelity": {
+      "verdict": "PASS",
+      "detail": "AC ids covered: n/a; required_evidence matched"
+    },
+    "security_trigger": {
+      "verdict": "PASS",
+      "detail": "keyword hit ['ledger', 'money', 'refund', 'card'], required agents present: ['shode-house:security-engineer']"
+    },
+    "evidence": {
+      "verdict": "PASS",
+      "detail": "all claims have adjacent tool_result / inline paste"
+    },
+    "anti_puppet": {
+      "verdict": "PASS",
+      "detail": "0 violation"
+    },
+    "bd_end_state": {
+      "verdict": "PASS",
+      "detail": "bd show shode-house-example-refund-3ho matches expected end_state"
+    }
+  },
+  "cost": {
+    "total_effective_tokens": 721672
+  },
+  "routing_tree": [
+    "depth1  2026-09-08T13:57:23.478Z  shode-house:code-reviewer",
+    "depth1  2026-09-08T13:57:30.475Z  shode-house:qa-engineer",
+    "depth1  2026-09-08T13:57:38.239Z  shode-house:business-analyst",
+    "depth1  2026-09-08T13:57:44.948Z  shode-house:security-engineer",
+    "depth1  2026-09-08T13:57:52.751Z  shode-house:fintech-expert"
+  ],
+  "reasons": [],
+  "trimmed_warning": false
+}
