@@ -1,15 +1,37 @@
 {
-  "v": 1,
-  "_comment": "Declarative phase graph for scripts/workflow-state.sh. Node set = the 6-value phase list already named in shode-house-discipline SS M1 Ingress Guard ({pick|impl|ui-check|review|triage|done}) and concretized in outputs/shode-roadmap/C/02-sara-adr-1a.md ADR-C4. Loop-back edges mirror Bella's AC-101a (Phase 3a FAIL -> Phase 2) and the Phase 4 route-loop, mapped onto this smaller node set for the Milestone A tracer bullet (bd: shode-roadmap/C-A4). This is the single place edges are declared (FR-102 DRY requirement) -- no other file may hardcode a second copy.",
-  "states": ["pick", "impl", "ui-check", "review", "triage", "done"],
+  "v": 2,
+  "_comment": "Declarative phase graph for scripts/workflow-state.sh (bd: shode-roadmap/C-A5, iter 2). Expands the iter-0/1 6-node tracer-bullet set into the real shode-house phase set named in ROADMAP-runtime-10.md SS1.1/SS1.2 and CLAUDE.md 'PEV Loop': 0-discover, 1a-spec, 1b-design, 1c-security, 2-implement, 3a-ui-check, 3b-review, 4-triage, 5-deploy, 6-operate. `conditional_phases` lists phases that may end in status=skipped (advance's <outcome> arg). `enter_requires` is a generic gate keyed by target phase name -- read by scripts/workflow-state.sh's enter_requires_check() for ANY key present here, not special-cased in code; only `2-implement` is populated because that is the one concrete example ROADMAP-runtime-10.md SS1.1 gives (phase_2.enter_requires). This is the single place phase-to-phase edges are declared (FR-102 DRY, carried over from iter0) -- no other file may hardcode a second copy. The iter>3-forces-escalated rule is intentionally NOT an edge here (see scripts/workflow-state.sh comment above the escalate branch of cmd_advance) -- it is a self-transition status assignment on whatever phase is currently active, generic across every phase without needing 10 declared self-loop rows.",
+  "states": ["0-discover", "1a-spec", "1b-design", "1c-security", "2-implement", "3a-ui-check", "3b-review", "4-triage", "5-deploy", "6-operate"],
+  "conditional_phases": ["1b-design", "1c-security", "3a-ui-check"],
+  "enter_requires": {
+    "2-implement": {
+      "1a-spec": ["passed"],
+      "1b-design": ["passed", "skipped"],
+      "1c-security": ["passed", "skipped"]
+    }
+  },
   "transitions": [
-    {"from": "pick", "to": "impl", "on": "spec-signoff"},
-    {"from": "impl", "to": "ui-check", "on": "implement-done"},
-    {"from": "impl", "to": "review", "on": "implement-done-backend-only"},
-    {"from": "ui-check", "to": "review", "on": "ui-pass"},
-    {"from": "ui-check", "to": "impl", "on": "ui-fail"},
-    {"from": "review", "to": "triage", "on": "verdict"},
-    {"from": "triage", "to": "impl", "on": "route-loop"},
-    {"from": "triage", "to": "done", "on": "clean-close"}
+    {"from": "0-discover",   "to": "1a-spec",     "on": "discover-done"},
+    {"from": "1a-spec",      "to": "1b-design",   "on": "spec-signoff"},
+    {"from": "1b-design",    "to": "1c-security", "on": "design-done"},
+    {"from": "1c-security",  "to": "2-implement", "on": "security-done"},
+    {"from": "2-implement",  "to": "3a-ui-check", "on": "implement-done"},
+    {"from": "2-implement",  "to": "3b-review",   "on": "implement-done-backend-only"},
+    {"from": "3a-ui-check",  "to": "3b-review",   "on": "ui-pass"},
+    {"from": "3b-review",    "to": "4-triage",    "on": "verdict"},
+    {"from": "4-triage",     "to": "5-deploy",    "on": "clean-close"},
+    {"from": "5-deploy",     "to": "6-operate",   "on": "deployed"},
+
+    {"from": "3b-review",    "to": "2-implement", "on": "review-fail"},
+    {"from": "3a-ui-check",  "to": "1b-design",   "on": "ui-fail"},
+
+    {"from": "1b-design",    "to": "1a-spec", "on": "spec-change"},
+    {"from": "1c-security",  "to": "1a-spec", "on": "spec-change"},
+    {"from": "2-implement",  "to": "1a-spec", "on": "spec-change"},
+    {"from": "3a-ui-check",  "to": "1a-spec", "on": "spec-change"},
+    {"from": "3b-review",    "to": "1a-spec", "on": "spec-change"},
+    {"from": "4-triage",     "to": "1a-spec", "on": "spec-change"},
+    {"from": "5-deploy",     "to": "1a-spec", "on": "spec-change"},
+    {"from": "6-operate",    "to": "1a-spec", "on": "spec-change"}
   ]
 }
