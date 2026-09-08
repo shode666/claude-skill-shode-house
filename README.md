@@ -4,13 +4,13 @@
 > 19 agent ใน 7 ทีม ที่มี ownership ชัด, quality gate ที่ต้องมีหลักฐาน, token-aware context routing,
 > CI invariant ที่พิสูจน์ด้วย mutation test และ behavioral A/B eval
 
-[![Version](https://img.shields.io/badge/version-3.13.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.14.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/shode666/claude-skill-shode-house/actions/workflows/ci.yml/badge.svg)](https://github.com/shode666/claude-skill-shode-house/actions/workflows/ci.yml)
 
 ครอบคลุม **ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI** + polyglot 14 languages · ภาษาไทยเป็นหลัก
 
-**What's new**: [CHANGELOG.md](CHANGELOG.md) · release ล่าสุด v3.13.0 — prompt architecture + lazy-load topology + token usage observability
+**What's new**: [CHANGELOG.md](CHANGELOG.md) · release ล่าสุด v3.14.0 — public polish (LICENSE · README · architecture diagrams) + reference project #1 ที่ผ่าน pipeline เต็ม
 
 ---
 

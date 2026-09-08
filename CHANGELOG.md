@@ -5,6 +5,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ## [Unreleased]
 
+---
+
+## [3.14.0] — Public polish + reference project #1 — 2026-09-08
+
+> docs/OSS release: ไม่แตะ agent/skill/command behavior · plugin content เท่าเดิมกับ 3.13.0 ยกเว้น README/CHANGELOG ที่ pack ไปด้วย
+
 - `LICENSE` ไฟล์จริง (MIT — เดิมมีแค่ badge + manifest field, GitHub รายงาน `license: null`)
 - reference project #1 `shode666/shode-house-example-refund` (partial refund + ledger) ผ่าน pipeline เต็ม — link ใน README § Benchmarks
 - `docs/ARCHITECTURE.md` — 3 Mermaid diagrams (agent topology · PEV lifecycle · enforcement architecture) + สิ่งที่ยังไม่มี (roadmap)
