@@ -35,7 +35,7 @@ pack build:
 	  skills/workflow skills/ops skills/ui skills/style skills/discipline \
 	  output-styles \
 	  references docs \
-	  scripts/workflow-state.sh scripts/route.sh scripts/policy-check.sh \
+	  scripts/workflow-state.sh scripts/route.sh scripts/policy-check.sh scripts/scope-check.sh \
 	  README.md CHANGELOG.md CLAUDE.md .pre-commit-config.yaml \
 	  -x '*.DS_Store' -x '*__pycache__*' -x '*/.git/*' -x '*.fuse_hidden*') && \
 	 mv "$$d/$(PLUGIN)" ./ ; rc=$$?; rm -rf "$$d"; exit $$rc

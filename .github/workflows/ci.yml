@@ -478,6 +478,13 @@ jobs:
         # to add. bash + jq only, no new dependency.
         run: bash tests/test-registry.sh
 
+      - name: Scope-check test suite (bd:shode-roadmap/C-E1)
+        # Milestone E (scope manifest + shared-file strategy + optimistic conflict check,
+        # ROADMAP-runtime-10.md SS7.1-7.3) -- same CI budget rule as Milestone A/B: this is
+        # the ONE step this milestone is allowed to add. bash + jq + shasum only, no new
+        # dependency.
+        run: bash tests/test-scope-check.sh
+
       - name: Build .plugin artifact
         run: make pack
 
