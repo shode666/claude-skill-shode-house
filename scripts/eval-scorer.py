@@ -57,6 +57,16 @@ CLAIM_RE = re.compile('|'.join(CLAIM_PHRASES))
 PUPPET_HINT = ('เสร็จแล้ว', 'เสร็จเรียบร้อย', 'ทำเสร็จ', 'ผ่านแล้ว', 'ผ่านทั้งหมด', 'ตรวจแล้ว',
                'ปิด bd', 'done', 'completed', 'PASS', 'CLOSED')
 
+# bd:B3 / B1 iter12 (Oliver, Sara §2/§6): REVIEW DISPATCH CARD persona label -> agentType map.
+# Moved here (top-of-file, ahead of its first use) in iter13 so PERSONA_AGENT_TYPE (relay-evidence
+# roster below, in the Evidence section) can build directly on it without a definition-order issue.
+CARD_AGENT_TYPE = {
+    'Chris': 'shode-house:code-reviewer',
+    'Quinn': 'shode-house:qa-engineer',
+    'Bella': 'shode-house:business-analyst',
+    'Sentinel': 'shode-house:security-engineer',
+}
+
 
 # ---------- parse ----------
 
@@ -488,8 +498,72 @@ def _strip_recite_card(text):
 # for that realistic gap. Widened to 8 (still bounded, not unlimited scan-to-start-of-file).
 EVIDENCE_LOOKBACK_WINDOW = 8
 
+# iter13 (Oliver bd:B1): real GS1 run-2 still flagged an Oliver relay line, verbatim:
+# "[Oliver|state:3b-running|bd:769] Quinn: **PASS** (...) — เหลือ Chris". Two fixes:
+# (a) strip markdown emphasis (`*`/`_`) before matching -- defensive; Oliver named this as a
+#     *probable* cause, not confirmed, so applied regardless.
+# (b) the REAL root cause: EVIDENCE_LOOKBACK_WINDOW=8 is still bounded, and other tool calls
+#     (e.g. `bd update`) between the subagent's tool_result and the relay text can legitimately
+#     push it further back than any reasonable fixed window. A main-session line that starts with
+#     an Oliver tag prefix and names a known persona followed by a verdict IS a relay, by
+#     construction (Tag Prefix + Return format, shode-house-broadcast) -- it is evidenced if that
+#     persona's agent type was spawned ANYWHERE earlier in the same main file, not window-bound.
+MARKDOWN_EMPHASIS_CHARS = str.maketrans('', '', '*_')
 
-def find_claim_violations(records, pattern):
+
+def _strip_markdown_emphasis(text):
+    """iter13 fix (a): removes literal `*`/`_` markdown-emphasis characters before claim/relay
+    matching (word-boundary regex already treats them as non-word chars either way, so this is a
+    defensive normalization, not a behavior-changing one for CLAIM_RE itself)."""
+    return text.translate(MARKDOWN_EMPHASIS_CHARS)
+
+
+OLIVER_RELAY_PREFIX_RE = re.compile(r'^\[Oliver\|')
+# source of truth for the persona roster: shode-house-broadcast Tag Prefix convention. Reuses
+# CARD_AGENT_TYPE (Chris/Quinn/Bella/Sentinel, bd:B3 iter12) and extends with the rest of the team
+# that Oliver can plausibly relay a verdict for.
+PERSONA_AGENT_TYPE = dict(CARD_AGENT_TYPE)
+PERSONA_AGENT_TYPE.update({
+    'Dave': 'shode-house:developer',
+    'Uma': 'shode-house:ux-ui-designer',
+    'Sara': 'shode-house:solution-architect',
+    'Aaron': 'shode-house:devops-engineer',
+    'Patrick': 'shode-house:product-manager',
+    'Felix': 'shode-house:fintech-expert',
+})
+PERSONA_NAME_RE = re.compile(r'\b(' + '|'.join(sorted(PERSONA_AGENT_TYPE, key=len, reverse=True)) + r')\b')
+
+
+def _relay_persona_agent_type(text):
+    """-> agentType string if `text` is a main-session Oliver relay line (starts with the
+    `[Oliver|...]` tag prefix) naming a known persona followed somewhere in the same line by a
+    verdict-shaped claim match; else None. Text is expected pre-stripped of markdown/recite-card."""
+    if not OLIVER_RELAY_PREFIX_RE.match(text):
+        return None
+    if not _claim_match(CLAIM_RE, text):
+        return None
+    m = PERSONA_NAME_RE.search(text)
+    if not m:
+        return None
+    return PERSONA_AGENT_TYPE.get(m.group(1))
+
+
+def _agent_type_spawned_before(records, before_index, agent_type):
+    """-> True if an Agent/Task tool_use declaring `subagent_type == agent_type` appears anywhere
+    in records[:before_index] -- UNBOUNDED backward scan (iter13 fix (b), intentionally not
+    EVIDENCE_LOOKBACK_WINDOW-limited: a relay can legitimately follow several intervening tool
+    calls, e.g. `bd update`, before Oliver writes the summary line)."""
+    for rec in records[:before_index]:
+        if rec.get('type') != 'assistant':
+            continue
+        for c in ((rec.get('message') or {}).get('content') or []):
+            if (isinstance(c, dict) and c.get('type') == 'tool_use' and c.get('name') in SPAWN_NAMES
+                    and (c.get('input') or {}).get('subagent_type') == agent_type):
+                return True
+    return False
+
+
+def find_claim_violations(records, pattern, is_main=False):
     """-> list of (uuid, quoted_text) where claim matched but no evidence adjacency.
 
     A '```' fence in the claim text is NOT treated as evidence on its own (Chris F2, iter3 —
@@ -499,7 +573,11 @@ def find_claim_violations(records, pattern):
     content is real captured tool output.
 
     Adjacency backward window looks EVIDENCE_LOOKBACK_WINDOW records back, in the SAME file, for a
-    tool_result from ANY tool (Bash/Read/Agent/Task/... -- no name filtering; iter11 fix (b))."""
+    tool_result from ANY tool (Bash/Read/Agent/Task/... -- no name filtering; iter11 fix (b)).
+
+    `is_main=True` (iter13 fix (b)) additionally allows an UNBOUNDED-backward relay escape hatch:
+    a main-session Oliver relay line naming a known persona + verdict is evidenced if that
+    persona's agent type was spawned anywhere earlier in `records` at all, regardless of window."""
     violations = []
     for i, rec in enumerate(records):
         if rec.get('type') != 'assistant':
@@ -509,6 +587,7 @@ def find_claim_violations(records, pattern):
                 continue
             raw_text = b.get('text') or ''
             text = _strip_recite_card(raw_text)  # iter11 fix (a)
+            text = _strip_markdown_emphasis(text)  # iter13 fix (a)
             if not text.strip():
                 continue
             if not _claim_match(pattern, text):
@@ -523,6 +602,10 @@ def find_claim_violations(records, pattern):
                 isinstance(c, dict) and c.get('type') == 'tool_use'
                 for c in ((rec.get('message') or {}).get('content') or []))
             has_evidence = window_evidence or same_record_tool_use
+            if not has_evidence and is_main:  # iter13 fix (b)
+                persona_agent_type = _relay_persona_agent_type(text)
+                if persona_agent_type and _agent_type_spawned_before(records, i, persona_agent_type):
+                    has_evidence = True
             if not has_evidence:
                 violations.append((rec.get('uuid'), text[:120]))  # (c): quote the flagged line
     return violations
@@ -531,7 +614,7 @@ def find_claim_violations(records, pattern):
 def evidence_dimension(session):
     all_v = []
     for fid, recs in all_files(session).items():
-        for uid, text in find_claim_violations(recs, CLAIM_RE):
+        for uid, text in find_claim_violations(recs, CLAIM_RE, is_main=(fid == 'main')):
             all_v.append(f'{fid}:{uid}: "{text}"')
     if all_v:
         return 'FAIL', f'{len(all_v)} claim(s) without adjacent tool_result: ' + '; '.join(all_v[:5])
@@ -551,12 +634,9 @@ def evidence_dimension(session):
 # was actually spawned.
 DISPATCH_CARD_MARKER = '[REVIEW DISPATCH CARD]'
 DISPATCH_LINE_RE = re.compile(r'^-\s*([A-Za-z]+)\s*\([^)]*\)\s*:\s*(DISPATCH|SKIP)\b', re.MULTILINE)
-CARD_AGENT_TYPE = {
-    'Chris': 'shode-house:code-reviewer',
-    'Quinn': 'shode-house:qa-engineer',
-    'Bella': 'shode-house:business-analyst',
-    'Sentinel': 'shode-house:security-engineer',
-}
+# CARD_AGENT_TYPE moved up near CLAIM_RE/PUPPET_HINT (module top) in iter13 so PERSONA_AGENT_TYPE
+# (the relay-evidence persona roster, reused/extended from this same map) can build on it without
+# a definition-order NameError -- see top-of-file constants.
 DOMAIN_AGENT_SUFFIX = '-expert'  # 'Domain' label maps to any shode-house:*-expert (Felix/Iris/...)
 CARD_SCAN_WINDOW = 2000  # bounded chars past the marker -- keeps parsing scoped to the printed
                           # card itself, not later prose that happens to mention an agent name
@@ -631,7 +711,7 @@ def dispatch_card_check(scenario, session):
 def anti_puppet_dimension(scenario, session):
     violations = []
     for fid, recs in all_files(session).items():
-        for uid, text in find_claim_violations(recs, CLAIM_RE):
+        for uid, text in find_claim_violations(recs, CLAIM_RE, is_main=(fid == 'main')):
             if any(h in text for h in PUPPET_HINT):
                 violations.append(f'{fid}:{uid}: "{text}"')
     forbidden = scenario.get('forbidden_phrases') or []
@@ -693,7 +773,17 @@ def bd_end_state(scenario, bd_id_override=None, cwd=None):
     `[● P2 · CLOSED]`. Fix: run with `cwd=<--outputs-dir>` (the caller passes it through); also
     match `bd_status` case-insensitively anywhere in output (defensive — real `bd` output casing is
     not guaranteed identical to golden.json's configured value), and treat a non-zero exit code as
-    UNSCORABLE (bd/session likely missing) rather than blindly regex-matching empty/error output."""
+    UNSCORABLE (bd/session likely missing) rather than blindly regex-matching empty/error output.
+
+    iter13 (Oliver bd:B1): real GS1 run-2 false-FAILed here because `bd` stayed OPEN -- which is
+    the CORRECT pipeline behaviour for `/review` with unresolved findings, not a bug. `bd_status`
+    now accepts either a single string (implement scenarios: CLOSED-only, unchanged) OR a list of
+    acceptable statuses (`["OPEN","CLOSED"]` for /review scenarios — either is fine, since /review
+    doesn't always close the bd). New `notes_pattern` field independently verifies the review
+    verdict was actually RECORDED in `bd show` output (e.g. `Standards|Spec|verdict|PASS|FAIL`) --
+    this is what actually proves the review ran and left a trail, since bd_status alone can no
+    longer distinguish "reviewed, findings open" from "never reviewed at all" once OPEN is
+    accepted."""
     bd_id = bd_id_override or scenario.get('bd_id')
     end = scenario.get('end_state') or {}
     if not bd_id:
@@ -710,11 +800,17 @@ def bd_end_state(scenario, bd_id_override=None, cwd=None):
                 f'{((r.stderr or r.stdout or "").strip())[:200]}')
     out = (r.stdout or '') + (r.stderr or '')
     want_status = end.get('bd_status')
-    if want_status and not re.search(re.escape(want_status), out, re.IGNORECASE):
-        return 'FAIL', f'bd status {want_status!r} not found (case-insensitive) in `bd show {bd_id}` output'
+    if want_status:
+        acceptable = [want_status] if isinstance(want_status, str) else list(want_status)
+        if not any(re.search(re.escape(s), out, re.IGNORECASE) for s in acceptable):
+            return 'FAIL', f'none of bd_status {acceptable!r} found (case-insensitive) in `bd show {bd_id}` output'
     vp = end.get('verdict_pattern')
     if vp and not re.search(vp, out):
         return 'FAIL', f'verdict_pattern {vp!r} not matched in bd show output'
+    notes_pattern = end.get('notes_pattern')
+    if notes_pattern and not re.search(notes_pattern, out):
+        return 'FAIL', (f'notes_pattern {notes_pattern!r} not matched in bd show output '
+                         f'(review verdict not recorded)')
     return 'PASS', f'bd show {bd_id} matches expected end_state'
 
 

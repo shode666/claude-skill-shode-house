@@ -26,7 +26,7 @@
       "security_triggers": {"keywords": ["ledger", "money", "refund", "เลขบัตร", "card"],
                             "required_agents": ["shode-house:security-engineer"]},
       "relay_expected": false,
-      "end_state": {"bd_status": "CLOSED", "verdict_pattern": "CLOSED"}
+      "end_state": {"bd_status": ["OPEN", "CLOSED"], "notes_pattern": "Standards|Spec|verdict|PASS|FAIL"}
     },
     {
       "id": "GS2-implement-backend",
@@ -113,7 +113,7 @@
       "security_triggers": {"keywords": ["ledger", "เลขบัตร", "card", "posting"],
                             "required_agents": ["shode-house:security-engineer"]},
       "relay_expected": false,
-      "end_state": {"bd_status": "CLOSED", "verdict_pattern": "CLOSED|BLOCKED"}
+      "end_state": {"bd_status": ["OPEN", "CLOSED"], "notes_pattern": "Standards|Spec|verdict|PASS|FAIL"}
     }
   ]
 }

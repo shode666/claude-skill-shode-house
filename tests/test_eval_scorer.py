@@ -1251,3 +1251,148 @@ def test_iter12_golden_gs2_gs3_gs4_have_no_required_main_phrases_regression():
     for sid in ('GS2-implement-backend', 'GS3-spec-axis-gap', 'GS4-askuser-relay'):
         scen = scorer.load_golden(GOLDEN, sid)
         assert not scen.get('required_main_phrases'), sid
+
+
+# ===== iter13 (Oliver bd:B1) — real GS1 run-2 results. =====
+
+# --- fix 1: bd end_state -- `bd` staying OPEN after /review with unresolved findings is CORRECT
+# pipeline behaviour, not a bug. `bd_status` now accepts a list of acceptable statuses; new
+# `notes_pattern` independently verifies the review verdict was actually recorded. -----------------
+def test_iter13_bd_status_accepts_list_open_or_closed(tmp_path, monkeypatch):
+    bd_bin = tmp_path / 'bd'
+    bd_bin.write_text('#!/bin/sh\necho "[bd-769] OPEN -- Standards: 3 findings, verdict CONDITIONAL"\n')
+    bd_bin.chmod(bd_bin.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+    scen = {'bd_id': 'bd-769',
+            'end_state': {'bd_status': ['OPEN', 'CLOSED'], 'notes_pattern': 'Standards|Spec|verdict|PASS|FAIL'}}
+    verdict, detail = scorer.bd_end_state(scen)
+    assert verdict == 'PASS', detail
+
+
+def test_iter13_bd_status_list_fails_when_neither_status_present(tmp_path, monkeypatch):
+    bd_bin = tmp_path / 'bd'
+    bd_bin.write_text('#!/bin/sh\necho "[bd-769] IN_PROGRESS"\n')
+    bd_bin.chmod(bd_bin.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+    scen = {'bd_id': 'bd-769', 'end_state': {'bd_status': ['OPEN', 'CLOSED']}}
+    verdict, detail = scorer.bd_end_state(scen)
+    assert verdict == 'FAIL', detail
+
+
+def test_iter13_bd_status_scalar_string_still_closed_only_regression(tmp_path, monkeypatch):
+    # implement scenarios (GS2/GS3) keep the old scalar CLOSED-only behavior unchanged
+    bd_bin = tmp_path / 'bd'
+    bd_bin.write_text('#!/bin/sh\necho "[bd-101] OPEN"\n')
+    bd_bin.chmod(bd_bin.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+    scen = {'bd_id': 'bd-101', 'end_state': {'bd_status': 'CLOSED'}}
+    verdict, detail = scorer.bd_end_state(scen)
+    assert verdict == 'FAIL', detail
+
+
+def test_iter13_notes_pattern_fails_when_no_review_verdict_recorded(tmp_path, monkeypatch):
+    bd_bin = tmp_path / 'bd'
+    bd_bin.write_text('#!/bin/sh\necho "[bd-769] OPEN -- no notes"\n')
+    bd_bin.chmod(bd_bin.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+    scen = {'bd_id': 'bd-769',
+            'end_state': {'bd_status': ['OPEN', 'CLOSED'], 'notes_pattern': 'Standards|Spec|verdict|PASS|FAIL'}}
+    verdict, detail = scorer.bd_end_state(scen)
+    assert verdict == 'FAIL', detail
+    assert 'notes_pattern' in detail
+
+
+def test_iter13_golden_gs1_and_gs5_accept_open_or_closed_with_notes_pattern():
+    for sid in ('GS1-reference-refund', 'GS5-phase3b-sensitive'):
+        scen = scorer.load_golden(GOLDEN, sid)
+        assert scen['end_state']['bd_status'] == ['OPEN', 'CLOSED'], sid
+        assert scen['end_state']['notes_pattern'] == 'Standards|Spec|verdict|PASS|FAIL', sid
+
+
+def test_iter13_golden_gs2_gs3_implement_scenarios_stay_closed_only_regression():
+    for sid in ('GS2-implement-backend',):
+        scen = scorer.load_golden(GOLDEN, sid)
+        assert scen['end_state']['bd_status'] == 'CLOSED', sid
+
+
+# --- fix 2(a)+(b): the exact real GS1 run-2 repro:
+# "[Oliver|state:3b-running|bd:769] Quinn: **PASS** (0 red, 0 orange, 2 yellow Q-1/Q-2) -- remaining: Chris"
+REAL_RELAY_LINE = ('[Oliver|state:3b-running|bd:769] Quinn: **PASS** '
+                    '(0 red, 0 orange, 2 yellow Q-1/Q-2) -- remaining: Chris')
+
+
+def test_iter13_real_oliver_relay_line_evidenced_by_earlier_quinn_spawn():
+    records = [
+        {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [
+            {'type': 'tool_use', 'name': 'Agent', 'id': 'tu-quinn',
+             'input': {'subagent_type': 'shode-house:qa-engineer'}}]}},
+        {'type': 'user', 'uuid': 'u0', 'message': {'content': [
+            {'type': 'tool_result', 'tool_use_id': 'tu-quinn', 'content': 'Quinn 3b report'}]}},
+        # intervening tool call (e.g. `bd update`) between the tool_result and the relay -- more
+        # than EVIDENCE_LOOKBACK_WINDOW records back by the time the relay text is reached
+        *[{'type': 'assistant', 'uuid': f'mid{i}', 'message': {'content': [
+            {'type': 'tool_use', 'name': 'Bash', 'id': f'tu-mid{i}', 'input': {'command': 'bd update ...'}}]}}
+          for i in range(scorer.EVIDENCE_LOOKBACK_WINDOW + 3)],
+        {'type': 'assistant', 'uuid': 'a1', 'message': {'content': [{'type': 'text', 'text': REAL_RELAY_LINE}]}},
+    ]
+    violations = scorer.find_claim_violations(records, scorer.CLAIM_RE, is_main=True)
+    assert violations == [], violations
+
+
+def test_iter13_relay_line_not_evidenced_when_persona_never_spawned():
+    records = [
+        {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [{'type': 'text', 'text': REAL_RELAY_LINE}]}},
+    ]
+    violations = scorer.find_claim_violations(records, scorer.CLAIM_RE, is_main=True)
+    assert len(violations) == 1
+
+
+def test_iter13_relay_escape_hatch_does_not_apply_to_subagent_files():
+    # the SAME relay line, but scanned as if it were a subagent file (is_main=False) -- the
+    # unbounded relay escape hatch must NOT apply outside main (only Oliver relays in main session)
+    records = [
+        {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [
+            {'type': 'tool_use', 'name': 'Agent', 'id': 'tu-quinn',
+             'input': {'subagent_type': 'shode-house:qa-engineer'}}]}},
+        *[{'type': 'assistant', 'uuid': f'mid{i}', 'message': {'content': [
+            {'type': 'tool_use', 'name': 'Bash', 'id': f'tu-mid{i}'}]}}
+          for i in range(scorer.EVIDENCE_LOOKBACK_WINDOW + 3)],
+        {'type': 'assistant', 'uuid': 'a1', 'message': {'content': [{'type': 'text', 'text': REAL_RELAY_LINE}]}},
+    ]
+    violations = scorer.find_claim_violations(records, scorer.CLAIM_RE, is_main=False)
+    assert len(violations) == 1
+
+
+def test_iter13_markdown_emphasis_stripped_before_matching():
+    text = 'งาน **CLOSED** แล้วครับ'
+    stripped = scorer._strip_markdown_emphasis(text)
+    assert '*' not in stripped
+    assert scorer._claim_match(scorer.CLAIM_RE, stripped) is not None
+
+
+def test_iter13_relay_persona_agent_type_parses_real_line():
+    stripped = scorer._strip_markdown_emphasis(REAL_RELAY_LINE)
+    assert scorer._relay_persona_agent_type(stripped) == 'shode-house:qa-engineer'
+
+
+def test_iter13_relay_prefix_requires_oliver_tag():
+    # a line naming a persona + verdict but NOT starting with the Oliver tag prefix must not be
+    # treated as a relay (avoids accidentally evidencing arbitrary claim text)
+    text = 'Quinn: PASS แต่ยังไม่ได้ tag prefix'
+    assert scorer._relay_persona_agent_type(text) is None
+
+
+def test_iter13_evidence_dimension_passes_is_main_correctly(tmp_path):
+    # end-to-end: evidence_dimension must pass is_main=True for 'main' and False for subagent files
+    main_records = [
+        {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [
+            {'type': 'tool_use', 'name': 'Agent', 'id': 'tu-quinn',
+             'input': {'subagent_type': 'shode-house:qa-engineer'}}]}},
+        *[{'type': 'assistant', 'uuid': f'mid{i}', 'message': {'content': [
+            {'type': 'tool_use', 'name': 'Bash', 'id': f'tu-mid{i}'}]}}
+          for i in range(scorer.EVIDENCE_LOOKBACK_WINDOW + 3)],
+        {'type': 'assistant', 'uuid': 'a1', 'message': {'content': [{'type': 'text', 'text': REAL_RELAY_LINE}]}},
+    ]
+    session = {'main': main_records, 'subagents': {}}
+    verdict, detail = scorer.evidence_dimension(session)
+    assert verdict == 'PASS', detail

@@ -1,0 +1,76 @@
+{
+  "scenario": "GS1-reference-refund",
+  "verdict": "FAIL",
+  "dimensions": {
+    "routing": {
+      "verdict": "FAIL",
+      "detail": "dispatch card: required main-transcript phrase(s) missing: ['[REVIEW DISPATCH CARD]']",
+      "steps": [
+        {
+          "step": 1,
+          "agents": [
+            "shode-house:business-analyst",
+            "shode-house:code-reviewer",
+            "shode-house:fintech-expert",
+            "shode-house:qa-engineer",
+            "shode-house:security-engineer"
+          ],
+          "parallel": false,
+          "batches": 5,
+          "timestamps": [
+            "2026-09-08T06:12:35.136Z",
+            "2026-09-08T06:12:43.732Z",
+            "2026-09-08T06:12:51.470Z",
+            "2026-09-08T06:12:58.494Z",
+            "2026-09-08T06:13:19.672Z"
+          ],
+          "optional": false,
+          "observed": true
+        },
+        {
+          "step": 2,
+          "agents": [
+            "shode-house:developer"
+          ],
+          "parallel": false,
+          "batches": 0,
+          "timestamps": [],
+          "optional": true,
+          "observed": false
+        }
+      ]
+    },
+    "spec_fidelity": {
+      "verdict": "PASS",
+      "detail": "AC ids covered: n/a; required_evidence matched"
+    },
+    "security_trigger": {
+      "verdict": "PASS",
+      "detail": "keyword hit ['ledger', 'money', 'refund'], required agents present: ['shode-house:security-engineer']"
+    },
+    "evidence": {
+      "verdict": "FAIL",
+      "detail": "1 claim(s) without adjacent tool_result: main:5995dee2-5d39-47e4-a383-c39b931b1b36: \"[Oliver|state:3b-running|bd:769] Quinn: **PASS** (🔴0 🟠0 · 🟡2 Q-1/Q-2) — เหลือ Chris\""
+    },
+    "anti_puppet": {
+      "verdict": "FAIL",
+      "detail": "main:5995dee2-5d39-47e4-a383-c39b931b1b36: \"[Oliver|state:3b-running|bd:769] Quinn: **PASS** (🔴0 🟠0 · 🟡2 Q-1/Q-2) — เหลือ Chris\""
+    },
+    "bd_end_state": {
+      "verdict": "FAIL",
+      "detail": "bd status 'CLOSED' not found (case-insensitive) in `bd show shode-house-example-refund-769` output"
+    }
+  },
+  "cost": {
+    "total_effective_tokens": 1548917
+  },
+  "routing_tree": [
+    "depth1  2026-09-08T06:12:35.136Z  shode-house:code-reviewer",
+    "depth1  2026-09-08T06:12:43.732Z  shode-house:qa-engineer",
+    "depth1  2026-09-08T06:12:51.470Z  shode-house:fintech-expert",
+    "depth1  2026-09-08T06:12:58.494Z  shode-house:business-analyst",
+    "depth1  2026-09-08T06:13:19.672Z  shode-house:security-engineer"
+  ],
+  "reasons": [],
+  "trimmed_warning": false
+}
