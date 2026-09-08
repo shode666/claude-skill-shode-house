@@ -1,0 +1,104 @@
+✓ shode-house-example-refund-t4n · GS1 run-5: review refund service (dispatch card, unattended)   [● P2 · CLOSED]
+Owner: shode666 · Assignee: shode666 · Type: task
+Created: 2026-09-08 · Started: 2026-09-08 · Updated: 2026-09-08
+Close reason: Review COMPLETE (dispatch card 5/5: Chris FAIL / Quinn PASS / Bella PASS / Sentinel SIGN-OFF / Felix CONCERNS) at commit 69c3c8c; pytest 32/32, coverage 94%, bandit 0 issues, pip-audit clean; 10 new bd filed (k8j q9d vh4 n3w esb 7ti be6 37o odx lyv) + 34m escalated to High. No src/ changes, no commit, no push.
+
+DESCRIPTION
+  (none)
+
+NOTES
+
+  [REVIEW] GS1 run-5 — target src/app @ 69c3c8c — unattended (no user         
+  available; all forks decided conservative by Oliver, recorded below)        
+                                                                              
+  SCOPE: no diff range — full-file review. git diff origin/main...HEAD --stat 
+  empty; git diff --cached empty; working tree touches only                   
+  .beads/interactions.jsonl. Files: db.py(26) errors.py(37) main.py(153)      
+  models.py(103) schemas.py(115) service.py(226) = 660 LOC.                   
+                                                                              
+  DISPATCH: Chris + Quinn + Bella + Sentinel(trigger:                         
+  money/refund/ledger/idempotency-key) + Felix(trigger: partial refund/double-
+  entry/reconciliation) — 5/5 launched in one parallel batch.                 
+                                                                              
+  == VERDICT ==                                                               
+  Chris   7-dim      : FAIL      (0 Critical; 4 High, all DUP reproduced byte-
+  for-byte)                                                                   
+  Quinn   test/SAST  : PASS      (32/32 pytest on db_test:5433, bandit 0/489  
+  LOC, pip-audit clean)                                                       
+  Bella   spec       : PASS      (8/8 AC COVERED, 0 MISSING/DRIFT; gaps all   
+  DUP:9um doc-drift)                                                          
+  Sentinel security  : SIGN-OFF  (0 Critical / 0 High)                        
+  Felix   domain     : CONCERNS  (5 NEW + 1 severity escalation)              
+  Oliver aggregate   : PARTIAL — merge NOT blocked by anything new; blocked by
+  the pre-existing High set (34m, ue3.1, ue3.2, u67).                         
+                                                                              
+  == NEW ISSUES FILED THIS ROUND (10) ==                                      
+  P2 k8j  F-B  refund responses expose live order_status, no status_after     
+  snapshot (Felix + Quinn same root cause)                                    
+  P2 q9d  F-C  no journals header table — journal_id unanchored UUID          
+  P2 vh4  C-N1 over-refund terminal guard error branch not test-asserted      
+  (mutant M1 survived 32/32 @94% cov)                                         
+  P3 n3w  F-D  no (account_code,direction) constraint — fully reversed journal
+  passes every CHECK                                                          
+  P3 esb  F-E  replay fast path returns without rollback() — idle-in-         
+  transaction per replay                                                      
+  P3 7ti  C-N2 create_refund() 96 lines, SRP smell (blocked by n3w — shared   
+  post_journal() extraction)                                                  
+  P3 be6  C-N3 db.py get_session() dead code (4 rounds, never ticketed)       
+  P3 37o  Q-N1 OPTIONS /orders/{id}/refunds Allow: POST only, GET missing     
+  P3 odx  S-N1 DB tier hardening: postgres superuser + no REVOKE + compose    
+  0.0.0.0 with default creds                                                  
+  P3 lyv  F-F  revenue recognition period not modelled — README caveat (no    
+  primary source citable)                                                     
+                                                                              
+  == ESCALATION ==                                                            
+  34m (I-1 isolation_level) 🟡 -> 🟠. Verified by Oliver at HEAD: db.py:17 =  
+  create_engine(DATABASE_URL, future=True), no isolation_level. The D-1 fix in
+  69c3c8c (service.py:130-134) is correct ONLY under READ COMMITTED. Priority 
+  kept P1 (no silent re-prioritisation in an unattended round).               
+                                                                              
+  == OLIVER DECISIONS (unattended, conservative) ==                           
+                                                                              
+  1. Findings tagged DUP by sub-agents were NOT re-filed. Anti-dup            
+  independently re-verified with bd search for: journal, rollback, direction, 
+  order_status, isolation, superuser, append-only, OPTIONS, Allow, revenue,   
+  period.                                                                     
+  2. Bella and Felix had no Bash tool in their profile and substituted a read 
+  of .beads/issues.jsonl for bd list --status=open. Accepted, but Oliver re-  
+  ran the real bd search/bd list before filing — no tag was taken on trust.   
+  3. C-N3 (dead code) filed rather than accepted as debt, so round 6 stops re-
+  discovering it. Chris open question 1 -> answered by filing.                
+  4. u67 (mutation-gate enforce-or-waive) left OPEN and undecided — that is a 
+  human call; only new evidence was attached.                                 
+  5. Sentinel's P3 CRLF-in-Idempotency-Key hypothesis was reported by Sentinel
+  itself as NOT demonstrable (TestClient in-process; h11 rejects CRLF on a    
+  real ASGI wire). NOT counted as a finding.                                  
+  6. Felix could not cite a TFRS/IFRS 15 clause for the revenue-period concern;
+  filed as a documentation caveat, not a compliance requirement.              
+  7. No src/ file was modified by any agent this round; no commit, no push    
+  (conservative profile).                                                     
+                                                                              
+  == TOOLS RUN (evidence in artifacts) ==                                     
+  pytest 32/32 · coverage 94% · bandit 0 issues/489 LOC · pip-audit clean     
+  (fastapi 0.141.1 / starlette 1.6.0) · ruff+mypy reproduce ue3.2/ue3.1 (6+7  
+  errors) · schemathesis 9 failures all mapping to existing DUPs · 4 own-run  
+  concurrency/race probes PASS (no over-refund, no double-write).             
+  NOT run: gitleaks/trufflehog (not installed — grep fallback, 0 matches).    
+                                                                              
+  == ARTIFACTS ==                                                             
+  outputs/shode-house-example-refund-t4n/00-oliver-kickoff.md                 
+  outputs/shode-house-example-refund-t4n/01-chris-3b.md      (+ chris-probe/) 
+  outputs/shode-house-example-refund-t4n/02-quinn-3b.md      (+ quinn-probe/) 
+  outputs/shode-house-example-refund-t4n/03-bella-spec.md                     
+  outputs/shode-house-example-refund-t4n/04-sentinel-security.md (+ sentinel- 
+  probe/)                                                                     
+  outputs/shode-house-example-refund-t4n/05-felix-domain.md                   
+                                                                              
+  == LOOP ROUTING ==                                                          
+  Phase 2 (Dave): 34m isolation pin -> esb rollback -> n3w+7ti post_journal() 
+  extraction -> q9d journals header.                                          
+  Phase 3b (Chris/Quinn): vh4 assertion, ue3.6 promote probes.                
+  Human decision required: u67 gate, and 9um spec/doc decisions.              
+
+
+

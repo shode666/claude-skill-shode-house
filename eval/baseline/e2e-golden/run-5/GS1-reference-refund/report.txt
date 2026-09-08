@@ -1,0 +1,18 @@
+Scenario: GS1-reference-refund
+  Routing         PASS        (1/2 steps matched; optional step(s) not observed (skipped, not a failure): [2]; step1 parallel=False)
+    step1 ['shode-house:business-analyst', 'shode-house:code-reviewer', 'shode-house:fintech-expert', 'shode-house:qa-engineer', 'shode-house:security-engineer'] parallel=False (spawned across 5 message(s), ts=['2026-09-08T08:32:50.033Z', '2026-09-08T08:33:00.099Z', '2026-09-08T08:33:12.365Z', '2026-09-08T08:33:23.059Z', '2026-09-08T08:33:32.494Z'])
+    routing tree (reconstructed, informational):
+      depth1  2026-09-08T08:32:50.033Z  shode-house:code-reviewer
+      depth1  2026-09-08T08:33:00.099Z  shode-house:qa-engineer
+      depth1  2026-09-08T08:33:12.365Z  shode-house:business-analyst
+      depth1  2026-09-08T08:33:23.059Z  shode-house:security-engineer
+      depth1  2026-09-08T08:33:32.494Z  shode-house:fintech-expert
+  Spec fidelity   PASS        (AC ids covered: n/a; required_evidence matched)
+  Security trig   PASS        (keyword hit ['ledger', 'money', 'refund', 'card'], required agents present: ['shode-house:security-engineer'])
+  Evidence        PASS        (all claims have adjacent tool_result / inline paste)
+  Anti-puppet     PASS        (0 violation)
+  bd end_state    PASS        (bd show shode-house-example-refund-t4n matches expected end_state)
+  Cost            —           (this run total 1,767,454 tok; median/p90 across N runs: usage-report.py --compare)
+Overall: PASS
+-> eval/baseline/e2e-golden/run-5/GS1-reference-refund/score.json
+score exit=0
