@@ -6,6 +6,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 ## [Unreleased]
 
 - `LICENSE` ไฟล์จริง (MIT — เดิมมีแค่ badge + manifest field, GitHub รายงาน `license: null`)
+- `docs/ARCHITECTURE.md` — 3 Mermaid diagrams (agent topology · PEV lifecycle · enforcement architecture) + สิ่งที่ยังไม่มี (roadmap)
 - README restructure: What → Architecture → 60-second example → Why different → Install → Benchmarks → reference; ตัด section changelog v3.9–v3.12.1 ที่ซ้ำกับไฟล์นี้ออก (source of truth เดียว) · version badge 3.12.1 → 3.13.0 · Drift Defense 7 → 8 mechanisms (M8 หายจากตาราง)
 - `eval/README.md` sync กับผลจริงใน `eval/results/3.13-rc1/` (เดิมเขียนว่า runtime baseline ยังไม่ได้รัน)
 - tag ย้อนหลัง v3.10.0 · v3.10.1 · v3.12.1 · v3.13.0 (v3.11.0/v3.12.0 ไม่มี commit แยก — squashed ใน PR #3)

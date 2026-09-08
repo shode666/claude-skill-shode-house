@@ -54,6 +54,8 @@ Patrick    Bella ∥ Sara   Uma      Sentinel    Domain SME ×7
         DEPLOY / OPERATE  Aaron (5) → Reggie (6)
 ```
 
+รูปเต็ม 3 มุมมอง (topology · lifecycle · enforcement, Mermaid) → [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
 ทุก transition ผ่าน **gate** ที่ต้องมี evidence (`pre-implement` · `pre-implement-ui` · `pre-ui-check` · `pre-loop-exit` · `pre-deploy-*` · `pre-destructive` …) — รายละเอียด § Workflow ด้านล่าง
 
 ---
