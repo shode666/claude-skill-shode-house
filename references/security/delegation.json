@@ -1,0 +1,26 @@
+{
+  "_comment": "Milestone F delegation permission map (bd: shode-roadmap/C-F1, ROADMAP-runtime-10.md SS 11.3 -- who may spawn whom, anti recursive fan-out). Read by scripts/permission-check.sh + CI drift check ONLY -- NEVER preloaded into agent context. Transcribed from reality, not aspiration: exactly ONE agent file today carries the Task tool in its `tools:` frontmatter (agents/orchestrator.md), so orchestrator can_spawn '*' and every other agent can_spawn [] -- this is not just policy, it is PLATFORM-ENFORCED (an agent without Task physically cannot spawn; CI asserts can_spawn is non-empty iff the frontmatter has Task). Derived fact: because no spawnable agent can itself spawn, maximum delegation depth = 1 -- recursive fan-out is impossible in the current tool topology. ROADMAP SS 11.3's example (developer -> mechanical-helper, code-reviewer -> verification-helper) refers to helper agents that DO NOT EXIST in agents/ today; do not add spawn rights here without also adding the Task tool + the helper agent file, or CI check F goes red.",
+  "delegation": {
+    "orchestrator": { "can_spawn": "*", "evidence": "agents/orchestrator.md tools contains Task" },
+    "product-manager": { "can_spawn": [] },
+    "business-analyst": { "can_spawn": [] },
+    "solution-architect": { "can_spawn": [] },
+    "staff-engineer": { "can_spawn": [] },
+    "security-engineer": { "can_spawn": [] },
+    "developer": { "can_spawn": [] },
+    "code-reviewer": { "can_spawn": [] },
+    "qa-engineer": { "can_spawn": [] },
+    "devops-engineer": { "can_spawn": [] },
+    "sre-engineer": { "can_spawn": [] },
+    "ux-ui-designer": { "can_spawn": [] },
+    "fintech-expert": { "can_spawn": [] },
+    "erp-expert": { "can_spawn": [] },
+    "sap-expert": { "can_spawn": [] },
+    "trading-expert": { "can_spawn": [] },
+    "insurance-expert": { "can_spawn": [] },
+    "booking-expert": { "can_spawn": [] },
+    "ecommerce-expert": { "can_spawn": [] }
+  },
+  "max_depth": 1,
+  "_max_depth_note": "derived fact, not a tunable: only orchestrator has Task, and orchestrator-spawned agents have no Task. A fan-out COUNT cap per run is a durable-runtime concern (references/patterns/durable-agent-runtime.md) -- this registry cannot enforce it and does not pretend to."
+}

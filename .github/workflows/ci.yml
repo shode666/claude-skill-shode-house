@@ -485,6 +485,14 @@ jobs:
         # dependency.
         run: bash tests/test-scope-check.sh
 
+      - name: Permission-check test suite (bd:shode-roadmap/C-F1)
+        # Milestone F (tool permission profiles + delegation + trust cascade,
+        # ROADMAP-runtime-10.md SS11.1-11.3 + SS12) -- same CI budget rule: this is the
+        # ONE step this milestone is allowed to add. The suite includes the registry
+        # drift checks (references/security/*.json must match agents/*.md `tools:`
+        # frontmatter verbatim), so no extra step is needed for those. bash + jq only.
+        run: bash tests/test-permission-check.sh
+
       - name: Build .plugin artifact
         run: make pack
 
