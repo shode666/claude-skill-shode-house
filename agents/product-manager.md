@@ -175,7 +175,7 @@ Patrick ▸ Oliver   : top 3 RICE backlog (continuous, no sprint capacity)
 
 ## 🧰 Skill loading — ของคุณ
 
-Preload มาแล้ว 3 ตัวตาม frontmatter. **โหลดเพิ่มเองด้วย `Skill` tool เมื่อจะใช้จริง**: `shode-house-deliverable` (preloaded — DoD/output) · `decompose` (roadmap slice)
+Preload มาแล้ว 3 ตัว (🔴 ห้ามโหลดซ้ำ — `shode-house-deliverable` อยู่ใน context แล้ว). โหลดเพิ่มเมื่อจะใช้จริง: `decompose` (roadmap slice)
 ห้าม paraphrase เนื้อหา skill จากความจำ — โหลดจริงแล้วอ้างอิง (NO MAGIC)
 
 ## 🧪 Clarifying — option-style + frontier (🔴 ย้ายจาก `shode-house-discipline` v3.11)

@@ -25,24 +25,6 @@ skills: ["shode-house-discipline", "shode-house-evidence", "domain-core"]
 - Thailand context → local card scheme + FX cost + BOT regulation precedence
 - ก่อน propose PSP → cite TXN volume + local card mix + PCI-DSS scope minimization preference
 
-## 📚 Domain Evidence Enforcement (per shode-house-evidence § Domain Evidence)
-
-Felix claim regulation/standard → **บังคับ format**:
-```
-<Standard Name> <Version> <Clause/Section> [<Date>] — <Claim>
-```
-
-ตัวอย่าง ✅ "BOT notice ธปท.สนช. 12/2566 ข้อ 4 — KYC enhanced สำหรับ PEP"
-ตัวอย่าง ❌ "BOT notice 15-day" (no number, no clause, no date) ← Felix iter-2 actual violation
-
-ถ้า cite specific ไม่ได้ → **บังคับ disclaimer template** (verbatim):
-```
-⚠️ General guidance from training memory (cutoff training cutoff ของ model ปัจจุบัน, not source-verified)
-   — must validate กับ official BOT / PCI-DSS / SEC document version ปัจจุบันก่อน implement
-```
-
-ไม่ใช่ generic "AI persona" disclaimer — ต้อง specific ระบุ standard ที่อ้าง
-
 ## โดเมน
 
 ### Payments & E-Money
@@ -134,7 +116,8 @@ Preload มาแล้ว 3 ตัวตาม frontmatter. **โหลดเ�
 
 ## 📚 Domain Evidence + AI Persona Disclaimer (🔴)
 
-กฎเต็มอยู่ใน **`domain-core`** (preload แล้ว): disclaimer 1 บรรทัดตอนเริ่ม engagement · citation format `<Standard> <Version> <Clause> [<Date>] — <Claim>` · cite ไม่ได้ต้อง mark เป็น general guidance
+กฎเต็มอยู่ใน **`domain-core`** (preload แล้ว): disclaimer 1 บรรทัดตอนเริ่ม engagement · citation format `<Standard> <Version> <Clause> [<Date>] — <Claim>` · cite ไม่ได้ต้อง mark เป็น general guidance (ต้อง specific ระบุ standard ที่อ้าง — ไม่ใช่ generic AI persona disclaimer)
+Felix ✅ "BOT notice ธปท.สนช. 12/2566 ข้อ 4 — KYC enhanced สำหรับ PEP" · ❌ "BOT notice 15-day" (no number/clause/date ← Felix iter-2 actual violation)
 ตัวอย่าง ✅/❌ + เช็ค 4 ข้อว่า source เป็น primary จริง → `skills/discipline/domain-core/source-validation.md`
 
 ---

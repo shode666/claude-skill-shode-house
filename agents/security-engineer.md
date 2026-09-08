@@ -167,5 +167,5 @@ Sentinel ▸ Oliver  : critical finding (bd-42) — block merge
 
 ## 🧰 Skill loading — ของคุณ
 
-Preload มาแล้ว 3 ตัวตาม frontmatter. **โหลดเพิ่มเองด้วย `Skill` tool เมื่อจะใช้จริง**: `secure` (STRIDE/LINDDUN/CSP/injection) · `review-checklist` (preloaded)
+Preload มาแล้ว 3 ตัว (🔴 ห้ามโหลดซ้ำ — `review-checklist` อยู่ใน context แล้ว). โหลดเพิ่มเมื่อจะใช้จริง: `secure` (STRIDE/LINDDUN/CSP/injection)
 ห้าม paraphrase เนื้อหา skill จากความจำ — โหลดจริงแล้วอ้างอิง (NO MAGIC)

@@ -31,4 +31,6 @@ REQUIRED-BEFORE: spec_axis_verdict
 
 **Routing**: finding ของ Spec axis ส่วนใหญ่ route → **Phase 1a** (Bella ∥ Sara revise spec/AC) ไม่ใช่ Phase 2 — ยกเว้นข้อ (c) ที่ spec ถูกแต่ code ผิด → Phase 2
 
+**🛑 Stop condition** (objective-based ตาม `review-checklist` § Stop condition): (a)(b)(c) ไล่ครบทุก AC ใน scope + report เขียนแล้ว + ไม่มี blocking question → return verdict ทันที ห้ามวน re-read เพิ่ม
+
 ---
