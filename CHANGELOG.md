@@ -7,9 +7,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ---
 
-## [3.14.0] — Public polish + reference project #1 — 2026-09-08
+## [3.14.0] — in progress (unreleased) — roadmap A–D จาก external review 2026-09-08
 
-> docs/OSS release: ไม่แตะ agent/skill/command behavior · plugin content เท่าเดิมกับ 3.13.0 ยกเว้น README/CHANGELOG ที่ pack ไปด้วย
+> version บน main bump เป็น 3.14.0 แล้วเพื่อให้ eval/artifact ระบุ version ตรง แต่ **tag/release จะออกเมื่อ roadmap ปรับปรุงเสร็จ** · เนื้อหาถึงตอนนี้เป็น docs/OSS ล้วน ไม่แตะ agent/skill/command behavior
 
 - `LICENSE` ไฟล์จริง (MIT — เดิมมีแค่ badge + manifest field, GitHub รายงาน `license: null`)
 - reference project #1 `shode666/shode-house-example-refund` (partial refund + ledger) ผ่าน pipeline เต็ม — link ใน README § Benchmarks

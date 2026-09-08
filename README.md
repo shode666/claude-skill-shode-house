@@ -10,7 +10,7 @@
 
 ครอบคลุม **ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI** + polyglot 14 languages · ภาษาไทยเป็นหลัก
 
-**What's new**: [CHANGELOG.md](CHANGELOG.md) · release ล่าสุด v3.14.0 — public polish (LICENSE · README · architecture diagrams) + reference project #1 ที่ผ่าน pipeline เต็ม
+**What's new**: [CHANGELOG.md](CHANGELOG.md) · release ล่าสุด **v3.13.0** · main = 3.14.0-in-progress (public polish · architecture diagrams · reference project #1 — ดู CHANGELOG)
 
 ---
 
