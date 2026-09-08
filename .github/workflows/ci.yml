@@ -449,11 +449,11 @@ jobs:
           set -e
           echo "-- PASS-path fixture (routing-ok / GS2-implement-backend) --"
           python3 scripts/eval-scorer.py eval/fixtures/transcripts/routing-ok \
-            --scenario GS2-implement-backend --project eval/fixtures/outputs-root
+            --scenario GS2-implement-backend --project eval/fixtures/outputs-root --bd-id bd-101
           echo
           echo "-- FAIL-path fixture (routing-wrong-order / GS2-implement-backend) -- must exit non-zero --"
           if python3 scripts/eval-scorer.py eval/fixtures/transcripts/routing-wrong-order \
-              --scenario GS2-implement-backend --project eval/fixtures/outputs-root; then
+              --scenario GS2-implement-backend --project eval/fixtures/outputs-root --bd-id bd-101; then
             echo "FATAL: routing-wrong-order fixture did not fail the scorer -- gate is not enforcing"
             exit 1
           fi
