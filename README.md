@@ -151,6 +151,10 @@ v3.12.0 → v3.12.1: 702,788 → 587,398 B (−16.4%) โดยไม่ตั�
 
 harness + วิธีรัน → [`eval/README.md`](eval/README.md) · [`eval/RUNBOOK.md`](eval/RUNBOOK.md)
 
+### Reference project — สร้างด้วย pipeline จริงทั้งสาย
+
+[`shode666/shode-house-example-refund`](https://github.com/shode666/shode-house-example-refund) — partial refund + double-entry ledger (FastAPI/PostgreSQL, Decimal). ทุก artifact ที่ขับ code อยู่ใน `docs/pipeline/01..08`: Bella BRD (8 AC) → Felix ledger rules → Sara ADR/schema → Sentinel SEC-01..03 → Dave (23 tests) → Chris 7-dim **FAIL 1 🔴** (scientific-notation amount → 500) → fix iter 1 → Chris CLEAN → Quinn E2E จริง + spec axis 11/11 → Felix domain CLEAN → **28 passed**. โชว์ทั้ง domain gate, spec axis และ reviewer ที่จับ bug ได้จริง — ไม่ใช่ pipeline ที่ผ่านทุกอย่างเขียว
+
 ---
 
 ## 👥 7 Teams (parallel within, sequential across via phase gate)
