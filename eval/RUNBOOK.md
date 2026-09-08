@@ -79,3 +79,5 @@ S=$(ls -t ~/.claude/projects/-Users-<you>-workspace-<fixture>/*.jsonl | head -1)
 python3 scripts/eval-scorer.py "$S" --scenario GSn-... --project <fixture project> --bd-id <id> --out eval/baseline/e2e-golden/run-N
 ```
 exit 0 PASS · 1 FAIL · 2 UNSCORABLE (input หาย — ไม่ใช่ PASS)
+
+🔴 **หลังแก้ plugin ทุกครั้ง (version เดิม)**: `claude plugin uninstall shode-house@shode-house && claude plugin install shode-house@shode-house` — `install` เฉย ๆ บอก already installed และใช้ cache เก่า (`~/.claude/plugins/cache/shode-house/shode-house/<ver>/`); ตรวจด้วย `grep -l 'REVIEW DISPATCH CARD' ~/.claude/plugins/cache/shode-house/shode-house/*/commands/review.md`

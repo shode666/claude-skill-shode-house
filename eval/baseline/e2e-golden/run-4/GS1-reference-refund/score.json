@@ -1,0 +1,76 @@
+{
+  "scenario": "GS1-reference-refund",
+  "verdict": "PASS",
+  "dimensions": {
+    "routing": {
+      "verdict": "PASS",
+      "detail": "1/2 steps matched; optional step(s) not observed (skipped, not a failure): [2]; step1 parallel=False",
+      "steps": [
+        {
+          "step": 1,
+          "agents": [
+            "shode-house:business-analyst",
+            "shode-house:code-reviewer",
+            "shode-house:fintech-expert",
+            "shode-house:qa-engineer",
+            "shode-house:security-engineer"
+          ],
+          "parallel": false,
+          "batches": 5,
+          "timestamps": [
+            "2026-09-08T07:40:35.256Z",
+            "2026-09-08T07:40:42.237Z",
+            "2026-09-08T07:40:47.954Z",
+            "2026-09-08T07:40:56.455Z",
+            "2026-09-08T07:41:02.450Z"
+          ],
+          "optional": false,
+          "observed": true
+        },
+        {
+          "step": 2,
+          "agents": [
+            "shode-house:developer"
+          ],
+          "parallel": false,
+          "batches": 0,
+          "timestamps": [],
+          "optional": true,
+          "observed": false
+        }
+      ]
+    },
+    "spec_fidelity": {
+      "verdict": "PASS",
+      "detail": "AC ids covered: n/a; required_evidence matched"
+    },
+    "security_trigger": {
+      "verdict": "PASS",
+      "detail": "keyword hit ['ledger', 'money', 'refund', 'card'], required agents present: ['shode-house:security-engineer']"
+    },
+    "evidence": {
+      "verdict": "PASS",
+      "detail": "all claims have adjacent tool_result / inline paste"
+    },
+    "anti_puppet": {
+      "verdict": "PASS",
+      "detail": "0 violation"
+    },
+    "bd_end_state": {
+      "verdict": "PASS",
+      "detail": "bd show shode-house-example-refund-ftx matches expected end_state"
+    }
+  },
+  "cost": {
+    "total_effective_tokens": 1876223
+  },
+  "routing_tree": [
+    "depth1  2026-09-08T07:40:35.256Z  shode-house:code-reviewer",
+    "depth1  2026-09-08T07:40:42.237Z  shode-house:qa-engineer",
+    "depth1  2026-09-08T07:40:47.954Z  shode-house:business-analyst",
+    "depth1  2026-09-08T07:40:56.455Z  shode-house:security-engineer",
+    "depth1  2026-09-08T07:41:02.450Z  shode-house:fintech-expert"
+  ],
+  "reasons": [],
+  "trimmed_warning": false
+}

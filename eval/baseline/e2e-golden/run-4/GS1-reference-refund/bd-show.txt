@@ -1,0 +1,109 @@
+✓ shode-house-example-refund-ftx · GS1 run-4: review refund service (dispatch card, unattended)   [● P2 · CLOSED]
+Owner: shode666 · Assignee: shode666 · Type: task
+Created: 2026-09-08 · Started: 2026-09-08 · Updated: 2026-09-08
+Close reason: run-4 review DELIVERED 5/5 axes @ 69c3c8c. Verdict PARTIAL - merge not blocked (Sentinel Critical 0/High 0; Bella 8/8 AC; Felix ledger conforms). Chris FAIL on 1 O quality gate (mypy, bd ue3.1 P1). pytest 32 passed / bandit clean / pip-audit clean. 7 follow-up beads filed (93c 5o9 3ve 9nm 1b3 u67 5jq); u67 labeled human.
+
+DESCRIPTION
+  (none)
+
+NOTES
+
+  === REVIEW run-4 (ftx) — CONSOLIDATED (Oliver aggregation) ===              
+  Scope: no diff range (HEAD==origin/main==69c3c8c, src/ clean) -> full-file  
+  review src/app/*.py, 660 LOC.                                               
+  Dispatch: 5/5 parallel (Chris, Quinn, Bella, Sentinel, Felix). All returned 
+  own-run evidence.                                                           
+                                                                              
+  ## Standards                                                                
+                                                                              
+  • Chris  7-dim   : FAIL  | 0 R / 1 O (F-1 mypy gate broken, carried 4 rounds
+  = bd ue3.1) / 6 Y / 4 B                                                     
+  D-1, S-01, C-4 from 69c3c8c CONFIRMED landed (pytest 32 passed + probes).   
+  artifact outputs/shode-house-example-refund-ftx/01-chris-3b.md              
+  • Quinn  test/SAST: PASS | 0 new at every severity; 1 High + 5 Med carried- 
+  still-open re-confirmed.                                                    
+  Evidence: bandit clean, pip-audit clean, 20s/10VU smoke. NOT verified:      
+  gitleaks/trufflehog,                                                        
+  semgrep, DAST/ZAP, Pact, soak/spike/chaos - disclosed, not passed silently. 
+  artifact .../02-quinn-3b.md (+ quinn-probe/)                                
+  • Sentinel sec   : SIGN-OFF | Critical 0, High 0 -> NO BLOCK-MERGE. Med 1   
+  (SR2-01 starlette floor,                                                    
+  pyproject.toml:6-12, 3rd round open = bd 7j0), Low 1 accepted. 21           
+  adversarial probes FAILCOUNT 0.                                             
+  artifact .../04-sentinel-security.md                                        
+  • Felix  domain  : DOMAIN ISSUES (non-blocking) | ledger axis fully conforms
+  to 02-felix-1b.md                                                           
+  (double-entry balance, DR/CR direction, positive-amount, append-only contra,
+  derived status,                                                             
+  scale/rounding, over-refund cap). 4 new: X-1/X-2 MEDIUM, X-3/X-4 INFO.      
+  artifact .../05-felix-domain.md                                             
+                                                                              
+  ## Spec                                                                     
+                                                                              
+  • Bella spec axis: VERIFIED | 8/8 AC VERIFIED, 0 GAP, 0 DRIFT vs            
+  docs/pipeline/01-bella-1a.md.                                               
+  2 low scope-drift carried (GET /orders/{id} main.py:83-87, POST /orders     
+  main.py:76-80 -                                                             
+  absent from 03-sara-1a.md endpoint table). 3 open Q carried (ADR-003 stale  
+  text,                                                                       
+  API table incomplete, ISO 4217 citation unverified) - all already in bd 9um.
+  artifact .../03-bella-spec.md                                               
+                                                                              
+  ## Oliver verdict: PARTIAL - merge NOT blocked (no Critical/High security,  
+  no 0-severity code finding).                                                
+                                                                              
+  Quality gate IS broken (F-1 mypy) and has been for 4 rounds -> tracked P1 bd
+  ue3.1, not re-deferred here.                                                
+                                                                              
+  ## Conservative decisions this round (unattended, no AskUserQuestion        
+  available)                                                                  
+                                                                              
+  1. Chris OQ1 (F-1 routing) -> keep as P1 bd ue3.1, do NOT self-fix. Oliver  
+  does not write production code.                                             
+  2. Chris OQ2 (F-8 Mandatory Test Quality enforce-vs-waive) -> NOT treated as
+  block-merge for this                                                        
+  reference/demo project (README: not production, no real funds), but         
+  escalated instead of silently                                               
+  re-deferred a 5th time: bd u67 created + labeled human, visible via bd human
+  list.                                                                       
+  3. Chris OQ3 (tooling pin) -> already covered by P1 bd ue3.2; no duplicate  
+  created.                                                                    
+  4. Felix I-1 repro (Felix had no Bash) -> satisfied by Quinn own-run        
+  evidence: 14/15 -> deterministic                                            
+  client-visible HTTP 500 under REPEATABLE READ, db.py:17. Tracked P1 bd 34m. 
+  No extra work needed.                                                       
+  5. Bella open Q1 (ADR-003 owner) -> folded into existing bd 9um; no new item.
+  6. Sentinel SR2-01 -> already bd 7j0; no duplicate.                         
+                                                                              
+  ## New beads filed this round                                               
+                                                                              
+  93c P2 X-1 ledger_entry_ids unordered/no ORDER BY | 5o9 P2 X-2 refund       
+  endpoint no response_model                                                  
+  3ve P3 X-3/X-4 error precedence + ledger surface  | 9nm P2 F-3              
+  IntegrityError branch uncovered post-D-1                                    
+  1b3 P3 F-4 InvalidOperation branch uncovered      | u67 P2 F-8 test-quality 
+  gate (human decision)                                                       
+  5jq P2 RequestValidationError not on unified error shape (had no dedicated  
+  bd before)                                                                  
+                                                                              
+  ## Process note (recurring since d5k)                                       
+                                                                              
+  Shared db_test docker container was torn down twice mid-run by a parallel   
+  Phase-3b agent's                                                            
+  make test (docker compose down); Quinn recovered and re-ran affected probes 
+  clean. Parallel                                                             
+  review agents need isolated compose projects (-p) - shode-house pipeline    
+  issue, not this repo's.                                                     
+
+
+
+COMMENTS
+  2026-09-08 07:44 shode666
+    
+      [Sentinel|iter:1] Security SIGN-OFF @ 69c3c8c — 0 Crit/0 High/1 Med (SR2-01 
+      carry-over: pyproject starlette floor, 3rd round open -> Aaron)/1 Low (SR2- 
+      02 accepted). Own-run: pytest 32 pass, bandit 0, pip-audit 0, 21 probes     
+      FAILCOUNT 0, secret grep 0. Artifact: outputs/shode-house-example-refund-   
+      ftx/04-sentinel-security.md. Assumptions: bandit-not-semgrep (not           
+      installed), grep-not-gitleaks, TestClient-not-ZAP.                          
+
