@@ -1,0 +1,116 @@
+{
+  "version": "3.14-e2e",
+  "runs_per_scenario": 3,
+  "report": ["median", "p90"],
+  "scenarios": [
+    {
+      "id": "GS1-reference-refund",
+      "command": "/review",
+      "golden": true,
+      "desc": "reference project refund — full pipeline, Sentinel+Felix money trigger",
+      "bd_id": "bd-107",
+      "agents": ["code-reviewer", "qa-engineer", "security-engineer", "fintech-expert"],
+      "expected_routing": [
+        {"agents": ["shode-house:code-reviewer", "shode-house:qa-engineer"], "parallel": true},
+        {"agents": ["shode-house:security-engineer"]},
+        {"agents": ["shode-house:fintech-expert"]}
+      ],
+      "required_artifacts": ["outputs/bd-107/*code-reviewer*.md", "outputs/bd-107/*qa-engineer*.md"],
+      "required_evidence": [
+        {"glob": "outputs/bd-107/*security-engineer*.md", "pattern": "mask_card"},
+        {"glob": "outputs/bd-107/*fintech-expert*.md", "pattern": "cite|regulation|PENDING"}
+      ],
+      "forbidden_phrases": ["merge โดยไม่มี domain+security", "APPROVED โดยไม่ cite"],
+      "security_triggers": {"keywords": ["ledger", "money", "refund", "เลขบัตร", "card"],
+                            "required_agents": ["shode-house:security-engineer"]},
+      "relay_expected": false,
+      "end_state": {"bd_status": "CLOSED", "verdict_pattern": "CLOSED"}
+    },
+    {
+      "id": "GS2-implement-backend",
+      "command": "/implement",
+      "golden": true,
+      "desc": "implement-backend E2E — Dave -> Chris||Quinn -> Bella spec-axis, no Uma, no Sentinel",
+      "bd_id": "bd-101",
+      "spec_file": "outputs/SPEC-bd-101.md",
+      "agents": ["developer", "code-reviewer", "qa-engineer", "business-analyst"],
+      "expected_routing": [
+        {"agents": ["shode-house:developer"]},
+        {"agents": ["shode-house:code-reviewer", "shode-house:qa-engineer"], "parallel": true},
+        {"agents": ["shode-house:business-analyst"]}
+      ],
+      "required_artifacts": ["outputs/bd-101/*developer*.md", "outputs/bd-101/*business-analyst*.md"],
+      "required_evidence": [
+        {"glob": "outputs/bd-101/*code-reviewer*.md", "pattern": "AC-4"}
+      ],
+      "forbidden_phrases": [],
+      "security_triggers": null,
+      "relay_expected": false,
+      "end_state": {"bd_status": "CLOSED", "verdict_pattern": "CLOSED"}
+    },
+    {
+      "id": "GS3-spec-axis-gap",
+      "command": "/implement",
+      "golden": true,
+      "desc": "spec ตัด AC-4 idempotency โดยตั้งใจ — Bella ต้อง flag ก่อนถึง Chris/Quinn",
+      "bd_id": "bd-104",
+      "spec_file": "outputs/SPEC-bd-104.md",
+      "agents": ["developer", "business-analyst", "code-reviewer", "qa-engineer"],
+      "expected_routing": [
+        {"agents": ["shode-house:developer"]},
+        {"agents": ["shode-house:business-analyst"]},
+        {"agents": ["shode-house:code-reviewer", "shode-house:qa-engineer"], "parallel": true}
+      ],
+      "required_artifacts": ["outputs/bd-104/*business-analyst*.md"],
+      "required_evidence": [
+        {"glob": "outputs/bd-104/*business-analyst*.md", "pattern": "AC-4.*(gap|ขาด|ไม่มีใน spec)"},
+        {"glob": "outputs/bd-104/*business-analyst*.md", "pattern": "SPEC-bd-101"}
+      ],
+      "forbidden_phrases": ["sign-off", "APPROVED"],
+      "security_triggers": null,
+      "relay_expected": false,
+      "end_state": {"bd_status": "OPEN", "verdict_pattern": "CONDITIONAL|BLOCKED"}
+    },
+    {
+      "id": "GS4-askuser-relay",
+      "command": "/design-system",
+      "golden": true,
+      "desc": "ambiguity แบ่งคืนเงิน 2 ช่องทาง (บัตร+PromptPay) — ต้อง relay ไม่เดา",
+      "bd_id": "bd-105",
+      "agents": ["business-analyst", "solution-architect", "fintech-expert"],
+      "expected_routing": [
+        {"agents": ["shode-house:business-analyst", "shode-house:solution-architect"], "parallel": true}
+      ],
+      "routing_open_ended": true,
+      "required_artifacts": [],
+      "required_evidence": [],
+      "forbidden_phrases": ["สมมติแบ่งตามสัดส่วน", "assume proportional", "ขอสมมติ"],
+      "security_triggers": {"keywords": ["refund", "PromptPay", "บัตร", "คืนเงิน"],
+                            "required_agents": ["shode-house:fintech-expert"]},
+      "relay_expected": true,
+      "end_state": {"bd_status": "OPEN", "verdict_pattern": null}
+    },
+    {
+      "id": "GS5-phase3b-sensitive",
+      "command": "/review",
+      "golden": true,
+      "desc": "diff แก้ ledger posting + เก็บเลขบัตรบางส่วน — merge gate ต้องมี domain+security signature",
+      "bd_id": "bd-106",
+      "agents": ["code-reviewer", "qa-engineer", "security-engineer", "fintech-expert"],
+      "expected_routing": [
+        {"agents": ["shode-house:code-reviewer", "shode-house:qa-engineer"], "parallel": true},
+        {"agents": ["shode-house:security-engineer"]},
+        {"agents": ["shode-house:fintech-expert"]}
+      ],
+      "required_artifacts": ["outputs/bd-106/*security-engineer*.md", "outputs/bd-106/*fintech-expert*.md"],
+      "required_evidence": [
+        {"glob": "outputs/bd-106/*security-engineer*.md", "pattern": "mask_card"}
+      ],
+      "forbidden_phrases": ["merge โดยไม่มีลายเซ็น"],
+      "security_triggers": {"keywords": ["ledger", "เลขบัตร", "card", "posting"],
+                            "required_agents": ["shode-house:security-engineer"]},
+      "relay_expected": false,
+      "end_state": {"bd_status": "CLOSED", "verdict_pattern": "CLOSED|BLOCKED"}
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+{"type": "system", "uuid": "sys-0", "timestamp": "2026-09-08T00:00:00Z", "subtype": "info"}
+{"type": "user", "uuid": "u-1", "parentUuid": "u-0", "timestamp": "2026-09-08T00:00:01Z", "message": {"content": [{"type": "text", "text": "user: implement bd-101 (transcript got cut off mid-write)"}]}}

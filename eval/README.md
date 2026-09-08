@@ -14,10 +14,17 @@
 - วัดที่ระดับ agent เดี่ยว ไม่ใช่ pipeline — Spec-axis dispatch และ AskUserQuestion relay **ยังไม่เคยถูกทดสอบ end-to-end**
 - ctx0 รวม harness ของ Cowork (system prompt + tool list) ซึ่งคงที่ระหว่าง A/B → สัดส่วนที่ plugin ประหยัดได้ดูเล็กกว่า static byte
 
-## ลำดับต่อไป (roadmap Phase B)
-1. golden E2E scenario เริ่มจาก main orchestrator (routing → agent → artifact → review → verify → bd CLOSED)
-2. behavioral scorer: expected routing · required artifact/evidence exists · forbidden claim ไม่เกิด · security agent ถูกเรียกเมื่อแตะ PII/money · final state CLOSED + evidence
-3. หลายรอบต่อ scenario → median/p90 → regression gate ก่อน tag release
+## E2E golden scenarios + scorer (Phase B — 3.14.0 in progress)
+- `eval/scenarios/golden.json` — GS1..GS5 (refund reference · implement-backend · spec-gap catch · AskUserQuestion relay · phase3b-sensitive) — expected routing / artifacts / evidence / forbidden phrases / security triggers / relay / end_state
+- `scripts/eval-scorer.py <session-dir> --scenario GSn --outputs-dir <fixture project> --out <run-dir>` — stdlib, python ≥3.9; อ่าน `main.jsonl` + `subagents/` (schema จริงของ Claude Code: Agent tool_use ↔ `agent-*.meta.json.toolUseId`); 7 dimension อิสระ (Routing · Spec fidelity · Security trigger · Evidence · Anti-puppet · bd end_state · Cost); exit 0 PASS / 1 FAIL / 2 UNSCORABLE — ไม่มีวันเดาว่า PASS เมื่อ input หาย
+- `scripts/transcript-trim.py <session-dir> <out-dir>` — สำเนาโครงอย่างเดียว (string ≤ 80 chars) สำหรับสร้าง fixture โดยไม่หลุดเนื้อหา project; **Evidence/Anti-puppet ต้อง score บน transcript เต็มเท่านั้น**
+- fixtures: `eval/fixtures/transcripts/<case>/` (7 case) + `eval/fixtures/outputs-root/` · tests: `tests/test_eval_scorer.py` (38, AC-1..8)
+- 🔴 known limit (accepted, ไม่ patch ต่อ): Evidence/Anti-puppet ใช้ phrase list ไม่ใช่ LLM — negation/sequencing เช่น "done ยังไม่ได้ทำ", "ตรวจแล้วค่อย…" ยัง false-positive (3/10 ใน adversarial set) → scorer quote บรรทัดที่จับได้เสมอ ให้คนตัดสินก่อนถือเป็น regression
+- ยังไม่ได้รัน: GS1–5 × 3 รอบบน Claude Code จริง (ต้อง maintainer) → baseline `eval/baseline/e2e-golden/` → regression gate
+
+## ลำดับต่อไป
+1. รัน 5 scenario × 3 บน Claude Code จริง → score → baseline
+2. regression gate ใน CI (เทียบ baseline: behavior 5 dim 100% PASS, cost median +3%/p90 +5%)
 
 ## วิธีรัน
 → [`RUNBOOK.md`](RUNBOOK.md) (ต้องใช้ Claude Code/Cowork จริง — sandbox ทำแทนไม่ได้)

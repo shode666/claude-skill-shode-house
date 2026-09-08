@@ -1,0 +1,10 @@
+{"type": "system", "uuid": "sys-0", "timestamp": "2026-09-08T00:00:00Z", "subtype": "info"}
+{"type": "user", "uuid": "u-1", "parentUuid": "u-0", "timestamp": "2026-09-08T00:00:01Z", "message": {"content": [{"type": "text", "text": "user: /design-system เพิ่ม refund แบบ partial ให้ order ที่จ่ายด้วย 2 ช่องทาง"}]}}
+{"type": "assistant", "uuid": "a-2", "parentUuid": "a-1", "timestamp": "2026-09-08T00:00:02Z", "message": {"model": "claude-sonnet-5", "usage": {"input_tokens": 100, "output_tokens": 50}, "content": [{"type": "tool_use", "id": "toolu_ba1", "name": "Agent", "input": {"subagent_type": "shode-house:business-analyst", "description": "spec ambiguity", "prompt": "..."}}, {"type": "tool_use", "id": "toolu_sa1", "name": "Agent", "input": {"subagent_type": "shode-house:solution-architect", "description": "arch review", "prompt": "..."}}]}}
+{"type": "user", "uuid": "u-3", "parentUuid": "a-2", "timestamp": "2026-09-08T00:00:03Z", "toolUseResult": {"status": "completed"}, "message": {"content": [{"type": "tool_result", "tool_use_id": "toolu_ba1", "content": "ok"}]}}
+{"type": "user", "uuid": "u-4", "parentUuid": "a-3", "timestamp": "2026-09-08T00:00:04Z", "toolUseResult": {"status": "completed"}, "message": {"content": [{"type": "tool_result", "tool_use_id": "toolu_sa1", "content": "ok"}]}}
+{"type": "assistant", "uuid": "a-5", "parentUuid": "a-4", "timestamp": "2026-09-08T00:00:05Z", "message": {"model": "claude-sonnet-5", "usage": {"input_tokens": 20, "output_tokens": 10}, "content": [{"type": "text", "text": "pipeline continuing, no clarifying question raised"}]}}
+{"type": "system", "uuid": "sys-6", "timestamp": "2026-09-08T00:00:06Z", "subtype": "info"}
+{"type": "system", "uuid": "sys-7", "timestamp": "2026-09-08T00:00:07Z", "subtype": "info"}
+{"type": "system", "uuid": "sys-8", "timestamp": "2026-09-08T00:00:08Z", "subtype": "info"}
+{"type": "system", "uuid": "sys-9-extra", "timestamp": "2026-09-08T00:00:09Z", "subtype": "info"}

@@ -1,0 +1,1 @@
+{"type": "assistant", "uuid": "dev-a0", "parentUuid": null, "timestamp": "2026-09-08T00:01:00Z", "message": {"model": "claude-sonnet-5", "usage": {"input_tokens": 10, "output_tokens": 10}, "content": [{"type": "text", "text": "เสร็จแล้วครับ ทำ endpoint ให้แล้ว"}]}}

@@ -11,6 +11,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 > version บน main bump เป็น 3.14.0 แล้วเพื่อให้ eval/artifact ระบุ version ตรง แต่ **tag/release จะออกเมื่อ roadmap ปรับปรุงเสร็จ** · เนื้อหาถึงตอนนี้เป็น docs/OSS ล้วน ไม่แตะ agent/skill/command behavior
 
+- **E2E eval harness (Phase B)**: `eval/scenarios/golden.json` GS1–5 · `scripts/eval-scorer.py` (stdlib, py≥3.9; อ่าน transcript จริงของ Claude Code: main + `subagents/*.meta.json`; 7 dimension อิสระ, exit 0/1/2, ไม่เดา PASS) · `scripts/transcript-trim.py` · fixtures 7 case + 40 tests. verify บน transcript จริง 65 spawn: Routing/Security/Evidence/Anti-puppet PASS ไม่มี false positive หลัง iter 7; known limit: phrase-list negation (3/10 adversarial) — ดู `eval/README.md`. ยังไม่ได้รัน GS1–5 × 3 บน Claude Code จริง
+- ลบ `Claude outputs/` (Cowork export) ที่หลุดเข้า repo ใน 82f8d9c ออก + gitignore
 - `LICENSE` ไฟล์จริง (MIT — เดิมมีแค่ badge + manifest field, GitHub รายงาน `license: null`)
 - reference project #1 `shode666/shode-house-example-refund` (partial refund + ledger) ผ่าน pipeline เต็ม — link ใน README § Benchmarks
 - `docs/ARCHITECTURE.md` — 3 Mermaid diagrams (agent topology · PEV lifecycle · enforcement architecture) + สิ่งที่ยังไม่มี (roadmap)

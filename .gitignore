@@ -19,3 +19,6 @@ shode-house-v*.plugin
 !shode-house-v3.7.0.plugin
 
 /eval/prompts/resolved/
+
+# Cowork side-panel exports
+Claude outputs/
