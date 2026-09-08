@@ -1,19 +1,19 @@
 {
   "scenario": "GS1-reference-refund",
-  "verdict": "UNSCORABLE",
+  "verdict": "FAIL",
   "dimensions": {
     "routing": {
       "verdict": "UNSCORABLE",
-      "detail": "65/65 main-level spawns have no matching subagents/*.meta.json (>50%) — cannot reliably resolve agentType",
+      "detail": "no Agent/Task tool_use found in main though expected_routing is non-empty (main has 0 records) — missing input, cannot resolve routing",
       "steps": []
     },
     "spec_fidelity": {
       "verdict": "UNSCORABLE",
-      "detail": "no file matches required_artifacts glob: outputs/*/*code-reviewer*.md; no file matches required_artifacts glob: outputs/*/*qa-engineer*.md; required_evidence glob no match: outputs/*/*security-engineer*.md; required_evidence glob no match: outputs/*/*fintech-expert*.md"
+      "detail": "no file matches required_artifacts glob: outputs/*/*chris*.md; no file matches required_artifacts glob: outputs/*/*quinn*.md; required_evidence glob no match: outputs/*/*sentinel*.md; required_evidence glob no match: outputs/*/*felix*.md"
     },
     "security_trigger": {
-      "verdict": "PASS",
-      "detail": "keyword hit ['ledger', 'money', 'refund'], required agents present: ['shode-house:security-engineer']"
+      "verdict": "FAIL",
+      "detail": "keyword hit ['ledger', 'money', 'refund'] but required agent(s) not spawned: ['shode-house:security-engineer']"
     },
     "evidence": {
       "verdict": "PASS",
@@ -24,83 +24,17 @@
       "detail": "0 violation"
     },
     "bd_end_state": {
-      "verdict": "FAIL",
-      "detail": "bd status 'CLOSED' not found in `bd show shode-house-example-refund-d5k` output"
+      "verdict": "PASS",
+      "detail": "bd show shode-house-example-refund-d5k matches expected end_state"
     }
   },
   "cost": {
-    "total_effective_tokens": 11352361
+    "total_effective_tokens": 0
   },
-  "routing_tree": [
-    "depth1  2026-09-05T11:31:46.447Z  shode-house:developer",
-    "depth1  2026-09-05T11:35:15.432Z  shode-house:code-reviewer",
-    "depth1  2026-09-05T11:35:36.475Z  shode-house:qa-engineer",
-    "depth1  2026-09-05T11:53:32.131Z  shode-house:devops-engineer",
-    "depth1  2026-09-05T11:53:58.038Z  shode-house:business-analyst",
-    "depth1  2026-09-05T12:27:14.622Z  shode-house:developer",
-    "depth1  2026-09-05T12:35:04.305Z  shode-house:developer",
-    "depth1  2026-09-05T12:37:54.863Z  shode-house:qa-engineer",
-    "depth1  2026-09-05T13:16:37.648Z  shode-house:developer",
-    "depth1  2026-09-05T13:17:05.566Z  shode-house:trading-expert",
-    "depth1  2026-09-05T13:17:28.138Z  shode-house:business-analyst",
-    "depth1  2026-09-05T13:41:19.965Z  shode-house:developer",
-    "depth1  2026-09-05T13:41:44.309Z  shode-house:trading-expert",
-    "depth1  2026-09-05T13:42:18.559Z  shode-house:qa-engineer",
-    "depth1  2026-09-05T13:44:37.539Z  shode-house:devops-engineer",
-    "depth1  2026-09-05T13:50:17.957Z  shode-house:product-manager",
-    "depth1  2026-09-05T13:53:23.569Z  shode-house:fintech-expert",
-    "depth1  2026-09-05T14:06:02.727Z  shode-house:developer",
-    "depth1  2026-09-05T14:06:34.227Z  shode-house:ux-ui-designer",
-    "depth1  2026-09-05T14:14:31.749Z  shode-house:fintech-expert",
-    "depth1  2026-09-05T14:15:12.841Z  shode-house:developer",
-    "depth1  2026-09-05T14:45:41.065Z  shode-house:qa-engineer",
-    "depth1  2026-09-05T14:49:07.060Z  shode-house:security-engineer",
-    "depth1  2026-09-05T14:49:31.231Z  shode-house:developer",
-    "depth1  2026-09-05T14:49:57.326Z  shode-house:fintech-expert",
-    "depth1  2026-09-05T15:27:17.204Z  shode-house:fintech-expert",
-    "depth1  2026-09-05T15:27:43.016Z  shode-house:developer",
-    "depth1  2026-09-05T15:28:07.125Z  shode-house:developer",
-    "depth1  2026-09-05T15:37:43.931Z  shode-house:qa-engineer",
-    "depth1  2026-09-05T15:46:38.297Z  shode-house:developer",
-    "depth1  2026-09-05T15:48:27.561Z  shode-house:developer",
-    "depth1  2026-09-06T01:27:33.798Z  shode-house:developer",
-    "depth1  2026-09-06T01:27:58.788Z  shode-house:fintech-expert",
-    "depth1  2026-09-06T01:41:46.202Z  shode-house:developer",
-    "depth1  2026-09-06T01:46:03.881Z  shode-house:developer",
-    "depth1  2026-09-06T02:04:22.643Z  shode-house:developer",
-    "depth1  2026-09-06T02:04:48.649Z  shode-house:fintech-expert",
-    "depth1  2026-09-06T02:05:13.584Z  shode-house:qa-engineer",
-    "depth1  2026-09-06T02:21:29.061Z  shode-house:ux-ui-designer",
-    "depth1  2026-09-06T02:56:53.790Z  shode-house:staff-engineer",
-    "depth1  2026-09-06T03:22:58.456Z  shode-house:fintech-expert",
-    "depth1  2026-09-06T03:39:51.480Z  shode-house:developer",
-    "depth1  2026-09-06T04:13:44.246Z  shode-house:developer",
-    "depth1  2026-09-06T04:14:10.259Z  shode-house:trading-expert",
-    "depth1  2026-09-06T04:27:37.056Z  shode-house:product-manager",
-    "depth1  2026-09-06T04:32:46.637Z  shode-house:developer",
-    "depth1  2026-09-06T04:36:52.611Z  shode-house:developer",
-    "depth1  2026-09-06T04:37:20.022Z  shode-house:business-analyst",
-    "depth1  2026-09-06T05:30:24.900Z  shode-house:developer",
-    "depth1  2026-09-06T05:30:49.841Z  shode-house:fintech-expert",
-    "depth1  2026-09-06T05:49:04.267Z  general-purpose",
-    "depth1  2026-09-06T06:04:02.805Z  shode-house:developer",
-    "depth1  2026-09-06T06:04:21.051Z  shode-house:developer",
-    "depth1  2026-09-06T06:04:42.489Z  shode-house:developer",
-    "depth1  2026-09-06T06:15:52.017Z  shode-house:developer",
-    "depth1  2026-09-06T06:42:34.615Z  shode-house:developer",
-    "depth1  2026-09-06T07:42:27.030Z  shode-house:developer",
-    "depth1  2026-09-06T07:42:49.664Z  shode-house:developer",
-    "depth1  2026-09-06T07:43:13.016Z  shode-house:developer",
-    "depth1  2026-09-06T07:43:41.274Z  shode-house:developer",
-    "depth1  2026-09-06T09:27:21.292Z  shode-house:developer",
-    "depth1  2026-09-06T09:27:43.165Z  shode-house:developer",
-    "depth1  2026-09-06T09:28:02.213Z  shode-house:developer",
-    "depth1  2026-09-06T09:33:06.194Z  shode-house:qa-engineer",
-    "depth1  2026-09-07T14:32:32.858Z  shode-house:developer"
-  ],
+  "routing_tree": [],
   "reasons": [
-    "routing: 65/65 main-level spawns have no matching subagents/*.meta.json (>50%) — cannot reliably resolve agentType",
-    "spec_fidelity: no file matches required_artifacts glob: outputs/*/*code-reviewer*.md; no file matches required_artifacts glob: outputs/*/*qa-engineer*.md; required_evidence glob no match: outputs/*/*security-engineer*.md; required_evidence glob no match: outputs/*/*fintech-expert*.md"
+    "routing: no Agent/Task tool_use found in main though expected_routing is non-empty (main has 0 records) — missing input, cannot resolve routing",
+    "spec_fidelity: no file matches required_artifacts glob: outputs/*/*chris*.md; no file matches required_artifacts glob: outputs/*/*quinn*.md; required_evidence glob no match: outputs/*/*sentinel*.md; required_evidence glob no match: outputs/*/*felix*.md"
   ],
   "trimmed_warning": false
 }

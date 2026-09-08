@@ -896,3 +896,91 @@ def test_iter9_gs1_golden_expected_routing_is_one_parallel_set_plus_optional_dev
         'shode-house:fintech-expert', 'shode-house:security-engineer'}
     assert routing[1]['agents'] == ['shode-house:developer']
     assert routing[1].get('optional') is True
+
+
+# ===== iter10 (Oliver bd:B1) — two real-run issues. =====
+
+# --- iter10 fix #1: `--outputs-dir` semantics silently assumed the path ended in "/outputs" and
+# took dirname(outputs_dir) as the fixture root -- passing the project root itself (what a human
+# naturally does, and what RUNBOOK says) made `outputs/*/...` globs miss entirely. `--project
+# <fixture project root>` replaces it (globs relative to it, bd show cwd = it); `--outputs-dir` is
+# kept as a DEPRECATED alias mapping to the same root. -----------------------------------------------
+def test_iter10_resolve_project_root_prefers_explicit_project():
+    assert scorer.resolve_project_root('/fixture/proj', '/fixture/proj/outputs') == '/fixture/proj'
+    assert scorer.resolve_project_root('/fixture/proj', None) == '/fixture/proj'
+
+
+def test_iter10_resolve_project_root_outputs_dir_alias_strips_trailing_outputs():
+    # old semantics preserved: a path ending in "/outputs" -> parent is the project root
+    assert scorer.resolve_project_root(None, '/fixture/proj/outputs') == '/fixture/proj'
+    assert scorer.resolve_project_root(None, '/fixture/proj/outputs/') == '/fixture/proj'
+
+
+def test_iter10_resolve_project_root_outputs_dir_alias_bare_project_root_is_the_bug_fix():
+    # iter10's actual bug: a human passes the PROJECT ROOT (not .../outputs) into the old
+    # --outputs-dir flag -- the path itself must now be used directly as the root, not its dirname
+    # (the old code would have silently chopped off the last path segment here).
+    assert scorer.resolve_project_root(None, '/fixture/proj') == '/fixture/proj'
+
+
+def test_iter10_resolve_project_root_defaults_to_cwd_when_neither_given():
+    assert scorer.resolve_project_root(None, None) == os.getcwd()
+
+
+def test_iter10_cli_project_flag_resolves_gs2_artifacts(tmp_path):
+    # end-to-end: --project pointed straight at the fixture project root (NOT .../outputs) must
+    # resolve GS2's outputs/bd-101/*.md globs correctly -- this is the exact real-run repro.
+    rc = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'eval-scorer.py'),
+                          os.path.join(FIX, 'routing-ok'), '--scenario', 'GS2-implement-backend',
+                          '--project', FIXTURE_ROOT,
+                          '--out', str(tmp_path)], cwd=ROOT, capture_output=True, text=True)
+    out_file = tmp_path / 'GS2-implement-backend' / 'score.json'
+    assert out_file.is_file(), rc.stdout + rc.stderr
+    data = json.loads(out_file.read_text())
+    assert data['verdict'] == 'PASS', data
+
+
+def test_iter10_cli_outputs_dir_alias_still_works_for_backward_compat(tmp_path):
+    rc = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'eval-scorer.py'),
+                          os.path.join(FIX, 'routing-ok'), '--scenario', 'GS2-implement-backend',
+                          '--outputs-dir', FIXTURE_OUTPUTS_DIR,
+                          '--out', str(tmp_path)], cwd=ROOT, capture_output=True, text=True)
+    out_file = tmp_path / 'GS2-implement-backend' / 'score.json'
+    assert out_file.is_file(), rc.stdout + rc.stderr
+    data = json.loads(out_file.read_text())
+    assert data['verdict'] == 'PASS', data
+
+
+# --- iter10 fix #2: when main has 0 records (bad/empty/missing transcript path), every dimension
+# except bd_end_state (which never reads main records) must be UNSCORABLE. Security trigger used to
+# FAIL here because a keyword match in scenario['command']/['desc'] text is independent of the
+# (empty) transcript -- misleading, since there is no real content to judge at all. -----------------
+def test_iter10_zero_main_records_forces_all_dims_unscorable_except_bd(tmp_path):
+    empty_dir = tmp_path / 'empty-session'
+    empty_dir.mkdir()
+    (empty_dir / 'main.jsonl').write_text('')  # 0 records -- not even non-assistant records
+    scen = scorer.load_golden(GOLDEN, 'GS5-phase3b-sensitive')  # has security_triggers configured
+    result, code = scorer.score(str(empty_dir), scen, FIXTURE_ROOT)
+    for key in ('routing', 'spec_fidelity', 'security_trigger', 'evidence', 'anti_puppet'):
+        assert result['dimensions'][key]['verdict'] == 'UNSCORABLE', (key, result['dimensions'][key])
+    assert result['dimensions']['security_trigger']['verdict'] != 'FAIL'  # the exact regression
+    assert result['verdict'] == 'UNSCORABLE'
+    assert code == 2
+
+
+def test_iter10_zero_main_records_does_not_force_bd_end_state():
+    # bd_end_state never reads main records -- it must keep its own independent verdict/reason
+    # (e.g. "no bd on PATH"), not get swept into the shared 0-records reason.
+    empty_session = {'main_path': None, 'main': [], 'subagents': {}}
+    scen = scorer.load_golden(GOLDEN, 'GS2-implement-backend')
+    # confirm bd_end_state alone is unaffected by an empty session (it takes `scenario`, not session)
+    verdict, detail = scorer.bd_end_state(scen)
+    assert 'main session has 0 records' not in detail
+
+
+def test_iter10_nonzero_main_records_unaffected_regression():
+    # sanity: a session with real (non-empty) main records is NOT swept into the 0-records branch,
+    # even when it has zero spawns (this is the pre-existing `truncated` fixture's own scenario)
+    result, code = run('truncated', 'GS2-implement-backend')
+    assert result['dimensions']['spec_fidelity']['verdict'] == 'PASS'  # unaffected, has real artifacts
+    assert result['dimensions']['routing']['verdict'] == 'UNSCORABLE'  # its own reason (no spawns)

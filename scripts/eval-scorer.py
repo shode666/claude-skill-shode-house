@@ -615,17 +615,34 @@ def score(session_path, scenario, fixture_root, bd_id_override=None, outputs_dir
     iter9 (Oliver bd:B1): `outputs_dir` (the CLI's `--outputs-dir`) is passed through as `bd show`'s
     cwd — that's the fixture project directory where `.beads` (the bd tracker db) actually lives;
     `fixture_root` (used for spec_fidelity's artifact globs) is a *different*, already-existing
-    path and must not be conflated with it."""
+    path and must not be conflated with it.
+
+    iter10 (Oliver bd:B1): a real-run edge case — `session_path` pointing at a bad/wrong/empty
+    path (0 main records loaded, not merely "no spawns" like the `truncated` fixture's 2 records)
+    — was letting `security_trigger()` FAIL on a keyword match found only in `scenario['command']`/
+    `scenario['desc']` text (independent of the empty transcript), which is misleading: there is no
+    real transcript content to judge here at all. When main has 0 records, every dimension except
+    `bd_end_state` (which never reads main records anyway) is forced to UNSCORABLE with one shared
+    reason, overriding the normal per-dimension independence for this specific bad-path safety net."""
     session = load_session(session_path)
     main_batches = build_spawn_index(session)['main_batches']
 
     dims = {}
-    dims['routing'] = check_routing(scenario.get('expected_routing') or [], main_batches,
-                                     scenario.get('routing_open_ended', False), len(session['main']))
-    dims['spec_fidelity'] = spec_fidelity(scenario, fixture_root)
-    dims['security_trigger'] = security_trigger(scenario, session)
-    dims['evidence'] = evidence_dimension(session)
-    dims['anti_puppet'] = anti_puppet_dimension(scenario, session)
+    if not session['main']:
+        no_input = (f'main session has 0 records (bad/empty/missing transcript path: '
+                    f'{session_path!r}) — cannot score')
+        dims['routing'] = ('UNSCORABLE', no_input, [])
+        dims['spec_fidelity'] = ('UNSCORABLE', no_input)
+        dims['security_trigger'] = ('UNSCORABLE', no_input)
+        dims['evidence'] = ('UNSCORABLE', no_input)
+        dims['anti_puppet'] = ('UNSCORABLE', no_input)
+    else:
+        dims['routing'] = check_routing(scenario.get('expected_routing') or [], main_batches,
+                                         scenario.get('routing_open_ended', False), len(session['main']))
+        dims['spec_fidelity'] = spec_fidelity(scenario, fixture_root)
+        dims['security_trigger'] = security_trigger(scenario, session)
+        dims['evidence'] = evidence_dimension(session)
+        dims['anti_puppet'] = anti_puppet_dimension(scenario, session)
     dims['bd_end_state'] = bd_end_state(scenario, bd_id_override, cwd=outputs_dir)
     cost_tok = cost_dimension(session)
 
@@ -683,21 +700,48 @@ def print_report(result):
         print('  (unscorable critical dim reasons: ' + ' | '.join(result['reasons']) + ')')
 
 
+def resolve_project_root(project, outputs_dir):
+    """iter10 (Oliver bd:B1): the old `--outputs-dir` semantics silently assumed the path always
+    ended in `/outputs` and took `dirname(outputs_dir)` as the fixture root — so passing the
+    project root itself (what a human naturally does, and what RUNBOOK said to do) made every
+    `outputs/*/...` glob in golden.json miss entirely. `--project <fixture project root>` replaces
+    it directly: golden.json's globs are resolved relative to it, and it is also `bd show`'s cwd
+    (where `.beads` lives) — no path-shape guessing. `--outputs-dir` is kept as a DEPRECATED alias
+    that maps to the same root: if its basename is exactly `outputs`, the PARENT is used (old
+    semantics, unchanged for anyone still passing `.../outputs`); otherwise the path itself IS the
+    root directly (covers the exact bug this iteration fixes — someone passing the project root
+    into the old `--outputs-dir` flag). `--project` always wins if both are given."""
+    if project:
+        return project
+    if outputs_dir:
+        stripped = outputs_dir.rstrip('/') or '/'
+        if os.path.basename(stripped) == 'outputs':
+            return os.path.dirname(stripped) or '.'
+        return stripped
+    return os.getcwd()
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('session')
     ap.add_argument('--scenario', required=True)
     ap.add_argument('--golden', default=os.path.join('eval', 'scenarios', 'golden.json'))
-    ap.add_argument('--outputs-dir', default=os.path.join(os.getcwd(), 'outputs'))
+    ap.add_argument('--project', default=None,
+                     help='fixture project root — golden.json required_artifacts/required_evidence '
+                          'globs (e.g. "outputs/*/...") are resolved relative to it, and it is also '
+                          '`bd show`\'s cwd (where .beads lives). Replaces --outputs-dir (iter10).')
+    ap.add_argument('--outputs-dir', default=None,
+                     help='DEPRECATED alias for --project (iter10) — kept for backward '
+                          'compatibility only; prefer --project.')
     ap.add_argument('--out', default=None)
     ap.add_argument('--bd-id', default=None,
                      help='override/supply bd id for end_state check when golden.json\'s scenario '
                           'has no bd_id (e.g. a real project where the id is assigned at run time)')
     args = ap.parse_args(argv)
 
+    project_root = resolve_project_root(args.project, args.outputs_dir)
     scenario = load_golden(args.golden, args.scenario)
-    fixture_root = os.path.dirname(args.outputs_dir.rstrip('/')) or '.'
-    result, code = score(args.session, scenario, fixture_root, args.bd_id, args.outputs_dir)
+    result, code = score(args.session, scenario, project_root, args.bd_id, project_root)
     print_report(result)
 
     if args.out:
