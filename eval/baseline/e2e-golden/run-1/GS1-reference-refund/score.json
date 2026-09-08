@@ -1,27 +1,27 @@
 {
   "scenario": "GS1-reference-refund",
-  "verdict": "FAIL",
+  "verdict": "UNSCORABLE",
   "dimensions": {
     "routing": {
       "verdict": "UNSCORABLE",
-      "detail": "no Agent/Task tool_use found in main though expected_routing is non-empty (main has 0 records) — missing input, cannot resolve routing",
+      "detail": "main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score",
       "steps": []
     },
     "spec_fidelity": {
       "verdict": "UNSCORABLE",
-      "detail": "no file matches required_artifacts glob: outputs/*/*chris*.md; no file matches required_artifacts glob: outputs/*/*quinn*.md; required_evidence glob no match: outputs/*/*sentinel*.md; required_evidence glob no match: outputs/*/*felix*.md"
+      "detail": "main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score"
     },
     "security_trigger": {
-      "verdict": "FAIL",
-      "detail": "keyword hit ['ledger', 'money', 'refund'] but required agent(s) not spawned: ['shode-house:security-engineer']"
+      "verdict": "UNSCORABLE",
+      "detail": "main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score"
     },
     "evidence": {
-      "verdict": "PASS",
-      "detail": "all claims have adjacent tool_result / inline paste"
+      "verdict": "UNSCORABLE",
+      "detail": "main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score"
     },
     "anti_puppet": {
-      "verdict": "PASS",
-      "detail": "0 violation"
+      "verdict": "UNSCORABLE",
+      "detail": "main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score"
     },
     "bd_end_state": {
       "verdict": "PASS",
@@ -33,8 +33,11 @@
   },
   "routing_tree": [],
   "reasons": [
-    "routing: no Agent/Task tool_use found in main though expected_routing is non-empty (main has 0 records) — missing input, cannot resolve routing",
-    "spec_fidelity: no file matches required_artifacts glob: outputs/*/*chris*.md; no file matches required_artifacts glob: outputs/*/*quinn*.md; required_evidence glob no match: outputs/*/*sentinel*.md; required_evidence glob no match: outputs/*/*felix*.md"
+    "routing: main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score",
+    "spec_fidelity: main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score",
+    "security_trigger: main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score",
+    "evidence: main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score",
+    "anti_puppet: main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score"
   ],
   "trimmed_warning": false
 }

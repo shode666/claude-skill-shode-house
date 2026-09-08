@@ -64,3 +64,18 @@ scripts/usage-report.py --compare eval/baseline/3.12.1 outputs/token-usage/3.13-
 
 55 run สำหรับ A + 55 run สำหรับ B · scenario ที่ fan-out (implement-*, phase3b-*) กิน token มากสุด
 ทำทีละกลุ่มได้ แต่ **ห้ามสลับ model/project กลางทาง**
+
+## 🔴 E2E golden (Phase B) — runner ต้องเป็น session **local**
+
+scorer อ่าน `~/.claude/projects/<proj>/<session-id>.jsonl` + `<session-id>/subagents/` — **Cowork cloud session ไม่เขียนไฟล์นี้ลงเครื่อง** (พิสูจน์ 2026-09-08: GS1 รันใน Cowork cloud → ไม่มี transcript, score ได้แค่ bd end_state)
+→ รันด้วย Claude Code CLI (`npm i -g @anthropic-ai/claude-code`) หรือ Cowork local-mode เท่านั้น
+
+```bash
+cd <fixture project> && bd create "GSn: ..." -t task        # จด id
+claude                                                        # session ใหม่ → /shode-house:review ... --bd <id>
+# หลังจบ:
+cd ~/workspace/shode-house
+S=$(ls -t ~/.claude/projects/-Users-<you>-workspace-<fixture>/*.jsonl | head -1)
+python3 scripts/eval-scorer.py "$S" --scenario GSn-... --project <fixture project> --bd-id <id> --out eval/baseline/e2e-golden/run-N
+```
+exit 0 PASS · 1 FAIL · 2 UNSCORABLE (input หาย — ไม่ใช่ PASS)
