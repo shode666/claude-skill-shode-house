@@ -417,6 +417,110 @@ assert_true "$rc" "entering 2-implement should succeed once 1a passed and 1b/1c 
 rm -rf "$D"
 
 # ---------------------------------------------------------------------------
+# C-A6 iter0: enter_requires is now populated on all 10 states (previously only
+# 2-implement). Each of the 6 newly-populated gates below (1b-design, 1c-security,
+# 3a-ui-check, 4-triage, 5-deploy, 6-operate) gets its own negative test here --
+# the shared "loop-1" happy-path test (all edges walked with default outcome=passed)
+# already serves as every one of these gates' POSITIVE control. Same technique for
+# all 6: walk to right before the gate, then make the exact forward call with
+# outcome=failed instead of the default passed -- the target phase's enter_requires
+# only allows the predecessor to end in [passed] (or [passed,skipped]), so this must
+# be rejected. (Mutation target: deleting any one of these 6 keys from
+# transitions.json's enter_requires must turn its matching test below red.)
+
+t_start "enter_requires: entering 1b-design is blocked when 1a-spec ends outcome=failed instead of passed (pre-spec-expand gate)"
+D=$(sandbox); mkdir -p "$D/.shode-house"
+export WFSTATE_ROOT="$D"
+"$SCRIPT" init gate-1b >/dev/null 2>&1
+"$SCRIPT" advance gate-1b 1a-spec >/dev/null 2>&1
+sf="$D/.shode-house/state/gate-1b.json"
+before_sha=$(shasum "$sf")
+err=$("$SCRIPT" advance gate-1b 1b-design failed 2>&1); rc=$?
+assert_false "$rc" "1a-spec ending failed must not be allowed into 1b-design"
+assert_contains "$err" "enter_requires" "rejection reason should mention enter_requires"
+assert_contains "$err" "1a-spec" "rejection reason should name the specific unmet requirement"
+after_sha=$(shasum "$sf")
+assert_eq "$after_sha" "$before_sha" "state must be untouched by a blocked enter_requires attempt"
+rm -rf "$D"
+
+t_start "enter_requires: entering 1c-security is blocked when 1b-design ends outcome=failed (not passed/skipped)"
+D=$(sandbox); mkdir -p "$D/.shode-house"
+export WFSTATE_ROOT="$D"
+"$SCRIPT" init gate-1c >/dev/null 2>&1
+"$SCRIPT" advance gate-1c 1a-spec   >/dev/null 2>&1
+"$SCRIPT" advance gate-1c 1b-design >/dev/null 2>&1
+err=$("$SCRIPT" advance gate-1c 1c-security failed 2>&1); rc=$?
+assert_false "$rc" "1b-design ending failed must not be allowed into 1c-security"
+assert_contains "$err" "enter_requires" "rejection reason should mention enter_requires"
+assert_contains "$err" "1b-design" "rejection reason should name the specific unmet requirement"
+rm -rf "$D"
+
+t_start "enter_requires: entering 3a-ui-check is blocked when 2-implement ends outcome=failed (pre-ui-check gate)"
+D=$(sandbox); mkdir -p "$D/.shode-house"
+export WFSTATE_ROOT="$D"
+"$SCRIPT" init gate-3a >/dev/null 2>&1
+"$SCRIPT" advance gate-3a 1a-spec     >/dev/null 2>&1
+"$SCRIPT" advance gate-3a 1b-design   >/dev/null 2>&1
+"$SCRIPT" advance gate-3a 1c-security >/dev/null 2>&1
+"$SCRIPT" advance gate-3a 2-implement >/dev/null 2>&1
+err=$("$SCRIPT" advance gate-3a 3a-ui-check failed 2>&1); rc=$?
+assert_false "$rc" "2-implement ending failed must not be allowed into 3a-ui-check"
+assert_contains "$err" "enter_requires" "rejection reason should mention enter_requires"
+assert_contains "$err" "2-implement" "rejection reason should name the specific unmet requirement"
+rm -rf "$D"
+
+t_start "enter_requires: entering 4-triage is blocked when 3b-review ends outcome=failed instead of passed"
+D=$(sandbox); mkdir -p "$D/.shode-house"
+export WFSTATE_ROOT="$D"
+"$SCRIPT" init gate-4t >/dev/null 2>&1
+"$SCRIPT" advance gate-4t 1a-spec     >/dev/null 2>&1
+"$SCRIPT" advance gate-4t 1b-design   >/dev/null 2>&1
+"$SCRIPT" advance gate-4t 1c-security >/dev/null 2>&1
+"$SCRIPT" advance gate-4t 2-implement >/dev/null 2>&1
+"$SCRIPT" advance gate-4t 3a-ui-check >/dev/null 2>&1
+"$SCRIPT" advance gate-4t 3b-review   >/dev/null 2>&1
+err=$("$SCRIPT" advance gate-4t 4-triage failed 2>&1); rc=$?
+assert_false "$rc" "3b-review ending failed must not be allowed into 4-triage"
+assert_contains "$err" "enter_requires" "rejection reason should mention enter_requires"
+assert_contains "$err" "3b-review" "rejection reason should name the specific unmet requirement"
+rm -rf "$D"
+
+t_start "enter_requires: entering 5-deploy is blocked when 4-triage ends outcome=failed instead of passed (pre-loop-exit gate)"
+D=$(sandbox); mkdir -p "$D/.shode-house"
+export WFSTATE_ROOT="$D"
+"$SCRIPT" init gate-5d >/dev/null 2>&1
+"$SCRIPT" advance gate-5d 1a-spec     >/dev/null 2>&1
+"$SCRIPT" advance gate-5d 1b-design   >/dev/null 2>&1
+"$SCRIPT" advance gate-5d 1c-security >/dev/null 2>&1
+"$SCRIPT" advance gate-5d 2-implement >/dev/null 2>&1
+"$SCRIPT" advance gate-5d 3a-ui-check >/dev/null 2>&1
+"$SCRIPT" advance gate-5d 3b-review   >/dev/null 2>&1
+"$SCRIPT" advance gate-5d 4-triage    >/dev/null 2>&1
+err=$("$SCRIPT" advance gate-5d 5-deploy failed 2>&1); rc=$?
+assert_false "$rc" "4-triage ending failed must not be allowed into 5-deploy"
+assert_contains "$err" "enter_requires" "rejection reason should mention enter_requires"
+assert_contains "$err" "4-triage" "rejection reason should name the specific unmet requirement"
+rm -rf "$D"
+
+t_start "enter_requires: entering 6-operate is blocked when 5-deploy ends outcome=failed instead of passed"
+D=$(sandbox); mkdir -p "$D/.shode-house"
+export WFSTATE_ROOT="$D"
+"$SCRIPT" init gate-6o >/dev/null 2>&1
+"$SCRIPT" advance gate-6o 1a-spec     >/dev/null 2>&1
+"$SCRIPT" advance gate-6o 1b-design   >/dev/null 2>&1
+"$SCRIPT" advance gate-6o 1c-security >/dev/null 2>&1
+"$SCRIPT" advance gate-6o 2-implement >/dev/null 2>&1
+"$SCRIPT" advance gate-6o 3a-ui-check >/dev/null 2>&1
+"$SCRIPT" advance gate-6o 3b-review   >/dev/null 2>&1
+"$SCRIPT" advance gate-6o 4-triage    >/dev/null 2>&1
+"$SCRIPT" advance gate-6o 5-deploy    >/dev/null 2>&1
+err=$("$SCRIPT" advance gate-6o 6-operate failed 2>&1); rc=$?
+assert_false "$rc" "5-deploy ending failed must not be allowed into 6-operate"
+assert_contains "$err" "enter_requires" "rejection reason should mention enter_requires"
+assert_contains "$err" "5-deploy" "rejection reason should name the specific unmet requirement"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
 t_start "skip: a conditional phase (1b-design) can end status=skipped and still satisfy 2-implement's enter_requires"
 D=$(sandbox); mkdir -p "$D/.shode-house"
 export WFSTATE_ROOT="$D"

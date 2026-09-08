@@ -28,10 +28,7 @@ set -u -o pipefail
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CAPS="${ROUTE_CAPABILITIES:-$SELF_DIR/../references/registry/capabilities.json}"
 ROUTES="${ROUTE_ROUTES:-$SELF_DIR/../references/registry/routes.json}"
-
-# canonical phase order for stable, human-diffable output (matches the phase_1a.. naming
-# already used by ROADMAP-runtime-10.md SS 3.3's own example + smart-coop.md's phase table)
-PHASE_ORDER='["phase_0","phase_1a","phase_1b","phase_1c","phase_2","phase_3a","phase_3b","phase_4","phase_5","phase_6"]'
+TRANSITIONS="${ROUTE_TRANSITIONS:-$SELF_DIR/../references/state-machine/transitions.json}"
 
 die()   { printf 'route.sh: %s\n' "$*" >&2; exit 1; }
 usage() { printf 'usage: route.sh <request.json>\n' >&2; }
@@ -43,8 +40,18 @@ REQ="$1"
 jq empty "$REQ" >/dev/null 2>&1 || die "$REQ is not valid JSON"
 [ -f "$CAPS" ]   || die "capability registry not found: $CAPS"
 [ -f "$ROUTES" ] || die "route registry not found: $ROUTES"
+[ -f "$TRANSITIONS" ] || die "state-machine transitions not found: $TRANSITIONS"
 jq empty "$CAPS"   >/dev/null 2>&1 || die "$CAPS is not valid JSON"
 jq empty "$ROUTES" >/dev/null 2>&1 || die "$ROUTES is not valid JSON"
+jq empty "$TRANSITIONS" >/dev/null 2>&1 || die "$TRANSITIONS is not valid JSON"
+
+# canonical phase order for stable, human-diffable output -- read straight from the
+# state machine's own `.states` (references/state-machine/transitions.json) instead of
+# a second hardcoded copy (bd: shode-roadmap/C-A6 iter0 -- the old inline literal used a
+# phase_0/phase_1a/... vocabulary that had drifted from the state machine's actual node
+# ids ('0-discover', '1a-spec', ...), which is the single source of truth per CLAUDE.md
+# 'Repo'; sourcing it here means route.sh can never drift from it again).
+PHASE_ORDER="$(jq -c '.states' "$TRANSITIONS")"
 
 CAPABILITY=$(jq -r '.capability // "production-code"' "$REQ")
 PRIMARY=$(jq -r --arg c "$CAPABILITY" '.capabilities[$c].owner // empty' "$CAPS")
