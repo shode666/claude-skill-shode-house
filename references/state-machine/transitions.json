@@ -47,6 +47,9 @@
     {"from": "3b-review",    "to": "2-implement", "on": "review-fail"},
     {"from": "3a-ui-check",  "to": "1b-design",   "on": "ui-fail"},
 
+    {"from": "4-triage",     "to": "2-implement", "on": "rework-code-perf-security"},
+    {"from": "4-triage",     "to": "1b-design",   "on": "rework-ui-design"},
+
     {"from": "1b-design",    "to": "1a-spec", "on": "spec-change"},
     {"from": "1c-security",  "to": "1a-spec", "on": "spec-change"},
     {"from": "2-implement",  "to": "1a-spec", "on": "spec-change"},

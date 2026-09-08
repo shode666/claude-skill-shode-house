@@ -493,6 +493,13 @@ jobs:
         # frontmatter verbatim), so no extra step is needed for those. bash + jq only.
         run: bash tests/test-permission-check.sh
 
+      - name: Reliability test suite (bd:shode-roadmap/C-D1)
+        # Milestone D (retry/rework/resume separation, side-effect ledger, approval
+        # invalidation, ROADMAP-runtime-10.md Phase 6/8.3/9) -- same CI budget rule as
+        # every prior milestone: this is the ONE step Milestone D is allowed to add.
+        # bash + jq + shasum + git only, no new dependency.
+        run: bash tests/test-reliability.sh
+
       - name: Build .plugin artifact
         run: make pack
 

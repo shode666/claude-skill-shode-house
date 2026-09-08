@@ -1,0 +1,69 @@
+{
+  "v": 1,
+  "_comment": "Error taxonomy + policy for scripts/workflow-state.sh's `retry` subcommand (bd: shode-roadmap/C-D1, ROADMAP-runtime-10.md, Phase 6 -- Retry / Rework / Resume section: the 9-class list and the 4 given examples TRANSIENT retry:2, VERIFICATION_FAILED rework:true, INVALID_STATE halt:true, USER_INPUT_REQUIRED escalate:user). Policy is DATA read by workflow-state.sh's cmd_retry (jq lookup, no class name hardcoded in the script) -- Retry/Rework/Resume separation means retry only ever consults the 'retry' field here; rework routing is a completely separate table (rework-routing.json), keyed by TRIAGE class (code/perf/security/ui/design/spec/ac/regulation, output-styles/oliver.md section 5 'Triage routing'), not by this error taxonomy -- the two vocabularies are deliberately not merged (Phase 6's error taxonomy classifies WHY an attempt did not complete cleanly; the triage table classifies WHAT KIND of finding a completed-but-wrong result has). retry:false/rework:false/halt:false/escalate:false are explicit no-ops for that policy, not omitted keys -- a class silently missing a field would be indistinguishable from 'forgot to decide'.",
+  "policies": {
+    "TRANSIENT": {
+      "retry": 2,
+      "rework": false,
+      "halt": false,
+      "escalate": false,
+      "reason": "given directly in the roadmap brief. Examples from ROADMAP-runtime-10.md Phase 6: network timeout, MCP transient error, rate limit, temporary lock -- re-issuing the identical operation is expected to succeed once the transient condition clears, so no phase move, no iter bump."
+    },
+    "USER_INPUT_REQUIRED": {
+      "retry": false,
+      "rework": false,
+      "halt": false,
+      "escalate": "user",
+      "reason": "given directly in the roadmap brief. The workflow is blocked on an answer only the user can give (a clarifying question, a business decision) -- it is not broken (halt would be wrong) and re-running the same operation cannot manufacture an answer (retry would be wrong); it must surface to the user and wait."
+    },
+    "POLICY_VIOLATION": {
+      "retry": false,
+      "rework": false,
+      "halt": true,
+      "escalate": "user",
+      "reason": "an enforced policy/gate rejected the attempt (e.g. a Safety R0 action, a pre-merge/pre-deploy gate, an approval-scope check -- scripts/approval.sh in this same milestone). Retrying the identical operation would just be rejected again by the same policy; rework does not apply either because nothing was implemented wrong -- the operation itself is the thing forbidden. Needs a human decision (override scope, change the request, or confirm the R0 action) before anything proceeds -- halt:true, escalate:user, same shape as INVALID_STATE."
+    },
+    "DEPENDENCY_FAILED": {
+      "retry": false,
+      "rework": false,
+      "halt": false,
+      "escalate": "user",
+      "reason": "a required precondition this bd depends on is not ready -- ROADMAP-runtime-10.md Phase 10's contract dependency (\"requires\": [\"contract:order-api-v1\"]) not yet produced, or an upstream bd not closed. This is NOT the same as TRANSIENT's 'network timeout' case (that is a flaky call to something that IS ready); DEPENDENCY_FAILED means the thing being depended on does not exist yet at all -- retrying the same operation cannot make an artifact another bd has not produced yet appear, and it is not this bd's implementation that is wrong (rework does not apply). Surface to the user/dependency owner so the DAG can be re-sequenced or the dependency expedited."
+    },
+    "TOOL_FAILURE": {
+      "retry": 1,
+      "rework": true,
+      "halt": false,
+      "escalate": false,
+      "reason": "a tool call itself failed in a way that was NOT one of TRANSIENT's explicit transient causes (bad args, missing permission, tool crashed on this input, unexpected response shape). One retry is allowed as a cheap sanity check (the failure might still turn out to be transient in practice even though it wasn't a network-timeout/rate-limit case), but if it fails identically again the invocation itself is very likely wrong and needs the calling code fixed -- rework:true, routed the same way any other 'wrong implementation' finding is (VERIFICATION_FAILED)."
+    },
+    "AGENT_FAILURE": {
+      "retry": false,
+      "rework": true,
+      "halt": false,
+      "escalate": false,
+      "reason": "a sub-agent produced a wrong/incomplete/garbage result (not a tool error, not a policy block) -- this is exactly ROADMAP-runtime-10.md Phase 6's Rework definition ('ผลลัพธ์ผิด ต้องแก้ implementation'). Re-running the identical operation with the identical (wrong) approach is not expected to self-correct -- it needs to go back to the phase responsible and be redone, same as VERIFICATION_FAILED."
+    },
+    "INVALID_STATE": {
+      "retry": false,
+      "rework": false,
+      "halt": true,
+      "escalate": "user",
+      "reason": "given directly in the roadmap brief (halt:true). The workflow state itself is inconsistent (e.g. a phase status outside the 9-value enum, an edge attempted that the graph does not declare, a torn state/journal pair -- see workflow-state.sh's `resume` subcommand, same milestone). Retrying or reworking assumes the state machine's bookkeeping can be trusted; when it cannot, continuing automatically risks compounding the corruption -- must halt and let a human inspect/repair the state file, so escalate:user is added alongside the given halt:true."
+    },
+    "IRREVERSIBLE_PARTIAL": {
+      "retry": false,
+      "rework": false,
+      "halt": true,
+      "escalate": "user",
+      "reason": "a side-effecting operation (deploy/migration/send/publish/delete/external API mutation -- scripts/side-effect.sh, this same milestone, ROADMAP-runtime-10.md section 8.3) completed partially and its remaining effect on the outside world is unknown/unclean. Retry risks double-firing an already-partially-applied side effect (exactly what the idempotency_key ledger exists to prevent); rework risks discarding evidence of what already happened externally. Safety R0 (shode-house-discipline) already treats irreversible actions as STOP+ask -- this class is the runtime error-taxonomy expression of that same rule: halt:true, escalate:user, no auto-anything."
+    },
+    "VERIFICATION_FAILED": {
+      "retry": false,
+      "rework": true,
+      "halt": false,
+      "escalate": false,
+      "reason": "given directly in the roadmap brief (rework:true). A test failed, a review finding came back, a spec mismatch or security issue was found -- ROADMAP-runtime-10.md Phase 6's own Rework examples verbatim. Routed back to the phase responsible via workflow-state.sh's `rework <class>` subcommand and its triage-routing table (rework-routing.json), never via a blind retry of the same operation."
+    }
+  }
+}

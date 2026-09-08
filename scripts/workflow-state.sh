@@ -46,6 +46,11 @@ SHODE_DIR="$ROOT/.shode-house"
 STATE_DIR="$SHODE_DIR/state"
 JOURNAL_DIR="$SHODE_DIR/journal"
 TRANSITIONS="${WFSTATE_TRANSITIONS:-$SELF_DIR/../references/state-machine/transitions.json}"
+# Milestone D (bd: shode-roadmap/C-D1) -- error-taxonomy policy for `retry`, and the
+# triage-class -> phase routing table for `rework`. Same override convention as
+# TRANSITIONS above (used by the test suite to point at isolated fixtures).
+ERRORS_FILE="${WFSTATE_ERRORS:-$SELF_DIR/../references/state-machine/errors.json}"
+REWORK_FILE="${WFSTATE_REWORK_ROUTING:-$SELF_DIR/../references/state-machine/rework-routing.json}"
 
 # 9-value phase-status enum -- outputs/shode-roadmap/C/05-oliver-decisions.md #4
 STATUS_ENUM="pending ready in_progress blocked conditional_pass passed failed skipped escalated"
@@ -86,6 +91,13 @@ is_conditional_phase() {
 
 is_known_status() {
   case " $STATUS_ENUM " in *" $1 "*) return 0 ;; *) return 1 ;; esac
+}
+
+# ---- Milestone D: `retry`'s error-class must be a key errors.json's policies{} declares
+# (closed-world, same discipline as is_known_phase() above -- an unrecognized class must
+# be rejected loudly, never silently treated as "not retryable").
+is_known_error_class() {
+  jq -e --arg c "$1" '.policies | has($c)' "$ERRORS_FILE" >/dev/null 2>&1
 }
 
 from_status_eligible() {
@@ -206,13 +218,19 @@ next_journal_seq() {
 }
 
 append_journal() {
-  local bd="$1" seq="$2" ts="$3" from="$4" to="$5" actor="$6" result="$7" reason="$8"
+  # $9=op (Milestone D, bd: shode-roadmap/C-D1) -- distinguishes WHICH command wrote this
+  # journal line: init | transition (cmd_advance) | retry | rework | resume. Defaults to
+  # "transition" so every pre-Milestone-D call site (cmd_advance's two calls) needs no
+  # change -- this is a pure additive field, existing journal readers/tests that only
+  # look at .result/.seq/.from/.to are unaffected. Task requirement: "ทั้งสามต้องแยกกันจริง
+  # ในหลักฐาน -- journal ต้องบันทึกคนละ event ไม่ใช่ event เดียวกัน" -- op is that event tag.
+  local bd="$1" seq="$2" ts="$3" from="$4" to="$5" actor="$6" result="$7" reason="$8" op="${9:-transition}"
   local jf; jf=$(journal_file "$bd")
   jq -nc \
     --argjson seq "$seq" --arg ts "$ts" --arg bd "$bd" \
     --arg from "$from" --arg to "$to" --arg actor "$actor" \
-    --arg result "$result" --arg reason "$reason" \
-    '{seq:$seq, ts:$ts, bd_id:$bd, from:$from, to:$to, actor:$actor, result:$result, reason:$reason}' \
+    --arg result "$result" --arg reason "$reason" --arg op "$op" \
+    '{seq:$seq, ts:$ts, bd_id:$bd, from:$from, to:$to, actor:$actor, result:$result, reason:$reason, op:$op}' \
     >> "$jf"
 }
 
@@ -222,6 +240,9 @@ usage: workflow-state.sh init <bd-id>
        workflow-state.sh validate <bd-id>
        workflow-state.sh advance <bd-id> <phase> [<outcome>]
        workflow-state.sh reconcile <bd-id>
+       workflow-state.sh retry <bd-id> <error-class>
+       workflow-state.sh rework <bd-id> <triage-class>
+       workflow-state.sh resume <bd-id>
 EOF
 }
 
@@ -267,7 +288,7 @@ cmd_init() {
   local jf; jf=$(journal_file "$bd")
   [ -f "$jf" ] || : > "$jf"
   local first_phase; first_phase=$(jq -r '.current_phase' "$sf")
-  append_journal "$bd" 1 "$now" "null" "$first_phase" "${WFSTATE_ACTOR:-${USER:-unknown}}" "accept" "init"
+  append_journal "$bd" 1 "$now" "null" "$first_phase" "${WFSTATE_ACTOR:-${USER:-unknown}}" "accept" "init" "init"
 
   printf 'init: created %s (current_phase=%s)\n' "$sf" "$first_phase"
 }
@@ -384,7 +405,7 @@ cmd_advance() {
   actor="${WFSTATE_ACTOR:-${USER:-unknown}}"
 
   if [ "$ok" -eq 0 ]; then
-    append_journal "$bd" "$jseq" "$now" "$from" "$to" "$actor" "reject" "$reason"
+    append_journal "$bd" "$jseq" "$now" "$from" "$to" "$actor" "reject" "$reason" "transition"
     die "advance: REJECTED $from -> $to : $reason"
   fi
 
@@ -393,8 +414,9 @@ cmd_advance() {
   # journal is 1 entry ahead of state.json -- that torn window is documented and left
   # for a future replay tool (FR-502, explicitly out of this tracer bullet's scope);
   # what THIS script guarantees is that the live state.json itself is never observed
-  # in a partial/mixed state (AC-401a).
-  append_journal "$bd" "$jseq" "$now" "$from" "$to" "$actor" "accept" "$outcome"
+  # in a partial/mixed state (AC-401a). Milestone D's `resume` subcommand is what
+  # detects this exact window and reports it instead of guessing.
+  append_journal "$bd" "$jseq" "$now" "$from" "$to" "$actor" "accept" "$outcome" "transition"
 
   # test-only crash injection hook (never set outside the test suite)
   if [ "${WFSTATE_CRASH_BEFORE_RENAME:-0}" = "1" ]; then
@@ -455,6 +477,211 @@ cmd_advance() {
   else
     printf 'advance: %s -> %s (%s, seq=%s)\n' "$from" "$to" "$outcome" "$((seq + 1))"
   fi
+}
+
+# ---- retry (Milestone D, bd: shode-roadmap/C-D1): same operation again, NO phase move,
+# NO iter bump -- deliberately the cheapest/least-consequential of the three D1 verbs
+# (ROADMAP-runtime-10.md Phase 6: "Retry = same operation อีกครั้ง"). Cap comes entirely
+# from errors.json's policies[<class>].retry (data, not hardcoded here) -- a class with
+# retry:false/0 is rejected outright ("not retryable, use rework/escalate"); a class that
+# IS retryable is capped per-phase via phases[<phase>].retry_count, which this is the only
+# subcommand that ever writes.
+cmd_retry() {
+  local bd="${1:-}" class="${2:-}"
+  if [ -z "$bd" ] || [ -z "$class" ]; then usage; die "retry: <bd-id> and <error-class> required"; fi
+  engagement_active || exit 0
+
+  local sf; sf=$(state_file "$bd")
+  [ -f "$sf" ] || die "retry: no state file for '$bd' (run init first)"
+  is_known_error_class "$class" || die "retry: unknown error class '$class' (not in $ERRORS_FILE policies)"
+
+  local lockd; lockd=$(lock_dir "$bd")
+  acquire_lock "$lockd" || die "retry: could not acquire lock for '$bd' -- another writer in progress (${lockd})"
+  trap 'release_lock "'"$lockd"'"' EXIT
+
+  local from from_status seq
+  from=$(jq -r '.current_phase' "$sf")
+  from_status=$(jq -r --arg p "$from" '.phases[$p].status // "unknown"' "$sf")
+  seq=$(jq -r '.seq' "$sf")
+
+  local cap; cap=$(jq -r --arg c "$class" '.policies[$c].retry' "$ERRORS_FILE")
+  local jseq now actor
+  jseq=$(next_journal_seq "$bd"); now=$(timestamp); actor="${WFSTATE_ACTOR:-${USER:-unknown}}"
+
+  local ok=1 reason="" cur_count=0
+  if [ "$cap" = "false" ] || [ "$cap" = "null" ] || [ -z "$cap" ]; then
+    ok=0; reason="error class '$class' is not retryable per policy ($ERRORS_FILE) -- use rework or escalate instead"
+  elif ! from_status_eligible "$from_status"; then
+    ok=0; reason="phase '$from' status '$from_status' not eligible for retry (need one of: $FROM_ELIGIBLE)"
+  else
+    cur_count=$(jq -r --arg p "$from" '.phases[$p].retry_count // 0' "$sf")
+    if [ "$cur_count" -ge "$cap" ]; then
+      ok=0; reason="retry cap ($cap) already reached for phase '$from' class '$class' (attempted $cur_count time(s)) -- this is not retryable further, use rework or escalate"
+    fi
+  fi
+
+  if [ "$ok" -eq 0 ]; then
+    append_journal "$bd" "$jseq" "$now" "$from" "$from" "$actor" "reject" "$reason" "retry"
+    die "retry: REJECTED $from ($class): $reason"
+  fi
+
+  local new_count=$((cur_count + 1))
+  local tmp; tmp=$(mktemp "$STATE_DIR/.tmp.$(encode_bd "$bd").XXXXXX")
+  jq \
+    --arg from "$from" --argjson n "$new_count" --arg now "$now" --argjson seq "$((seq + 1))" '
+    .phases[$from].retry_count = $n
+    | .seq = $seq
+    | .updated_at = $now
+  ' "$sf" > "$tmp"
+  if ! jq empty "$tmp" >/dev/null 2>&1; then
+    mv "$tmp" "$tmp.rejected"
+    die "retry: generated state failed schema validate -- old state kept intact, bad candidate at $tmp.rejected"
+  fi
+  mv "$tmp" "$sf"
+
+  append_journal "$bd" "$jseq" "$now" "$from" "$from" "$actor" "accept" "class=$class retry_count=$new_count/$cap" "retry"
+  printf 'retry: %s class=%s attempt %s/%s (phase status unchanged: %s, current_phase unchanged, iter unchanged)\n' \
+    "$from" "$class" "$new_count" "$cap" "$from_status"
+}
+
+# ---- rework (Milestone D, bd: shode-roadmap/C-D1): "ผลลัพธ์ผิด ต้องแก้ implementation" --
+# routes back to the RESPONSIBLE phase for a <triage-class> via rework-routing.json
+# (output-styles/oliver.md section 5's Triage routing table, transcribed there -- not
+# re-decided here). Deliberately does NOT reimplement the transition: it resolves the
+# target phase from the class, then calls cmd_advance() itself with outcome=failed --
+# same validated edge / enter_requires / iter-cap / atomic-write / iter+1-on-revisit
+# machinery cmd_advance already has 100+ passing tests for, zero duplicated logic. The
+# lock cmd_advance acquires is held (via its own EXIT trap) for the rest of THIS
+# process's life, so appending one more journal line under that same lock afterward is
+# safe -- that second line (op=rework) is what makes a rework event distinguishable in
+# the journal from an ordinary advance() call that happens to hit the same edge.
+cmd_rework() {
+  local bd="${1:-}" class="${2:-}"
+  if [ -z "$bd" ] || [ -z "$class" ]; then usage; die "rework: <bd-id> and <triage-class> required"; fi
+  engagement_active || exit 0
+
+  local sf; sf=$(state_file "$bd")
+  [ -f "$sf" ] || die "rework: no state file for '$bd' (run init first)"
+
+  local target; target=$(jq -r --arg c "$class" '.routes[$c] // empty' "$REWORK_FILE")
+  [ -n "$target" ] || die "rework: unknown triage class '$class' (not in $REWORK_FILE routes)"
+
+  local from_before; from_before=$(jq -r '.current_phase' "$sf")
+  log_err "rework: class='$class' -> routing to phase '$target' (from '$from_before')"
+
+  cmd_advance "$bd" "$target" "failed"
+
+  local jseq now actor
+  jseq=$(next_journal_seq "$bd"); now=$(timestamp); actor="${WFSTATE_ACTOR:-${USER:-unknown}}"
+  append_journal "$bd" "$jseq" "$now" "$from_before" "$target" "$actor" "accept" "class=$class routed-to=$target" "rework"
+
+  printf 'rework: class=%s routed %s -> %s (see the preceding "advance:" line for the transition detail)\n' \
+    "$class" "$from_before" "$target"
+}
+
+# ---- resume (Milestone D, bd: shode-roadmap/C-D1): "session/process ตาย แต่ completed
+# work ยัง valid -- read checkpoint, verify artifacts, continue next unfinished step".
+# Two things must be TRUE before this ever suggests a next step, and both are checked,
+# never assumed:
+#   1. journal and state.json agree (no torn write -- see cmd_advance's own
+#      WFSTATE_CRASH_BEFORE_RENAME comment/test for the one documented torn window)
+#   2. every already-approved phase's artifacts still hash-match what's on disk
+# Either check failing is reported and this exits non-zero -- it never "continues
+# anyway" on unverified state (that would be exactly the "เดินต่อมั่ว" the task forbids).
+cmd_resume() {
+  local bd="${1:-}"
+  [ -n "$bd" ] || { usage; die "resume: <bd-id> required"; }
+  engagement_active || exit 0
+
+  local sf; sf=$(state_file "$bd")
+  [ -f "$sf" ] || die "resume: no state file for '$bd' (run init first)"
+  jq empty "$sf" >/dev/null 2>&1 || die "resume: $sf is not valid JSON -- cannot resume from a corrupt state file"
+
+  local lockd; lockd=$(lock_dir "$bd")
+  acquire_lock "$lockd" || die "resume: could not acquire lock for '$bd' -- another writer in progress (${lockd})"
+  trap 'release_lock "'"$lockd"'"' EXIT
+
+  local jf; jf=$(journal_file "$bd")
+  local cur; cur=$(jq -r '.current_phase' "$sf")
+
+  # ---- torn-write detection: the journal write-ahead (ADR-C5 step 3) means a crash
+  # between the journal append and the state rename leaves the journal's LAST line
+  # claiming an accepted from->to transition that state.json's current_phase never
+  # actually picked up. That specific mismatch shape (last journal line accept,
+  # from==state.current_phase, to!=state.current_phase, to!=from) IS the torn window --
+  # anything else (clean forward transitions, a rejected last attempt, a self-transition
+  # like escalated/retry/rework-into-itself) is not.
+  local torn=0 torn_reason=""
+  if [ -f "$jf" ] && [ -s "$jf" ]; then
+    local last_result last_from last_to
+    last_result=$(tail -n1 "$jf" | jq -r '.result // ""' 2>/dev/null)
+    last_from=$(tail -n1 "$jf" | jq -r '.from // ""' 2>/dev/null)
+    last_to=$(tail -n1 "$jf" | jq -r '.to // ""' 2>/dev/null)
+    if [ "$last_result" = "accept" ] && [ "$last_from" = "$cur" ] && [ "$last_to" != "$cur" ] && [ "$last_to" != "$last_from" ]; then
+      torn=1
+      torn_reason="journal's last accepted transition says '$last_from' -> '$last_to', but state.json's current_phase is still '$cur' -- state.json was never renamed in after that journal write (crash between journal append and the atomic rename)"
+    fi
+  fi
+
+  local jseq now actor
+  jseq=$(next_journal_seq "$bd"); now=$(timestamp); actor="${WFSTATE_ACTOR:-${USER:-unknown}}"
+
+  if [ "$torn" -eq 1 ]; then
+    append_journal "$bd" "$jseq" "$now" "$cur" "$cur" "$actor" "reject" "torn write detected: $torn_reason" "resume"
+    printf 'resume: TORN WRITE DETECTED for %s\n' "$bd" >&2
+    printf '  %s\n' "$torn_reason" >&2
+    printf '  action: do NOT continue automatically -- replay/repair journal vs state manually before resuming\n' >&2
+    exit 1
+  fi
+
+  # ---- artifact verification: reuse the same hash-compare family as reconcile's
+  # checks 4/5 -- any phase already approved (passed/conditional_pass) must still
+  # hash-match what is on disk right now, or resume must not trust it as still valid.
+  local drift=""
+  while IFS=$'\t' read -r phase pstatus; do
+    [ -z "$phase" ] && continue
+    while IFS=$'\t' read -r path stored_hash; do
+      [ -z "$path" ] && continue
+      if [ ! -f "$ROOT/$path" ]; then
+        drift="${drift}${drift:+; }$phase:$path(MISSING)"
+        continue
+      fi
+      local cur_hash; cur_hash=$(shasum -a 256 "$ROOT/$path" 2>/dev/null | awk '{print $1}')
+      [ "$cur_hash" != "$stored_hash" ] && drift="${drift}${drift:+; }$phase:$path"
+    done < <(jq -r --arg p "$phase" '.phases[$p].artifact_hashes // {} | to_entries[] | [.key,.value] | @tsv' "$sf")
+  done < <(jq -r '.phases | to_entries[] | select(.value.status=="passed" or .value.status=="conditional_pass") | [.key, .value.status] | @tsv' "$sf")
+
+  local cur_status; cur_status=$(jq -r --arg p "$cur" '.phases[$p].status // "unknown"' "$sf")
+  local next_hint=""
+  case "$cur_status" in
+    in_progress)
+      next_hint="continue phase '$cur' (still in_progress -- was not yet advanced when the process died)" ;;
+    escalated)
+      next_hint="BLOCKED: phase '$cur' is escalated -- needs a human decision, no auto-resume" ;;
+    passed|conditional_pass|skipped)
+      local edges; edges=$(jq -r --arg f "$cur" '.transitions[] | select(.from==$f) | .to' "$TRANSITIONS" | sort -u | tr '\n' ',' | sed 's/,$//')
+      if [ -n "$edges" ]; then
+        next_hint="phase '$cur' already resolved ($cur_status) -- candidate next phase(s): $edges"
+      else
+        next_hint="phase '$cur' already resolved ($cur_status) -- no outgoing edge declared from here (workflow may be complete)"
+      fi
+      ;;
+    *)
+      next_hint="phase '$cur' status '$cur_status' -- no known next-step rule for this status" ;;
+  esac
+
+  local verdict="ok"
+  [ -n "$drift" ] && verdict="artifact-drift"
+  append_journal "$bd" "$jseq" "$now" "$cur" "$cur" "$actor" "accept" "verdict=$verdict" "resume"
+
+  printf 'resume: %s current_phase=%s status=%s\n' "$bd" "$cur" "$cur_status"
+  printf '  next step: %s\n' "$next_hint"
+  if [ -n "$drift" ]; then
+    printf '  ARTIFACT DRIFT since last approval: %s\n' "$drift"
+    printf '  action: do NOT trust the affected phase(s) as still passed -- re-verify before continuing\n'
+    exit 1
+  fi
+  printf '  artifacts: all approved-phase artifacts still hash-match (no drift)\n'
 }
 
 # ---- reconcile: ROADMAP-runtime-10.md SS2.2, 6 checks, bd optional (SS header comment).
@@ -582,6 +809,9 @@ main() {
     validate)  cmd_validate "$@" ;;
     advance)   cmd_advance "$@" ;;
     reconcile) cmd_reconcile "$@" ;;
+    retry)     cmd_retry "$@" ;;
+    rework)    cmd_rework "$@" ;;
+    resume)    cmd_resume "$@" ;;
     ""|-h|--help) usage; exit 1 ;;
     *) usage; die "unknown command '$cmd'" ;;
   esac
