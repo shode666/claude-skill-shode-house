@@ -377,9 +377,30 @@ def resolve(fixture_root, rel):
     return rel if os.path.isabs(rel) else os.path.join(fixture_root, rel)
 
 
-def spec_fidelity(scenario, fixture_root):
-    """Missing input (spec file / required glob not found on disk) -> UNSCORABLE (own reason, doesn't
-    wipe other dimensions). Content mismatch (file exists but doesn't say what's expected) -> FAIL."""
+def substitute_bd_placeholder(pattern, bd_id):
+    """bd:shode-roadmap/B2-fix (Oliver, 05-oliver-decisions.md): golden.json's required_artifacts /
+    required_evidence[].glob / spec_file may contain a literal '{bd}' placeholder standing in for
+    the bd id assigned at RUN TIME (GS2-GS5 real-run layout, migrated off the old hardcoded
+    outputs/bd-101/... layout). Returns (resolved_pattern, error) -- error is None on success.
+
+    Deliberately does NOT fall back to a wildcard (outputs/*/...) when bd_id is unavailable: a real
+    fixture project's outputs/ can have stale run dirs left over from earlier scenarios (proven --
+    shode-house-example-refund/outputs/ has 7 old GS1 run dirs with *bella*.md already in them),
+    so a wildcard fallback here would silently match the WRONG run's artifacts and false-PASS. An
+    unresolved '{bd}' must become its own explicit UNSCORABLE reason instead -- never a silent glob
+    miss (which reads identically to a genuinely-missing artifact) and never a PASS."""
+    if '{bd}' not in pattern:
+        return pattern, None
+    if not bd_id:
+        return None, (f"{pattern!r} has a '{{bd}}' placeholder but no bd id is available to "
+                       f"resolve it (pass --bd-id or set scenario bd_id) — cannot check this input")
+    return pattern.replace('{bd}', bd_id), None
+
+
+def spec_fidelity(scenario, fixture_root, bd_id=None):
+    """Missing input (spec file / required glob not found on disk, or an unresolved '{bd}'
+    placeholder — bd:shode-roadmap/B2-fix) -> UNSCORABLE (own reason, doesn't wipe other
+    dimensions). Content mismatch (file exists but doesn't say what's expected) -> FAIL."""
     spec_file = scenario.get('spec_file')
     req_artifacts = scenario.get('required_artifacts') or []
     req_evidence = scenario.get('required_evidence') or []
@@ -390,17 +411,25 @@ def spec_fidelity(scenario, fixture_root):
     content_fails = []
     ac_ids = set()
     if spec_file:
-        p = resolve(fixture_root, spec_file)
-        if not os.path.isfile(p):
-            missing_inputs.append(f'spec file not found: {spec_file} (resolved: {p})')
+        resolved_spec_file, err = substitute_bd_placeholder(spec_file, bd_id)
+        if err:
+            missing_inputs.append(err)
         else:
-            ac_ids = set(re.findall(r'AC-\d+', open(p, encoding='utf-8').read()))
+            p = resolve(fixture_root, resolved_spec_file)
+            if not os.path.isfile(p):
+                missing_inputs.append(f'spec file not found: {resolved_spec_file} (resolved: {p})')
+            else:
+                ac_ids = set(re.findall(r'AC-\d+', open(p, encoding='utf-8').read()))
 
     matched_text = ''
     for pattern in req_artifacts:
-        matches = glob.glob(resolve(fixture_root, pattern))
+        resolved_pattern, err = substitute_bd_placeholder(pattern, bd_id)
+        if err:
+            missing_inputs.append(err)
+            continue
+        matches = glob.glob(resolve(fixture_root, resolved_pattern))
         if not matches:
-            missing_inputs.append(f'no file matches required_artifacts glob: {pattern}')
+            missing_inputs.append(f'no file matches required_artifacts glob: {resolved_pattern}')
             continue
         for m in matches:
             matched_text += open(m, encoding='utf-8', errors='ignore').read()
@@ -411,13 +440,17 @@ def spec_fidelity(scenario, fixture_root):
             content_fails.append(f'AC-ID not referenced in artifact: {missing_ac}')
 
     for ev in req_evidence:
-        matches = glob.glob(resolve(fixture_root, ev['glob']))
+        resolved_glob, err = substitute_bd_placeholder(ev['glob'], bd_id)
+        if err:
+            missing_inputs.append(err)
+            continue
+        matches = glob.glob(resolve(fixture_root, resolved_glob))
         if not matches:
-            missing_inputs.append(f"required_evidence glob no match: {ev['glob']}")
+            missing_inputs.append(f"required_evidence glob no match: {resolved_glob}")
             continue
         text = ''.join(open(m, encoding='utf-8', errors='ignore').read() for m in matches)
         if not re.search(ev['pattern'], text):
-            content_fails.append(f"required_evidence pattern not found: {ev['pattern']!r} in {ev['glob']}")
+            content_fails.append(f"required_evidence pattern not found: {ev['pattern']!r} in {resolved_glob}")
 
     if missing_inputs:
         detail = '; '.join(missing_inputs)
@@ -874,9 +907,17 @@ def score(session_path, scenario, fixture_root, bd_id_override=None, outputs_dir
     `scenario['desc']` text (independent of the empty transcript), which is misleading: there is no
     real transcript content to judge here at all. When main has 0 records, every dimension except
     `bd_end_state` (which never reads main records anyway) is forced to UNSCORABLE with one shared
-    reason, overriding the normal per-dimension independence for this specific bad-path safety net."""
+    reason, overriding the normal per-dimension independence for this specific bad-path safety net.
+
+    bd:shode-roadmap/B2-fix (Oliver, 05-oliver-decisions.md): `bd_id` is resolved ONCE here (same
+    override-then-scenario precedence `bd_end_state` already used) and threaded into `spec_fidelity`
+    too, so a golden.json glob/spec_file containing a '{bd}' placeholder (GS2-GS5 real-run layout)
+    resolves against the SAME bd id `bd_end_state` checks — not just `bd_end_state` as before,
+    which left `spec_fidelity`'s globs unresolved (the exact false-PASS/UNSCORABLE-schema gap this
+    bd fixes)."""
     session = load_session(session_path)
     main_batches = build_spawn_index(session)['main_batches']
+    bd_id = bd_id_override or scenario.get('bd_id')
 
     dims = {}
     if not session['main']:
@@ -904,7 +945,7 @@ def score(session_path, scenario, fixture_root, bd_id_override=None, outputs_dir
                 r_detail = f'dispatch card: {card_detail}'
             r_verdict = 'FAIL'
         dims['routing'] = (r_verdict, r_detail, r_steps)
-        dims['spec_fidelity'] = spec_fidelity(scenario, fixture_root)
+        dims['spec_fidelity'] = spec_fidelity(scenario, fixture_root, bd_id)
         dims['security_trigger'] = security_trigger(scenario, session)
         dims['evidence'] = evidence_dimension(session)
         dims['anti_puppet'] = anti_puppet_dimension(scenario, session)

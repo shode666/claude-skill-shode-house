@@ -1,5 +1,5 @@
 {
-  "version": "3.14-e2e",
+  "version": "3.15-e2e",
   "runs_per_scenario": 3,
   "report": ["median", "p90"],
   "scenarios": [
@@ -33,17 +33,17 @@
       "command": "/implement",
       "golden": true,
       "desc": "implement-backend E2E — Dave -> Chris||Quinn -> Bella spec-axis, no Uma, no Sentinel",
-      "bd_id": "bd-101",
-      "spec_file": "outputs/SPEC-bd-101.md",
+      "bd_id": null,
+      "spec_file": "outputs/SPEC-{bd}.md",
       "agents": ["developer", "code-reviewer", "qa-engineer", "business-analyst"],
       "expected_routing": [
         {"agents": ["shode-house:developer"]},
         {"agents": ["shode-house:code-reviewer", "shode-house:qa-engineer"], "parallel": true},
         {"agents": ["shode-house:business-analyst"]}
       ],
-      "required_artifacts": ["outputs/bd-101/*dave*.md", "outputs/bd-101/*bella*.md"],
+      "required_artifacts": ["outputs/{bd}/*dave*.md", "outputs/{bd}/*bella*.md"],
       "required_evidence": [
-        {"glob": "outputs/bd-101/*chris*.md", "pattern": "AC-4"}
+        {"glob": "outputs/{bd}/*chris*.md", "pattern": "AC-4"}
       ],
       "forbidden_phrases": [],
       "security_triggers": null,
@@ -55,18 +55,18 @@
       "command": "/implement",
       "golden": true,
       "desc": "spec ตัด AC-4 idempotency โดยตั้งใจ — Bella ต้อง flag ก่อนถึง Chris/Quinn",
-      "bd_id": "bd-104",
-      "spec_file": "outputs/SPEC-bd-104.md",
+      "bd_id": null,
+      "spec_file": "outputs/SPEC-{bd}.md",
       "agents": ["developer", "business-analyst", "code-reviewer", "qa-engineer"],
       "expected_routing": [
         {"agents": ["shode-house:developer"]},
         {"agents": ["shode-house:business-analyst"]},
         {"agents": ["shode-house:code-reviewer", "shode-house:qa-engineer"], "parallel": true}
       ],
-      "required_artifacts": ["outputs/bd-104/*bella*.md"],
+      "required_artifacts": ["outputs/{bd}/*bella*.md"],
       "required_evidence": [
-        {"glob": "outputs/bd-104/*bella*.md", "pattern": "AC-4.*(gap|ขาด|ไม่มีใน spec)"},
-        {"glob": "outputs/bd-104/*bella*.md", "pattern": "SPEC-bd-101"}
+        {"glob": "outputs/{bd}/*bella*.md", "pattern": "AC-4.*(gap|ขาด|ไม่มีใน spec)"},
+        {"glob": "outputs/{bd}/*bella*.md", "pattern": "SPEC-bd-101"}
       ],
       "forbidden_phrases": ["sign-off", "APPROVED"],
       "security_triggers": null,
@@ -78,7 +78,7 @@
       "command": "/design-system",
       "golden": true,
       "desc": "ambiguity แบ่งคืนเงิน 2 ช่องทาง (บัตร+PromptPay) — ต้อง relay ไม่เดา",
-      "bd_id": "bd-105",
+      "bd_id": null,
       "agents": ["business-analyst", "solution-architect", "fintech-expert"],
       "expected_routing": [
         {"agents": ["shode-house:business-analyst", "shode-house:solution-architect"], "parallel": true}
@@ -97,16 +97,16 @@
       "command": "/review",
       "golden": true,
       "desc": "diff แก้ ledger posting + เก็บเลขบัตรบางส่วน — merge gate ต้องมี domain+security signature",
-      "bd_id": "bd-106",
+      "bd_id": null,
       "agents": ["code-reviewer", "qa-engineer", "security-engineer", "fintech-expert"],
       "expected_routing": [
         {"agents": ["shode-house:code-reviewer", "shode-house:qa-engineer"], "parallel": true},
         {"agents": ["shode-house:security-engineer"]},
         {"agents": ["shode-house:fintech-expert"]}
       ],
-      "required_artifacts": ["outputs/bd-106/*sentinel*.md", "outputs/bd-106/*felix*.md"],
+      "required_artifacts": ["outputs/{bd}/*sentinel*.md", "outputs/{bd}/*felix*.md"],
       "required_evidence": [
-        {"glob": "outputs/bd-106/*sentinel*.md", "pattern": "mask_card"}
+        {"glob": "outputs/{bd}/*sentinel*.md", "pattern": "mask_card"}
       ],
       "required_main_phrases": ["[REVIEW DISPATCH CARD]"],
       "forbidden_phrases": ["merge โดยไม่มีลายเซ็น"],
