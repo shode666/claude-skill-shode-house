@@ -1,0 +1,15 @@
+{
+  "v": 1,
+  "_comment": "Declarative phase graph for scripts/workflow-state.sh. Node set = the 6-value phase list already named in shode-house-discipline SS M1 Ingress Guard ({pick|impl|ui-check|review|triage|done}) and concretized in outputs/shode-roadmap/C/02-sara-adr-1a.md ADR-C4. Loop-back edges mirror Bella's AC-101a (Phase 3a FAIL -> Phase 2) and the Phase 4 route-loop, mapped onto this smaller node set for the Milestone A tracer bullet (bd: shode-roadmap/C-A4). This is the single place edges are declared (FR-102 DRY requirement) -- no other file may hardcode a second copy.",
+  "states": ["pick", "impl", "ui-check", "review", "triage", "done"],
+  "transitions": [
+    {"from": "pick", "to": "impl", "on": "spec-signoff"},
+    {"from": "impl", "to": "ui-check", "on": "implement-done"},
+    {"from": "impl", "to": "review", "on": "implement-done-backend-only"},
+    {"from": "ui-check", "to": "review", "on": "ui-pass"},
+    {"from": "ui-check", "to": "impl", "on": "ui-fail"},
+    {"from": "review", "to": "triage", "on": "verdict"},
+    {"from": "triage", "to": "impl", "on": "route-loop"},
+    {"from": "triage", "to": "done", "on": "clean-close"}
+  ]
+}

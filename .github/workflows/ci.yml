@@ -466,6 +466,12 @@ jobs:
         # caps are parsed from that file, not hardcoded in the script).
         run: python3 scripts/eval-regression-gate.py
 
+      - name: workflow-state.sh test suite (bd:shode-roadmap/C-A4)
+        # Milestone A tracer bullet -- outputs/shode-roadmap/C/05-oliver-decisions.md CI budget
+        # rule: "1 AC = 1 test case ในสวีท ไม่ใช่ 1 CI section" -- this is the ONE step this
+        # milestone is allowed to add. bash + jq only, no new dependency (ADR-C3).
+        run: bash tests/test-workflow-state.sh
+
       - name: Build .plugin artifact
         run: make pack
 
