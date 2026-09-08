@@ -1121,7 +1121,7 @@ FULL_CARD_TEXT = (
     '- Bella    (spec axis)      : SKIP("no spec available — Pattern C, no Jira/bd/SPEC-*.md")\n'
     '- Sentinel (security depth) : DISPATCH(trigger:ledger,refund)\n'
     '- Domain   (fintech)        : DISPATCH(trigger:ledger,refund)\n'
-    '→ launch ทุก DISPATCH ใน ONE message (parallel Task calls) — ห้าม serialize / ห้าม spawn เพิ่มทีหลัง\n')
+    '→ launch ทุก DISPATCH ติดกัน ก่อนรอผลตัวใด (Task = async) — ห้าม spawn เพิ่มทีหลัง\n')
 
 
 def test_iter12_dispatch_card_na_when_not_configured():
@@ -1396,3 +1396,63 @@ def test_iter13_evidence_dimension_passes_is_main_correctly(tmp_path):
     session = {'main': main_records, 'subagents': {}}
     verdict, detail = scorer.evidence_dimension(session)
     assert verdict == 'PASS', detail
+    assert verdict == 'PASS', detail
+
+
+# ===== iter14 (Oliver, 2026-09-08): Claude Code's Agent tool launches async (`async_launched`,
+# returns ~2s) — every real GS1 run spawned the 5 reviewers in 5 separate assistant messages
+# 6–7s apart yet they ran concurrently (subagent windows overlap). `parallel` must be decided by
+# execution-window overlap, not by "same assistant message". =====
+
+def _spawn_w(agent_type, ts, start, end):
+    return {'agentType': agent_type, 'timestamp': ts, 'agentId': 'a-' + agent_type,
+            'window_start': start, 'window_end': end}
+
+
+_EXPECTED_REVIEW_PAIR = [
+    {"agents": ["shode-house:code-reviewer", "shode-house:qa-engineer"], "parallel": True},
+]
+
+
+def test_iter14_separate_messages_but_overlapping_windows_is_parallel():
+    main_batches = [
+        [_spawn_w('shode-house:code-reviewer', 't1', '2026-09-08T07:40:35Z', '2026-09-08T07:52:00Z')],
+        [_spawn_w('shode-house:qa-engineer',   't2', '2026-09-08T07:40:42Z', '2026-09-08T08:10:00Z')],
+    ]
+    verdict, detail, steps = scorer.check_routing(_EXPECTED_REVIEW_PAIR, main_batches, False)
+    assert verdict == 'PASS', detail
+    assert steps[0]['parallel'] is True
+    assert steps[0]['concurrency'] == 'overlap'
+    assert steps[0]['same_message'] is False
+    assert 'parallel=True(overlap)' in detail
+
+
+def test_iter14_non_overlapping_windows_is_sequential_even_if_messages_adjacent():
+    main_batches = [
+        [_spawn_w('shode-house:code-reviewer', 't1', '2026-09-08T07:40:35Z', '2026-09-08T07:45:00Z')],
+        [_spawn_w('shode-house:qa-engineer',   't2', '2026-09-08T07:45:10Z', '2026-09-08T08:10:00Z')],
+    ]
+    verdict, detail, steps = scorer.check_routing(_EXPECTED_REVIEW_PAIR, main_batches, False)
+    assert verdict == 'PASS', detail            # still informational, never a FAIL
+    assert steps[0]['parallel'] is False
+    assert steps[0]['concurrency'] == 'sequential'
+
+
+def test_iter14_no_windows_falls_back_to_same_message_rule():
+    main_batches = [
+        [_spawn('shode-house:code-reviewer', 't1'), _spawn('shode-house:qa-engineer', 't1')],
+    ]
+    verdict, detail, steps = scorer.check_routing(_EXPECTED_REVIEW_PAIR, main_batches, False)
+    assert steps[0]['parallel'] is True
+    assert steps[0]['concurrency'] == 'same-message'
+
+
+def test_iter14_build_spawn_index_attaches_subagent_window():
+    session = scorer.load_session(os.path.join(FIX, 'routing-ok'))
+    idx = scorer.build_spawn_index(session)
+    resolved = [s for b in idx['main_batches'] for s in b if s.get('agentId')]
+    assert resolved, 'fixture must resolve at least one subagent'
+    with_window = [s for s in resolved if s.get('window_start') and s.get('window_end')]
+    assert with_window, 'resolved spawns must carry window_start/window_end from subagent records'
+    for s in with_window:
+        assert s['window_start'] <= s['window_end']

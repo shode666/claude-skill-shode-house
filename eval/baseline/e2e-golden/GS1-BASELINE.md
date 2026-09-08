@@ -20,5 +20,5 @@
 - run-3 (igz): 4/5 ไม่มี Sentinel, card ยังไม่ถึง runtime → root cause = `plugin install` ไม่ refresh cache version เดิม
 
 ## known gap (ไม่ block baseline)
-- reviewer 5 ตัว spawn คนละ message ห่างกัน ~10 s (`parallel=False`) ทั้ง 3 run — กติกา "ONE message" ใน card ยังไม่ถูกทำตาม; ไม่กระทบ verdict แต่กระทบ wall-clock
+- ~~reviewer 5 ตัว spawn คนละ message (`parallel=False`)~~ → **false alarm** (2026-09-08, scorer iter14): Agent tool ของ Claude Code launch async (`async_launched` คืนใน ~2 s) — 5 spawn ห่างกัน 6–7 s แล้ววิ่งซ้อนกันจริง (execution window ทับซ้อน). scorer นิยาม `parallel` ใหม่จาก window overlap (`concurrency: overlap|sequential`); card เปลี่ยนถ้อยคำจาก "ONE message" เป็น "ติดกันก่อนรอผลตัวใด". ค่า `parallel=False` ใน run-4..6 score.json เป็นของ scorer เวอร์ชันเก่า — re-score ได้เมื่อ transcript ยังอยู่
 - Felix finding แปรผันข้าม run (run-3 เจอ I-1 isolation level ที่ run อื่นไม่เจอ) — reviewer variance, ยังไม่วัดเป็น dimension

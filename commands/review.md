@@ -107,7 +107,7 @@ pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง comma
 - Bella    (spec axis)      : DISPATCH | SKIP("no spec available — Pattern C, no Jira/bd/SPEC-*.md")
 - Sentinel (security depth) : DISPATCH(trigger:<keywords>) | SKIP("no trigger keyword")
 - Domain   (<expert>)       : DISPATCH(trigger:<keywords>) | SKIP("no trigger keyword")
-→ launch ทุก DISPATCH ใน ONE message (parallel Task calls) — ห้าม serialize / ห้าม spawn เพิ่มทีหลัง
+→ launch ทุก DISPATCH ติดกัน ก่อนรอผลตัวใด (Task = async) — ห้าม spawn เพิ่มทีหลัง
 ```
 
 กติกา (เขียนติดกับ template — บังคับทั้ง 5 ข้อ):
@@ -118,8 +118,8 @@ pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง comma
    `review-checklist/security-sentinel.md` บรรทัด `WHEN: diff_touches in {auth,money,PII,crypto,
    secrets} OR secure_skill_triggered=true` (lazy-load-contract block — canonical, ห้าม fork list
    ที่นี่) กับ prompt+diff ก่อน; เจอ = DISPATCH บังคับ
-4. ทุกบรรทัด DISPATCH ต้องมี Task call จริงใน message เดียวกันหรือ message ถัดไปทันที
-   (ONE message, parallel) — จำนวน Task call ต้องเท่าจำนวน DISPATCH line เป๊ะ
+4. ทุก DISPATCH ต้องมี Task call จริงติดกันหลัง card (ขนาน = spawn ครบก่อนรอผล; scorer วัด
+   window ทับซ้อน) — จำนวน Task call = จำนวน DISPATCH line เป๊ะ
 5. ไม่ print card = ห้าม spawn (เทียบ M1: no bd → STOP)
 
 ```bash

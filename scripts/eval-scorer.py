@@ -198,6 +198,15 @@ def build_spawn_index(session):
         if spawn is not None:
             spawn['agentId'] = aid
             spawn['agentType'] = meta.get('agentType') or spawn.get('declared_type')
+            # iter14 (Oliver, 2026-09-08): execution window of the subagent = first/last record
+            # timestamp in its own jsonl. Used by check_routing to decide real concurrency —
+            # Claude Code's Agent tool launches async (`status: async_launched`, returns ~2s), so
+            # members of a parallel step land in SEPARATE assistant messages seconds apart yet run
+            # concurrently. "same message" was a false sequential signal on every real GS1 run.
+            ts = [r.get('timestamp') for r in (a.get('records') or []) if r.get('timestamp')]
+            if ts:
+                spawn['window_start'] = min(ts)
+                spawn['window_end'] = max(ts)
 
     all_types = set()
     for batch in file_batches.get('main', []):
@@ -259,8 +268,13 @@ def check_routing(expected, main_batches, open_ended, main_record_count=0):
     """A step's members can arrive in any order, in any number of separate assistant messages,
     as long as they all land after the previous step's members and before the next step's
     members (iter 2 fix, Oliver bd:B1 — a 21s-apart 2-message parallel spawn is NOT a FAIL).
-    `parallel` is reported per matched step as informational text/data only: true iff every
-    matched member's tool_use came from the SAME assistant message (single batch).
+    `parallel` is reported per matched step as informational text/data only. iter14: true iff the
+    members' subagent execution windows (first..last record timestamp of each subagent file)
+    all overlap at one instant — max(start) <= min(end) — i.e. they really ran concurrently
+    (Claude Code launches Agent async, so "same assistant message" is NOT the right signal).
+    When no member carries a window (synthetic fixtures / unresolved subagents) it falls back to
+    the old same-message rule. `concurrency` names which rule fired:
+    'overlap' | 'sequential' | 'same-message' | 'separate-messages'.
 
     iter9 (Oliver bd:B1): a step can carry `"optional": true` (e.g. GS1's trailing developer
     fix-iteration step, which only happens when /review finds something to fix) — if an optional
@@ -294,6 +308,7 @@ def check_routing(expected, main_batches, open_ended, main_record_count=0):
         collected = set()
         batches_used = set()
         timestamps = []
+        windows = []
         j = ptr
         finished_at = None
         while j < n:
@@ -303,6 +318,8 @@ def check_routing(expected, main_batches, open_ended, main_record_count=0):
                 collected.add(atype)
                 batches_used.add(spawn['_batch_idx'])
                 timestamps.append(spawn.get('timestamp'))
+                if spawn.get('window_start') and spawn.get('window_end'):
+                    windows.append((spawn['window_start'], spawn['window_end']))
                 j += 1
                 if collected >= exp:
                     finished_at = j
@@ -329,13 +346,21 @@ def check_routing(expected, main_batches, open_ended, main_record_count=0):
                                     'batches': 0, 'timestamps': [], 'optional': True, 'observed': False})
                 continue  # skipped, not a failure; ptr unchanged, next step matches from here
             return 'FAIL', f'step {i+1} missing: expected {sorted(exp)}, only found {sorted(collected)}', steps_info
-        parallel_observed = len(batches_used) == 1 and len(exp) > 1
+        same_message = len(batches_used) == 1 and len(exp) > 1
+        if len(exp) > 1 and len(windows) == len(exp):
+            overlap = max(w[0] for w in windows) <= min(w[1] for w in windows)
+            parallel_observed = overlap
+            concurrency = 'overlap' if overlap else 'sequential'
+        else:
+            parallel_observed = same_message
+            concurrency = 'same-message' if same_message else 'separate-messages'
         steps_info.append({'step': i + 1, 'agents': sorted(exp), 'parallel': parallel_observed,
+                            'concurrency': concurrency, 'same_message': same_message,
                             'batches': len(batches_used), 'timestamps': timestamps,
-                            'optional': optional, 'observed': True})
+                            'windows': windows, 'optional': optional, 'observed': True})
         ptr = finished_at
-    parallel_notes = '; '.join(f"step{s['step']} parallel={s['parallel']}" for s in steps_info
-                                if len(s['agents']) > 1)
+    parallel_notes = '; '.join(f"step{s['step']} parallel={s['parallel']}({s['concurrency']})"
+                                for s in steps_info if len(s['agents']) > 1 and s.get('observed', True))
     observed_count = sum(1 for s in steps_info if s.get('observed', True))
     detail = f"{observed_count}/{len(expected)} steps matched"
     skipped = [s['step'] for s in steps_info if not s.get('observed', True)]
@@ -925,7 +950,10 @@ def print_report(result):
             for s in d.get('steps') or []:
                 if len(s['agents']) > 1:
                     print(f"    step{s['step']} {s['agents']} parallel={s['parallel']} "
+                          f"[{s.get('concurrency', '?')}] "
                           f"(spawned across {s['batches']} message(s), ts={s['timestamps']})")
+                    for w in s.get('windows') or []:
+                        print(f"      window {w[0]} .. {w[1]}")
             tree = result.get('routing_tree') or []
             if tree:
                 print('    routing tree (reconstructed, informational):')

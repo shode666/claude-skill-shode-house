@@ -287,7 +287,7 @@ jobs:
           done
           grep -qF 'SKIP("no spec available' "$RC" || err "$RC: missing literal Bella SKIP reason 'SKIP(\"no spec available'"
           grep -qF 'SKIP("no trigger keyword")' "$RC" || err "$RC: missing literal Sentinel/Domain SKIP reason 'SKIP(\"no trigger keyword\")'"
-          grep -qF 'ONE message' "$RC" || err "$RC: missing literal 'ONE message' parallel-dispatch constraint"
+          grep -qF 'ก่อนรอผลตัวใด' "$RC" || err "$RC: missing literal 'ก่อนรอผลตัวใด' parallel-dispatch constraint"
           grep -qF '[REVIEW DISPATCH CARD]' skills/discipline/review-checklist/intake.md \
             || err "review-checklist/intake.md: missing pointer to [REVIEW DISPATCH CARD]"
           [ $fail -eq 0 ] && ok "REVIEW DISPATCH CARD template + rules intact"
