@@ -26,6 +26,8 @@ REQUIRED-BEFORE: spec_axis_verdict
 2. รายงานแยกหัวข้อ `## Standards` และ `## Spec` — **ห้าม merge หรือ rerank ข้ามแกน** เพราะการแยกแกนมีไว้กันการบังกันเอง
 3. ปิดท้าย 1 บรรทัด: จำนวน finding ต่อแกน + ตัวแย่สุด **ในแต่ละแกน** — ห้ามเลือกผู้ชนะข้ามแกน
 4. ไม่มี spec → ข้าม Spec axis แล้วเขียน **"no spec available"** ใน report (ไม่ใช่ pass เงียบ ๆ)
+5. Dispatch เข้าแกนนี้มาจาก `[REVIEW DISPATCH CARD]` ที่ Oliver print ก่อน fan-out เสมอ (Bella line
+   = DISPATCH หรือ SKIP — ดู `commands/review.md` § Step 1 (template จริง, ไม่ duplicate ที่นี่)
 
 **Routing**: finding ของ Spec axis ส่วนใหญ่ route → **Phase 1a** (Bella ∥ Sara revise spec/AC) ไม่ใช่ Phase 2 — ยกเว้นข้อ (c) ที่ spec ถูกแต่ code ผิด → Phase 2
 

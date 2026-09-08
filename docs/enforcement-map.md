@@ -12,7 +12,7 @@
 | 5 | Response language mirror | ทุก agent | ทุก message | ✅ | `skills/discipline/shode-house-discipline/SKILL.md` | fixture |
 | 6 | Recite Discipline Card | main session | first response | ❌ | `output-styles/oliver.md` | output-style-test |
 | 7 | AskUserQuestion main-session relay | main session | ambiguity | ❌ | `skills/discipline/shode-house-workflow/smart-coop.md` | ci:18 + fixture |
-| 8 | Spec axis (diff vs spec) | business-analyst | Phase 3b / review | ❌ | `skills/discipline/review-checklist/spec-axis.md` | ci:19 + fixture |
+| 8 | Spec axis (diff vs spec) | business-analyst | Phase 3b / review | ❌ | `skills/discipline/review-checklist/spec-axis.md` | ci:19 + e2e:GS1 |
 | 9 | Standards axis 7-dim | code-reviewer | Phase 3b | ❌ | `agents/code-reviewer.md` | fixture |
 | 10 | Integration/E2E matrix | qa-engineer | Phase 3b | ❌ | `agents/qa-engineer.md` | fixture |
 | 11 | Definition of Done | orchestrator + producer | phase exit | ❌ | `skills/discipline/shode-house-deliverable/definition-of-done.md` | close-gate |

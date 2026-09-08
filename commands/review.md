@@ -98,6 +98,30 @@ pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง comma
 
 > v3.1: review checklist รวบศูนย์ใน `skills/discipline/review-checklist/SKILL.md`. Command นี้ = router + context-aware invoke
 
+🔴 **ก่อน spawn ใด ๆ ต้อง print block นี้ก่อนเสมอ** (ไม่ print = ห้าม spawn — เทียบ M1: no bd → STOP):
+
+```
+[REVIEW DISPATCH CARD] bd:<id>
+- Chris    (7-dim)          : DISPATCH
+- Quinn    (test/SAST axis) : DISPATCH
+- Bella    (spec axis)      : DISPATCH | SKIP("no spec available — Pattern C, no Jira/bd/SPEC-*.md")
+- Sentinel (security depth) : DISPATCH(trigger:<keywords>) | SKIP("no trigger keyword")
+- Domain   (<expert>)       : DISPATCH(trigger:<keywords>) | SKIP("no trigger keyword")
+→ launch ทุก DISPATCH ใน ONE message (parallel Task calls) — ห้าม serialize / ห้าม spawn เพิ่มทีหลัง
+```
+
+กติกา (เขียนติดกับ template — บังคับทั้ง 5 ข้อ):
+1. Chris + Quinn = unconditional DISPATCH — ไม่มี SKIP branch ให้เลือก
+2. Bella SKIP ได้ **เหตุผลเดียว**: "no spec available" หลังไล่ spec source ครบลำดับ
+   (Jira/bd description → user path → outputs/SPEC-*.md → ถาม user) — ต้อง cite ว่าเช็คอะไรแล้ว
+3. Sentinel SKIP ได้ **เหตุผลเดียว**: "no trigger keyword" — ต้อง scan keyword list ตาม
+   `review-checklist/security-sentinel.md` บรรทัด `WHEN: diff_touches in {auth,money,PII,crypto,
+   secrets} OR secure_skill_triggered=true` (lazy-load-contract block — canonical, ห้าม fork list
+   ที่นี่) กับ prompt+diff ก่อน; เจอ = DISPATCH บังคับ
+4. ทุกบรรทัด DISPATCH ต้องมี Task call จริงใน message เดียวกันหรือ message ถัดไปทันที
+   (ONE message, parallel) — จำนวน Task call ต้องเท่าจำนวน DISPATCH line เป๊ะ
+5. ไม่ print card = ห้าม spawn (เทียบ M1: no bd → STOP)
+
 ```bash
 [Oliver|review|target:$ARGUMENTS] kickoff   # pin fixed point ก่อน — see `review-checklist/intake.md`
 # ── แกน Standards

@@ -278,6 +278,20 @@ jobs:
             [ $fail -eq 0 ] && ok "Spec axis dispatched in implement + review"
           else err "review-checklist lost spec-axis.md"; fi
 
+          # v3.14 (bd:B3): REVIEW DISPATCH CARD -- mandatory pre-fan-out block (mutation-testable:
+          # deleting any one literal below must fail this gate)
+          RC=commands/review.md
+          grep -qF '[REVIEW DISPATCH CARD]' "$RC" || err "$RC: missing literal '[REVIEW DISPATCH CARD]' header"
+          for axis in Chris Quinn Bella Sentinel Domain; do
+            grep -q "$axis" "$RC" || err "$RC: REVIEW DISPATCH CARD missing axis line '$axis'"
+          done
+          grep -qF 'SKIP("no spec available' "$RC" || err "$RC: missing literal Bella SKIP reason 'SKIP(\"no spec available'"
+          grep -qF 'SKIP("no trigger keyword")' "$RC" || err "$RC: missing literal Sentinel/Domain SKIP reason 'SKIP(\"no trigger keyword\")'"
+          grep -qF 'ONE message' "$RC" || err "$RC: missing literal 'ONE message' parallel-dispatch constraint"
+          grep -qF '[REVIEW DISPATCH CARD]' skills/discipline/review-checklist/intake.md \
+            || err "review-checklist/intake.md: missing pointer to [REVIEW DISPATCH CARD]"
+          [ $fail -eq 0 ] && ok "REVIEW DISPATCH CARD template + rules intact"
+
           sec "20. context budget = agent prompt + preload (v3.12)"
           # #16 นับเฉพาะ skill -> Oliver/Uma โตได้ไม่จำกัดใน agent file. อันนี้นับรวมของจริง
           TOTAL_BUDGET=50000   # v3.12.1 ratchet: Oliver 48,856 B

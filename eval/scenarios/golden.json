@@ -20,6 +20,8 @@
         {"glob": "outputs/*/*sentinel*.md", "pattern": "SEC-0[1-3]|STRIDE|SIGN-OFF"},
         {"glob": "outputs/*/*felix*.md", "pattern": "4090|ledger|not source-verified|cite|D-1"}
       ],
+      "required_main_phrases": ["[REVIEW DISPATCH CARD]"],
+      "required_dispatch_agents": ["Sentinel"],
       "forbidden_phrases": ["merge โดยไม่มี domain+security", "APPROVED โดยไม่ cite"],
       "security_triggers": {"keywords": ["ledger", "money", "refund", "เลขบัตร", "card"],
                             "required_agents": ["shode-house:security-engineer"]},
@@ -106,6 +108,7 @@
       "required_evidence": [
         {"glob": "outputs/bd-106/*sentinel*.md", "pattern": "mask_card"}
       ],
+      "required_main_phrases": ["[REVIEW DISPATCH CARD]"],
       "forbidden_phrases": ["merge โดยไม่มีลายเซ็น"],
       "security_triggers": {"keywords": ["ledger", "เลขบัตร", "card", "posting"],
                             "required_agents": ["shode-house:security-engineer"]},

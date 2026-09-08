@@ -21,6 +21,7 @@ REQUIRED-BEFORE: review_start
 - [ ] **Static analysis tool พร้อม** (lint/SAST configured — Chris ใช้ Bash จริง ไม่ใช่ "ดู visually")
 - [ ] **Tracker available** (bd active หรือ Jira key — finding ต้อง track ไม่ใช่ chat message)
 - [ ] **Severity scale agreed** (project ใช้ 🔴/🟠/🟡/🔵/💡 default — ห้าม "minor/major" loose)
+- [ ] **ก่อน fan-out → print [REVIEW DISPATCH CARD]** ตาม `commands/review.md` § Step 1 (template + กติกา 5 ข้อ — ไม่ duplicate ที่นี่)
 
 ## When NOT to use
 

@@ -308,7 +308,12 @@ def test_iter2_score_json_and_report_carry_parallel_field(capsys):
 # can never filter it out. find_claim_violations()'s fixed 3-record lookback window has no awareness
 # of it, so an unrelated compaction insert sitting between a real tool_result and a later claim can
 # push the real evidence out of the window -> FALSE anti-puppet/evidence FAIL on a legitimate claim.
-# This documents the current (unwanted) behavior; not yet fixed. -----------------------------------
+# CLOSED as a side effect of iter11 fix (b) (Oliver bd:B1): the backward lookback window widened
+# 3 -> EVIDENCE_LOOKBACK_WINDOW=8 (to tolerate realistic housekeeping-record gaps between a
+# subagent's tool_result and a relay claim) incidentally also covers this exact fixture (2 real
+# records back + 3 compaction inserts = 5, now within the 8-record window) -- not via dedicated
+# isCompactSummary filtering as originally anticipated, but the same practical gap is closed here.
+# Flipped per this test's own documented instruction. ------------------------------------------------
 def test_chris_iscompactsummary_record_consumes_evidence_window_causes_false_fail():
     records = [
         {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [
@@ -323,12 +328,9 @@ def test_chris_iscompactsummary_record_consumes_evidence_window_causes_false_fai
             {'type': 'text', 'text': 'ตรวจแล้ว ผ่านครับ'}]}},
     ]
     violations = scorer.find_claim_violations(records, scorer.CLAIM_RE)
-    # Known gap: the genuinely-adjacent tool_result (2 real records back) is starved out of the
-    # window by 3 unfiltered compaction inserts -> false violation on a legitimate PASS claim.
-    assert violations, (
-        'expected the current implementation to false-FAIL here (documenting the gap); '
-        'if this now passes, isCompactSummary filtering was added — flip this assertion to '
-        '`assert not violations` and close the finding')
+    # Fixed (iter11): the genuinely-adjacent tool_result (2 real records back, 5 within the new
+    # 8-record window even counting the 3 compaction inserts) is now found -> no false violation.
+    assert not violations, violations
 
 
 # --- CHRIS-2: Sara's own adjacency algorithm (03-sara-1a.md:71) allows "text block เดียวกันมี
@@ -984,3 +986,268 @@ def test_iter10_nonzero_main_records_unaffected_regression():
     result, code = run('truncated', 'GS2-implement-backend')
     assert result['dimensions']['spec_fidelity']['verdict'] == 'PASS'  # unaffected, has real artifacts
     assert result['dimensions']['routing']['verdict'] == 'UNSCORABLE'  # its own reason (no spawns)
+
+
+# ===== iter11 (Oliver bd:B1) — first REAL GS1 run scored (routing tree perfect). Evidence/
+# Anti-puppet false positives, verbatim from the real transcript. =====
+
+# --- iter11 fix (a): the Recite Card, pasted inside a fenced code block alongside other real
+# content, in BOTH main (v3.10) and a subagent (v3.5) -- must be stripped before claim scanning,
+# not the whole text block skipped (the fence's own claim-like words like "DONE" must never count,
+# but any OTHER real claim sitting in the same text block must still be scanned normally). ----------
+def test_iter11_recite_card_inside_fenced_block_main_v3_10_not_flagged():
+    text = (
+        '```\n'
+        '[shode-house|discipline|v3.10]\n'
+        '1. NO MAGIC — ห้ามเดา\n'
+        '2. VERIFY BEFORE DONE — show test output\n'
+        '```\n'
+        'กำลังจะเริ่มงานครับ')
+    records = [
+        {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [{'type': 'text', 'text': text}]}},
+    ]
+    violations = scorer.find_claim_violations(records, scorer.CLAIM_RE)
+    assert violations == [], violations
+
+
+def test_iter11_recite_card_inside_fenced_block_subagent_v3_5_not_flagged():
+    text = (
+        'noted.\n'
+        '```\n'
+        '[shode-house|discipline|v3.5]\n'
+        '1. NO MAGIC\n'
+        '2. VERIFY BEFORE DONE — paste evidence\n'
+        '```')
+    records = [
+        {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [{'type': 'text', 'text': text}]}},
+    ]
+    violations = scorer.find_claim_violations(records, scorer.CLAIM_RE)
+    assert violations == [], violations
+
+
+def test_iter11_recite_card_fence_stripped_but_sibling_claim_in_same_block_still_flagged():
+    # the fence is removed, but a real, genuinely unevidenced claim sitting right next to it in the
+    # SAME text block must still be caught -- stripping is scoped to the fence, not the whole text.
+    text = (
+        '```\n'
+        '[shode-house|discipline|v3.10]\n'
+        '2. VERIFY BEFORE DONE\n'
+        '```\n'
+        'งาน CLOSED แล้วครับ')
+    records = [
+        {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [{'type': 'text', 'text': text}]}},
+    ]
+    violations = scorer.find_claim_violations(records, scorer.CLAIM_RE)
+    assert len(violations) == 1
+    assert 'CLOSED' in violations[0][1]
+    assert 'VERIFY BEFORE DONE' not in violations[0][1]  # (c): quotes the flagged line, not the card
+
+
+def test_iter11_non_recite_card_fence_is_never_stripped():
+    # sanity: an ordinary fenced code/output block (not a recite card) must be left completely
+    # untouched by the stripping step -- only fences whose first line is the exact card pattern.
+    text = '```\n$ pytest\n5 passed\n```\nเสร็จแล้วครับ'
+    records = [
+        {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [{'type': 'text', 'text': text}]}},
+    ]
+    stripped = scorer._strip_recite_card(text)
+    assert '$ pytest' in stripped and '5 passed' in stripped
+
+
+# --- iter11 fix (b): Oliver relaying a subagent's verdict right after the Agent tool_result for
+# that subagent, with a couple of realistic housekeeping records (e.g. a permission/hook entry) in
+# between, must be found as evidenced -- backward lookback widened to EVIDENCE_LOOKBACK_WINDOW=8. --
+def test_iter11_oliver_relay_after_agent_tool_result_with_gap_is_evidenced():
+    records = [
+        {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [
+            {'type': 'tool_use', 'name': 'Agent', 'id': 'tu-quinn',
+             'input': {'subagent_type': 'shode-house:qa-engineer'}}]}},
+        {'type': 'user', 'uuid': 'u0', 'message': {'content': [
+            {'type': 'tool_result', 'tool_use_id': 'tu-quinn',
+             'content': 'Quinn 3b report: 0 red, 0 orange, 5 yellow, 2 blue'}]}},
+        # realistic housekeeping records between the subagent's tool_result and Oliver's relay
+        {'type': 'system', 'uuid': 's0', 'subtype': 'hook_event', 'message': {'content': []}},
+        {'type': 'system', 'uuid': 's1', 'subtype': 'permission', 'message': {'content': []}},
+        {'type': 'assistant', 'uuid': 'a1', 'message': {'content': [
+            {'type': 'text', 'text': (
+                '[Oliver|state:3b|bd:42] Quinn PASS (0🔴 0🟠 · 5🟡 · 2🔵) — รอ Felix')}]}},
+    ]
+    violations = scorer.find_claim_violations(records, scorer.CLAIM_RE)
+    assert violations == [], violations
+
+
+def test_iter11_evidence_lookback_window_is_bounded_not_unlimited():
+    # sanity: the widened window is still bounded -- a claim genuinely beyond
+    # EVIDENCE_LOOKBACK_WINDOW records past the real tool_result is still correctly flagged.
+    filler = [{'type': 'system', 'uuid': f's{i}', 'message': {'content': []}}
+              for i in range(scorer.EVIDENCE_LOOKBACK_WINDOW + 2)]
+    records = [
+        {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [
+            {'type': 'tool_use', 'name': 'Agent', 'id': 'tu-quinn'}]}},
+        {'type': 'user', 'uuid': 'u0', 'message': {'content': [
+            {'type': 'tool_result', 'tool_use_id': 'tu-quinn', 'content': 'Quinn report'}]}},
+        *filler,
+        {'type': 'assistant', 'uuid': 'a1', 'message': {'content': [
+            {'type': 'text', 'text': 'Quinn PASS — merging now'}]}},
+    ]
+    violations = scorer.find_claim_violations(records, scorer.CLAIM_RE)
+    assert violations, 'a claim genuinely beyond the window must still be flagged'
+
+
+# ===== bd:B3 / B1 iter12 (Oliver) — REVIEW DISPATCH CARD runtime verification
+# (Sara 01-sara-1a.md §2/§6): golden field `required_main_phrases` for /review scenarios; card's
+# DISPATCH-set must equal the spawned set (surfaces in Routing detail); GS1 forces Sentinel
+# DISPATCH via `required_dispatch_agents`. =====
+
+def _card_session(main_text, spawns):
+    """Builds a minimal session dict: one assistant text block with `main_text`, one Agent
+    tool_use per (agentType, toolUseId) in `spawns`, resolved via a matching subagent meta."""
+    content = [{'type': 'text', 'text': main_text}]
+    subagents = {}
+    for i, agent_type in enumerate(spawns):
+        tid = f'tu{i}'
+        aid = f'agent{i}'
+        content.append({'type': 'tool_use', 'id': tid, 'name': 'Agent',
+                         'input': {'subagent_type': agent_type}})
+        subagents[aid] = {'records': [], 'meta': {'agentType': agent_type, 'toolUseId': tid, 'spawnDepth': 1}}
+    main = [{'type': 'assistant', 'uuid': 'a0', 'message': {'content': content}}]
+    return {'main': main, 'subagents': subagents}
+
+
+FULL_CARD_TEXT = (
+    '[REVIEW DISPATCH CARD] bd:42\n'
+    '- Chris    (7-dim)          : DISPATCH\n'
+    '- Quinn    (test/SAST axis) : DISPATCH\n'
+    '- Bella    (spec axis)      : SKIP("no spec available — Pattern C, no Jira/bd/SPEC-*.md")\n'
+    '- Sentinel (security depth) : DISPATCH(trigger:ledger,refund)\n'
+    '- Domain   (fintech)        : DISPATCH(trigger:ledger,refund)\n'
+    '→ launch ทุก DISPATCH ใน ONE message (parallel Task calls) — ห้าม serialize / ห้าม spawn เพิ่มทีหลัง\n')
+
+
+def test_iter12_dispatch_card_na_when_not_configured():
+    scenario = {}
+    session = {'main': [], 'subagents': {}}
+    verdict, detail = scorer.dispatch_card_check(scenario, session)
+    assert verdict == 'N/A'
+
+
+def test_iter12_dispatch_card_absent_from_transcript_fails():
+    scenario = {'required_main_phrases': ['[REVIEW DISPATCH CARD]']}
+    session = _card_session('kicking off review, no card printed here', [])
+    verdict, detail = scorer.dispatch_card_check(scenario, session)
+    assert verdict == 'FAIL'
+    assert 'missing' in detail
+
+
+def test_iter12_dispatch_card_present_and_matches_spawned_set_passes():
+    scenario = {'required_main_phrases': ['[REVIEW DISPATCH CARD]']}
+    session = _card_session(FULL_CARD_TEXT, [
+        'shode-house:code-reviewer', 'shode-house:qa-engineer',
+        'shode-house:security-engineer', 'shode-house:fintech-expert'])
+    verdict, detail = scorer.dispatch_card_check(scenario, session)
+    assert verdict == 'PASS', detail
+
+
+def test_iter12_dispatch_card_mismatch_dispatch_not_spawned_fails():
+    # card says Chris = DISPATCH but code-reviewer never actually spawned
+    scenario = {'required_main_phrases': ['[REVIEW DISPATCH CARD]']}
+    session = _card_session(FULL_CARD_TEXT, [
+        'shode-house:qa-engineer', 'shode-house:security-engineer', 'shode-house:fintech-expert'])
+    verdict, detail = scorer.dispatch_card_check(scenario, session)
+    assert verdict == 'FAIL'
+    assert 'Chris' in detail and 'code-reviewer' in detail
+
+
+def test_iter12_dispatch_card_mismatch_skip_but_spawned_anyway_fails():
+    # card says Bella = SKIP but business-analyst was spawned anyway (card lied)
+    scenario = {'required_main_phrases': ['[REVIEW DISPATCH CARD]']}
+    session = _card_session(FULL_CARD_TEXT, [
+        'shode-house:code-reviewer', 'shode-house:qa-engineer', 'shode-house:security-engineer',
+        'shode-house:fintech-expert', 'shode-house:business-analyst'])
+    verdict, detail = scorer.dispatch_card_check(scenario, session)
+    assert verdict == 'FAIL'
+    assert 'Bella' in detail
+
+
+def test_iter12_dispatch_card_required_dispatch_agent_forced_skip_fails():
+    # GS1's exact repro: scenario requires Sentinel DISPATCH; card marks it SKIP -- FAIL even if
+    # the card is internally self-consistent with the (non-)spawned set.
+    scenario = {'required_main_phrases': ['[REVIEW DISPATCH CARD]'],
+                'required_dispatch_agents': ['Sentinel']}
+    card_text = FULL_CARD_TEXT.replace(
+        '- Sentinel (security depth) : DISPATCH(trigger:ledger,refund)',
+        '- Sentinel (security depth) : SKIP("no trigger keyword")')
+    session = _card_session(card_text, [
+        'shode-house:code-reviewer', 'shode-house:qa-engineer', 'shode-house:fintech-expert'])
+    verdict, detail = scorer.dispatch_card_check(scenario, session)
+    assert verdict == 'FAIL'
+    assert 'Sentinel' in detail
+
+
+def test_iter12_dispatch_card_domain_label_maps_to_any_expert_agent():
+    scenario = {'required_main_phrases': ['[REVIEW DISPATCH CARD]']}
+    # Domain DISPATCH satisfied by a *different* -expert agent than fintech (still valid: the
+    # 'Domain' label is generic across all 7 domain experts, not hardcoded to Felix)
+    card_text = FULL_CARD_TEXT.replace(
+        '- Domain   (fintech)        : DISPATCH(trigger:ledger,refund)',
+        '- Domain   (insurance)      : DISPATCH(trigger:policy)')
+    session = _card_session(card_text, [
+        'shode-house:code-reviewer', 'shode-house:qa-engineer',
+        'shode-house:security-engineer', 'shode-house:insurance-expert'])
+    verdict, detail = scorer.dispatch_card_check(scenario, session)
+    assert verdict == 'PASS', detail
+
+
+def test_iter12_dispatch_mismatch_surfaces_in_routing_detail_via_score(tmp_path):
+    scenario = {
+        'id': 'synthetic-gs1', 'required_main_phrases': ['[REVIEW DISPATCH CARD]'],
+        'required_dispatch_agents': ['Sentinel'],
+        'expected_routing': [
+            {'agents': ['shode-house:code-reviewer', 'shode-house:qa-engineer',
+                        'shode-house:security-engineer'], 'parallel': True}],
+    }
+    session_dir = tmp_path / 'synthetic-session'
+    session_dir.mkdir()
+    subagents_dir = session_dir / 'subagents'
+    subagents_dir.mkdir()
+    card_text = FULL_CARD_TEXT.replace(
+        '- Sentinel (security depth) : DISPATCH(trigger:ledger,refund)',
+        '- Sentinel (security depth) : SKIP("no trigger keyword")')
+    main_records = [
+        {'type': 'assistant', 'uuid': 'a0', 'message': {'content': [
+            {'type': 'text', 'text': card_text},
+            {'type': 'tool_use', 'id': 'tu0', 'name': 'Agent',
+             'input': {'subagent_type': 'shode-house:code-reviewer'}},
+            {'type': 'tool_use', 'id': 'tu1', 'name': 'Agent',
+             'input': {'subagent_type': 'shode-house:qa-engineer'}},
+        ]}},
+    ]
+    (session_dir / 'main.jsonl').write_text(
+        '\n'.join(json.dumps(r) for r in main_records) + '\n')
+    (subagents_dir / 'agent0.meta.json').write_text(
+        json.dumps({'agentType': 'shode-house:code-reviewer', 'toolUseId': 'tu0', 'spawnDepth': 1}))
+    (subagents_dir / 'agent0.jsonl').write_text('')
+    (subagents_dir / 'agent1.meta.json').write_text(
+        json.dumps({'agentType': 'shode-house:qa-engineer', 'toolUseId': 'tu1', 'spawnDepth': 1}))
+    (subagents_dir / 'agent1.jsonl').write_text('')
+
+    result, code = scorer.score(str(session_dir), scenario, FIXTURE_ROOT)
+    assert result['dimensions']['routing']['verdict'] == 'FAIL'
+    assert 'Sentinel' in result['dimensions']['routing']['detail']
+    assert code == 1
+
+
+# --- iter12: golden.json data assertions -- GS1/GS5 require the card phrase; GS1 forces Sentinel
+def test_iter12_golden_gs1_and_gs5_require_dispatch_card_phrase():
+    gs1 = scorer.load_golden(GOLDEN, 'GS1-reference-refund')
+    gs5 = scorer.load_golden(GOLDEN, 'GS5-phase3b-sensitive')
+    assert gs1['required_main_phrases'] == ['[REVIEW DISPATCH CARD]']
+    assert gs5['required_main_phrases'] == ['[REVIEW DISPATCH CARD]']
+    assert gs1['required_dispatch_agents'] == ['Sentinel']
+
+
+def test_iter12_golden_gs2_gs3_gs4_have_no_required_main_phrases_regression():
+    # non-/review scenarios are untouched -- dispatch_card_check must be N/A for them
+    for sid in ('GS2-implement-backend', 'GS3-spec-axis-gap', 'GS4-askuser-relay'):
+        scen = scorer.load_golden(GOLDEN, sid)
+        assert not scen.get('required_main_phrases'), sid

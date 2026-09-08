@@ -32,6 +32,16 @@ DROP_TYPES = {'bridge-session', 'queue-operation', 'attachment', 'atis-latch', '
 #     CLOSED/PASS/PASSED case-SENSITIVE (uppercase only, as the Anti-Puppet contract itself writes
 #     them); everything else stays case-insensitive via scoped inline (?i:...) groups per phrase.
 RECITE_CARD_PREFIX = '[shode-house|discipline|'
+# iter11 (Oliver bd:B1): first REAL GS1 run found the iter7 fix only covered the Recite Card
+# appearing as the WHOLE text block (bare `[shode-house|discipline|v3.10] ...`). The real card is
+# usually pasted inside a fenced code block ("```\n[shode-house|discipline|v3.10]\n1. NO MAGIC...\n
+# 2. VERIFY BEFORE DONE...\n```", any version e.g. v3.5 in a subagent) sitting alongside OTHER real
+# content in the same text block -- `text.startswith(RECITE_CARD_PREFIX)` never matches because the
+# text starts with the fence marker, not the card. Fix (a): match the recite card by its FIRST LINE
+# pattern (any version number), and strip only the fenced block(s) whose first line matches it,
+# leaving any other real content in the same text block intact for normal claim scanning.
+RECITE_CARD_FIRST_LINE_RE = re.compile(r'^\[shode-house\|discipline\|v[0-9.]+\]')
+_FENCE_BLOCK_RE = re.compile(r'```[^\n]*\n.*?```', re.DOTALL)
 CLAIM_PHRASES = (
     # Thai (no case concept)
     'เสร็จแล้ว', 'เสร็จเรียบร้อย', 'ทำเสร็จ', 'ผ่านแล้ว', 'ผ่านทั้งหมด', 'ตรวจแล้ว', r'ปิด\s*bd',
@@ -449,6 +459,36 @@ def _claim_match(pattern, text):
     return pattern.search(text)
 
 
+def _strip_recite_card(text):
+    """iter11 (Oliver bd:B1) fix (a): removes Recite Card content before claim scanning, handling
+    both shapes seen on real transcripts:
+      1. the whole text block IS the card, unfenced (iter7's original repro) -- text itself
+         starts with the card's first-line pattern.
+      2. the card is pasted inside a fenced code block alongside OTHER real content in the same
+         text block (iter11's real repro, main AND subagent, any version e.g. v3.10/v3.5) -- only
+         the qualifying fenced block(s) are stripped; anything else in the text is left intact for
+         normal claim scanning (so a claim sitting next to a recited card is still caught)."""
+    def _maybe_strip_fence(m):
+        block = m.group(0)
+        inner = block.split('\n', 1)[1] if '\n' in block else ''
+        first_line = inner.split('\n', 1)[0].strip()
+        return '' if RECITE_CARD_FIRST_LINE_RE.match(first_line) else block
+
+    stripped = _FENCE_BLOCK_RE.sub(_maybe_strip_fence, text)
+    if RECITE_CARD_FIRST_LINE_RE.match(stripped.strip()):
+        return ''
+    return stripped
+
+
+# iter11 (Oliver bd:B1) fix (b): first REAL GS1 run flagged Oliver relaying a subagent's verdict
+# ("[Oliver|state:3b|bd:...] Quinn PASS (...) — รอ Felix") right after the Agent tool_result for
+# Quinn as an anti-puppet violation. A real transcript can have a few housekeeping records
+# (permission/hook/system entries, additional Read/Glob calls Oliver made before relaying) between
+# the subagent's tool_result and the relay text -- the old fixed 3-record lookback was too tight
+# for that realistic gap. Widened to 8 (still bounded, not unlimited scan-to-start-of-file).
+EVIDENCE_LOOKBACK_WINDOW = 8
+
+
 def find_claim_violations(records, pattern):
     """-> list of (uuid, quoted_text) where claim matched but no evidence adjacency.
 
@@ -456,7 +496,10 @@ def find_claim_violations(records, pattern):
     cleanup iter4 removed the legacy lenient default per Chris's cut list, always strict now): it
     must still be backed by a real tool_use/tool_result adjacency (window lookback or a tool_use
     in the same record), since a fence's mere presence proves nothing about whether the pasted
-    content is real captured tool output."""
+    content is real captured tool output.
+
+    Adjacency backward window looks EVIDENCE_LOOKBACK_WINDOW records back, in the SAME file, for a
+    tool_result from ANY tool (Bash/Read/Agent/Task/... -- no name filtering; iter11 fix (b))."""
     violations = []
     for i, rec in enumerate(records):
         if rec.get('type') != 'assistant':
@@ -464,16 +507,13 @@ def find_claim_violations(records, pattern):
         for b in ((rec.get('message') or {}).get('content') or []):
             if not (isinstance(b, dict) and b.get('type') == 'text'):
                 continue
-            text = b.get('text') or ''
-            if text.startswith(RECITE_CARD_PREFIX):
-                # iter7 (Oliver bd:B1): the Recite Card block itself contains the discipline
-                # checklist text (e.g. "2. VERIFY BEFORE DONE ...") which matches CLAIM_RE on
-                # "DONE" every single session -- it is not an agent claiming completion, it is
-                # the recited rule text. Exclude it from claim scanning entirely.
+            raw_text = b.get('text') or ''
+            text = _strip_recite_card(raw_text)  # iter11 fix (a)
+            if not text.strip():
                 continue
             if not _claim_match(pattern, text):
                 continue
-            window = records[max(0, i - 3):i]
+            window = records[max(0, i - EVIDENCE_LOOKBACK_WINDOW):i]
             window_evidence = any(
                 w.get('type') == 'user' and (w.get('toolUseResult') is not None or any(
                     isinstance(c, dict) and c.get('type') == 'tool_result'
@@ -484,7 +524,7 @@ def find_claim_violations(records, pattern):
                 for c in ((rec.get('message') or {}).get('content') or []))
             has_evidence = window_evidence or same_record_tool_use
             if not has_evidence:
-                violations.append((rec.get('uuid'), text[:120]))
+                violations.append((rec.get('uuid'), text[:120]))  # (c): quote the flagged line
     return violations
 
 
@@ -496,6 +536,96 @@ def evidence_dimension(session):
     if all_v:
         return 'FAIL', f'{len(all_v)} claim(s) without adjacent tool_result: ' + '; '.join(all_v[:5])
     return 'PASS', 'all claims have adjacent tool_result / inline paste'
+
+
+# ---------- REVIEW DISPATCH CARD (bd:B3 / B1 iter12, Oliver — Sara's 01-sara-1a.md §2/§6) ----------
+# /review's non-deterministic fan-out (FACT 1: sequential 3-message spawn missing spec+security
+# axes on one run, full 5-agent parallel fan-out on another) is fixed at the prompt layer by a
+# mandatory printed block Oliver must emit before spawning anything -- this is the runtime (E2E)
+# half of that fix (§6): golden.json's `required_main_phrases` names literal phrase(s) that MUST
+# appear in the main transcript (e.g. `[REVIEW DISPATCH CARD]`); if the marker phrase is present,
+# the card is additionally PARSED and its DISPATCH-set is compared against the actually-spawned
+# agent set. A scenario can also force specific labels to DISPATCH via `required_dispatch_agents`
+# (GS1: Sentinel, since GS1's money/ledger/refund/card content makes a SKIP always wrong) --
+# independent of whether the card's own DISPATCH/SKIP set is internally self-consistent with what
+# was actually spawned.
+DISPATCH_CARD_MARKER = '[REVIEW DISPATCH CARD]'
+DISPATCH_LINE_RE = re.compile(r'^-\s*([A-Za-z]+)\s*\([^)]*\)\s*:\s*(DISPATCH|SKIP)\b', re.MULTILINE)
+CARD_AGENT_TYPE = {
+    'Chris': 'shode-house:code-reviewer',
+    'Quinn': 'shode-house:qa-engineer',
+    'Bella': 'shode-house:business-analyst',
+    'Sentinel': 'shode-house:security-engineer',
+}
+DOMAIN_AGENT_SUFFIX = '-expert'  # 'Domain' label maps to any shode-house:*-expert (Felix/Iris/...)
+CARD_SCAN_WINDOW = 2000  # bounded chars past the marker -- keeps parsing scoped to the printed
+                          # card itself, not later prose that happens to mention an agent name
+
+
+def parse_dispatch_card(main_text):
+    """-> dict {agent_label: 'DISPATCH'|'SKIP'} parsed from the first `[REVIEW DISPATCH CARD]`
+    block in `main_text`, or {} if the marker isn't present at all."""
+    idx = main_text.find(DISPATCH_CARD_MARKER)
+    if idx == -1:
+        return {}
+    card_region = main_text[idx: idx + CARD_SCAN_WINDOW]
+    return dict(DISPATCH_LINE_RE.findall(card_region))
+
+
+def _main_text(session):
+    return '\n'.join(
+        b.get('text') or '' for rec in session['main']
+        for b in ((rec.get('message') or {}).get('content') or [])
+        if isinstance(b, dict) and b.get('type') == 'text')
+
+
+def dispatch_card_check(scenario, session):
+    """-> (verdict, detail). N/A when the scenario has no `required_main_phrases` configured
+    (this is opt-in per scenario, not a blanket rule on every /review run)."""
+    required_phrases = scenario.get('required_main_phrases') or []
+    if not required_phrases:
+        return 'N/A', 'no required_main_phrases configured for this scenario'
+
+    main_text = _main_text(session)
+    missing = [p for p in required_phrases if p not in main_text]
+    if missing:
+        return 'FAIL', f'required main-transcript phrase(s) missing: {missing}'
+
+    if DISPATCH_CARD_MARKER not in required_phrases:
+        return 'PASS', f'all required main-transcript phrases present: {required_phrases}'
+
+    card = parse_dispatch_card(main_text)
+    if not card:
+        return 'FAIL', (f'{DISPATCH_CARD_MARKER} phrase present but no parseable DISPATCH/SKIP '
+                         f'lines found under it')
+
+    required_dispatch = scenario.get('required_dispatch_agents') or []
+    forced = [label for label in required_dispatch if card.get(label) != 'DISPATCH']
+    if forced:
+        return 'FAIL', f'card marks {forced} as SKIP but scenario requires DISPATCH (card: {card})'
+
+    spawn_types = build_spawn_index(session)['all_spawn_types']
+    mismatches = []
+    for label, verdict in sorted(card.items()):
+        if label == 'Domain':
+            has_domain_spawn = any(t and t.endswith(DOMAIN_AGENT_SUFFIX) for t in spawn_types)
+            if verdict == 'DISPATCH' and not has_domain_spawn:
+                mismatches.append('Domain: DISPATCH in card but no *-expert agent spawned')
+            elif verdict == 'SKIP' and has_domain_spawn:
+                mismatches.append('Domain: SKIP in card but a *-expert agent WAS spawned')
+            continue
+        atype = CARD_AGENT_TYPE.get(label)
+        if atype is None:
+            continue  # unrecognized label -- not mappable, don't false-fail on it
+        spawned = atype in spawn_types
+        if verdict == 'DISPATCH' and not spawned:
+            mismatches.append(f'{label}: DISPATCH in card but {atype!r} never spawned')
+        elif verdict == 'SKIP' and spawned:
+            mismatches.append(f'{label}: SKIP in card but {atype!r} WAS spawned anyway')
+    if mismatches:
+        return 'FAIL', '; '.join(mismatches)
+    dispatch_labels = sorted(label for label, v in card.items() if v == 'DISPATCH')
+    return 'PASS', f'DISPATCH-set from card matches spawned set: {dispatch_labels}'
 
 
 def anti_puppet_dimension(scenario, session):
@@ -637,8 +767,22 @@ def score(session_path, scenario, fixture_root, bd_id_override=None, outputs_dir
         dims['evidence'] = ('UNSCORABLE', no_input)
         dims['anti_puppet'] = ('UNSCORABLE', no_input)
     else:
-        dims['routing'] = check_routing(scenario.get('expected_routing') or [], main_batches,
-                                         scenario.get('routing_open_ended', False), len(session['main']))
+        r_verdict, r_detail, r_steps = check_routing(
+            scenario.get('expected_routing') or [], main_batches,
+            scenario.get('routing_open_ended', False), len(session['main']))
+        # bd:B3 / iter12 (Oliver): a mismatch between the printed [REVIEW DISPATCH CARD]'s
+        # DISPATCH-set and the actually-spawned agent set surfaces IN the Routing dimension's
+        # detail (Sara §6) -- a FAIL here always wins (strongest signal), regardless of what the
+        # step-matching routing check itself concluded; N/A (no required_main_phrases configured)
+        # leaves routing completely untouched.
+        card_verdict, card_detail = dispatch_card_check(scenario, session)
+        if card_verdict == 'FAIL':
+            if r_verdict == 'FAIL':
+                r_detail = f'{r_detail} | dispatch card: {card_detail}'
+            else:
+                r_detail = f'dispatch card: {card_detail}'
+            r_verdict = 'FAIL'
+        dims['routing'] = (r_verdict, r_detail, r_steps)
         dims['spec_fidelity'] = spec_fidelity(scenario, fixture_root)
         dims['security_trigger'] = security_trigger(scenario, session)
         dims['evidence'] = evidence_dimension(session)

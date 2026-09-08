@@ -78,8 +78,8 @@
       "trigger": "Phase 3b / review",
       "preload": false,
       "source_of_truth": "skills/discipline/review-checklist/spec-axis.md",
-      "verification": "ci:19 + fixture",
-      "anchor": "scope creep** — behaviour ใน diff ที่ spec ไม่ได้ขอ"
+      "verification": "ci:19 + e2e:GS1",
+      "anchor": "[REVIEW DISPATCH CARD]"
     },
     {
       "id": "standards-axis",
@@ -220,8 +220,8 @@
       "trigger": "diff touches auth/money/PII",
       "preload": false,
       "source_of_truth": "skills/discipline/review-checklist/security-sentinel.md",
-      "verification": "ci:19 + fixture",
-      "anchor": "Secret scan | gitleaks"
+      "verification": "ci:19 + e2e:GS1",
+      "anchor": "[REVIEW DISPATCH CARD]"
     }
   ]
 }

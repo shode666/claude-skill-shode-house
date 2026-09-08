@@ -1,43 +1,41 @@
 {
   "scenario": "GS1-reference-refund",
-  "verdict": "UNSCORABLE",
+  "verdict": "FAIL",
   "dimensions": {
     "routing": {
-      "verdict": "UNSCORABLE",
-      "detail": "main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score",
+      "verdict": "FAIL",
+      "detail": "step 1 missing: expected ['shode-house:business-analyst', 'shode-house:code-reviewer', 'shode-house:fintech-expert', 'shode-house:qa-engineer', 'shode-house:security-engineer'], only found ['shode-house:code-reviewer', 'shode-house:fintech-expert', 'shode-house:qa-engineer']",
       "steps": []
     },
     "spec_fidelity": {
-      "verdict": "UNSCORABLE",
-      "detail": "main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score"
+      "verdict": "PASS",
+      "detail": "AC ids covered: n/a; required_evidence matched"
     },
     "security_trigger": {
-      "verdict": "UNSCORABLE",
-      "detail": "main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score"
+      "verdict": "FAIL",
+      "detail": "keyword hit ['ledger', 'money', 'refund', 'card'] but required agent(s) not spawned: ['shode-house:security-engineer']"
     },
     "evidence": {
-      "verdict": "UNSCORABLE",
-      "detail": "main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score"
+      "verdict": "FAIL",
+      "detail": "3 claim(s) without adjacent tool_result: main:cfaae45c-283c-4b21-a008-ba2441d05443: \"```\n[shode-house|discipline|v3.10]\n1. NO MAGIC          — ห้ามเดา; cite project evidence (Glob/Grep/Read/Bash ก่อน)\n2. V\"; main:3e372eec-3888-4c23-a231-e811546b3a08: \"[Oliver|state:3b|bd:shode-house-example-refund-ue3] Quinn PASS (0🔴 0🟠 · 5🟡 · 2🔵) — รอ Felix\"; agent-a00373cf2bbe5602a:39a5cfd7-0188-4766-92fc-8eef04a20210: \"```\n[shode-house|discipline|v3.5]\n1. NO MAGIC          — ห้ามเดา; cite project evidence\n2. VERIFY BEFORE DONE — show tes\""
     },
     "anti_puppet": {
-      "verdict": "UNSCORABLE",
-      "detail": "main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score"
+      "verdict": "FAIL",
+      "detail": "main:3e372eec-3888-4c23-a231-e811546b3a08: \"[Oliver|state:3b|bd:shode-house-example-refund-ue3] Quinn PASS (0🔴 0🟠 · 5🟡 · 2🔵) — รอ Felix\""
     },
     "bd_end_state": {
       "verdict": "PASS",
-      "detail": "bd show shode-house-example-refund-d5k matches expected end_state"
+      "detail": "bd show shode-house-example-refund-ue3 matches expected end_state"
     }
   },
   "cost": {
-    "total_effective_tokens": 0
+    "total_effective_tokens": 1239889
   },
-  "routing_tree": [],
-  "reasons": [
-    "routing: main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score",
-    "spec_fidelity: main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score",
-    "security_trigger: main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score",
-    "evidence: main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score",
-    "anti_puppet: main session has 0 records (bad/empty/missing transcript path: '<path>.jsonl') — cannot score"
+  "routing_tree": [
+    "depth1  2026-09-08T05:38:32.385Z  shode-house:code-reviewer",
+    "depth1  2026-09-08T05:38:42.383Z  shode-house:qa-engineer",
+    "depth1  2026-09-08T05:38:55.738Z  shode-house:fintech-expert"
   ],
+  "reasons": [],
   "trimmed_warning": false
 }
