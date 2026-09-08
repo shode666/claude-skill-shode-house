@@ -154,12 +154,19 @@ def test_subagent_tree_depth_2():
     assert idx['depth_by_agent']['agent-nested1'] == 2
 
 
-# --- extra: bd end_state — no bd on PATH (this sandbox truly has none) -> unscorable, never PASS ---
+# --- extra: bd end_state — no bd on PATH -> unscorable, never PASS ---
 # (bd:shode-roadmap/B2-fix: GS2's golden.json bd_id is now null (real-run layout) -- bd_id_override
 # supplies the id explicitly here so this test still exercises the "no bd on PATH" branch, not the
 # unrelated "no bd_id configured" branch.)
-def test_bd_end_state_unscorable_when_bd_absent():
-    assert shutil.which('bd') is None, 'test assumes sandbox has no bd binary'
+# bd:shode-roadmap/C-C2 (R-1), Dave: the old version of this test asserted directly on the HOST
+# machine's PATH (`assert shutil.which('bd') is None`), which is an environment assumption, not a
+# test fixture -- it FAILED on every machine that happens to have the real `bd` CLI installed (this
+# machine does, at /opt/homebrew/bin/bd, needed elsewhere for the `bd close` steps in this same
+# task). Fixed to mock PATH via monkeypatch (same tool the sibling test right below already uses
+# for the opposite case) instead of depending on host state.
+def test_bd_end_state_unscorable_when_bd_absent(tmp_path, monkeypatch):
+    monkeypatch.setenv('PATH', str(tmp_path))  # empty dir -- guaranteed no `bd` binary on PATH
+    assert shutil.which('bd') is None, 'sanity: mocked PATH must not resolve bd'
     scen = scorer.load_golden(GOLDEN, 'GS2-implement-backend')
     verdict, detail = scorer.bd_end_state(scen, bd_id_override='bd-101')
     assert verdict == 'UNSCORABLE'
@@ -1588,3 +1595,114 @@ def test_bd_placeholder_cli_without_bd_id_flag_is_unscorable_not_pass(tmp_path):
     data = json.loads(out_file.read_text())
     assert data['dimensions']['spec_fidelity']['verdict'] == 'UNSCORABLE', data
     assert data['verdict'] != 'PASS', data
+
+
+# ===== bd:shode-roadmap/C-C2 (R-1), Dave: cost_dimension dedupe by message.id =====
+# Stan audit (outputs/shode-roadmap/C/11-stan-token-audit.md F-0): Claude Code CLI 2.1.263 writes
+# one JSONL row PER CONTENT BLOCK of a multi-block assistant message, and every row shares an
+# identical `message.usage`. Summing per row (old cost_dimension) inflated real GS1 runs 2.6-2.7x.
+# These tests use synthetic transcripts (in-memory session dicts, matching the exact shape
+# scorer.load_session() produces) with duplicate message.id rows to prove the fix without needing
+# a real multi-hundred-KB transcript on disk.
+
+def _assistant_usage_record(uuid_, message_id, input_tokens=10, output_tokens=5, cache_write=100,
+                             ts='2026-01-01T00:00:00Z'):
+    """One synthetic JSONL row shaped like a real Claude Code CLI assistant record with usage."""
+    msg = {'usage': {'input_tokens': input_tokens, 'output_tokens': output_tokens,
+                      'cache_creation_input_tokens': cache_write},
+           'content': [{'type': 'text', 'text': 'x'}]}
+    if message_id is not None:
+        msg['id'] = message_id
+    return {'type': 'assistant', 'uuid': uuid_, 'timestamp': ts, 'message': msg}
+
+
+def test_cost_dimension_dedupes_4_duplicate_rows_of_same_message_id_to_1x():
+    """The exact repro from the audit: 4 JSONL rows, same message.id, identical usage -- must be
+    counted ONCE (one real API call), not 4x."""
+    records = [_assistant_usage_record(f'u-{i}', 'msg_dup_1') for i in range(4)]
+    session = {'main': records, 'subagents': {}}
+    total = scorer.cost_dimension(session)
+    one_message = 10 + 5 + 100  # input + output + cache_write
+    assert total == one_message, f'expected {one_message} (1x, deduped), got {total}'
+    assert total != one_message * 4, 'must not have summed all 4 duplicate rows'
+
+
+def test_cost_dimension_dedupe_is_last_wins_not_first_wins_streaming_snapshot():
+    """Real transcripts (run-4's qa-engineer subagent: 50/64 message ids) show output_tokens
+    climbing across a duplicate-id group -- a streaming usage snapshot effect where the CLI writes
+    an incremental usage snapshot per content-block row, and only the LAST row for a given
+    message.id carries that message's final, true output_tokens (input/cache_write/cache_read stay
+    constant across the group). First-wins would silently under-count every such message; the fix
+    must be LAST-wins."""
+    r1 = _assistant_usage_record('u-1', 'msg_stream', input_tokens=2, output_tokens=7, cache_write=100)
+    r2 = _assistant_usage_record('u-2', 'msg_stream', input_tokens=2, output_tokens=7, cache_write=100)
+    r3 = _assistant_usage_record('u-3', 'msg_stream', input_tokens=2, output_tokens=272, cache_write=100)  # final
+    session = {'main': [r1, r2, r3], 'subagents': {}}
+    total = scorer.cost_dimension(session)
+    assert total == 2 + 272 + 100, f'must use the LAST row in file order (out=272), got {total}'
+
+
+def test_cost_dimension_distinct_message_ids_all_counted():
+    """Sanity: rows with DIFFERENT message.id are genuinely separate API calls and must all be
+    summed (dedupe must not over-collapse)."""
+    records = [_assistant_usage_record('u-1', 'msg_a', input_tokens=10, output_tokens=5, cache_write=100),
+               _assistant_usage_record('u-2', 'msg_b', input_tokens=20, output_tokens=8, cache_write=50)]
+    session = {'main': records, 'subagents': {}}
+    total = scorer.cost_dimension(session)
+    assert total == (10 + 5 + 100) + (20 + 8 + 50)
+
+
+def test_cost_dimension_rows_without_message_id_never_silently_dropped_never_double_counted():
+    """Rows with no message.id (older/synthetic-format transcript) must still be counted --
+    silently dropping them would under-report cost just as badly as double-counting inflates it.
+    Each id-less row is counted exactly once, on its own (no shared key to dedupe against)."""
+    r1 = _assistant_usage_record('u-1', None, input_tokens=7, output_tokens=3, cache_write=0)
+    r2 = _assistant_usage_record('u-2', None, input_tokens=1, output_tokens=1, cache_write=0)
+    session = {'main': [r1, r2], 'subagents': {}}
+    total = scorer.cost_dimension(session)
+    assert total == (7 + 3) + (1 + 1), 'both id-less rows must be counted, once each'
+
+
+def test_cost_dimension_dedupe_scoped_per_file_main_plus_subagents_both_counted():
+    """Dedupe is scoped per file (main vs each subagent's own jsonl) -- a duplicate-id group in
+    main and an (unrelated, different-API-call) duplicate-id group in a subagent file must both
+    be deduped-then-summed, covering 'ครอบทั้ง main transcript และ subagents/' from the task."""
+    main_records = [_assistant_usage_record('u-1', 'msg_a'), _assistant_usage_record('u-2', 'msg_a')]
+    sub_records = [_assistant_usage_record('s-1', 'msg_a'), _assistant_usage_record('s-2', 'msg_a')]
+    session = {'main': main_records, 'subagents': {'agent-x': {'records': sub_records, 'meta': {}}}}
+    total = scorer.cost_dimension(session)
+    one_message = 10 + 5 + 100
+    assert total == one_message * 2, 'main deduped to 1x + subagent file deduped to its own 1x'
+
+
+def test_cost_dimension_real_transcript_dedupe_matches_stan_audit_run4_main():
+    """End-to-end repro against the actual run-4 main transcript on disk (same file Stan's audit
+    measured: 41 usage rows / 25 unique message.id -> effective total 74,358 tok for MAIN alone,
+    per outputs/shode-roadmap/C/11-stan-token-audit.md §1 table). Skips gracefully if the local
+    transcript isn't present (e.g. CI, or a machine without this session's ~/.claude history)."""
+    transcript_path_file = os.path.join(ROOT, 'outputs', 'run-4', 'transcript-path.txt')
+    if not os.path.isfile(transcript_path_file):
+        pytest.skip('outputs/run-4/transcript-path.txt not present in this tree')
+    transcript_path = open(transcript_path_file, encoding='utf-8').read().strip()
+    if not os.path.isfile(transcript_path):
+        pytest.skip(f'real transcript not present on this machine: {transcript_path}')
+    session = scorer.load_session(transcript_path)
+    main_only_session = {'main': session['main'], 'subagents': {}}
+    total = scorer.cost_dimension(main_only_session)
+    assert total == 74358, (
+        f'MAIN-only deduped effective tokens should match Stan audit table exactly (74,358), got {total:,}')
+
+
+def test_cost_dimension_full_run4_session_matches_dedupe_audit_total():
+    """Full session (main + subagents/) deduped total should match Stan's audit run-4 grand total
+    (717,757 tok, outputs/shode-roadmap/C/11-stan-token-audit.md §1) -- this is the number that
+    replaces the old inflated 1,876,223 in the baseline/gate."""
+    transcript_path_file = os.path.join(ROOT, 'outputs', 'run-4', 'transcript-path.txt')
+    if not os.path.isfile(transcript_path_file):
+        pytest.skip('outputs/run-4/transcript-path.txt not present in this tree')
+    transcript_path = open(transcript_path_file, encoding='utf-8').read().strip()
+    if not os.path.isfile(transcript_path):
+        pytest.skip(f'real transcript not present on this machine: {transcript_path}')
+    session = scorer.load_session(transcript_path)
+    total = scorer.cost_dimension(session)
+    assert total == 717757, f'expected 717,757 (Stan audit dedupe total), got {total:,}'

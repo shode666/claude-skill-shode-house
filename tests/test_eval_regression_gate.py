@@ -142,8 +142,12 @@ class TestParseBaselineRuns:
 
 class TestParseThresholds:
     def test_happy_path_against_real_committed_file(self):
+        # bd:shode-roadmap/C-C2 (R-1), Dave: caps updated after the cost_dimension dedupe fix
+        # (message.id dedupe -- old caps were set on a scorer that inflated cost 2.6-2.7x, see
+        # GS1-BASELINE.md § Cost metric correction). New caps: median +10% / p90 +12% on the
+        # re-scored (deduped) N=3 baseline (median 717,757 / p90 727,503).
         md = open(REAL_BASELINE_MD, encoding='utf-8').read()
-        assert gate.parse_thresholds(md) == (1932510, 2083356)
+        assert gate.parse_thresholds(md) == (789533, 814803)
 
     def test_scoped_to_cost_bullet_not_narrative_line(self):
         """the narrative line above '## Regression gate' also contains the words median/p90 but

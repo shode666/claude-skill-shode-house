@@ -803,14 +803,53 @@ def anti_puppet_dimension(scenario, session):
 # ---------- Cost (report only, AC-7 is usage-report.py's job) ----------
 
 def cost_dimension(session):
+    """bd:shode-roadmap/C-C2 (R-1), Stan audit (outputs/shode-roadmap/C/11-stan-token-audit.md
+    F-0): Claude Code CLI 2.1.263 writes assistant messages that have MULTIPLE content blocks as
+    MULTIPLE consecutive JSONL rows -- one row per block -- and every one of those rows carries a
+    copy of `message.usage`. Summing per ROW (the old behavior) counted that one API call's usage
+    up to 5x, inflating run-4/5/6's gate metric 2.6-2.7x -- noise bigger than the regression gate's
+    own +-3%/+-5% tolerance. Fix: dedupe by `message.id`, scoped PER FILE (each of main.jsonl and
+    every subagents/*.jsonl is deduped independently, then summed together -- message ids are
+    unique per API call so per-file scoping can never under- or over-count across files/agents).
+
+    Dedupe strategy is LAST-WINS, not first-wins (Dave, iter1 -- caught by cross-checking every
+    per-agent subtotal against Stan's audit table, not just the file-level main transcript he
+    originally sampled): on the MAIN transcript every duplicate-id row is byte-identical, so pick
+    order doesn't matter there -- but on SUBAGENT transcripts, `output_tokens` legitimately climbs
+    across a duplicate-id group (50/64 message ids on run-4's qa-engineer subagent alone) while
+    input/cache_write/cache_read stay constant; this is a streaming snapshot effect (the CLI writes
+    an incremental usage snapshot as a message's content streams to disk, and only the LAST row for
+    a given message.id carries the message's true, final output_tokens). First-wins would silently
+    under-count every subagent's real output cost. Verified: last-wins reproduces Stan's audit
+    table exactly, per-agent, for run-4 (MAIN 74,358 + qa-engineer 172,520 + business-analyst
+    80,942 + security-engineer 89,078 + code-reviewer 162,187 + fintech-expert 138,672 = 717,757).
+
+    A row with no `message.id` (older/synthetic fixture format, or a genuine edge case) is a
+    deliberate non-silent case: it is NEVER dropped (still counted) and NEVER treated as a
+    duplicate of any other row (no shared key to compare against) -- it is simply counted once, on
+    its own. This can't double-count anything by construction; it just can't correlate two
+    genuinely-duplicate-but-unlabeled rows, which is an inherent limit of having no id, not a bug
+    in this function."""
     total = 0
     for recs in all_files(session).values():
+        usage_by_message_id = {}  # last-wins: later write for a given id overwrites earlier ones
+        no_id_total = 0
         for rec in recs:
             usage = (rec.get('message') or {}).get('usage')
-            if isinstance(usage, dict):
-                total += usage.get('input_tokens', 0) or 0
-                total += usage.get('output_tokens', 0) or 0
-                total += usage.get('cache_creation_input_tokens', 0) or 0
+            if not isinstance(usage, dict):
+                continue
+            message_id = (rec.get('message') or {}).get('id')
+            if message_id is not None:
+                usage_by_message_id[message_id] = usage
+            else:
+                no_id_total += usage.get('input_tokens', 0) or 0
+                no_id_total += usage.get('output_tokens', 0) or 0
+                no_id_total += usage.get('cache_creation_input_tokens', 0) or 0
+        for usage in usage_by_message_id.values():
+            total += usage.get('input_tokens', 0) or 0
+            total += usage.get('output_tokens', 0) or 0
+            total += usage.get('cache_creation_input_tokens', 0) or 0
+        total += no_id_total
     return total
 
 

@@ -1,6 +1,11 @@
 Scenario: GS1-reference-refund
-  Routing         PASS        (1/2 steps matched; optional step(s) not observed (skipped, not a failure): [2]; step1 parallel=False)
-    step1 ['shode-house:business-analyst', 'shode-house:code-reviewer', 'shode-house:fintech-expert', 'shode-house:qa-engineer', 'shode-house:security-engineer'] parallel=False (spawned across 5 message(s), ts=['2026-09-08T08:43:40.347Z', '2026-09-08T08:43:49.583Z', '2026-09-08T08:44:03.062Z', '2026-09-08T08:44:12.943Z', '2026-09-08T08:44:23.166Z'])
+  Routing         PASS        (1/2 steps matched; optional step(s) not observed (skipped, not a failure): [2]; step1 parallel=True(overlap))
+    step1 ['shode-house:business-analyst', 'shode-house:code-reviewer', 'shode-house:fintech-expert', 'shode-house:qa-engineer', 'shode-house:security-engineer'] parallel=True [overlap] (spawned across 5 message(s), ts=['2026-09-08T08:43:40.347Z', '2026-09-08T08:43:49.583Z', '2026-09-08T08:44:03.062Z', '2026-09-08T08:44:12.943Z', '2026-09-08T08:44:23.166Z'])
+      window 2026-09-08T08:43:40.353Z .. 2026-09-08T08:48:27.801Z
+      window 2026-09-08T08:43:49.592Z .. 2026-09-08T08:50:33.820Z
+      window 2026-09-08T08:44:03.068Z .. 2026-09-08T08:47:08.416Z
+      window 2026-09-08T08:44:12.948Z .. 2026-09-08T08:48:56.051Z
+      window 2026-09-08T08:44:23.176Z .. 2026-09-08T08:50:22.749Z
     routing tree (reconstructed, informational):
       depth1  2026-09-08T08:43:40.347Z  shode-house:code-reviewer
       depth1  2026-09-08T08:43:49.583Z  shode-house:qa-engineer
@@ -12,7 +17,7 @@ Scenario: GS1-reference-refund
   Evidence        PASS        (all claims have adjacent tool_result / inline paste)
   Anti-puppet     PASS        (0 violation)
   bd end_state    PASS        (bd show shode-house-example-refund-0rf matches expected end_state)
-  Cost            —           (this run total 1,984,149 tok; median/p90 across N runs: usage-report.py --compare)
+  Cost            —           (this run total 727,503 tok; median/p90 across N runs: usage-report.py --compare)
 Overall: PASS
 -> eval/baseline/e2e-golden/run-6/GS1-reference-refund/score.json
 score exit=0
