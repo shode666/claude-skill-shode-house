@@ -438,6 +438,34 @@ jobs:
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi
           exit $fail
 
+      - name: Eval scorer smoke test (committed recorded transcripts, no live agent run)
+        # bd:B3 -- eval-scorer.py itself is stdlib-only (see its own docstring), so this needs no
+        # extra dependency install. It runs against transcripts already committed under
+        # eval/fixtures/transcripts/ (the same fixtures tests/test_eval_scorer.py uses) -- CI
+        # never spawns a live Claude Code session: one real GS1 E2E run costs ~1.9M tokens /
+        # ~11 min (see eval/baseline/e2e-golden/GS1-BASELINE.md), which is not something CI
+        # should be doing on every push/PR.
+        run: |
+          set -e
+          echo "-- PASS-path fixture (routing-ok / GS2-implement-backend) --"
+          python3 scripts/eval-scorer.py eval/fixtures/transcripts/routing-ok \
+            --scenario GS2-implement-backend --project eval/fixtures/outputs-root
+          echo
+          echo "-- FAIL-path fixture (routing-wrong-order / GS2-implement-backend) -- must exit non-zero --"
+          if python3 scripts/eval-scorer.py eval/fixtures/transcripts/routing-wrong-order \
+              --scenario GS2-implement-backend --project eval/fixtures/outputs-root; then
+            echo "FATAL: routing-wrong-order fixture did not fail the scorer -- gate is not enforcing"
+            exit 1
+          fi
+          echo "confirmed: scorer correctly FAILs on a known-bad recorded transcript"
+
+      - name: GS1 E2E regression gate (vs eval/baseline/e2e-golden/GS1-BASELINE.md)
+        # bd:B3 -- compares the *committed* score.json for each baseline run (real E2E sessions
+        # already run and recorded, not re-run here) against the tolerance already declared in
+        # GS1-BASELINE.md's own "## Regression gate" section (both the run list and the cost
+        # caps are parsed from that file, not hardcoded in the script).
+        run: python3 scripts/eval-regression-gate.py
+
       - name: Build .plugin artifact
         run: make pack
 
