@@ -1,0 +1,78 @@
+{
+  "_comment": "Milestone B capability registry (bd: shode-roadmap/C-B1, ROADMAP-runtime-10.md SS 3.1). Transcribed verbatim from output-styles/oliver.md SS 4 'Routing (19 agents / 7 teams)' -- one entry per table row (18 rows; Oliver/orchestrator is the router itself and does not appear as a routed-to capability row in that table, so it is not listed here either). No new capability invented. Read by scripts/route.sh only -- this file is NOT preloaded into any agent context (see delegation note on token budget).",
+  "_source": "output-styles/oliver.md SS 4 Routing (19 agents / 7 teams)",
+  "capabilities": {
+    "discovery-okr": {
+      "owner": "product-manager",
+      "desc": "discovery / OKR / RICE / kill decision"
+    },
+    "requirement-brd": {
+      "owner": "business-analyst",
+      "desc": "requirement / BRD / user story / AC"
+    },
+    "architecture": {
+      "owner": "solution-architect",
+      "desc": "architecture / tech stack / NFR / ADR"
+    },
+    "cross-team-consistency": {
+      "owner": "staff-engineer",
+      "desc": "cross-team consistency / tech radar / refactor strategy"
+    },
+    "security-threat-model": {
+      "owner": "security-engineer",
+      "desc": "threat model / STRIDE / CSP / secrets / pen test / prompt injection"
+    },
+    "production-code": {
+      "owner": "developer",
+      "desc": "implement feature code (polyglot)"
+    },
+    "code-review": {
+      "owner": "code-reviewer",
+      "desc": "code review 7-dim + unit test + mutation"
+    },
+    "integration-test": {
+      "owner": "qa-engineer",
+      "desc": "integration / E2E / contract / load / a11y axe"
+    },
+    "devops-deploy": {
+      "owner": "devops-engineer",
+      "desc": "Docker / CI-CD / IaC / deploy / observability"
+    },
+    "ux-research": {
+      "owner": "ux-ui-designer",
+      "desc": "UX research / wireframe / design system / WCAG"
+    },
+    "slo-incident": {
+      "owner": "sre-engineer",
+      "desc": "SLO / error budget / incident / postmortem"
+    },
+    "fintech-domain": {
+      "owner": "fintech-expert",
+      "desc": "payment / ledger / KYC-AML / BOT-SEC-PCI"
+    },
+    "erp-domain": {
+      "owner": "erp-expert",
+      "desc": "GL / AR-AP / inventory / MRP / payroll"
+    },
+    "sap-domain": {
+      "owner": "sap-expert",
+      "desc": "ECC / S4HANA / ABAP / Fiori / BAPI-IDoc"
+    },
+    "trading-domain": {
+      "owner": "trading-expert",
+      "desc": "OMS / matching engine / market data / clearing"
+    },
+    "insurance-domain": {
+      "owner": "insurance-expert",
+      "desc": "policy admin / underwriting / claims / IFRS 17"
+    },
+    "booking-domain": {
+      "owner": "booking-expert",
+      "desc": "inventory / availability / yield / channel manager"
+    },
+    "ecommerce-domain": {
+      "owner": "ecommerce-expert",
+      "desc": "catalog / cart / promotion / OMS / marketplace"
+    }
+  }
+}
