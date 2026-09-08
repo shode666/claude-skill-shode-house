@@ -647,7 +647,14 @@ def test_iter7_oliver_state_summary_lowercase_closed_not_flagged_as_claim():
 # 01..08; SEC-01..03; ledger accounts 1010/4010/4090; Felix marks "not source-verified"). =====
 
 # --- iter8: golden.json GS1 uses run-time-assigned bd id (wildcard glob, bd_id optional) and the
-# real reference-project evidence patterns, not the copied phase3b-sensitive assumptions. ---------
+# real reference-project evidence patterns, not the copied phase3b-sensitive assumptions.
+# SUPERSEDED by iter9 (Oliver bd:B1): first real GS1 scoring found the real pipeline names
+# artifacts by PERSONA (chris/quinn/bella/felix/sentinel/...), not by role
+# (code-reviewer/qa-engineer/...) -- globs and the Sentinel/Felix patterns both changed again
+# (Sentinel gained `SIGN-OFF`, Felix gained `D-1`) to match. Assertions below are updated in place
+# (same "flip with an inline comment" approach as iter6, not silently edited) rather than adding a
+# second near-duplicate test, since the object under test (golden.json's GS1 entry) is itself what
+# changed. ---------------------------------------------------------------------------------------
 def test_iter8_gs1_golden_uses_wildcard_glob_and_reference_patterns():
     scen = scorer.load_golden(GOLDEN, 'GS1-reference-refund')
     assert scen.get('bd_id') is None, 'GS1 bd id is assigned at run time, not known ahead in golden.json'
@@ -655,29 +662,30 @@ def test_iter8_gs1_golden_uses_wildcard_glob_and_reference_patterns():
     ev_globs = [ev['glob'] for ev in scen['required_evidence']]
     assert all('outputs/*/' in g for g in ev_globs), ev_globs
     patterns = {ev['glob']: ev['pattern'] for ev in scen['required_evidence']}
-    sentinel_pattern = next(p for g, p in patterns.items() if 'security-engineer' in g)
-    felix_pattern = next(p for g, p in patterns.items() if 'fintech-expert' in g)
-    assert sentinel_pattern == 'SEC-0[1-3]|STRIDE|idempotency'
-    assert felix_pattern == '4090|ledger|not source-verified|cite'
+    sentinel_pattern = next(p for g, p in patterns.items() if 'sentinel' in g)  # iter9: persona glob
+    felix_pattern = next(p for g, p in patterns.items() if 'felix' in g)  # iter9: persona glob
+    assert sentinel_pattern == 'SEC-0[1-3]|STRIDE|SIGN-OFF'  # iter9: idempotency -> SIGN-OFF
+    assert felix_pattern == '4090|ledger|not source-verified|cite|D-1'  # iter9: + D-1
     # the old copied-over assumptions must be gone, not just added-alongside
     assert 'mask_card' not in sentinel_pattern
-    # security_triggers keywords kept unchanged per Oliver's instruction
+    # security_triggers keywords kept unchanged per Oliver's instruction (both iter8 and iter9)
     assert scen['security_triggers']['keywords'] == ['ledger', 'money', 'refund', 'เลขบัตร', 'card']
 
 
-# --- iter8: the new GS1 evidence patterns actually match real reference-project-shaped artifact
-# content (SEC-0x/STRIDE/idempotency for Sentinel; 4090/ledger/"not source-verified" for Felix),
+# --- iter8/iter9: the GS1 evidence patterns actually match real reference-project-shaped artifact
+# content (SEC-0x/STRIDE/SIGN-OFF for Sentinel; 4090/ledger/"not source-verified"/D-1 for Felix),
+# named by PERSONA (iter9: chris/quinn/sentinel/felix, not role) as the real pipeline actually does,
 # and reject the old copied phase3b-sensitive content (mask_card) that no longer applies here. ----
 def test_iter8_gs1_spec_fidelity_matches_reference_project_evidence(tmp_path):
     scen = scorer.load_golden(GOLDEN, 'GS1-reference-refund')
     bd_dir = tmp_path / 'outputs' / 'bd-999-runtime-assigned'
     bd_dir.mkdir(parents=True)
-    (bd_dir / '01-code-reviewer-review.md').write_text('reviewed diff, no blocking findings')
-    (bd_dir / '02-qa-engineer-review.md').write_text('regression suite green')
-    (bd_dir / '03-security-engineer-review.md').write_text(
-        'SEC-02 idempotency check on partial-refund endpoint — STRIDE tampering considered')
-    (bd_dir / '04-fintech-expert-review.md').write_text(
-        'ledger account 4090 posting reviewed; primary source not source-verified, cite BOT circular pending')
+    (bd_dir / '01-chris-3b.md').write_text('reviewed diff, no blocking findings')
+    (bd_dir / '02-quinn-3b.md').write_text('regression suite green')
+    (bd_dir / '05-sentinel-security.md').write_text(
+        'SEC-02 idempotency check on partial-refund endpoint — STRIDE tampering considered — SIGN-OFF granted')
+    (bd_dir / '04-felix-domain.md').write_text(
+        'ledger account 4090 posting reviewed; primary source not source-verified, cite D-1 circular pending')
     verdict, detail = scorer.spec_fidelity(scen, str(tmp_path))
     assert verdict == 'PASS', detail
 
@@ -686,15 +694,15 @@ def test_iter8_gs1_spec_fidelity_rejects_old_mask_card_content(tmp_path):
     scen = scorer.load_golden(GOLDEN, 'GS1-reference-refund')
     bd_dir = tmp_path / 'outputs' / 'bd-999-runtime-assigned'
     bd_dir.mkdir(parents=True)
-    (bd_dir / '01-code-reviewer-review.md').write_text('reviewed diff, no blocking findings')
-    (bd_dir / '02-qa-engineer-review.md').write_text('regression suite green')
+    (bd_dir / '01-chris-3b.md').write_text('reviewed diff, no blocking findings')
+    (bd_dir / '02-quinn-3b.md').write_text('regression suite green')
     # old copied-over phase3b-sensitive content -- must NOT satisfy the new reference-project pattern
-    (bd_dir / '03-security-engineer-review.md').write_text('mask_card applied to logging output')
-    (bd_dir / '04-fintech-expert-review.md').write_text(
+    (bd_dir / '05-sentinel-security.md').write_text('mask_card applied to logging output')
+    (bd_dir / '04-felix-domain.md').write_text(
         'ledger account 4090 posting reviewed; not source-verified')
     verdict, detail = scorer.spec_fidelity(scen, str(tmp_path))
     assert verdict == 'FAIL', detail
-    assert 'SEC-0[1-3]|STRIDE|idempotency' in detail
+    assert 'SEC-0[1-3]|STRIDE|SIGN-OFF' in detail  # iter9: idempotency -> SIGN-OFF
 
 
 # --- iter8: `--bd-id` CLI override lets bd_end_state resolve a scenario whose golden.json has no
@@ -732,3 +740,159 @@ def test_iter8_score_threads_bd_id_override_through_to_bd_end_state(tmp_path, mo
                                  bd_id_override='bd-101')
     assert result['dimensions']['bd_end_state']['verdict'] == 'PASS'
     assert result['dimensions']['routing']['verdict'] == 'PASS'
+
+
+# ===== iter9 (Oliver bd:B1) — first REAL GS1 scoring exposed 3 harness bugs. =====
+
+# --- iter9 fix #1: real Claude Code on-disk layout is `<proj>/<session-id>.jsonl` (a FILE) with
+# subagents at `<proj>/<session-id>/subagents/agent-*.jsonl|.meta.json` (a dir NAMED after the
+# session id) -- not the old flat `<proj>/subagents/` assumption, which silently resolved zero
+# subagents on a real transcript ("65/65 main-level spawns have no matching subagents/*.meta.json").
+# Fixture at eval/fixtures/transcripts/real-layout-session/ reproduces the exact real shape:
+# sess-real-8f31.jsonl (file) + sess-real-8f31/subagents/ (dir), copied from routing-ok's content. --
+def test_iter9_real_session_id_layout_resolves_subagents():
+    jsonl_path = os.path.join(FIX, 'real-layout-session', 'sess-real-8f31.jsonl')
+    session = scorer.load_session(jsonl_path)
+    assert session['main'], 'main records should load from the .jsonl file path itself'
+    assert set(session['subagents']) == {'agent-ba1', 'agent-chris1', 'agent-dev1',
+                                          'agent-nested1', 'agent-quinn1'}, (
+        'iter9 regression: subagents must resolve from <dirname>/<stem>/subagents/ '
+        '(the real session-id-named layout), not just the old flat <dirname>/subagents/')
+    idx = scorer.build_spawn_index(session)
+    total_spawns = sum(len(b) for b in idx['main_batches'])
+    unresolved = sum(1 for b in idx['main_batches'] for s in b if not s.get('agentId'))
+    assert total_spawns > 0 and unresolved == 0, (
+        'every main-level spawn should resolve to a subagent — no more '
+        '"main-level spawns have no matching subagents/*.meta.json"')
+
+
+def test_iter9_real_session_id_layout_routing_not_unscorable():
+    scen = scorer.load_golden(GOLDEN, 'GS2-implement-backend')
+    jsonl_path = os.path.join(FIX, 'real-layout-session', 'sess-real-8f31.jsonl')
+    result, code = scorer.score(jsonl_path, scen, FIXTURE_ROOT)
+    assert result['dimensions']['routing']['verdict'] != 'UNSCORABLE', result['dimensions']['routing']
+
+
+# --- iter9: old flat `<dirname>/subagents/` layout (no session-id-named subdirectory) still
+# resolves as a fallback, so any pre-existing flat-layout fixture keeps working unchanged. ---------
+def test_iter9_flat_subagents_layout_still_works_as_fallback(tmp_path):
+    (tmp_path / 'flat-subagents').mkdir()
+    main_jsonl = tmp_path / 'sess-flat.jsonl'
+    main_jsonl.write_text(json.dumps({'type': 'assistant', 'uuid': 'a0', 'message': {'content': [
+        {'type': 'tool_use', 'id': 'tu1', 'name': 'Agent',
+         'input': {'subagent_type': 'shode-house:developer'}}]}}) + '\n')
+    sub_dir = tmp_path / 'subagents'  # flat: sibling of the .jsonl, NOT sess-flat/subagents/
+    sub_dir.mkdir()
+    (sub_dir / 'agent-dev1.jsonl').write_text('')
+    (sub_dir / 'agent-dev1.meta.json').write_text(json.dumps(
+        {'toolUseId': 'tu1', 'agentType': 'shode-house:developer', 'spawnDepth': 1}))
+    session = scorer.load_session(str(main_jsonl))
+    assert set(session['subagents']) == {'agent-dev1'}
+
+
+# --- iter9 fix #2: `bd show` must run with cwd=<--outputs-dir> (the fixture project where .beads
+# lives), and match `bd_status` case-insensitively anywhere in output; a non-zero exit code is
+# UNSCORABLE (bd/session likely missing), not a blind regex-match against error/empty output. ------
+def test_iter9_bd_end_state_uses_cwd_for_bd_show(tmp_path, monkeypatch):
+    bd_bin = tmp_path / 'bd'
+    bd_bin.write_text(
+        '#!/bin/sh\n'
+        'if [ -f .beads-marker ]; then echo "[\xe2\x97\x8f P2 \xc2\xb7 CLOSED]"; '
+        'else echo "no .beads db found in $(pwd)"; fi\n')
+    bd_bin.chmod(bd_bin.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+    right_cwd = tmp_path / 'fixture-project'
+    right_cwd.mkdir()
+    (right_cwd / '.beads-marker').write_text('')
+    scen = {'bd_id': 'bd-999', 'end_state': {'bd_status': 'CLOSED', 'verdict_pattern': 'CLOSED'}}
+
+    # cwd=None (old scorer-cwd behavior) -> no marker here -> CLOSED not found -> FAIL
+    verdict_wrong, detail_wrong = scorer.bd_end_state(scen, cwd=str(tmp_path))
+    assert verdict_wrong == 'FAIL', detail_wrong
+
+    # cwd=right_cwd (the fixture project where .beads lives) -> PASS
+    verdict_right, detail_right = scorer.bd_end_state(scen, cwd=str(right_cwd))
+    assert verdict_right == 'PASS', detail_right
+
+
+def test_iter9_bd_end_state_status_match_is_case_insensitive(tmp_path, monkeypatch):
+    bd_bin = tmp_path / 'bd'
+    bd_bin.write_text('#!/bin/sh\necho "bd-999: status=closed"\n')  # lowercase, real output shape
+    bd_bin.chmod(bd_bin.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+    scen = {'bd_id': 'bd-999', 'end_state': {'bd_status': 'CLOSED'}}
+    verdict, detail = scorer.bd_end_state(scen)
+    assert verdict == 'PASS', detail
+
+
+def test_iter9_bd_end_state_nonzero_exit_is_unscorable(tmp_path, monkeypatch):
+    bd_bin = tmp_path / 'bd'
+    bd_bin.write_text('#!/bin/sh\necho "error: bd-999 not found" >&2\nexit 1\n')
+    bd_bin.chmod(bd_bin.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+    scen = {'bd_id': 'bd-999', 'end_state': {'bd_status': 'CLOSED'}}
+    verdict, detail = scorer.bd_end_state(scen)
+    assert verdict == 'UNSCORABLE', detail
+    assert 'exited 1' in detail
+
+
+# --- iter9: score()'s outputs_dir param threads through to bd_end_state's cwd without disturbing
+# the other independent dimensions ------------------------------------------------------------------
+def test_iter9_score_threads_outputs_dir_as_bd_show_cwd(tmp_path, monkeypatch):
+    bd_bin = tmp_path / 'bd'
+    bd_bin.write_text(
+        '#!/bin/sh\nif [ -f .beads-marker ]; then echo "bd-101: CLOSED"; '
+        'else echo "no beads db"; fi\n')
+    bd_bin.chmod(bd_bin.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
+    (tmp_path / '.beads-marker').write_text('')
+    scen = dict(scorer.load_golden(GOLDEN, 'GS2-implement-backend'))
+    result, code = scorer.score(os.path.join(FIX, 'routing-ok'), scen, FIXTURE_ROOT,
+                                 outputs_dir=str(tmp_path))
+    assert result['dimensions']['bd_end_state']['verdict'] == 'PASS', result['dimensions']['bd_end_state']
+
+
+# --- iter9 fix #3: golden.json GS1's real routing = ONE parallel set of 5 personas, followed by an
+# OPTIONAL developer fix-iteration step. An optional step's agents never appearing is NOT a routing
+# FAIL -- just a skipped/unobserved step. ------------------------------------------------------------
+def _spawn_batch(agent_type, batch_idx=0, tool_use_id=None):
+    return {'tool_use_id': tool_use_id or f'tu-{agent_type}', 'name': 'Agent',
+            'declared_type': agent_type, 'agentType': agent_type, '_batch_idx': batch_idx,
+            'agentId': f'agent-{agent_type}', 'timestamp': f'2026-01-01T00:00:0{batch_idx}Z'}
+
+
+def test_iter9_gs1_optional_developer_step_absent_still_passes():
+    five = ['shode-house:code-reviewer', 'shode-house:qa-engineer', 'shode-house:business-analyst',
+            'shode-house:fintech-expert', 'shode-house:security-engineer']
+    main_batches = [[_spawn_batch(a, batch_idx=0) for a in five]]  # all 5 in one message
+    expected = [{'agents': five, 'parallel': True},
+                {'agents': ['shode-house:developer'], 'optional': True}]
+    verdict, detail, steps = scorer.check_routing(expected, main_batches, False, main_record_count=1)
+    assert verdict == 'PASS', detail
+    assert steps[0]['observed'] is True
+    assert steps[1]['observed'] is False
+    assert 'not observed' in detail
+
+
+def test_iter9_gs1_optional_developer_step_present_also_passes():
+    five = ['shode-house:code-reviewer', 'shode-house:qa-engineer', 'shode-house:business-analyst',
+            'shode-house:fintech-expert', 'shode-house:security-engineer']
+    main_batches = [[_spawn_batch(a, batch_idx=0) for a in five],
+                    [_spawn_batch('shode-house:developer', batch_idx=1)]]
+    expected = [{'agents': five, 'parallel': True},
+                {'agents': ['shode-house:developer'], 'optional': True}]
+    verdict, detail, steps = scorer.check_routing(expected, main_batches, False, main_record_count=1)
+    assert verdict == 'PASS', detail
+    assert steps[1]['observed'] is True
+
+
+def test_iter9_gs1_golden_expected_routing_is_one_parallel_set_plus_optional_developer():
+    scen = scorer.load_golden(GOLDEN, 'GS1-reference-refund')
+    routing = scen['expected_routing']
+    assert len(routing) == 2
+    assert routing[0].get('parallel') is True
+    assert set(routing[0]['agents']) == {
+        'shode-house:code-reviewer', 'shode-house:qa-engineer', 'shode-house:business-analyst',
+        'shode-house:fintech-expert', 'shode-house:security-engineer'}
+    assert routing[1]['agents'] == ['shode-house:developer']
+    assert routing[1].get('optional') is True

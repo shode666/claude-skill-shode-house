@@ -79,14 +79,36 @@ def load_jsonl(path):
 
 
 def load_session(path):
-    """-> dict(main_path, main=[records], subagents={agentId:{records, meta, path}})"""
+    """-> dict(main_path, main=[records], subagents={agentId:{records, meta, path}})
+
+    iter9 (Oliver bd:B1): real Claude Code on-disk layout is
+    `~/.claude/projects/<proj>/<session-id>.jsonl` (a FILE, sibling files for other sessions) with
+    subagents at `~/.claude/projects/<proj>/<session-id>/subagents/agent-*.jsonl|.meta.json` — i.e.
+    a directory *named after the session id*, not a flat `<proj>/subagents/` next to every session's
+    jsonl. The old flat-`subagents/`-next-to-file assumption silently resolved zero subagents on a
+    real transcript (65/65 unresolved -> routing UNSCORABLE). Fix: when given a `.jsonl` file path,
+    prefer `<dirname>/<stem>/subagents/` (real layout) and fall back to the old flat
+    `<dirname>/subagents/` only if that doesn't exist (keeps any pre-existing flat fixtures working).
+    When given a directory, prefer `main.jsonl` if present (synthetic fixture convention used
+    throughout this test suite), else the single `*.jsonl` in it if there's exactly one, else fall
+    back to the largest-by-size file (old ambiguous-multi-file behavior, unchanged)."""
     if os.path.isdir(path):
         candidates = [p for p in glob.glob(os.path.join(path, '*.jsonl'))]
-        main_path = max(candidates, key=os.path.getsize) if candidates else None
+        main_in_dir = os.path.join(path, 'main.jsonl')
+        if os.path.isfile(main_in_dir):
+            main_path = main_in_dir
+        elif len(candidates) == 1:
+            main_path = candidates[0]
+        else:
+            main_path = max(candidates, key=os.path.getsize) if candidates else None
         sub_dir = os.path.join(path, 'subagents')
     else:
         main_path = path
-        sub_dir = os.path.join(os.path.dirname(path) or '.', 'subagents')
+        dirname = os.path.dirname(path) or '.'
+        stem = os.path.splitext(os.path.basename(path))[0]
+        session_id_sub_dir = os.path.join(dirname, stem, 'subagents')
+        flat_sub_dir = os.path.join(dirname, 'subagents')
+        sub_dir = session_id_sub_dir if os.path.isdir(session_id_sub_dir) else flat_sub_dir
     main = load_jsonl(main_path) if main_path else []
     subagents = {}
     if os.path.isdir(sub_dir):
@@ -218,7 +240,13 @@ def check_routing(expected, main_batches, open_ended, main_record_count=0):
     as long as they all land after the previous step's members and before the next step's
     members (iter 2 fix, Oliver bd:B1 — a 21s-apart 2-message parallel spawn is NOT a FAIL).
     `parallel` is reported per matched step as informational text/data only: true iff every
-    matched member's tool_use came from the SAME assistant message (single batch)."""
+    matched member's tool_use came from the SAME assistant message (single batch).
+
+    iter9 (Oliver bd:B1): a step can carry `"optional": true` (e.g. GS1's trailing developer
+    fix-iteration step, which only happens when /review finds something to fix) — if an optional
+    step's agents are never observed, that is NOT a routing FAIL, just a skipped/unobserved step;
+    `ptr` does not advance past it, and later required steps still match normally from the same
+    position."""
     if not expected:
         return 'N/A', 'no expected_routing configured', []
     if not main_batches:
@@ -242,6 +270,7 @@ def check_routing(expected, main_batches, open_ended, main_record_count=0):
     steps_info = []
     for i, step in enumerate(expected):
         exp = set(step['agents'])
+        optional = bool(step.get('optional'))
         collected = set()
         batches_used = set()
         timestamps = []
@@ -260,6 +289,11 @@ def check_routing(expected, main_batches, open_ended, main_record_count=0):
                     break
                 continue
             if atype in all_expected:
+                if optional and not collected:
+                    # iter9: an optional step hasn't started collecting yet and we've hit a spawn
+                    # belonging to a DIFFERENT step -- treat as "not observed", not an order
+                    # violation; leave ptr where it was and let the outer loop try later steps.
+                    break
                 detail = (f"step {i+1} order violation: expected {sorted(exp)}, but encountered "
                           f"{atype!r} (belongs to another step) before finishing this step "
                           f"— collected so far {sorted(collected)}")
@@ -270,14 +304,23 @@ def check_routing(expected, main_batches, open_ended, main_record_count=0):
                 detail = (f'open_ended, pipeline stopped before completing step {i+1} '
                            f'(collected {sorted(collected)} of {sorted(exp)})')
                 return 'PASS', detail, steps_info
+            if optional:
+                steps_info.append({'step': i + 1, 'agents': sorted(exp), 'parallel': False,
+                                    'batches': 0, 'timestamps': [], 'optional': True, 'observed': False})
+                continue  # skipped, not a failure; ptr unchanged, next step matches from here
             return 'FAIL', f'step {i+1} missing: expected {sorted(exp)}, only found {sorted(collected)}', steps_info
         parallel_observed = len(batches_used) == 1 and len(exp) > 1
         steps_info.append({'step': i + 1, 'agents': sorted(exp), 'parallel': parallel_observed,
-                            'batches': len(batches_used), 'timestamps': timestamps})
+                            'batches': len(batches_used), 'timestamps': timestamps,
+                            'optional': optional, 'observed': True})
         ptr = finished_at
     parallel_notes = '; '.join(f"step{s['step']} parallel={s['parallel']}" for s in steps_info
                                 if len(s['agents']) > 1)
-    detail = f"{len(expected)}/{len(expected)} steps matched"
+    observed_count = sum(1 for s in steps_info if s.get('observed', True))
+    detail = f"{observed_count}/{len(expected)} steps matched"
+    skipped = [s['step'] for s in steps_info if not s.get('observed', True)]
+    if skipped:
+        detail += f'; optional step(s) not observed (skipped, not a failure): {skipped}'
     if parallel_notes:
         detail += '; ' + parallel_notes
     return 'PASS', detail, steps_info
@@ -505,13 +548,22 @@ def cost_dimension(session):
 
 # ---------- bd end_state (user decision: scorer calls `bd` itself) ----------
 
-def bd_end_state(scenario, bd_id_override=None):
+def bd_end_state(scenario, bd_id_override=None, cwd=None):
     """iter8 (Oliver bd:B1): golden.json's `bd_id` is now optional -- a scenario like
     GS1-reference-refund is scored against a real project's bd tracker where the id is assigned
     at run time, not known ahead in golden.json. `--bd-id <id>` (CLI) lets the caller supply it
     at run time instead; the override always wins over a scenario's own (possibly absent) bd_id.
     If neither is given, bd end_state is UNSCORABLE with its own reason (never PASS/FAIL) --
-    same independent-dimension treatment as every other missing-input case (iter1 fix)."""
+    same independent-dimension treatment as every other missing-input case (iter1 fix).
+
+    iter9 (Oliver bd:B1): first real GS1 scoring found `bd show` was invoked from the scorer's own
+    cwd, not the fixture project's cwd where `.beads` (the bd tracker db) actually lives -- so it
+    resolved the wrong (or no) tracker and the expected `CLOSED` status was never found even though
+    the real `bd show <id>` output (run from the right directory) plainly printed
+    `[● P2 · CLOSED]`. Fix: run with `cwd=<--outputs-dir>` (the caller passes it through); also
+    match `bd_status` case-insensitively anywhere in output (defensive — real `bd` output casing is
+    not guaranteed identical to golden.json's configured value), and treat a non-zero exit code as
+    UNSCORABLE (bd/session likely missing) rather than blindly regex-matching empty/error output."""
     bd_id = bd_id_override or scenario.get('bd_id')
     end = scenario.get('end_state') or {}
     if not bd_id:
@@ -519,13 +571,17 @@ def bd_end_state(scenario, bd_id_override=None):
     if shutil.which('bd') is None:
         return 'UNSCORABLE', 'bd CLI not found on PATH — cannot verify end_state'
     try:
-        r = subprocess.run(['bd', 'show', bd_id], capture_output=True, text=True, timeout=10)
+        r = subprocess.run(['bd', 'show', bd_id], capture_output=True, text=True, timeout=10, cwd=cwd)
     except Exception as e:
         return 'UNSCORABLE', f'bd show failed to run: {e}'
+    if r.returncode != 0:
+        return ('UNSCORABLE',
+                f'bd show {bd_id} exited {r.returncode} (bd/session likely missing): '
+                f'{((r.stderr or r.stdout or "").strip())[:200]}')
     out = (r.stdout or '') + (r.stderr or '')
     want_status = end.get('bd_status')
-    if want_status and want_status not in out:
-        return 'FAIL', f'bd status {want_status!r} not found in `bd show {bd_id}` output'
+    if want_status and not re.search(re.escape(want_status), out, re.IGNORECASE):
+        return 'FAIL', f'bd status {want_status!r} not found (case-insensitive) in `bd show {bd_id}` output'
     vp = end.get('verdict_pattern')
     if vp and not re.search(vp, out):
         return 'FAIL', f'verdict_pattern {vp!r} not matched in bd show output'
@@ -549,12 +605,17 @@ def load_golden(golden_path, scenario_id):
 CRITICAL_DIMS = ['routing', 'spec_fidelity', 'security_trigger', 'evidence', 'anti_puppet']
 
 
-def score(session_path, scenario, fixture_root, bd_id_override=None):
+def score(session_path, scenario, fixture_root, bd_id_override=None, outputs_dir=None):
     """Each dimension is computed independently — a dimension lacking its own input becomes
     UNSCORABLE with its own reason; it never wipes the other dimensions (iter 1 fix, Oliver bd:B1).
     Overall: FAIL if any critical dim FAIL; else UNSCORABLE if any critical dim UNSCORABLE; else PASS.
     bd_end_state is reported but NOT critical (would otherwise force UNSCORABLE on every run without
-    a `bd` binary on PATH) — same treatment as Cost (report-only)."""
+    a `bd` binary on PATH) — same treatment as Cost (report-only).
+
+    iter9 (Oliver bd:B1): `outputs_dir` (the CLI's `--outputs-dir`) is passed through as `bd show`'s
+    cwd — that's the fixture project directory where `.beads` (the bd tracker db) actually lives;
+    `fixture_root` (used for spec_fidelity's artifact globs) is a *different*, already-existing
+    path and must not be conflated with it."""
     session = load_session(session_path)
     main_batches = build_spawn_index(session)['main_batches']
 
@@ -565,7 +626,7 @@ def score(session_path, scenario, fixture_root, bd_id_override=None):
     dims['security_trigger'] = security_trigger(scenario, session)
     dims['evidence'] = evidence_dimension(session)
     dims['anti_puppet'] = anti_puppet_dimension(scenario, session)
-    dims['bd_end_state'] = bd_end_state(scenario, bd_id_override)
+    dims['bd_end_state'] = bd_end_state(scenario, bd_id_override, cwd=outputs_dir)
     cost_tok = cost_dimension(session)
 
     crit_verdicts = [dims[k][0] for k in CRITICAL_DIMS]
@@ -636,7 +697,7 @@ def main(argv=None):
 
     scenario = load_golden(args.golden, args.scenario)
     fixture_root = os.path.dirname(args.outputs_dir.rstrip('/')) or '.'
-    result, code = score(args.session, scenario, fixture_root, args.bd_id)
+    result, code = score(args.session, scenario, fixture_root, args.bd_id, args.outputs_dir)
     print_report(result)
 
     if args.out:
