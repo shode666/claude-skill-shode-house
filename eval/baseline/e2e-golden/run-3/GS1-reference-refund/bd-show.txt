@@ -1,0 +1,53 @@
+✓ shode-house-example-refund-igz · GS1 run-3: review refund service (dispatch card, unattended)   [● P2 · CLOSED]
+Owner: shode666 · Assignee: shode666 · Type: task
+Created: 2026-09-08 · Started: 2026-09-08 · Updated: 2026-09-08
+Close reason: REVIEW COMPLETE — verdict BLOCK @ 69c3c8c (Chris test-quality gate + Felix I-1 CONFIRMED-HIGH). Tests 32/32 pass, coverage 94%. Fixes tracked at -34m/-042/-09w/ue3.*; no production code changed, no commit/push.
+
+DESCRIPTION
+  (none)
+
+NOTES
+
+  REVIEW (GS1 run-3, unattended) — target src/app, scope: no diff range, full-
+  file review @ HEAD 69c3c8c (== origin/main, src/ clean)                     
+                                                                              
+  VERDICT: BLOCK merge                                                        
+                                                                              
+  • Standards (Chris): BLOCK — Test Quality gate ไม่ผ่าน (ไม่มี mutation testing +
+  property-based test); 2 High, 5 Medium, 5 Low. 32/32 pass, coverage 94%,    
+  bandit/pip-audit clean. D-1/S-01/C-4 (69c3c8c) re-verified fixed จริง        
+  • Standards (Quinn): PASS — 0 Crit/High; 2 Medium (OpenAPI 400/404/409,     
+  money string-only), full suite 32/32 บน real Postgres 16 + uvicorn, k6 10RPS
+  x60s p95=30ms 0% error, 601/601 writes ไม่มี lost update                      
+  • Domain (Felix): CONDITIONAL — 6 new (1 HIGH I-1, 2 MED I-2/I-3, 3 INFO) + 
+  17 carry-forward จาก run 769 ยังจริงที่ HEAD                                    
+  • Spec (Bella): SPEC MET 8/8 (AC-01..AC-08 vs docs/pipeline/01-bella-1a.md);
+  scope-creep GET/POST /orders + ADR-003 stale ยังค้าง (tracked: -9um)          
+                                                                              
+  BLOCKING: I-1 (CONFIRMED-HIGH, repro จริง) -> bd shode-house-example-refund- 
+  34m; Test Quality gate -> bd ue3.2                                          
+  Follow-ups created: -34m (P1), -042 (P2 I-2/I-3), -09w (P3 Quinn A/B). ที่เหลือ
+  overlap ของเดิม: ue3.1 mypy Numeric, ue3.2 mutation/property tooling, eua    
+  N+1/FK index/logging, 9um spec decisions                                    
+                                                                              
+  Conservative decisions (unattended, ไม่มีคนตอบ):                              
+                                                                              
+  1. ไม่แก้ production code รอบนี้ — review-only mandate; fix I-1 route ไป Phase 2
+  (Dave) ผ่าน bd -34m                                                          
+  2. Felix I-1 ไม่ตัดสินจาก reading อย่างเดียว -> ส่ง Quinn repro จริง; ผล CONFIRMED-
+  HIGH (deterministic รอบ 1, revert แล้ว 32/32 green) จึงไม่ downgrade           
+  3. I-5 / G-3 / G-5 / G-16 / G-17 อยู่ใน declared scope-OUT -> ไม่ยกเป็น finding,
+  ฝากไว้ที่ -9um ให้ user ตัด scope เอง                                            
+  4. Bella open questions (ADR-003 owner, API table, ISO 4217 citation) เป็น   
+  decision ของ user/Sara -> ไม่ตัดสินแทน, คงไว้ที่ -9um                             
+  5. ไม่ commit / ไม่ push (conservative profile)                               
+  6. นี่คือ Standards pass ที่ 4 บน HEAD ที่ไม่เปลี่ยน (d5k->ue3->769->igz) — Chris     
+  แนะนำหยุด review loop แล้วไป fix; Oliver เห็นด้วย: review รอบหน้าไม่ควรเกิดก่อนมี     
+  commit ใหม่                                                                  
+                                                                              
+  Artifacts: outputs/shode-house-example-refund-igz/{00-oliver-kickoff,01-    
+  chris-3b,02-quinn-3b,03-felix-domain,04-bella-spec}.md + chris-probe/ +     
+  quinn-probe/                                                                
+
+
+
