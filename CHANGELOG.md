@@ -9,7 +9,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ## [3.15.0] — Runtime enforcement (roadmap Milestone A–G) — 2026-09-09
 
-> จาก "AI อ่านกฎที่ดีแล้วพยายามทำตาม" → "runtime บังคับ invariant ที่ deterministic". ยัง **ไม่ tag/release** จนกว่า GS1 N=3 บน 3.15.0 จะยืนยันทั้ง behavior และ token
+> จาก "AI อ่านกฎที่ดีแล้วพยายามทำตาม" → "runtime บังคับ invariant ที่ deterministic". GS1 N=3 บน build นี้รันแล้ว: behavior **3/3 PASS** · cost median -5.3% ที่ **เคลมไม่ได้** (t=0.96) — ดูบรรทัดผลวัดด้านล่าง
 
 - 🔴 **แก้เครื่องวัดก่อนอย่างอื่น** — `eval-scorer.py` นับ `message.usage` ต่อ JSONL row แต่ CLI เขียนหลาย row ต่อ 1 message (row ละ content block) แบก usage ก้อนเดิม ⇒ **นับซ้ำ ~×2.6**. dedupe by `message.id` (last-wins — subagent transcript มี `output_tokens` โตข้าม row เพราะเป็น streaming snapshot). baseline GS1 จริง: median **717,757** / p90 **727,503** (เดิมรายงาน 1,876,223 / 1,984,149); ค่าเดิมเก็บไว้ใน `score.json` → `cost.cost_legacy_inflated`. tolerance median +10% / p90 +12% จาก spread จริง 7.9% — **ประกาศข้อจำกัด: N=3 เล็กเกินกว่าจะแยก regression 2–5.5% ออกจาก variance ปกติของ reviewer**
 - **Milestone A — workflow state machine**: `scripts/workflow-state.sh` (bash+jq) `init`/`validate`/`advance`/`reconcile` · phase graph 10 node (`0-discover`…`6-operate`) ใน `references/state-machine/transitions.json` เป็น data ที่เดียว · status enum 9 ค่ารวม `escalated` · `enter_requires` **10/10 phase** (3 ตัวว่างแบบมีเหตุผลบันทึก) · atomic write `tmp→validate→rename` · journal append-only seq monotonic · single-writer lock · engagement guard (ไม่มี `.shode-house/` → exit 0 เงียบ)
