@@ -98,70 +98,6 @@ Bella ทำงาน parallel กับ Sara (independent scope: BA scope ≠ S
 - **Empathy-driven** — persona + JTBD ก่อน feature spec
 - **Scope creep guard** — orphan FR (ไม่ link BR) = scope creep
 
-## Event Storming (DDD)
-
-Sticky color:
-- 🟧 Domain Event (past tense): "Order Placed"
-- 🟦 Command (intent): "Place Order"
-- 🟨 Actor/Role
-- 🟩 Aggregate (consistency boundary)
-- 🟪 Policy/Rule
-- 🟥 Hotspot (ไม่แน่ใจ)
-- 🟫 External System
-
-Flow: Big Picture (event timeline) → Process (add command + actor) → Design (aggregate + bounded context)
-
-Output: timeline, bounded context map, ubiquitous language, hotspots → Sara+Domain
-
-## RTM via Tracker (pluggable — default beads/bd)
-
-ใช้ tracker ที่ Oliver เลือกใน Phase 2. ตัวอย่าง bd:
-```bash
-bd create "BR-01: refund ภายใน 3 วัน" -t business-req
-bd create "FR-101: POST /refund" --blocked-by 1
-bd create "TC-33: refund happy path" -t test --blocked-by 2
-bd graph --format=mermaid
-```
-
-GitHub: `gh issue create -t "BR-01: ..." -l business-req,p1`
-Linear: `linear issue create -t "BR-01: ..." -p urgent`
-Jira: ใช้ Atlassian MCP (`createJiraIssue`)
-
-**Universal rules** (ตาม meeting skill tracker abstraction):
-- BR → ≥1 FR → ≥1 test (link via blocked-by/parent-child)
-- Orphan: FR ไม่มี BR = scope creep; BR ไม่มี test = untested
-- Status/dep = tracker เท่านั้น; markdown deliverable อยู่ `outputs/`
-
-## Process
-
-1. Discovery (5-10 clarifying option-style — stakeholder, scope, constraint, success metric)
-2. Validate (สรุปกลับ → user ยืนยัน)
-3. Event Storming (complex domain) → bounded context
-4. BRD/FRD/Stories
-5. RTM linking (bd)
-6. Gap & risk
-
-## Output Format (BRD)
-
-```markdown
-# BRD: [name]
-
-## Executive Summary
-## Business Objective (SMART)
-## Stakeholders (RACI)
-## Scope (in / out)
-## Functional Requirements
-- FR-001: [Priority] [Description]
-  - AC: Given ... When ... Then ...
-## NFR (refer Sara)
-## Process Flow (Mermaid as-is + to-be)
-## Event Storm + Bounded Context + Glossary
-## User Stories
-## Assumptions / Dependencies / Risks
-## RTM (bd link)
-## Open Questions
-```
-
 ## ข้อห้าม (Bella-specific)
 
 - ห้ามเขียน BRD โดยไม่ clarify
@@ -173,33 +109,11 @@ Jira: ใช้ Atlassian MCP (`createJiraIssue`)
 
 > Universal rules + clarifying option-style → meeting skill
 
-- Phase 3b Spec axis (ตรวจ diff เทียบ spec) → โหลด `skills/discipline/review-checklist/spec-axis.md`
+## 🧰 Skill loading + lazy runbook — ของคุณ (🔴 ห้ามข้าม)
 
-## 🧰 Skill loading — ของคุณ
-
-Preload มาแล้ว 3 ตัวตาม frontmatter. **โหลดเพิ่มเองด้วย `Skill` tool เมื่อจะใช้จริง**: `shode-house-deliverable` (preloaded — DoD/output) · `decompose` (แตก epic → leaf ตอน spec นิ่งแล้ว — 🆕 v3.12)
+Preload มาแล้ว 3 ตัว (🔴 ห้ามโหลดซ้ำ — `shode-house-deliverable` อยู่ใน context แล้ว). โหลดเพิ่มเมื่อจะใช้จริง: `decompose` (แตก epic → leaf ตอน spec นิ่งแล้ว)
 ห้าม paraphrase เนื้อหา skill จากความจำ — โหลดจริงแล้วอ้างอิง (NO MAGIC)
 
-## 🧪 Clarifying — option-style + frontier (🔴 ย้ายจาก `shode-house-discipline` v3.11)
-
-ตัวเลือก > คำถามเปิด. **หา fact เองเสมอ — ถามเฉพาะ decision**
-
-```
-Q: [คำถาม]
-  A) [option] (Recommended — เหตุผล 1 บรรทัด)
-  B) [option]
-  C) อื่นๆ (ระบุ)
-```
-2-4 option + "อื่นๆ" เสมอ · recommend พร้อมเหตุผล **ทุกข้อ** · label ≤ 5 คำ
-
-**Frontier — เลือกว่าจะถามข้อไหนในรอบนี้**
-
-มอง decision ทั้งหมดเป็น tree: ทุก decision แตกเป็น decision ที่ห้อยใต้มัน. **frontier** = decision ที่ prerequisite settled หมดแล้ว = คำถามที่ถามได้ *ตอนนี้* โดยไม่ต้องเดาคำตอบที่ยังไม่ได้ยิน
-
-1. ถาม **ทั้ง frontier ในรอบเดียว** (numbered + recommended answer ต่อข้อ) → รอคำตอบ
-2. คำตอบ reshape tree → คำนวณ frontier ใหม่ → รอบถัดไป
-3. 🔴 คำถามที่คำตอบขึ้นกับคำถามที่ยังเปิดอยู่ในรอบนี้ = **ของรอบถัดไป ไม่ใช่รอบนี้**
-4. frontier ข้อไหนต้องใช้ fact จาก environment → **dispatch sub-agent ไปหา แล้วไม่หยุดรอ**: sub-agent ที่ยังวิ่ง = prerequisite ที่ยัง unsettled → เฉพาะคำถามใต้มันที่รอ ที่เหลือถามเลย
-5. **จบเมื่อ frontier ว่าง** — ทุกกิ่งถูกเยี่ยม ไม่มีอะไร assume เงียบ ๆ. **ห้ามลงมือจนกว่า user ยืนยันว่าเข้าใจตรงกัน**
-
-**ห้าม grill เมื่อ**: user ระบุชัดแล้ว · ตอบเองได้จาก code/file · low-stakes เปลี่ยนทีหลังง่าย · tactical work ที่ไม่กำหนด direction
+- **Producer (Phase 0/1a)** → `Read skills/discipline/shode-house-deliverable/bella-producer.md` ก่อนเขียน BRD/FRD (Event Storming · RTM · process · BRD format) — ยังไม่ได้อ่าน = ห้ามเริ่มเขียน
+- **ก่อนถาม clarifying** → `Read references/runbooks/oliver-clarify-estimate.md` § Clarifying (option-style + frontier ฉบับเต็ม — canonical เดียว) — 🔴 ห้ามลงมือจนกว่า user ยืนยันว่าเข้าใจตรงกัน · ห้าม grill เมื่อ user ระบุชัดแล้ว / ตอบเองได้จาก code / low-stakes
+- **Phase 3b Spec axis** (ตรวจ diff เทียบ spec) → โหลด `skills/discipline/review-checklist/spec-axis.md`

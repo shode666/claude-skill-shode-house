@@ -377,9 +377,30 @@ def resolve(fixture_root, rel):
     return rel if os.path.isabs(rel) else os.path.join(fixture_root, rel)
 
 
-def spec_fidelity(scenario, fixture_root):
-    """Missing input (spec file / required glob not found on disk) -> UNSCORABLE (own reason, doesn't
-    wipe other dimensions). Content mismatch (file exists but doesn't say what's expected) -> FAIL."""
+def substitute_bd_placeholder(pattern, bd_id):
+    """bd:shode-roadmap/B2-fix (Oliver, 05-oliver-decisions.md): golden.json's required_artifacts /
+    required_evidence[].glob / spec_file may contain a literal '{bd}' placeholder standing in for
+    the bd id assigned at RUN TIME (GS2-GS5 real-run layout, migrated off the old hardcoded
+    outputs/bd-101/... layout). Returns (resolved_pattern, error) -- error is None on success.
+
+    Deliberately does NOT fall back to a wildcard (outputs/*/...) when bd_id is unavailable: a real
+    fixture project's outputs/ can have stale run dirs left over from earlier scenarios (proven --
+    shode-house-example-refund/outputs/ has 7 old GS1 run dirs with *bella*.md already in them),
+    so a wildcard fallback here would silently match the WRONG run's artifacts and false-PASS. An
+    unresolved '{bd}' must become its own explicit UNSCORABLE reason instead -- never a silent glob
+    miss (which reads identically to a genuinely-missing artifact) and never a PASS."""
+    if '{bd}' not in pattern:
+        return pattern, None
+    if not bd_id:
+        return None, (f"{pattern!r} has a '{{bd}}' placeholder but no bd id is available to "
+                       f"resolve it (pass --bd-id or set scenario bd_id) — cannot check this input")
+    return pattern.replace('{bd}', bd_id), None
+
+
+def spec_fidelity(scenario, fixture_root, bd_id=None):
+    """Missing input (spec file / required glob not found on disk, or an unresolved '{bd}'
+    placeholder — bd:shode-roadmap/B2-fix) -> UNSCORABLE (own reason, doesn't wipe other
+    dimensions). Content mismatch (file exists but doesn't say what's expected) -> FAIL."""
     spec_file = scenario.get('spec_file')
     req_artifacts = scenario.get('required_artifacts') or []
     req_evidence = scenario.get('required_evidence') or []
@@ -390,17 +411,25 @@ def spec_fidelity(scenario, fixture_root):
     content_fails = []
     ac_ids = set()
     if spec_file:
-        p = resolve(fixture_root, spec_file)
-        if not os.path.isfile(p):
-            missing_inputs.append(f'spec file not found: {spec_file} (resolved: {p})')
+        resolved_spec_file, err = substitute_bd_placeholder(spec_file, bd_id)
+        if err:
+            missing_inputs.append(err)
         else:
-            ac_ids = set(re.findall(r'AC-\d+', open(p, encoding='utf-8').read()))
+            p = resolve(fixture_root, resolved_spec_file)
+            if not os.path.isfile(p):
+                missing_inputs.append(f'spec file not found: {resolved_spec_file} (resolved: {p})')
+            else:
+                ac_ids = set(re.findall(r'AC-\d+', open(p, encoding='utf-8').read()))
 
     matched_text = ''
     for pattern in req_artifacts:
-        matches = glob.glob(resolve(fixture_root, pattern))
+        resolved_pattern, err = substitute_bd_placeholder(pattern, bd_id)
+        if err:
+            missing_inputs.append(err)
+            continue
+        matches = glob.glob(resolve(fixture_root, resolved_pattern))
         if not matches:
-            missing_inputs.append(f'no file matches required_artifacts glob: {pattern}')
+            missing_inputs.append(f'no file matches required_artifacts glob: {resolved_pattern}')
             continue
         for m in matches:
             matched_text += open(m, encoding='utf-8', errors='ignore').read()
@@ -411,13 +440,17 @@ def spec_fidelity(scenario, fixture_root):
             content_fails.append(f'AC-ID not referenced in artifact: {missing_ac}')
 
     for ev in req_evidence:
-        matches = glob.glob(resolve(fixture_root, ev['glob']))
+        resolved_glob, err = substitute_bd_placeholder(ev['glob'], bd_id)
+        if err:
+            missing_inputs.append(err)
+            continue
+        matches = glob.glob(resolve(fixture_root, resolved_glob))
         if not matches:
-            missing_inputs.append(f"required_evidence glob no match: {ev['glob']}")
+            missing_inputs.append(f"required_evidence glob no match: {resolved_glob}")
             continue
         text = ''.join(open(m, encoding='utf-8', errors='ignore').read() for m in matches)
         if not re.search(ev['pattern'], text):
-            content_fails.append(f"required_evidence pattern not found: {ev['pattern']!r} in {ev['glob']}")
+            content_fails.append(f"required_evidence pattern not found: {ev['pattern']!r} in {resolved_glob}")
 
     if missing_inputs:
         detail = '; '.join(missing_inputs)
@@ -770,14 +803,53 @@ def anti_puppet_dimension(scenario, session):
 # ---------- Cost (report only, AC-7 is usage-report.py's job) ----------
 
 def cost_dimension(session):
+    """bd:shode-roadmap/C-C2 (R-1), Stan audit (outputs/shode-roadmap/C/11-stan-token-audit.md
+    F-0): Claude Code CLI 2.1.263 writes assistant messages that have MULTIPLE content blocks as
+    MULTIPLE consecutive JSONL rows -- one row per block -- and every one of those rows carries a
+    copy of `message.usage`. Summing per ROW (the old behavior) counted that one API call's usage
+    up to 5x, inflating run-4/5/6's gate metric 2.6-2.7x -- noise bigger than the regression gate's
+    own +-3%/+-5% tolerance. Fix: dedupe by `message.id`, scoped PER FILE (each of main.jsonl and
+    every subagents/*.jsonl is deduped independently, then summed together -- message ids are
+    unique per API call so per-file scoping can never under- or over-count across files/agents).
+
+    Dedupe strategy is LAST-WINS, not first-wins (Dave, iter1 -- caught by cross-checking every
+    per-agent subtotal against Stan's audit table, not just the file-level main transcript he
+    originally sampled): on the MAIN transcript every duplicate-id row is byte-identical, so pick
+    order doesn't matter there -- but on SUBAGENT transcripts, `output_tokens` legitimately climbs
+    across a duplicate-id group (50/64 message ids on run-4's qa-engineer subagent alone) while
+    input/cache_write/cache_read stay constant; this is a streaming snapshot effect (the CLI writes
+    an incremental usage snapshot as a message's content streams to disk, and only the LAST row for
+    a given message.id carries the message's true, final output_tokens). First-wins would silently
+    under-count every subagent's real output cost. Verified: last-wins reproduces Stan's audit
+    table exactly, per-agent, for run-4 (MAIN 74,358 + qa-engineer 172,520 + business-analyst
+    80,942 + security-engineer 89,078 + code-reviewer 162,187 + fintech-expert 138,672 = 717,757).
+
+    A row with no `message.id` (older/synthetic fixture format, or a genuine edge case) is a
+    deliberate non-silent case: it is NEVER dropped (still counted) and NEVER treated as a
+    duplicate of any other row (no shared key to compare against) -- it is simply counted once, on
+    its own. This can't double-count anything by construction; it just can't correlate two
+    genuinely-duplicate-but-unlabeled rows, which is an inherent limit of having no id, not a bug
+    in this function."""
     total = 0
     for recs in all_files(session).values():
+        usage_by_message_id = {}  # last-wins: later write for a given id overwrites earlier ones
+        no_id_total = 0
         for rec in recs:
             usage = (rec.get('message') or {}).get('usage')
-            if isinstance(usage, dict):
-                total += usage.get('input_tokens', 0) or 0
-                total += usage.get('output_tokens', 0) or 0
-                total += usage.get('cache_creation_input_tokens', 0) or 0
+            if not isinstance(usage, dict):
+                continue
+            message_id = (rec.get('message') or {}).get('id')
+            if message_id is not None:
+                usage_by_message_id[message_id] = usage
+            else:
+                no_id_total += usage.get('input_tokens', 0) or 0
+                no_id_total += usage.get('output_tokens', 0) or 0
+                no_id_total += usage.get('cache_creation_input_tokens', 0) or 0
+        for usage in usage_by_message_id.values():
+            total += usage.get('input_tokens', 0) or 0
+            total += usage.get('output_tokens', 0) or 0
+            total += usage.get('cache_creation_input_tokens', 0) or 0
+        total += no_id_total
     return total
 
 
@@ -874,9 +946,17 @@ def score(session_path, scenario, fixture_root, bd_id_override=None, outputs_dir
     `scenario['desc']` text (independent of the empty transcript), which is misleading: there is no
     real transcript content to judge here at all. When main has 0 records, every dimension except
     `bd_end_state` (which never reads main records anyway) is forced to UNSCORABLE with one shared
-    reason, overriding the normal per-dimension independence for this specific bad-path safety net."""
+    reason, overriding the normal per-dimension independence for this specific bad-path safety net.
+
+    bd:shode-roadmap/B2-fix (Oliver, 05-oliver-decisions.md): `bd_id` is resolved ONCE here (same
+    override-then-scenario precedence `bd_end_state` already used) and threaded into `spec_fidelity`
+    too, so a golden.json glob/spec_file containing a '{bd}' placeholder (GS2-GS5 real-run layout)
+    resolves against the SAME bd id `bd_end_state` checks — not just `bd_end_state` as before,
+    which left `spec_fidelity`'s globs unresolved (the exact false-PASS/UNSCORABLE-schema gap this
+    bd fixes)."""
     session = load_session(session_path)
     main_batches = build_spawn_index(session)['main_batches']
+    bd_id = bd_id_override or scenario.get('bd_id')
 
     dims = {}
     if not session['main']:
@@ -904,7 +984,7 @@ def score(session_path, scenario, fixture_root, bd_id_override=None, outputs_dir
                 r_detail = f'dispatch card: {card_detail}'
             r_verdict = 'FAIL'
         dims['routing'] = (r_verdict, r_detail, r_steps)
-        dims['spec_fidelity'] = spec_fidelity(scenario, fixture_root)
+        dims['spec_fidelity'] = spec_fidelity(scenario, fixture_root, bd_id)
         dims['security_trigger'] = security_trigger(scenario, session)
         dims['evidence'] = evidence_dimension(session)
         dims['anti_puppet'] = anti_puppet_dimension(scenario, session)

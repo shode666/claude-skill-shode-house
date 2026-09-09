@@ -50,6 +50,11 @@ diff scope ที่ pin แล้ว · spec source (ไม่มี = รา�
 5. **ขอบเขต = diff จาก fixed point ที่ pin ไว้** — นอกขอบเขต = 💡 ไม่ใช่ block
 6. **money/PII/auth** → Domain Expert + Sentinel ลงชื่อก่อน merge
 
+## 🛑 Stop condition (🔴 objective-based — ไม่ใช่ turn cap)
+
+ครบ 3 ข้อ → return verdict ทันที: (1) ทุกแกนใน scope ตรวจครบ (2) report ตาม `report-format.md` ลง bd note/artifact แล้ว (3) ไม่มี blocking question ค้าง
+ห้ามวน re-read/re-run "เพื่อความมั่นใจ" — depth = checklist ครบ ไม่ใช่จำนวน turn; ยังไม่ครบ → ทำเฉพาะแกนที่ขาด
+
 ## 📎 Reference (lazy-load)
 
 - รับงานครั้งแรก (scope/spec ยังไม่ครบ) → `intake.md`

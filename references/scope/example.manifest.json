@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "bd_id": "shode-roadmap/C-E1",
+  "agents": [
+    {
+      "agent": "Dave#1",
+      "owns": ["references/scope/**", "scripts/scope-check.sh", "tests/test-scope-check.sh"]
+    },
+    {
+      "agent": "Dave#2",
+      "owns": ["scripts/eval-scorer.py", "tests/test_eval_scorer.py", "eval/**"]
+    },
+    {
+      "agent": "Chris",
+      "owns": ["outputs/shode-roadmap/C/review-**"]
+    }
+  ],
+  "shared_files": {
+    ".github/workflows/ci.yml": {
+      "mode": "merge-owner",
+      "owner": "Dave#1",
+      "coupled_with": ["eval/scenarios/golden.json"],
+      "note": "Real incident, commit ac632a3 on this repo: a CI smoke-test step in ci.yml assumed GS2's old bd_id-resolvable shape while a DIFFERENT, correctly scope-locked agent migrated eval/scenarios/golden.json to a {bd} placeholder (bd_id: null) under its own Files -- neither agent's Scope Contract Files overlapped (one owned ci.yml, the other owned golden.json), so plain path-ownership alone never saw the conflict; CI only caught it after the fact (run 34214264970 red, fixed same day). Declaring the coupling here means `scope-check.sh ... ci.yml --verify` also reports CONFLICT if golden.json drifted since Dave#1's snapshot, even though Dave#1 only touches ci.yml."
+    },
+    "Makefile": {
+      "mode": "merge-owner",
+      "owner": "Dave#1",
+      "note": "zip file-list edits collide easily across parallel milestones (each one appends its own new shipped path) -- route through one owner per engagement instead of two agents racing an append."
+    },
+    "eval/scenarios/golden.json": {
+      "mode": "exclusive",
+      "owner": "Dave#2"
+    },
+    ".preload-budget": {
+      "mode": "append-only",
+      "note": "every agent that adds a new agents/*.md baseline appends its own line -- concurrent appends are safe by construction, no single owner needed."
+    },
+    "eval/baseline/e2e-golden/**/score.json": {
+      "mode": "generated",
+      "regenerate_via": "python3 scripts/eval-scorer.py <transcript-dir> --scenario GS1-reference-refund --project <outputs-root> --bd-id <bd> (see eval/baseline/e2e-golden/GS1-BASELINE.md)"
+    }
+  }
+}

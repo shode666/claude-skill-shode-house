@@ -1,0 +1,128 @@
+{
+  "_comment": "Milestone F tool permission profiles (bd: shode-roadmap/C-F1, ROADMAP-runtime-10.md SS 11.1). Read by scripts/permission-check.sh + CI drift check ONLY -- this file is NEVER preloaded into any agent context (token/run budget rule in the C-F1 brief). Two layers per agent: (1) tool_grants = FACTS transcribed from each agents/<name>.md `tools:` frontmatter -- platform-enforced, a subagent without the tool physically cannot perform the action; CI asserts the `tools` array here matches the frontmatter verbatim, so this file cannot drift from reality. (2) policy = least-privilege caps NARROWER than the tool grants (write_code / deploy / deploy_prod), derived from capability ownership in references/registry/capabilities.json -- deny-by-default, advisory until a hook calls permission-check.sh on the hot path (see 15-sentinel-runtime-security.md SS enforceability). No agent is granted anything here that its frontmatter does not already allow.",
+  "_derivation": {
+    "write_files": "true iff `tools:` contains Write or Edit",
+    "run_commands": "true iff `tools:` contains Bash",
+    "spawn": "true iff `tools:` contains Task (see delegation.json for who may spawn whom)",
+    "network": "true iff `tools:` contains WebSearch or WebFetch",
+    "write_code": "policy layer: true only where capabilities.json ownership includes producing code/test/infra files (production-code=developer, code-review incl. unit test+mutation=code-reviewer, integration-test=qa-engineer, devops-deploy incl. CI/IaC/observability=devops-engineer, security-threat-model incl. security config+fixtures=security-engineer). Everyone else writes ARTIFACTS (outputs/**, docs, specs, design tokens), not code -- Write/Edit grant alone does not imply write_code",
+    "deploy": "policy layer: devops-deploy capability owner only (capabilities.json: devops-engineer, sole owner -- zero overlap rule)",
+    "deploy_prod": "policy layer: subset of deploy; ROADMAP SS 11.1 names devops-engineer as the only deploy_prod=true role. permission-check.sh additionally requires the run_commands tool grant as a prerequisite, so a policy typo alone can never widen access"
+  },
+  "profiles": {
+    "orchestrator": {
+      "source": "agents/orchestrator.md",
+      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Task", "Bash", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": true, "spawn": true, "network": false },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "product-manager": {
+      "source": "agents/product-manager.md",
+      "tools": ["Read", "Write", "Edit", "WebSearch", "WebFetch", "Grep", "Glob", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": false, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "business-analyst": {
+      "source": "agents/business-analyst.md",
+      "tools": ["Read", "Write", "Edit", "WebSearch", "Grep", "Glob", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": false, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "solution-architect": {
+      "source": "agents/solution-architect.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": false, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "staff-engineer": {
+      "source": "agents/staff-engineer.md",
+      "tools": ["Read", "Grep", "Glob", "Bash", "WebSearch", "Write", "Edit", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": true, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "security-engineer": {
+      "source": "agents/security-engineer.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": true, "spawn": false, "network": true },
+      "policy": { "write_code": true, "deploy": false, "deploy_prod": false }
+    },
+    "developer": {
+      "source": "agents/developer.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": true, "spawn": false, "network": false },
+      "policy": { "write_code": true, "deploy": false, "deploy_prod": false }
+    },
+    "code-reviewer": {
+      "source": "agents/code-reviewer.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": true, "spawn": false, "network": false },
+      "policy": { "write_code": true, "deploy": false, "deploy_prod": false }
+    },
+    "qa-engineer": {
+      "source": "agents/qa-engineer.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": true, "spawn": false, "network": false },
+      "policy": { "write_code": true, "deploy": false, "deploy_prod": false }
+    },
+    "devops-engineer": {
+      "source": "agents/devops-engineer.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": true, "spawn": false, "network": false },
+      "policy": { "write_code": true, "deploy": true, "deploy_prod": true }
+    },
+    "sre-engineer": {
+      "source": "agents/sre-engineer.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": true, "spawn": false, "network": false },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "ux-ui-designer": {
+      "source": "agents/ux-ui-designer.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch", "WebFetch", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": true, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "fintech-expert": {
+      "source": "agents/fintech-expert.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": false, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "erp-expert": {
+      "source": "agents/erp-expert.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": false, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "sap-expert": {
+      "source": "agents/sap-expert.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": false, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "trading-expert": {
+      "source": "agents/trading-expert.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": false, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "insurance-expert": {
+      "source": "agents/insurance-expert.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": false, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "booking-expert": {
+      "source": "agents/booking-expert.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": false, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    },
+    "ecommerce-expert": {
+      "source": "agents/ecommerce-expert.md",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": false, "spawn": false, "network": true },
+      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
+    }
+  }
+}

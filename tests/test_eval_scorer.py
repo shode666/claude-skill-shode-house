@@ -25,10 +25,27 @@ scorer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scorer)
 
 
-def run(case, scenario_id, outputs_dir=None, tmp_out=None):
+# bd:shode-roadmap/B2-fix (Oliver, 05-oliver-decisions.md): GS2-GS5's golden.json globs now use a
+# '{bd}' placeholder instead of the old hardcoded bd id (real-run layout — the bd id is assigned at
+# runtime, not known ahead in golden.json). The pre-existing scorer-fixture layout at
+# eval/fixtures/outputs-root/outputs/bd-101/ (etc.) is untouched and still resolves correctly as
+# long as the caller supplies the matching bd id via `--bd-id` (score()'s `bd_id_override`). This
+# map preserves that exact old id per scenario so every pre-existing `run(case, scenario_id)` call
+# site below keeps working unchanged, without threading a `bd_id=` kwarg through each one.
+_LEGACY_BD_ID = {
+    'GS2-implement-backend': 'bd-101',
+    'GS3-spec-axis-gap': 'bd-104',
+    'GS4-askuser-relay': 'bd-105',
+    'GS5-phase3b-sensitive': 'bd-106',
+}
+
+
+def run(case, scenario_id, outputs_dir=None, tmp_out=None, bd_id=None):
     scen = scorer.load_golden(GOLDEN, scenario_id)
     fixture_root = outputs_dir or FIXTURE_ROOT
-    result, code = scorer.score(os.path.join(FIX, case), scen, fixture_root)
+    if bd_id is None:
+        bd_id = _LEGACY_BD_ID.get(scenario_id)
+    result, code = scorer.score(os.path.join(FIX, case), scen, fixture_root, bd_id_override=bd_id)
     return result, code
 
 
@@ -42,7 +59,7 @@ def test_ac01_output_format_and_json_file(tmp_path):
     # CLI writes score.json to --out
     rc = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'eval-scorer.py'),
                           os.path.join(FIX, 'routing-ok'), '--scenario', 'GS2-implement-backend',
-                          '--outputs-dir', FIXTURE_OUTPUTS_DIR,
+                          '--outputs-dir', FIXTURE_OUTPUTS_DIR, '--bd-id', 'bd-101',
                           '--out', str(tmp_path)], cwd=ROOT, capture_output=True, text=True)
     out_file = tmp_path / 'GS2-implement-backend' / 'score.json'
     assert out_file.is_file(), rc.stdout + rc.stderr
@@ -137,11 +154,21 @@ def test_subagent_tree_depth_2():
     assert idx['depth_by_agent']['agent-nested1'] == 2
 
 
-# --- extra: bd end_state — no bd on PATH (this sandbox truly has none) -> unscorable, never PASS ---
-def test_bd_end_state_unscorable_when_bd_absent():
-    assert shutil.which('bd') is None, 'test assumes sandbox has no bd binary'
+# --- extra: bd end_state — no bd on PATH -> unscorable, never PASS ---
+# (bd:shode-roadmap/B2-fix: GS2's golden.json bd_id is now null (real-run layout) -- bd_id_override
+# supplies the id explicitly here so this test still exercises the "no bd on PATH" branch, not the
+# unrelated "no bd_id configured" branch.)
+# bd:shode-roadmap/C-C2 (R-1), Dave: the old version of this test asserted directly on the HOST
+# machine's PATH (`assert shutil.which('bd') is None`), which is an environment assumption, not a
+# test fixture -- it FAILED on every machine that happens to have the real `bd` CLI installed (this
+# machine does, at /opt/homebrew/bin/bd, needed elsewhere for the `bd close` steps in this same
+# task). Fixed to mock PATH via monkeypatch (same tool the sibling test right below already uses
+# for the opposite case) instead of depending on host state.
+def test_bd_end_state_unscorable_when_bd_absent(tmp_path, monkeypatch):
+    monkeypatch.setenv('PATH', str(tmp_path))  # empty dir -- guaranteed no `bd` binary on PATH
+    assert shutil.which('bd') is None, 'sanity: mocked PATH must not resolve bd'
     scen = scorer.load_golden(GOLDEN, 'GS2-implement-backend')
-    verdict, detail = scorer.bd_end_state(scen)
+    verdict, detail = scorer.bd_end_state(scen, bd_id_override='bd-101')
     assert verdict == 'UNSCORABLE'
     assert 'PATH' in detail
 
@@ -153,7 +180,7 @@ def test_bd_end_state_with_path_shim(tmp_path, monkeypatch):
     bd_bin.chmod(bd_bin.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
     monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
     scen = scorer.load_golden(GOLDEN, 'GS2-implement-backend')
-    verdict, detail = scorer.bd_end_state(scen)
+    verdict, detail = scorer.bd_end_state(scen, bd_id_override='bd-101')
     assert verdict == 'PASS', detail
 
 
@@ -166,7 +193,10 @@ def test_bd_end_state_with_path_shim(tmp_path, monkeypatch):
 def test_iter1_missing_spec_file_does_not_wipe_other_dimensions():
     scen = dict(scorer.load_golden(GOLDEN, 'GS2-implement-backend'))
     scen['spec_file'] = 'outputs/DOES-NOT-EXIST-SPEC.md'
-    result, code = scorer.score(os.path.join(FIX, 'routing-ok'), scen, FIXTURE_ROOT)
+    # bd_id_override supplied so required_artifacts' '{bd}' placeholder resolves cleanly -- isolates
+    # this test to the ONE thing it means to prove (a missing spec_file alone -> UNSCORABLE).
+    result, code = scorer.score(os.path.join(FIX, 'routing-ok'), scen, FIXTURE_ROOT,
+                                 bd_id_override='bd-101')
     assert result['dimensions']['spec_fidelity']['verdict'] == 'UNSCORABLE'
     assert 'DOES-NOT-EXIST-SPEC.md' in result['dimensions']['spec_fidelity']['detail']
     # routing/evidence/anti_puppet must NOT be wiped -- they had everything they needed
@@ -849,8 +879,11 @@ def test_iter9_score_threads_outputs_dir_as_bd_show_cwd(tmp_path, monkeypatch):
     monkeypatch.setenv('PATH', str(tmp_path) + os.pathsep + os.environ['PATH'])
     (tmp_path / '.beads-marker').write_text('')
     scen = dict(scorer.load_golden(GOLDEN, 'GS2-implement-backend'))
+    # bd:shode-roadmap/B2-fix: GS2's golden.json bd_id is now null (real-run layout) -- bd_id_override
+    # supplies 'bd-101' explicitly so `bd show bd-101` still runs (this test is about outputs_dir's
+    # cwd threading, not bd_id resolution).
     result, code = scorer.score(os.path.join(FIX, 'routing-ok'), scen, FIXTURE_ROOT,
-                                 outputs_dir=str(tmp_path))
+                                 bd_id_override='bd-101', outputs_dir=str(tmp_path))
     assert result['dimensions']['bd_end_state']['verdict'] == 'PASS', result['dimensions']['bd_end_state']
 
 
@@ -934,7 +967,7 @@ def test_iter10_cli_project_flag_resolves_gs2_artifacts(tmp_path):
     # resolve GS2's outputs/bd-101/*.md globs correctly -- this is the exact real-run repro.
     rc = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'eval-scorer.py'),
                           os.path.join(FIX, 'routing-ok'), '--scenario', 'GS2-implement-backend',
-                          '--project', FIXTURE_ROOT,
+                          '--project', FIXTURE_ROOT, '--bd-id', 'bd-101',
                           '--out', str(tmp_path)], cwd=ROOT, capture_output=True, text=True)
     out_file = tmp_path / 'GS2-implement-backend' / 'score.json'
     assert out_file.is_file(), rc.stdout + rc.stderr
@@ -945,7 +978,7 @@ def test_iter10_cli_project_flag_resolves_gs2_artifacts(tmp_path):
 def test_iter10_cli_outputs_dir_alias_still_works_for_backward_compat(tmp_path):
     rc = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'eval-scorer.py'),
                           os.path.join(FIX, 'routing-ok'), '--scenario', 'GS2-implement-backend',
-                          '--outputs-dir', FIXTURE_OUTPUTS_DIR,
+                          '--outputs-dir', FIXTURE_OUTPUTS_DIR, '--bd-id', 'bd-101',
                           '--out', str(tmp_path)], cwd=ROOT, capture_output=True, text=True)
     out_file = tmp_path / 'GS2-implement-backend' / 'score.json'
     assert out_file.is_file(), rc.stdout + rc.stderr
@@ -1456,3 +1489,220 @@ def test_iter14_build_spawn_index_attaches_subagent_window():
     assert with_window, 'resolved spawns must carry window_start/window_end from subagent records'
     for s in with_window:
         assert s['window_start'] <= s['window_end']
+
+
+# ===== bd:shode-roadmap/B2-fix (Oliver, 05-oliver-decisions.md) — GS2-GS5 still used the OLD
+# hardcoded-bd-id layout (`outputs/bd-101/*dave*.md`, `bd_id: "bd-101"`) that GS1 was already
+# migrated off of, which made them impossible to score against a REAL run (the bd id is assigned
+# at runtime, not known ahead in golden.json). Widening the glob to `outputs/*/...` like GS1 is
+# UNSAFE here: a real fixture project's outputs/ can have stale run dirs left over from earlier
+# scenarios already containing e.g. *bella*.md, which would false-PASS GS2. Fix: a literal '{bd}'
+# placeholder in required_artifacts / required_evidence[].glob / spec_file, substituted with the
+# bd id resolved the SAME way bd_end_state already resolves it (`--bd-id` override, else scenario
+# `bd_id`) -- and UNSCORABLE with an explicit reason (never a silent PASS) when neither is given. =====
+
+def test_bd_placeholder_golden_gs2_gs3_gs5_migrated_to_bd_placeholder_null_id():
+    for sid in ('GS2-implement-backend', 'GS3-spec-axis-gap', 'GS4-askuser-relay', 'GS5-phase3b-sensitive'):
+        scen = scorer.load_golden(GOLDEN, sid)
+        assert scen.get('bd_id') is None, f'{sid}: bd id must be assigned at run time, not hardcoded'
+    gs2 = scorer.load_golden(GOLDEN, 'GS2-implement-backend')
+    assert '{bd}' in gs2['spec_file']
+    assert all('{bd}' in g for g in gs2['required_artifacts'])
+    assert all('{bd}' in ev['glob'] for ev in gs2['required_evidence'])
+    gs5 = scorer.load_golden(GOLDEN, 'GS5-phase3b-sensitive')
+    assert all('{bd}' in g for g in gs5['required_artifacts'])
+    assert all('{bd}' in ev['glob'] for ev in gs5['required_evidence'])
+
+
+def test_bd_placeholder_substitutes_correctly_and_scores_pass():
+    # substitution works: {bd} -> 'bd-101' resolves to the exact pre-existing fixture layout at
+    # eval/fixtures/outputs-root/outputs/bd-101/ -- same files GS2 always scored against.
+    scen = scorer.load_golden(GOLDEN, 'GS2-implement-backend')
+    verdict, detail = scorer.spec_fidelity(scen, FIXTURE_ROOT, bd_id='bd-101')
+    assert verdict == 'PASS', detail
+    assert 'AC-4' in detail or 'AC ids covered' in detail
+
+
+def test_bd_placeholder_unresolved_is_unscorable_never_pass():
+    # the exact false-PASS this bd fixes: glob has '{bd}' but no bd id is available anywhere
+    # (no --bd-id override, scenario bd_id is null) -> must be UNSCORABLE with a readable reason,
+    # never a silent PASS (and never a wildcard fallback that could match an unrelated run's files).
+    scen = scorer.load_golden(GOLDEN, 'GS2-implement-backend')
+    verdict, detail = scorer.spec_fidelity(scen, FIXTURE_ROOT, bd_id=None)
+    assert verdict == 'UNSCORABLE', detail
+    assert '{bd}' in detail
+    assert 'no bd id is available' in detail
+
+
+def test_bd_placeholder_unresolved_required_evidence_glob_also_unscorable():
+    scen = scorer.load_golden(GOLDEN, 'GS5-phase3b-sensitive')
+    verdict, detail = scorer.spec_fidelity(scen, FIXTURE_ROOT, bd_id=None)
+    assert verdict == 'UNSCORABLE', detail
+    assert '{bd}' in detail
+
+
+def test_bd_placeholder_score_end_to_end_unscorable_without_bd_id():
+    # score()-level: no bd_id_override and scenario bd_id is null -> spec_fidelity UNSCORABLE ->
+    # overall verdict must NOT be PASS (this is the exact GS2/GS5 false-PASS scenario from
+    # 05-oliver-decisions.md, reproduced end-to-end through score(), not just spec_fidelity()).
+    result, code = scorer.score(os.path.join(FIX, 'routing-ok'),
+                                 scorer.load_golden(GOLDEN, 'GS2-implement-backend'), FIXTURE_ROOT)
+    assert result['dimensions']['spec_fidelity']['verdict'] == 'UNSCORABLE', result['dimensions']['spec_fidelity']
+    assert result['verdict'] != 'PASS', result
+    assert code != 0
+
+
+def test_bd_placeholder_gs1_baseline_untouched_no_placeholder():
+    # GS1 stays on the wildcard outputs/*/... layout (regression-gated baseline, 3/3 PASS) -- must
+    # NOT gain a '{bd}' placeholder, and its own bd_id=None + bd_id=None-default behavior (no
+    # placeholder anywhere) must be completely unaffected by this migration.
+    scen = scorer.load_golden(GOLDEN, 'GS1-reference-refund')
+    assert scen.get('bd_id') is None
+    assert not any('{bd}' in g for g in scen['required_artifacts'])
+    assert not any('{bd}' in ev['glob'] for ev in scen['required_evidence'])
+    assert scen.get('spec_file') is None
+
+
+def test_bd_placeholder_legacy_fixture_layout_still_works_via_run_helper():
+    # eval/fixtures/outputs-root/outputs/bd-101/ (the pre-existing scorer-fixture layout, unrelated
+    # to this migration) keeps scoring PASS unchanged as long as --bd-id bd-101 is supplied.
+    result, code = run('routing-ok', 'GS2-implement-backend', bd_id='bd-101')
+    assert result['dimensions']['spec_fidelity']['verdict'] == 'PASS', result['dimensions']['spec_fidelity']
+    assert result['verdict'] == 'PASS'
+    assert code == 0
+
+
+def test_bd_placeholder_cli_end_to_end_with_bd_id_flag_passes(tmp_path):
+    rc = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'eval-scorer.py'),
+                          os.path.join(FIX, 'routing-ok'), '--scenario', 'GS2-implement-backend',
+                          '--project', FIXTURE_ROOT, '--bd-id', 'bd-101',
+                          '--out', str(tmp_path)], cwd=ROOT, capture_output=True, text=True)
+    out_file = tmp_path / 'GS2-implement-backend' / 'score.json'
+    assert out_file.is_file(), rc.stdout + rc.stderr
+    data = json.loads(out_file.read_text())
+    assert data['verdict'] == 'PASS', data
+
+
+def test_bd_placeholder_cli_without_bd_id_flag_is_unscorable_not_pass(tmp_path):
+    # CLI-level repro of the exact false-PASS defect: run GS2 for real without --bd-id -> must
+    # come back UNSCORABLE (spec_fidelity's own reason), never PASS.
+    rc = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'eval-scorer.py'),
+                          os.path.join(FIX, 'routing-ok'), '--scenario', 'GS2-implement-backend',
+                          '--project', FIXTURE_ROOT,
+                          '--out', str(tmp_path)], cwd=ROOT, capture_output=True, text=True)
+    out_file = tmp_path / 'GS2-implement-backend' / 'score.json'
+    assert out_file.is_file(), rc.stdout + rc.stderr
+    data = json.loads(out_file.read_text())
+    assert data['dimensions']['spec_fidelity']['verdict'] == 'UNSCORABLE', data
+    assert data['verdict'] != 'PASS', data
+
+
+# ===== bd:shode-roadmap/C-C2 (R-1), Dave: cost_dimension dedupe by message.id =====
+# Stan audit (outputs/shode-roadmap/C/11-stan-token-audit.md F-0): Claude Code CLI 2.1.263 writes
+# one JSONL row PER CONTENT BLOCK of a multi-block assistant message, and every row shares an
+# identical `message.usage`. Summing per row (old cost_dimension) inflated real GS1 runs 2.6-2.7x.
+# These tests use synthetic transcripts (in-memory session dicts, matching the exact shape
+# scorer.load_session() produces) with duplicate message.id rows to prove the fix without needing
+# a real multi-hundred-KB transcript on disk.
+
+def _assistant_usage_record(uuid_, message_id, input_tokens=10, output_tokens=5, cache_write=100,
+                             ts='2026-01-01T00:00:00Z'):
+    """One synthetic JSONL row shaped like a real Claude Code CLI assistant record with usage."""
+    msg = {'usage': {'input_tokens': input_tokens, 'output_tokens': output_tokens,
+                      'cache_creation_input_tokens': cache_write},
+           'content': [{'type': 'text', 'text': 'x'}]}
+    if message_id is not None:
+        msg['id'] = message_id
+    return {'type': 'assistant', 'uuid': uuid_, 'timestamp': ts, 'message': msg}
+
+
+def test_cost_dimension_dedupes_4_duplicate_rows_of_same_message_id_to_1x():
+    """The exact repro from the audit: 4 JSONL rows, same message.id, identical usage -- must be
+    counted ONCE (one real API call), not 4x."""
+    records = [_assistant_usage_record(f'u-{i}', 'msg_dup_1') for i in range(4)]
+    session = {'main': records, 'subagents': {}}
+    total = scorer.cost_dimension(session)
+    one_message = 10 + 5 + 100  # input + output + cache_write
+    assert total == one_message, f'expected {one_message} (1x, deduped), got {total}'
+    assert total != one_message * 4, 'must not have summed all 4 duplicate rows'
+
+
+def test_cost_dimension_dedupe_is_last_wins_not_first_wins_streaming_snapshot():
+    """Real transcripts (run-4's qa-engineer subagent: 50/64 message ids) show output_tokens
+    climbing across a duplicate-id group -- a streaming usage snapshot effect where the CLI writes
+    an incremental usage snapshot per content-block row, and only the LAST row for a given
+    message.id carries that message's final, true output_tokens (input/cache_write/cache_read stay
+    constant across the group). First-wins would silently under-count every such message; the fix
+    must be LAST-wins."""
+    r1 = _assistant_usage_record('u-1', 'msg_stream', input_tokens=2, output_tokens=7, cache_write=100)
+    r2 = _assistant_usage_record('u-2', 'msg_stream', input_tokens=2, output_tokens=7, cache_write=100)
+    r3 = _assistant_usage_record('u-3', 'msg_stream', input_tokens=2, output_tokens=272, cache_write=100)  # final
+    session = {'main': [r1, r2, r3], 'subagents': {}}
+    total = scorer.cost_dimension(session)
+    assert total == 2 + 272 + 100, f'must use the LAST row in file order (out=272), got {total}'
+
+
+def test_cost_dimension_distinct_message_ids_all_counted():
+    """Sanity: rows with DIFFERENT message.id are genuinely separate API calls and must all be
+    summed (dedupe must not over-collapse)."""
+    records = [_assistant_usage_record('u-1', 'msg_a', input_tokens=10, output_tokens=5, cache_write=100),
+               _assistant_usage_record('u-2', 'msg_b', input_tokens=20, output_tokens=8, cache_write=50)]
+    session = {'main': records, 'subagents': {}}
+    total = scorer.cost_dimension(session)
+    assert total == (10 + 5 + 100) + (20 + 8 + 50)
+
+
+def test_cost_dimension_rows_without_message_id_never_silently_dropped_never_double_counted():
+    """Rows with no message.id (older/synthetic-format transcript) must still be counted --
+    silently dropping them would under-report cost just as badly as double-counting inflates it.
+    Each id-less row is counted exactly once, on its own (no shared key to dedupe against)."""
+    r1 = _assistant_usage_record('u-1', None, input_tokens=7, output_tokens=3, cache_write=0)
+    r2 = _assistant_usage_record('u-2', None, input_tokens=1, output_tokens=1, cache_write=0)
+    session = {'main': [r1, r2], 'subagents': {}}
+    total = scorer.cost_dimension(session)
+    assert total == (7 + 3) + (1 + 1), 'both id-less rows must be counted, once each'
+
+
+def test_cost_dimension_dedupe_scoped_per_file_main_plus_subagents_both_counted():
+    """Dedupe is scoped per file (main vs each subagent's own jsonl) -- a duplicate-id group in
+    main and an (unrelated, different-API-call) duplicate-id group in a subagent file must both
+    be deduped-then-summed, covering 'ครอบทั้ง main transcript และ subagents/' from the task."""
+    main_records = [_assistant_usage_record('u-1', 'msg_a'), _assistant_usage_record('u-2', 'msg_a')]
+    sub_records = [_assistant_usage_record('s-1', 'msg_a'), _assistant_usage_record('s-2', 'msg_a')]
+    session = {'main': main_records, 'subagents': {'agent-x': {'records': sub_records, 'meta': {}}}}
+    total = scorer.cost_dimension(session)
+    one_message = 10 + 5 + 100
+    assert total == one_message * 2, 'main deduped to 1x + subagent file deduped to its own 1x'
+
+
+def test_cost_dimension_real_transcript_dedupe_matches_stan_audit_run4_main():
+    """End-to-end repro against the actual run-4 main transcript on disk (same file Stan's audit
+    measured: 41 usage rows / 25 unique message.id -> effective total 74,358 tok for MAIN alone,
+    per outputs/shode-roadmap/C/11-stan-token-audit.md §1 table). Skips gracefully if the local
+    transcript isn't present (e.g. CI, or a machine without this session's ~/.claude history)."""
+    transcript_path_file = os.path.join(ROOT, 'outputs', 'run-4', 'transcript-path.txt')
+    if not os.path.isfile(transcript_path_file):
+        pytest.skip('outputs/run-4/transcript-path.txt not present in this tree')
+    transcript_path = open(transcript_path_file, encoding='utf-8').read().strip()
+    if not os.path.isfile(transcript_path):
+        pytest.skip(f'real transcript not present on this machine: {transcript_path}')
+    session = scorer.load_session(transcript_path)
+    main_only_session = {'main': session['main'], 'subagents': {}}
+    total = scorer.cost_dimension(main_only_session)
+    assert total == 74358, (
+        f'MAIN-only deduped effective tokens should match Stan audit table exactly (74,358), got {total:,}')
+
+
+def test_cost_dimension_full_run4_session_matches_dedupe_audit_total():
+    """Full session (main + subagents/) deduped total should match Stan's audit run-4 grand total
+    (717,757 tok, outputs/shode-roadmap/C/11-stan-token-audit.md §1) -- this is the number that
+    replaces the old inflated 1,876,223 in the baseline/gate."""
+    transcript_path_file = os.path.join(ROOT, 'outputs', 'run-4', 'transcript-path.txt')
+    if not os.path.isfile(transcript_path_file):
+        pytest.skip('outputs/run-4/transcript-path.txt not present in this tree')
+    transcript_path = open(transcript_path_file, encoding='utf-8').read().strip()
+    if not os.path.isfile(transcript_path):
+        pytest.skip(f'real transcript not present on this machine: {transcript_path}')
+    session = scorer.load_session(transcript_path)
+    total = scorer.cost_dimension(session)
+    assert total == 717757, f'expected 717,757 (Stan audit dedupe total), got {total:,}'

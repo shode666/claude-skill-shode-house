@@ -45,7 +45,7 @@ description: |
 
 แก้ปัญหา **agent หลุด workflow ใน follow-up message** — Dave บอก "เสร็จแล้ว" โดยไม่ผ่าน Verify, fix ตรงโดยไม่ผ่าน Phase 1a
 
-### M1 — Ingress Guard → **ย้ายไป `shode-house-discipline` § M1**
+### M1 — Ingress Guard → ย้ายไป `shode-house-discipline` § M1
 
 M1 บังคับที่ **ทุก agent** ไม่ใช่แค่ Oliver → ย้ายเข้า skill ที่ทุก agent preload เพื่อการันตีว่าถึงจริง
 skill นี้ = **M2–M7 (Oliver enforcer)** เท่านั้น

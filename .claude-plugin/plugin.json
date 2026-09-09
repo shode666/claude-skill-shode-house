@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.14.0",
-  "description": "Multi-agent software house team v3.14.0: 19 agents + 23 skills + 5 commands. Lazy-load contract, context budget from dispatch graph, rule-conservation gate.",
+  "version": "3.15.0",
+  "description": "Multi-agent software house team v3.15.0: 19 agents + 23 skills + 5 commands. Runtime state machine, routing registry, scope lock, hooks enforcement.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"

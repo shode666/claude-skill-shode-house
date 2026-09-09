@@ -7,6 +7,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ---
 
+## [3.15.0] — Runtime enforcement (roadmap Milestone A–G) — in progress (unreleased)
+
+> จาก "AI อ่านกฎที่ดีแล้วพยายามทำตาม" → "runtime บังคับ invariant ที่ deterministic". ยัง **ไม่ tag/release** จนกว่า GS1 N=3 บน 3.15.0 จะยืนยันทั้ง behavior และ token
+
+- 🔴 **แก้เครื่องวัดก่อนอย่างอื่น** — `eval-scorer.py` นับ `message.usage` ต่อ JSONL row แต่ CLI เขียนหลาย row ต่อ 1 message (row ละ content block) แบก usage ก้อนเดิม ⇒ **นับซ้ำ ~×2.6**. dedupe by `message.id` (last-wins — subagent transcript มี `output_tokens` โตข้าม row เพราะเป็น streaming snapshot). baseline GS1 จริง: median **717,757** / p90 **727,503** (เดิมรายงาน 1,876,223 / 1,984,149); ค่าเดิมเก็บไว้ใน `score.json` → `cost.cost_legacy_inflated`. tolerance median +10% / p90 +12% จาก spread จริง 7.9% — **ประกาศข้อจำกัด: N=3 เล็กเกินกว่าจะแยก regression 2–5.5% ออกจาก variance ปกติของ reviewer**
+- **Milestone A — workflow state machine**: `scripts/workflow-state.sh` (bash+jq) `init`/`validate`/`advance`/`reconcile` · phase graph 10 node (`0-discover`…`6-operate`) ใน `references/state-machine/transitions.json` เป็น data ที่เดียว · status enum 9 ค่ารวม `escalated` · `enter_requires` **10/10 phase** (3 ตัวว่างแบบมีเหตุผลบันทึก) · atomic write `tmp→validate→rename` · journal append-only seq monotonic · single-writer lock · engagement guard (ไม่มี `.shode-house/` → exit 0 เงียบ)
+- **Milestone B — routing/policy**: `references/registry/{capabilities,routes}.json` + `scripts/route.sh` (อ่าน `.states` สด ⇒ phase-id drift เป็นไปไม่ได้เชิงโครงสร้าง) + `scripts/policy-check.sh`. **ตรวจจริง 4/22 rule** อีก 18 `SKIP` พร้อมเหตุผลรายข้อ — ไม่ใช่ policy engine เต็มตามที่ roadmap วาด
+- **Milestone C/G — token**: ตัด *สำเนา* ไม่ใช่กฎ (Chris/Quinn adversary skeleton · Felix domain-evidence ซ้ำ `domain-core` byte-ต่อ-byte · Bella § Clarifying ซ้ำ `oliver-clarify-estimate.md` · 5 agent list skill ที่ตัวเอง preload) · stop condition **objective-based ไม่ใช่ turn cap** · output budget inline ≤ 10 findings. **-5,479 B รวม 5 subagent ของ GS1**; security-engineer +568 B (ราคาของ stop condition ไม่กลบในยอดสุทธิ) · `rule-conservation.py` ผ่าน
+- **Milestone D — reliability**: แยก `retry`/`rework`/`resume` เป็นคนละคำสั่ง คนละ journal op · error taxonomy 9 class เป็น data (`errors.json`) · `rework-routing.json` ถอดจาก `oliver.md § 5` · `side-effect.sh` idempotency (completed = one-way door) · `approval.sh` ผูก artifact sha + git commit + state_version + scope, drift = **hard DENY ไม่ใช่ warning**
+- **Milestone E — concurrency**: `scripts/scope-check.sh` + `references/scope/` ownership · shared-file 4 mode · optimistic sha. เพิ่ม `shared_files[].coupled_with` เกินสเปค เพราะ path-ownership เพียว ๆ จับเคสจริงของเราไม่ได้ (`ac632a3`: สอง agent ทำตาม lock แต่ `ci.yml` กับ `golden.json` coupled กันจน CI แดง)
+- **Milestone F — least privilege**: `references/security/{tool-profiles,delegation,trust-levels}.json` ถอดจาก `tools:` frontmatter จริง 19/19 + `scripts/permission-check.sh` + drift test. **finding: ทุก agent ถือ `Write`+`Edit` ⇒ `write_code:false` บังคับที่ tool layer ไม่ได้ เป็น policy layer เท่านั้น**; delegation จริงแข็งกว่า roadmap (มีแต่ orchestrator ถือ `Task`)
+- **hooks — จุดที่เปลี่ยน advisory เป็น enforced**: `hooks/hooks.json` + `hooks/scripts/` · `PreToolUse` deny เขียนตรงเข้า `.shode-house/state|journal` · `SessionStart` canary+prereq+torn-write · `Stop` warn-only. guard เขียนใหม่ทั้งหมด (spike substring บน raw JSON → false-positive + bypass 4 ทาง): jq extract `file_path` → lexical normalize → physical canonicalize → prefix compare. **bypass traversal/case/json-escape/dot-slash ปิดครบ พิสูจน์ทีละ vector** · no-op 11 ms/call · **0 token/run** (อยู่นอก context)
+- `.gitignore` `outputs/` → `/outputs/` — pattern เดิม match ทุกระดับ ทำให้ `eval/fixtures/outputs-root/outputs/` ไม่เคยถูก commit ⇒ smoke step ของ CI **แดงตั้งแต่ run แรก** เขียวเฉพาะบนเครื่องที่มีไฟล์ untracked
+- CI +5 step (1 ต่อ milestone) — **ไม่ใช่ grep-based inline check รายข้อ**: 1 AC = 1 test case ในสวีท ไม่ใช่ 1 CI section
+- **วัดแล้ว (GS1 N=3 บน 3.15.0, run-7/8/9)**: behavior **3/3 PASS** ทุกมิติ (5/5 spawn ขนาน · security trigger · evidence · anti-puppet 0 · bd CLOSED) ⇒ เกณฑ์ revert ล็อต C/G ไม่ถูกแตะ · cost median 717,757 → **679,684 (-5.3%)** แต่ **เคลมไม่ได้**: diff of means 36,603 / SE 38,302 / **t = 0.96**, ช่วงทับกัน (3.15.0 max 721,672 > 3.14.0 min 670,972), spread ใหม่ 19.3% vs เดิม 8.4% ⇒ พูดได้แค่ *behavior ไม่ถอย และต้นทุนไม่เพิ่ม* ไม่ใช่ *ประหยัด 5%*. รายละเอียด: `eval/baseline/e2e-golden/GS1-3.15.0-RESULT.md`
+- **ผลพลอยได้ที่สำคัญกว่าตัวเลข**: aggregate cost gate ที่ N=3 **ใช้เฝ้า regression ไม่ได้** — tolerance ที่กว้างพอครอบ spread 19% กลืน regression 2–10% หมด. ทางที่น่าจะได้ผล: แยก metric startup/preload (deterministic) ออกจาก reviewer depth (variance สูงโดยธรรมชาติ)
+- **ยังไม่ยืนยัน**: Cowork drag-drop กับ `hooks/` (ต้องใช้ UI — 3.15.0 เป็นเวอร์ชันแรกที่ ship `hooks/`)
+
+---
+
 ## [3.14.0] — in progress (unreleased) — roadmap A–D จาก external review 2026-09-08
 
 > version บน main bump เป็น 3.14.0 แล้วเพื่อให้ eval/artifact ระบุ version ตรง แต่ **tag/release จะออกเมื่อ roadmap ปรับปรุงเสร็จ** · เนื้อหาถึงตอนนี้เป็น docs/OSS ล้วน ไม่แตะ agent/skill/command behavior

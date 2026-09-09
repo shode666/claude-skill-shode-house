@@ -33,6 +33,10 @@ Loop route: code → Phase 2
 ### Markdown fallback (no bd) — `outputs/REVIEW-<feature>.md`
 Full template per finding (file:line · why it matters · evidence path · suggested change)
 
+### Output budget (🔴 §5.13 — bd:shode-roadmap/C-G1)
+inline (bd note / return message) ≤ **10 findings** เรียง severity — เกิน → นับรวมต่อ severity + full list ใน artifact/md แล้ว link path
+return ต่อ orchestrator = verdict + ตัวเลขสรุป + path เท่านั้น — **ห้ามตัด**: evidence line · security finding · ตัวเลข · dissent (ตาม discipline)
+
 ### Storage rule (🔴 ห้ามเขียนซ้ำ 2 ที่)
 
 report อยู่ที่เดียว: มี bd → **bd notes เป็น primary** (markdown เฉพาะตอนยาวเกิน 500 chars แล้ว bd note ต้อง link ไปหา)

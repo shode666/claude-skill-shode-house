@@ -438,6 +438,81 @@ jobs:
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi
           exit $fail
 
+      - name: Eval scorer smoke test (committed recorded transcripts, no live agent run)
+        # bd:B3 -- eval-scorer.py itself is stdlib-only (see its own docstring), so this needs no
+        # extra dependency install. It runs against transcripts already committed under
+        # eval/fixtures/transcripts/ (the same fixtures tests/test_eval_scorer.py uses) -- CI
+        # never spawns a live Claude Code session: one real GS1 E2E run costs ~1.9M tokens /
+        # ~11 min (see eval/baseline/e2e-golden/GS1-BASELINE.md), which is not something CI
+        # should be doing on every push/PR.
+        run: |
+          set -e
+          echo "-- PASS-path fixture (routing-ok / GS2-implement-backend) --"
+          python3 scripts/eval-scorer.py eval/fixtures/transcripts/routing-ok \
+            --scenario GS2-implement-backend --project eval/fixtures/outputs-root --bd-id bd-101
+          echo
+          echo "-- FAIL-path fixture (routing-wrong-order / GS2-implement-backend) -- must exit non-zero --"
+          if python3 scripts/eval-scorer.py eval/fixtures/transcripts/routing-wrong-order \
+              --scenario GS2-implement-backend --project eval/fixtures/outputs-root --bd-id bd-101; then
+            echo "FATAL: routing-wrong-order fixture did not fail the scorer -- gate is not enforcing"
+            exit 1
+          fi
+          echo "confirmed: scorer correctly FAILs on a known-bad recorded transcript"
+
+      - name: GS1 E2E regression gate (vs eval/baseline/e2e-golden/GS1-BASELINE.md)
+        # bd:B3 -- compares the *committed* score.json for each baseline run (real E2E sessions
+        # already run and recorded, not re-run here) against the tolerance already declared in
+        # GS1-BASELINE.md's own "## Regression gate" section (both the run list and the cost
+        # caps are parsed from that file, not hardcoded in the script).
+        run: python3 scripts/eval-regression-gate.py
+
+      - name: workflow-state.sh test suite (bd:shode-roadmap/C-A4)
+        # Milestone A tracer bullet -- outputs/shode-roadmap/C/05-oliver-decisions.md CI budget
+        # rule: "1 AC = 1 test case ในสวีท ไม่ใช่ 1 CI section" -- this is the ONE step this
+        # milestone is allowed to add. bash + jq only, no new dependency (ADR-C3).
+        run: bash tests/test-workflow-state.sh
+
+      - name: Registry + route/policy-check test suite (bd:shode-roadmap/C-B1)
+        # Milestone B (capability registry + routing registry + resolver + policy check) --
+        # same CI budget rule as Milestone A: this is the ONE step this milestone is allowed
+        # to add. bash + jq only, no new dependency.
+        run: bash tests/test-registry.sh
+
+      - name: Scope-check test suite (bd:shode-roadmap/C-E1)
+        # Milestone E (scope manifest + shared-file strategy + optimistic conflict check,
+        # ROADMAP-runtime-10.md SS7.1-7.3) -- same CI budget rule as Milestone A/B: this is
+        # the ONE step this milestone is allowed to add. bash + jq + shasum only, no new
+        # dependency.
+        run: bash tests/test-scope-check.sh
+
+      - name: Permission-check test suite (bd:shode-roadmap/C-F1)
+        # Milestone F (tool permission profiles + delegation + trust cascade,
+        # ROADMAP-runtime-10.md SS11.1-11.3 + SS12) -- same CI budget rule: this is the
+        # ONE step this milestone is allowed to add. The suite includes the registry
+        # drift checks (references/security/*.json must match agents/*.md `tools:`
+        # frontmatter verbatim), so no extra step is needed for those. bash + jq only.
+        run: bash tests/test-permission-check.sh
+
+      - name: Reliability test suite (bd:shode-roadmap/C-D1)
+        # Milestone D (retry/rework/resume separation, side-effect ledger, approval
+        # invalidation, ROADMAP-runtime-10.md Phase 6/8.3/9) -- same CI budget rule as
+        # every prior milestone: this is the ONE step Milestone D is allowed to add.
+        # bash + jq + shasum + git only, no new dependency.
+        run: bash tests/test-reliability.sh
+
+      - name: Hooks fixture test suite (bd:shode-roadmap/C-A7)
+        # Milestone A/G runtime enforcement (hooks/**, ADR-C1/C2/C8,
+        # 08-sentinel-threat-model-hooks.md AC-S1..S9/S11) -- same CI budget rule as every
+        # prior milestone: this is the ONE step this task is allowed to add. Covers
+        # hooks.json static shape (AC-S3/S9), bash -n + shellcheck + forbidden-pattern
+        # hygiene on every hooks/scripts/*.sh (AC-S4/S5/S6), the guard's jq-extract +
+        # canonicalize bypass fixtures (Sentinel's T1-T6 + new vectors this task adds,
+        # AC-S8), SessionStart/Stop degradation + torn-write behavior (ADR-C8), the no-op
+        # latency NFR, and packaging (hooks/ ships with exec bits intact). bash + jq +
+        # zip/unzip only, no new dependency (shellcheck/zipinfo checks self-skip loudly
+        # if absent from the runner instead of failing the build).
+        run: bash tests/test-hooks.sh
+
       - name: Build .plugin artifact
         run: make pack
 

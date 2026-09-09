@@ -1,0 +1,75 @@
+{
+  "_comment": "Milestone B trigger registry (bd: shode-roadmap/C-B1, ROADMAP-runtime-10.md SS 3.2; phase vocabulary reconciled bd: shode-roadmap/C-A6 iter0). Every route below is a verbatim transcription of a trigger rule that already exists in prose somewhere in this repo -- no new routing rule invented. See each entry's own `_source` for the exact file. Read by scripts/route.sh only -- NOT preloaded into any agent context. `phases` uses the SAME node ids as references/state-machine/transitions.json's `.states` (e.g. '1a-spec', '3b-review') -- state machine is the single source of truth for phase vocabulary (CLAUDE.md 'Repo'). C-B1 originally used a second, different vocabulary (phase_0/phase_1b/phase_3b/...) borrowed from ROADMAP-runtime-10.md SS3.3's own illustrative example; that was drift (two names for one concept) and is fixed here -- tests/test-registry.sh now asserts every id used here exists in transitions.json's states[] so it cannot silently drift again.",
+  "routes": [
+    {
+      "id": "domain-fintech",
+      "_source": "skills/discipline/shode-house-routing/SKILL.md SS Domain Selection: 'เงิน/ชำระ/ธนาคาร/PromptPay/KYC -> Felix'",
+      "when": { "any": ["payment", "banking", "kyc", "promptpay", "เงิน", "ชำระ", "ธนาคาร"] },
+      "require": ["fintech-expert"],
+      "phases": ["0-discover", "1b-design", "3b-review"]
+    },
+    {
+      "id": "domain-erp",
+      "_source": "skills/discipline/shode-house-routing/SKILL.md SS Domain Selection: 'บัญชี/stock/payroll/MRP generic -> Elena'",
+      "when": { "any": ["บัญชี", "stock", "payroll", "mrp"] },
+      "require": ["erp-expert"],
+      "phases": ["0-discover", "1b-design", "3b-review"]
+    },
+    {
+      "id": "domain-sap",
+      "_source": "skills/discipline/shode-house-routing/SKILL.md SS Domain Selection: 'SAP/ABAP/S4HANA/Fiori/BTP -> Sam'",
+      "when": { "any": ["sap", "abap", "s4hana", "fiori", "btp"] },
+      "require": ["sap-expert"],
+      "phases": ["0-discover", "1b-design", "3b-review"]
+    },
+    {
+      "id": "domain-trading",
+      "_source": "skills/discipline/shode-house-routing/SKILL.md SS Domain Selection: 'trade/order/exchange/FIX -> Tara'",
+      "when": { "any": ["trade", "order", "exchange", "fix"] },
+      "require": ["trading-expert"],
+      "phases": ["0-discover", "1b-design", "3b-review"]
+    },
+    {
+      "id": "domain-insurance",
+      "_source": "skills/discipline/shode-house-routing/SKILL.md SS Domain Selection: 'ประกัน/policy/claim/IFRS17 -> Iris'",
+      "when": { "any": ["ประกัน", "policy", "claim", "ifrs17"] },
+      "require": ["insurance-expert"],
+      "phases": ["0-discover", "1b-design", "3b-review"]
+    },
+    {
+      "id": "domain-booking",
+      "_source": "skills/discipline/shode-house-routing/SKILL.md SS Domain Selection: 'จอง/PMS/yield -> Brooke'",
+      "when": { "any": ["จอง", "pms", "yield"] },
+      "require": ["booking-expert"],
+      "phases": ["0-discover", "1b-design", "3b-review"]
+    },
+    {
+      "id": "domain-ecommerce",
+      "_source": "skills/discipline/shode-house-routing/SKILL.md SS Domain Selection: 'ร้านค้า/cart/promo/marketplace -> Emma'",
+      "when": { "any": ["ร้านค้า", "cart", "promo", "marketplace"] },
+      "require": ["ecommerce-expert"],
+      "phases": ["0-discover", "1b-design", "3b-review"]
+    },
+    {
+      "id": "security-pii",
+      "_source": "skills/discipline/shode-house-workflow/smart-coop.md Phase 1c row: 'auth/PII/money/external trigger' -> Sentinel; skills/discipline/review-checklist/security-sentinel.md WHEN: 'diff_touches in {auth,money,PII,crypto,secrets}'",
+      "when": { "pii": true },
+      "require": ["security-engineer"],
+      "phases": ["1c-security", "3b-review"]
+    },
+    {
+      "id": "security-money-auth",
+      "_source": "skills/discipline/shode-house-drift/SKILL.md: 'Trigger: feature touching auth / PII / money / external integration / file upload / AI agent'",
+      "when": { "any": ["auth", "money", "external-integration", "file-upload", "ai-agent"] },
+      "require": ["security-engineer"],
+      "phases": ["1c-security", "3b-review"]
+    },
+    {
+      "id": "frontend",
+      "_source": "skills/discipline/shode-house-workflow/smart-coop.md Phase 1b pattern ('Uma (if frontend): read spec -> wireframe + tokens + a11y') + Phase 3a pattern (Uma POST gate); shode-house-discipline SKILL.md 'pre-implement-ui gate'",
+      "when": { "frontend": true },
+      "require": ["ux-ui-designer"],
+      "phases": ["1b-design", "3a-ui-check"]
+    }
+  ]
+}

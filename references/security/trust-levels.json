@@ -1,0 +1,36 @@
+{
+  "_comment": "Milestone F untrusted-content boundary + provenance trust levels as DATA (bd: shode-roadmap/C-F1, ROADMAP-runtime-10.md SS 11.2 + SS 12). Read by scripts/permission-check.sh (`claim_trust` action) + CI ONLY -- NEVER preloaded into agent context. Levels are ordered exactly as the roadmap lists them (canonical > operational > user > external > untrusted > generated). What IS script-checkable: (a) a declared trust level must be one of these six; (b) a path's declared trust may never exceed the rank of its path class below -- that is the machine-checkable half of the cascade rule 'agent output cannot elevate the trust of its own source' (an agent writing outputs/** can claim at most `generated`; unclassified content in a target repo -- README, issues, logs, fixtures, source comments, web content -- defaults to `untrusted` and cannot be re-labeled upward). What is NOT script-checkable today is listed honestly in outputs/shode-roadmap/C/15-sentinel-runtime-security.md SS enforceability -- do not treat this file as covering more than it does.",
+  "levels": {
+    "canonical": 6,
+    "operational": 5,
+    "user": 4,
+    "external": 3,
+    "untrusted": 2,
+    "generated": 1
+  },
+  "instruction_sources": ["canonical", "operational", "user"],
+  "data_only_sources": ["external", "untrusted", "generated"],
+  "_boundary_note": "instruction_sources vs data_only_sources encodes SS 11.2: 'README, issue, web page, source comment, log, test fixture, generated AI content = data not instruction'. The classification is enforceable (claim_trust); an agent actually OBEYING an instruction found inside data-only content is not detectable by this script -- that remains a prompt-level convention plus hook-layer work (see threat model 08-sentinel SS 3 E2 / R4).",
+  "path_classes": [
+    { "pattern": "CLAUDE.md", "trust": "canonical" },
+    { "pattern": "agents/*", "trust": "canonical" },
+    { "pattern": "skills/*", "trust": "canonical" },
+    { "pattern": "output-styles/*", "trust": "canonical" },
+    { "pattern": "references/*", "trust": "canonical" },
+    { "pattern": "scripts/*", "trust": "canonical" },
+    { "pattern": "hooks/*", "trust": "canonical" },
+    { "pattern": ".shode-house/*", "trust": "operational" },
+    { "pattern": "outputs/*", "trust": "generated" }
+  ],
+  "default_class": "untrusted",
+  "cascade": {
+    "rule": "min",
+    "output_cap": "generated",
+    "human": "trust(agent output) = min(trust of all inputs), and never above 'generated'. No self-elevation: neither the producing agent nor any downstream agent may raise the recorded trust of a source or of generated output -- only a human (user) reclassification can."
+  },
+  "provenance_record": {
+    "fields": ["source", "sha", "trust"],
+    "example": { "source": "outputs/SPEC.md", "sha": "abc", "trust": "generated" },
+    "status": "schema only -- no producer emits provenance records yet, so the full cascade (output <= min(inputs)) is checkable per-claim via permission-check.sh claim_trust but not yet end-to-end; see 15-sentinel artifact SS enforceability"
+  }
+}

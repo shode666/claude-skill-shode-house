@@ -4,7 +4,7 @@
   "dimensions": {
     "routing": {
       "verdict": "PASS",
-      "detail": "1/2 steps matched; optional step(s) not observed (skipped, not a failure): [2]; step1 parallel=False",
+      "detail": "1/2 steps matched; optional step(s) not observed (skipped, not a failure): [2]; step1 parallel=True(overlap)",
       "steps": [
         {
           "step": 1,
@@ -15,7 +15,9 @@
             "shode-house:qa-engineer",
             "shode-house:security-engineer"
           ],
-          "parallel": false,
+          "parallel": true,
+          "concurrency": "overlap",
+          "same_message": false,
           "batches": 5,
           "timestamps": [
             "2026-09-08T08:43:40.347Z",
@@ -23,6 +25,28 @@
             "2026-09-08T08:44:03.062Z",
             "2026-09-08T08:44:12.943Z",
             "2026-09-08T08:44:23.166Z"
+          ],
+          "windows": [
+            [
+              "2026-09-08T08:43:40.353Z",
+              "2026-09-08T08:48:27.801Z"
+            ],
+            [
+              "2026-09-08T08:43:49.592Z",
+              "2026-09-08T08:50:33.820Z"
+            ],
+            [
+              "2026-09-08T08:44:03.068Z",
+              "2026-09-08T08:47:08.416Z"
+            ],
+            [
+              "2026-09-08T08:44:12.948Z",
+              "2026-09-08T08:48:56.051Z"
+            ],
+            [
+              "2026-09-08T08:44:23.176Z",
+              "2026-09-08T08:50:22.749Z"
+            ]
           ],
           "optional": false,
           "observed": true
@@ -62,7 +86,9 @@
     }
   },
   "cost": {
-    "total_effective_tokens": 1984149
+    "total_effective_tokens": 727503,
+    "cost_legacy_inflated": 1984149,
+    "cost_legacy_note": "bd:shode-roadmap/C-C2 (R-1): old value summed message.usage PER JSONL ROW; Claude Code CLI 2.1.263 writes one row per content-block of a multi-block assistant message, all sharing one message.id -- this inflated the metric 2.6-2.7x. Fixed scorer dedupes by message.id (last-wins, per file) in scripts/eval-scorer.py::cost_dimension. See outputs/shode-roadmap/C/11-stan-token-audit.md F-0 and outputs/shode-roadmap/C/12-dave-scorer-dedupe.md."
   },
   "routing_tree": [
     "depth1  2026-09-08T08:43:40.347Z  shode-house:code-reviewer",
