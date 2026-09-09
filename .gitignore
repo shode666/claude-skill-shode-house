@@ -22,3 +22,9 @@ shode-house-v*.plugin
 
 # Cowork side-panel exports
 Claude outputs/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.beads/proxieddb/

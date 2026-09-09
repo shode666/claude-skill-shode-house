@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "shode_house",
+  "project_id": "1372a4d9-a0d1-4ce9-9cb8-f31a4094f9ab"
+}
