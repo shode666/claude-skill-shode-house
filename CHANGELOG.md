@@ -21,7 +21,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 - **hooks — จุดที่เปลี่ยน advisory เป็น enforced**: `hooks/hooks.json` + `hooks/scripts/` · `PreToolUse` deny เขียนตรงเข้า `.shode-house/state|journal` · `SessionStart` canary+prereq+torn-write · `Stop` warn-only. guard เขียนใหม่ทั้งหมด (spike substring บน raw JSON → false-positive + bypass 4 ทาง): jq extract `file_path` → lexical normalize → physical canonicalize → prefix compare. **bypass traversal/case/json-escape/dot-slash ปิดครบ พิสูจน์ทีละ vector** · no-op 11 ms/call · **0 token/run** (อยู่นอก context)
 - `.gitignore` `outputs/` → `/outputs/` — pattern เดิม match ทุกระดับ ทำให้ `eval/fixtures/outputs-root/outputs/` ไม่เคยถูก commit ⇒ smoke step ของ CI **แดงตั้งแต่ run แรก** เขียวเฉพาะบนเครื่องที่มีไฟล์ untracked
 - CI +5 step (1 ต่อ milestone) — **ไม่ใช่ grep-based inline check รายข้อ**: 1 AC = 1 test case ในสวีท ไม่ใช่ 1 CI section
-- **ยังไม่ยืนยัน**: Cowork drag-drop กับ `hooks/` (ต้องใช้ UI) · ตัวเลขประหยัด token (ต้อง GS1 N=3 บน 3.15.0)
+- **วัดแล้ว (GS1 N=3 บน 3.15.0, run-7/8/9)**: behavior **3/3 PASS** ทุกมิติ (5/5 spawn ขนาน · security trigger · evidence · anti-puppet 0 · bd CLOSED) ⇒ เกณฑ์ revert ล็อต C/G ไม่ถูกแตะ · cost median 717,757 → **679,684 (-5.3%)** แต่ **เคลมไม่ได้**: diff of means 36,603 / SE 38,302 / **t = 0.96**, ช่วงทับกัน (3.15.0 max 721,672 > 3.14.0 min 670,972), spread ใหม่ 19.3% vs เดิม 8.4% ⇒ พูดได้แค่ *behavior ไม่ถอย และต้นทุนไม่เพิ่ม* ไม่ใช่ *ประหยัด 5%*. รายละเอียด: `eval/baseline/e2e-golden/GS1-3.15.0-RESULT.md`
+- **ผลพลอยได้ที่สำคัญกว่าตัวเลข**: aggregate cost gate ที่ N=3 **ใช้เฝ้า regression ไม่ได้** — tolerance ที่กว้างพอครอบ spread 19% กลืน regression 2–10% หมด. ทางที่น่าจะได้ผล: แยก metric startup/preload (deterministic) ออกจาก reviewer depth (variance สูงโดยธรรมชาติ)
+- **ยังไม่ยืนยัน**: Cowork drag-drop กับ `hooks/` (ต้องใช้ UI — 3.15.0 เป็นเวอร์ชันแรกที่ ship `hooks/`)
 
 ---
 
