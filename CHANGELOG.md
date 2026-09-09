@@ -7,7 +7,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ---
 
-## [3.15.0] — Runtime enforcement (roadmap Milestone A–G) — in progress (unreleased)
+## [3.15.0] — Runtime enforcement (roadmap Milestone A–G) — 2026-09-09
 
 > จาก "AI อ่านกฎที่ดีแล้วพยายามทำตาม" → "runtime บังคับ invariant ที่ deterministic". ยัง **ไม่ tag/release** จนกว่า GS1 N=3 บน 3.15.0 จะยืนยันทั้ง behavior และ token
 
