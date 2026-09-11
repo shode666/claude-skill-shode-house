@@ -15,6 +15,9 @@ spec.loader.exec_module(pack)
 class PortableReleaseTests(unittest.TestCase):
     def test_only_ask_and_exact_payload(self):
         config, bundles = pack.archives()
+        self.assertEqual(config["release_host"], "codex")
+        self.assertEqual(set(bundles), {"portable.zip"})
+        config, bundles = pack.archives(include_experimental=True)
         self.assertEqual(len(bundles["portable.zip"]), 6)
         self.assertEqual(len(bundles["claude.plugin"]), 7)
         for name, content in bundles["portable.zip"].items():
@@ -33,6 +36,11 @@ class PortableReleaseTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 pack.build(out)
             self.assertEqual(before, {p.name: p.read_bytes() for p in out.iterdir()})
+
+    def test_experimental_requires_explicit_opt_in(self):
+        with tempfile.TemporaryDirectory() as directory:
+            built = pack.build(Path(directory), include_experimental=True)
+            self.assertEqual(len(built), 2)
 
     def test_missing_or_extra_runtime_file_rejected(self):
         with tempfile.TemporaryDirectory() as directory:

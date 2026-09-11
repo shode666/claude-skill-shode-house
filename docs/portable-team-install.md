@@ -1,5 +1,8 @@
 # Ask Oliver 3.16 RC — install without scripts
 
+Stable qualification is **Codex only**, per the user's revised release scope.
+The other hosts below are experimental discovery locations, not verified support.
+
 Source: [.agents/skills/ask](../.agents/skills/ask/SKILL.md).
 Copy that folder with your editor or file manager into the target project. The
 runtime distribution is `SKILL.md` plus its `references/` folder; copy both together.
@@ -69,8 +72,10 @@ to authorize that scope; no second command is needed. An approved design alone
 does not authorize edits, commits or deployment.
 
 Maintainers run `make validate-portable` and `make pack` (Python 3.9+, build-time
-only). Packaging writes two archives into a fresh temporary directory and prints
-paths and hashes. The portable ZIP contains `ask/`; the Claude archive contains
+only). Packaging writes the Codex-targeted portable ZIP into a fresh temporary
+directory and prints its path/hash. It contains `ask/`. The optional maintainer
+flag `python3 scripts/pack-portable.py --include-experimental` also builds an
+unverified Claude-format archive; this does not establish host support. It contains
 `skills/ask/` and a minimal plugin manifest. No legacy hooks or scripts are shipped.
 For Claude, extract the plugin archive to a new folder and use the host's plugin
 loading mechanism; its shortcut is namespaced `/shode-house:ask`. A project skill
@@ -83,4 +88,4 @@ Codex discovery and scoped live execution have been exercised. RC6
 their exact outcomes and limitations. They do not establish all
 [behavioral cases](../eval/portable-team/CASES.md), four-host parity, actual
 compaction/concurrent-write recovery or general token savings. Whole-workflow
-efficiency and remaining host acceptance still block stable promotion.
+efficiency and Codex behavioral/recovery acceptance still block stable promotion.

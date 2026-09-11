@@ -1,9 +1,10 @@
 # shode-house
 
-**3.16 RC — one entrypoint:** [Ask Oliver](.agents/skills/ask/SKILL.md)
+**3.16 RC — Codex-only qualification, one entrypoint:** [Ask Oliver](.agents/skills/ask/SKILL.md)
 uses host tools, risk-based roles and resumable checkpoints without custom runtime scripts.
-This repository skill is separate from the legacy `.plugin` below; four-host execution
-has not yet been verified. [Install without scripts](docs/portable-team-install.md)
+This repository skill is separate from the legacy `.plugin` below. Claude Code,
+Cursor and Antigravity remain experimental, not stable-supported hosts.
+[Install without scripts](docs/portable-team-install.md)
 or read the [release contract](docs/3.16-release-contract.md).
 
 `make pack` builds the instruction-only 3.16 candidate in a new temporary folder;

@@ -22,6 +22,7 @@ def payload(root=ROOT):
     require(source.resolve().is_relative_to(root.resolve()), "source escapes repository")
     require(re.fullmatch(r"\d+\.\d+\.\d+(?:-rc\.\d+)?", config["version"]))
     require(config["name"] == "shode-house")
+    require(config.get("release_host") == "codex", "3.16 release scope is Codex only")
     files = config["files"]
     require(len(files) == len(set(files)), "duplicate source files")
     actual = {p.relative_to(source).as_posix() for p in source.rglob("*") if p.is_file()}
@@ -44,17 +45,19 @@ def payload(root=ROOT):
     return config, data
 
 
-def archives(root=ROOT):
+def archives(root=ROOT, include_experimental=False):
     config, data = payload(root)
     portable = {f"ask/{name}": value for name, value in data.items()}
+    if not include_experimental:
+        return config, {"portable.zip": portable}
     claude = {f"skills/ask/{name}": value for name, value in data.items()}
     manifest = {key: config[key] for key in ("name", "version", "description")}
     claude[".claude-plugin/plugin.json"] = (json.dumps(manifest, indent=2) + "\n").encode()
     return config, {"portable.zip": portable, "claude.plugin": claude}
 
 
-def build(destination, root=ROOT):
-    config, bundles = archives(root)
+def build(destination, root=ROOT, include_experimental=False):
+    config, bundles = archives(root, include_experimental)
     destination.mkdir(parents=True, exist_ok=True)
     results = []
     for suffix, entries in bundles.items():
@@ -79,10 +82,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--out", type=Path, help="new output directory; existing artifacts are not overwritten")
+    parser.add_argument("--include-experimental", action="store_true",
+                        help="also build the unverified Claude-format archive; not stable support")
     args = parser.parse_args()
     if args.check:
         config, data = payload()
         print(f"PASS {config['version']}: one ask entrypoint, {len(data)} instruction files")
     else:
         destination = args.out or Path(tempfile.mkdtemp(prefix="shode-release-"))
-        print(json.dumps(build(destination.resolve()), indent=2))
+        print(json.dumps(build(destination.resolve(), include_experimental=args.include_experimental), indent=2))
