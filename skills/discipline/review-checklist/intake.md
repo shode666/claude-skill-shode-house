@@ -14,12 +14,11 @@ REQUIRED-BEFORE: review_start
 
 ## Required inputs — refuse without
 
-- [ ] **ขอบเขต diff ถูก pin มาแล้ว** — caller (Oliver/`/review`) ต้องส่ง **fixed point + diff command ที่รันได้จริง** มาให้ ไม่ใช่ให้ reviewer เดาเอง
-      วิธี resolve (fallback ladder สำหรับ path/snippet/non-git) = `commands/review.md` § Scope resolution · reviewer ตรวจแค่ว่า diff ไม่ว่างและ ref resolve ได้
+- [ ] **Scope pinned** — caller supplies a resolvable diff range or explicit full-file/snippet scope. Use `commands/review.md` § Scope resolution; do not demand a git diff for non-git input.
 - [ ] **Spec source ระบุได้** — หาตามลำดับ: bd-id/issue ref ใน commit message → path ที่ user ส่ง → `outputs/SPEC-<bd-id>.md` / `outputs/<bd-id>/` → ถามผู้ใช้
       ไม่มี spec จริง ๆ → Spec axis รายงาน **"no spec available"** ห้าม pass เงียบ
-- [ ] **Static analysis tool พร้อม** (lint/SAST configured — Chris ใช้ Bash จริง ไม่ใช่ "ดู visually")
-- [ ] **Tracker available** (bd active หรือ Jira key — finding ต้อง track ไม่ใช่ chat message)
+- [ ] **Applicable checks identified** — run configured safe checks; missing tools limit verification, not permission to invent PASS.
+- [ ] **Report destination and authority** — follow `report-format.md`; unavailable tracking does not prevent returning findings in chat.
 - [ ] **Severity scale agreed** (project ใช้ 🔴/🟠/🟡/🔵/💡 default — ห้าม "minor/major" loose)
 - [ ] **ก่อน fan-out → print [REVIEW DISPATCH CARD]** ตาม `commands/review.md` § Step 1 (template + กติกา 5 ข้อ — ไม่ duplicate ที่นี่)
 

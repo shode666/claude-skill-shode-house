@@ -1,8 +1,32 @@
 ---
-description: "[shode-house] Smart Spec pipeline (Phase 1a Bella + Sara parallel; Phase 1b Uma + Domain conditional). Flags: --stop = หยุดที่ spec ไม่ suggest implement (proposal mode); --estimate = เพิ่ม T-shirt sizing step"
+description: "[shode-house] Feature specification (legacy command name); UI-only requests stay in UX scope. --stop: no implementation suggestion; --estimate: requested effort sizing."
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash, Skill, AskUserQuestion
 argument-hint: "[bd-id | system description] [--stop] [--estimate]"
 ---
+
+## Intent selection — before the pipeline
+
+The legacy name covers feature specification, not only a UI design system.
+Select from the requested outcome before creating tasks or dispatching agents:
+
+- Feature requirements, acceptance and architecture: continue the spec pipeline below.
+- UI tokens, component states or visual guidelines only: apply Uma's design responsibility
+  within that bounded scope; delegate only when supported and useful, otherwise work
+  locally without claiming an independent designer review. Reuse existing artifacts and return after the design
+  result. Do not generate unrelated BRD/C4/DR documents or start implementation.
+- Review or explanation only: inspect and return findings/advice without writing a
+  new spec; use `/review` or `/consult` as appropriate. `--stop` is spec-authoring
+  without implementation suggestions, not authorization to edit a review target.
+
+Use existing project task/spec locations and authorization. A plain request for a
+design does not authorize remote posting, implementation, commit or deployment.
+If ambiguity materially changes the requested output, ask a concise question;
+otherwise state the chosen scope and proceed. No new flag or command is needed.
+
+All steps, output-file requirements, phase rules and handoff rules below apply only
+to the feature-spec-authoring path. UI-only and read-only exits above do not enter
+them. `--stop` suppresses implementation suggestions on every path but never overrides
+an explicit no-file/advice-only request.
 
 > 🗺️ **ก่อนเริ่ม — งานนี้ใหญ่เกิน 1 spec ไหม?** ถ้า user มาด้วยไอเดียก้อนใหญ่ที่ยังมองไม่เห็นทาง (ตอบไม่ได้ว่า "เสร็จ" หน้าตายังไง / มี decision ต้องตัดก่อนถึงจะ spec ได้) → **หยุด แล้วทำ Map ก่อน** (`shode-house-workflow/wayfinding.md`). command นี้สมมติว่ารูปงานนิ่งแล้ว — ใช้กับ fog จะได้ spec ที่เขียนจากการเดา
 
@@ -12,23 +36,17 @@ argument-hint: "[bd-id | system description] [--stop] [--estimate]"
 
 ## Flag parsing (Oliver step 0)
 
-```bash
-STOP=false
-ESTIMATE=false
-ARGS=$(echo "$ARGUMENTS" | sed -E 's/--stop|--estimate//g' | xargs)
-
-[[ "$ARGUMENTS" == *--stop* ]] && STOP=true
-[[ "$ARGUMENTS" == *--estimate* ]] && ESTIMATE=true
-
-# Sanity: --stop มักไปคู่กับ --estimate (proposal mode ต้องการ effort number)
-# ถ้า --stop ไม่มี --estimate → ถาม user 1 ครั้ง: "proposal mode ต้องการ estimation ด้วยมั้ย?"
-```
+Recognize `--stop` and `--estimate` only as standalone flags outside quoted content.
+Preserve the remaining request, paths and quoting; do not execute arguments as shell
+code or strip matching substrings. `--stop` does not imply estimation or an extra
+question about it. UI-only requests retain these stop/estimate preferences without
+entering the full feature pipeline.
 
 | Flag combo | Mode | Use case |
 |---|---|---|
 | (none) | spec → suggest /implement | normal feature design |
 | `--estimate` | spec + estimation → suggest /implement | when user explicit ขอ effort for external report |
-| `--stop` | spec → STOP (no implement suggest) | review-only / docs |
+| `--stop` | spec → STOP (no implement suggest) | spec/proposal authoring only |
 | `--stop --estimate` | spec + estimation → STOP + summary | **proposal / quotation** (replaces /spec-only) |
 
 ## Step 0 — Triage (Oliver)
@@ -38,7 +56,7 @@ ARGS=$(echo "$ARGUMENTS" | sed -E 's/--stop|--estimate//g' | xargs)
   - **frontend trigger**? (touch UI/component/page/view/email/dashboard) → Uma เข้า Phase 1b
   - **business-rule trigger**? (money/policy/matching/booking/inventory/regulation) → Domain Expert เข้า Phase 1b
   - Pure infra/CLI/library? → skip 1b ทั้งคู่
-- Present roster + estimated effort → user approve
+- Present scope/roster when approval is needed; include effort only if explicitly requested or `--estimate` is present
 
 ## Step 1 — Phase 1a Foundation (Bella ∥ Sara — TRUE parallel)
 

@@ -43,7 +43,7 @@ Chris start **after** Phase 3a Uma POST PASS (sequential gate `pre-code-review`)
 | Chris scope (Phase 3b) | Hand-off (split scope) |
 |------------------------|------------------------|
 | 7-dim review (correctness/security/SOLID/perf/maintain/test/observability) | — |
-| Unit test + mutation kill ≥ 70% + property-based + coverage ≥ 80% | — |
+| Behavior-test quality and configured project thresholds (per `dev-gate`) | — |
 | **Visual diff / design adherence / baseline approval** | → **Uma Phase 3a** (Chris ไม่ตรวจ — passed gate ก่อนแล้ว) |
 | **Integration / E2E / contract / load / a11y axe automation** | → **Quinn Phase 3b** (Chris ไม่ตรวจ) |
 
@@ -57,15 +57,11 @@ Chris start **after** Phase 3a Uma POST PASS (sequential gate `pre-code-review`)
 
 ## 🔴 Mandatory Test Quality (v2.2 — block merge)
 
-1. **Mutation testing kill rate ≥ 70%** (mutmut/Stryker) — บังคับ business logic
-   - mutate code random → test ต้อง fail → ถ้าไม่ fail = test ห่วย ไม่จับ bug
-2. **Property-based test** บังคับ pure function + invariant
-   - Hypothesis (Py), fast-check (TS), QuickCheck-style
-   - generate 1000+ random valid input → หา edge case auto
-3. **Coverage ≥ 80% business logic** (line + branch)
-4. **Test pyramid**: 70% unit / 20% int / 10% E2E (inverted = anti-pattern, block)
-
-ขาดข้อใด = block merge ไม่ approve
+Per-change test discipline is owned by `dev-gate`; project-wide strategy by
+`automate-test`. Check independent expected values, meaningful boundary/error
+coverage and configured gates. Mutation/property tests are risk-based techniques,
+not mandatory new tools or fixed percentages. Required project gate failures block
+approval; do not invent a universal ratio or relax a configured threshold.
 
 ## 7 มิติ
 
@@ -87,12 +83,12 @@ N+1, missing index, full scan; O(n²) ที่ควร O(n log n); memory leak
 File >500/function >50/cyclomatic >10/cognitive >15; magic number/string; duplicate (DRY); naming; missing docstring; **Code smells** (Fowler): long parameter list, feature envy, data clump, shotgun surgery, primitive obsession
 
 ### 6. Testing (Unit — Chris's job)
-Coverage ≥ 80% business logic, edge case + error path, G-W-T naming, AAA pattern, independent (no shared state)
+Configured coverage plus meaningful edge/error-path tests; coverage alone does not prove correctness. Follow `dev-gate` for test-quality criteria.
 
 **Test doubles** (🔴): Dummy / Stub / Spy / Mock / Fake — pick by intent
 - Mock boundary (external), not internals
 - **Property-based** (Hypothesis/fast-check) for invariant
-- **Mutation testing** (mutmut/Stryker) kill rate ≥ 70%
+- **Mutation testing** when justified by risk or required by the project; use its configured target
 - Frameworks: pytest / Vitest+Jest / testing+testify / JUnit+Mockito
 
 ### 7. Observability

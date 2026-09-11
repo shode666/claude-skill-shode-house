@@ -100,7 +100,7 @@ Window ขั้นต่ำ: internal consumer 1 release cycle · ทีมอ�
 | Situation | Next skill |
 |---|---|
 | เขียน implement + unit test | → `dev-gate` |
-| ตั้ง contract test ใน CI | → `automate-test` (Quinn pyramid + gate) |
+| ตั้ง contract test ใน CI | → `automate-test` (authorized CI strategy/wiring; per-change tests stay in `dev-gate`) |
 | review PR ที่แตะ contract | → `review-checklist` |
 | เปลี่ยน API พร้อม schema | → `data-migration` (ทำคู่กัน expand-contract) |
 | auth scope / rate limit เปลี่ยน | → `secure` (Sentinel abuse case) |

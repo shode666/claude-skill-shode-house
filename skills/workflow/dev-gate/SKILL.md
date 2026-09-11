@@ -1,339 +1,124 @@
 ---
 name: dev-gate
 description: |
-  [WHAT] บังคับ TDD cycle (red → green → refactor) + quality gate (format/lint/type/complexity/naming/test/doc) ก่อน hand-off production code.
-  [WHEN] Phase 2 implement / refactor / bug-fix.
-  [TRIGGER] /shode-house:dev-gate, "TDD", "test first", "red-green-refactor", "clean code", "เน้น quality".
+  [WHAT] Implement and verify a scoped code change using behavior tests and existing project quality gates.
+  [WHEN] Authorized implementation, refactoring or regression fixes; not project-wide CI setup.
+  [TRIGGER] /shode-house:dev-gate, "TDD", "test first", "verify this change".
 ---
 
-# Dev Gate (TDD + Quality Gates) — v3.0 merged
+# Dev Gate (per-change implementation quality)
 
-> **Owner**: Dave (implement) + Chris (verify). เปิด skill นี้ตอนเขียน production code
-> Merged from v2 skills: `tdd` + `code-quality` — ลด context, รวม dev-time discipline
+Owner: implementer produces code/tests/evidence; reviewer challenges them.
+This skill owns per-change test discipline. `automate-test` owns project-wide CI
+selection/configuration, not another copy of these checks. Skill activation alone
+does not authorize edits, commits, pushes, hook installation or deployment.
 
 ## When NOT to use
 
-- **Spike / prototype / throwaway script** — TDD overhead ไม่คุ้ม. ใช้ `diagnose` แทนถ้าเป็น exploration
-- **Generated code** (codegen, OpenAPI client, ORM model) — gen tool ดูแล quality, dev-gate ไม่ฟิต
-- **Pure config change** (yaml/json/env tweak) — review + smoke test พอ ไม่ต้อง TDD
-- **Production hot-fix P0/P1** — ใช้ `incident` skill ก่อน; dev-gate ตามมาตอน follow-up fix
+Review-only work uses `review-checklist`; diagnosis-only work uses `diagnose`.
+Exploration/prototypes need checks proportional to their purpose, not a production
+pipeline. Config/generated changes need appropriate validation of their source and
+affected behavior, not fabricated TDD history. Active incidents use `incident`
+within authorized scope; urgency does not silently waive safety controls.
 
-## Required inputs — refuse without
+## Required inputs
 
-ก่อน hand-off Phase 2 → 3, confirm ทุก checklist. ถ้าขาด **list สิ่งที่ขาด แล้วหยุด** — ห้าม claim "done":
+Resolve the requested behavior/acceptance, authorized scope, relevant existing
+interfaces and project test/check commands. Missing BRD/ADR documents are not by
+themselves blockers if the requirement is clear. Unknown business decisions or
+consequential scope changes require the authorized owner's decision.
+Missing tools/evidence limit verification; report the gap instead of inventing PASS.
 
-- [ ] **Spec ครบ** จาก Phase 1 (BRD + AC G-W-T + ADR ที่กระทบ)
-- [ ] **Test runs locally** (red phase): ทุก new behavior มี failing test ก่อน implement
-- [ ] **Test pass** (green): ทุก unit/integration test green; ไม่ skip/disable
-- [ ] **Quality gate ผ่านครบ 11** (Gate 0-10, ดู Part 2): YAGNI · format · lint · type · complexity ≤10 · naming · test · coverage ≥ threshold · doc/comment "why" · security · observability
-- [ ] **Evidence paste**: command + output ใน hand-off (ห้าม "should work")
+## Part 1: TDD Cycle
 
-## หลักการ (🔴)
+### Step 0: YAGNI ladder
 
-1. **No production code without failing test first** (TDD core)
-2. **Quality at dev time, not after** — fix early ถูกกว่า 100x
-3. **Best code = code you never wrote** — ผ่าน YAGNI ladder (Step 0) ก่อนทุกครั้ง
+Check the current requirement before adding code. Prefer the existing implementation,
+standard library, native platform or installed dependency when it meets the need.
+Compare new layers/frameworks with a simpler application-layer solution. Do not
+drop an accepted requirement because it looks expensive or optimize for one-liners.
 
-### Lazy ≠ Negligent — ห้ามตัด (carve-out)
+### Lazy ≠ Negligent — carve-out
 
-YAGNI/compression ตัดได้เฉพาะ "ความซับซ้อนที่ยังไม่ต้องใช้" — **ห้ามแตะ**:
-- Trust-boundary validation (input/HTTP/queue/env — Zod/Pydantic)
-- Data-loss handling (transaction, idempotency, money R0)
-- Security control (auth, crypto, secret, injection guard)
-- Accessibility (WCAG — Uma's gate)
-- Regulation/compliance (Felix BOT/PCI · Iris OIC · domain rule)
+Simplification must preserve trust-boundary validation, data-loss protection,
+transactions/idempotency where needed, security, applicable accessibility and
+regulatory requirements. Record meaningful deferred work in the project's designated
+tracker with rationale; routine reuse of existing code is not technical debt.
+Preserve existing `shortcut(bd:N):` links where the project uses that convention.
 
-ตัดของเหล่านี้ = Philosophy violation, ไม่ใช่ "lazy"
+### Seams and test quality
 
----
+Use a public boundary that exposes the relevant behavior, including real integration
+when a unit test cannot exercise it. Reuse agreed acceptance/interfaces rather than
+asking the user to reconfirm each test. Ask when a choice changes scope or accepted risk.
+Expected values come from independent requirements, known fixtures or worked examples,
+not a copy of the implementation formula. Avoid tests of private wiring and mocks
+of the business logic under test. Isolate external dependencies when useful, and
+do not describe mocked integration as verified real integration.
 
-## Part 1: TDD Cycle (red → green → refactor)
+### Red → Green → Refactor
 
-### 0. ⛔ YAGNI ladder — หยุดก่อนเขียน (จาก ponytail)
+For test-first work and regression fixes, take one behavior through an intended
+failing assertion, minimal implementation and passing check before the next slice.
+Setup/compile errors alone do not prove the test detects the bug. Refactor within
+scope with tests green; do not mix speculative behavior into cleanup.
+Use deterministic fixtures/time when appropriate, not sleep-based guesses.
 
-ก่อนเขียน production code ใด ๆ ตอบไล่จากบนลงล่าง หยุดที่ข้อแรกที่ "ใช่":
+## Part 2: Quality Gates
 
-| ขั้น | ถาม | ถ้าใช่ |
-|---|---|---|
-| 1 | feature นี้ต้องมีจริงไหม? | ไม่ → skip (YAGNI) + log เป็น bd discovered |
-| 2 | stdlib ทำได้ไหม? | ใช้ stdlib |
-| 3 | native platform feature? (`<input type=date>`, `crypto`, ...) | ใช้ native |
-| 4 | dep ที่ลงแล้วทำได้? | ใช้ของเดิม ห้ามลง dep ใหม่ |
-| 5 | one-liner พอไหม? | เขียนบรรทัดเดียว |
-| 6 | ถ้าผ่านทั้งหมด | เขียน "ขั้นต่ำที่ work" เท่านั้น |
-
-> ทุกครั้งที่ตัด (ขั้น 1) หรือใช้ทางลัด → mark ด้วย `shortcut(bd:N):` comment (ดู Gate 3) เพื่อให้ debt harvest เก็บได้
-> เพดานความขี้เกียจ = carve-out ด้านบน (validation/security/a11y/regulation ห้ามตัด)
-
-### 0.5 🎯 Seams — ตกลงก่อนเขียน test
-
-**seam** = public boundary ที่เราสังเกต behavior ได้โดยไม่เอื้อมเข้าไปข้างใน. test อยู่ที่ seam เท่านั้น ไม่ใช่ที่ internal
-
-🔴 **เขียน test ไม่ได้จนกว่าจะ list seam ที่จะ test แล้ว confirm** (กับ user หรือกับ AC ใน spec). ห้ามมี test ตัวไหนเขียนที่ seam ที่ยังไม่ confirm
-> เหตุผล: test ทุกอย่างไม่ได้ — ตกลง seam ล่วงหน้าคือวิธีให้แรงเทสต์ลงที่ critical path + logic ซับซ้อน แทนที่จะกระจายไปทุก edge case
-> `coverage ≥ 80%` (Gate 8) บอกว่า test **เยอะพอ** — ไม่ได้บอกว่า test **ถูกที่**. Seam list คือสิ่งที่ตอบข้อหลัง
-
-ถามตรง ๆ ก่อนเริ่ม: *"public interface คืออะไร แล้วจะ test ที่ seam ไหนบ้าง?"*
-รูปร่างของ interface เองยังไม่นิ่ง (ลึกแค่ไหน seam อยู่ตรงไหน) → ดู § Gate 0 § Deep module
-
-### 1. 🔴 Red — เขียน test ที่ fail ก่อน
-- Test เล็กที่สุด — 1 behavior
-- Naming: `should_<behavior>_when_<condition>` หรือ G-W-T
-- Run → ต้อง fail (assertion fail; compile error ไม่นับ)
-
-```python
-def test_calculate_total_with_vat_includes_7_percent():
-    cart = Cart(items=[Item(price=Decimal("100"))])
-    total = cart.total_with_vat(rate=Decimal("0.07"))
-    assert total == Decimal("107.00")
-```
-
-### 2. 🟢 Green — เขียน code น้อยที่สุดที่ pass
-- Simplest thing that works (YAGNI)
-- ห้าม anticipate future requirement
-- ห้าม refactor ตอนนี้
-
-### 3. 🔵 Refactor — clean up (test ยัง pass)
-- Remove duplication, improve naming, extract function
-- ห้ามเพิ่ม behavior ใหม่ในรอบ refactor
-
-### TDD scope
-✅ **เหมาะ**: business logic, calc, validation, state machine, parser, algorithm, bug-fix regression
-❌ **ไม่เหมาะ**: UI prototype, spike, pure framework integration
-
-### 🚫 3 anti-pattern ที่ทำให้ coverage สูงแต่ test ไร้ค่า
-
-- **Implementation-coupled** — mock collaborator ภายใน / test private method / verify ผ่านช่องข้าง (query DB แทนใช้ interface)
-  *สัญญาณ*: refactor แล้ว test แตก ทั้งที่ behavior ไม่เปลี่ยน
-- **Tautological** — assertion คำนวณค่าที่คาดหวังด้วยวิธีเดียวกับ code (`expect(add(a,b)).toBe(a+b)` · snapshot ที่ derive มาด้วยมือแบบเดียวกัน · constant assert เท่ากับตัวเอง) → **ผ่านโดยโครงสร้าง ไม่มีวันเถียงกับ code ได้**
-  *ทางแก้*: ค่าที่คาดหวังต้องมาจาก **แหล่งอิสระ** — literal ที่รู้ว่าถูก, worked example, ตัวเลขจาก spec
-  > นี่คือเหตุผลที่ coverage 80% เขียวตลอดกาลโดยไม่เคยจับ bug อะไรเลย
-- **Horizontal slicing** — เขียน test ทั้งชุดก่อน แล้วค่อย implement ทั้งชุด → test ตรวจ behavior **ในจินตนาการ**, ล็อค test structure ก่อนเข้าใจ implementation, และ test จะด้านต่อการเปลี่ยนแปลงจริง
-  *ทางแก้*: **vertical slice** — 1 test → 1 implementation → ทำซ้ำ. แต่ละ test คือ **tracer bullet** ที่ตอบสนองสิ่งที่รอบก่อนสอน
-
----
-
-## Part 2: Quality Gates (🔴 11 gates — รัน local + pre-commit + CI)
-
-> เพิ่ม Gate 0 Architecture self-check (SOLID/cohesion/readable) + เพิ่ม Gate 9 Security Lint. แตก Format เป็น Format / Imports / Remove-Unused เพราะ 3 หมวดใช้ tool ต่างกัน
-
-| # | Gate | Read/Write | ตรวจอะไร | บล็อก hand-off ถ้า fail |
-|---|---|---|---|---|
-| 0 | **Architecture self-check** | Read (judgment) | SOLID + cohesion + human-readable | 🟠 (Dave judge; Chris verify) |
-| 1 | **Format** | Write (rewrite style) | indent/space/quote/line-length | 🔴 |
-| 2 | **Organize Imports** | Write (sort+group) | stdlib/3rd-party/local + alpha sort | 🔴 |
-| 3 | **Remove Unused** | Write (delete) | unused import/var/function/parameter | 🔴 |
-| 4 | **Lint** | Read (diagnose) | code smell + rule violation | 🔴 |
-| 5 | **Type Check** | Read (diagnose types) | `--strict`, no `Any`/`any` escape | 🔴 |
-| 6 | **Complexity** | Read (measure) | cyclomatic ≤ 10, file ≤ 500, fn ≤ 50 | 🔴 |
-| 7 | **Naming** | Read (convention check) | noun/verb/bool/const pattern | 🟠 |
-| 8 | **Test** | Run | coverage ≥ 80%, no skipped test | 🔴 |
-| 9 | **Security Lint** | Read (SAST) | injection/secret/insecure dep | 🔴 |
-| 10 | **Doc** | Read (existence) | docstring on public API + "why" comment | 🟠 |
+Run applicable existing project checks, not a fixed eleven-tool pipeline. Do not
+invent Make targets, replace the toolchain or install extra frameworks for this skill.
+Existing coverage/complexity/security thresholds remain authoritative; report failures
+without lowering thresholds, disabling tests or suppressing warnings to obtain green.
 
 ### Gate 0: Architecture self-check
 
-> Tool ตรวจ Gate 1-10 ได้ครบ แต่ **SOLID/cohesion/readable ต้องคนตัดสิน**. Dave self-check ก่อน hand-off ลด round-trip กับ Chris
+Apply SOLID proportionally. SRP means a cohesive responsibility/reason to change,
+not one method per class or splitting every description containing "and".
+Keep unrelated policy, persistence and presentation concerns from creating costly
+coupling, while respecting working application-layer conventions. Do not require
+interfaces for every concrete dependency or future extension that is not needed.
 
-**SOLID (5 ข้อ — ตอบ "yes" ทุกข้อก่อน hand-off)**:
-- [ ] **SRP** — class/function ทำสิ่งเดียว. "และ" ใน description = แตก
-- [ ] **OCP** — extend ได้ผ่าน interface/composition โดยไม่ต้องแก้ class เดิม
-- [ ] **LSP** — subclass แทน parent ได้ทุก context (ไม่ throw, ไม่ break invariant)
-- [ ] **ISP** — interface เล็ก. ห้าม "fat interface" ที่ implementor ต้อง stub method ที่ไม่ใช้
-- [ ] **DIP** — depend on abstraction (interface/protocol) ไม่ใช่ concrete class. business logic ห้าม import framework โดยตรง
+A useful deep module hides cohesive complexity behind an understandable interface.
+The deletion test is a thought experiment: would removing a layer eliminate needless
+wiring, or spread policy into callers? Do not delete code merely because it has one
+adapter, and preserve security/transaction boundaries. Report concrete maintenance,
+test or operational costs; subjective style alone is not a blocker.
 
-**Cohesion + Coupling**:
-- [ ] **High cohesion** — code ในไฟล์เดียวกันแก้ปัญหาเดียว. ถ้า "และ" ปะปน → แตก module
-- [ ] **Low coupling** — module A ไม่ควรรู้ internal ของ module B. ผ่าน interface/event/DTO
-- [ ] **Stable dependency** — depend ไปทาง stable (lower layer). ห้าม domain → infra direct
+### Mechanical checks and evidence
 
-**Deep module — abstraction นี้ควรมีอยู่ไหม (🆕 v3.12, คู่กับ YAGNI ladder)**:
-- [ ] **Deep ไม่ใช่ shallow** — behaviour เยอะหลัง interface เล็ก. shallow = interface ซับซ้อนพอ ๆ กับ implementation (ตัวส่งผ่าน). ถาม: ลด method ได้ไหม? ลด parameter ได้ไหม? ซ่อนความซับซ้อนเพิ่มได้ไหม?
-- [ ] **The deletion test** — ลอง "ลบ module นี้ทิ้ง": ความซับซ้อนหายไป = มันเป็น pass-through (ลบจริง); ความซับซ้อนโผล่ที่ caller N ที่ = มันคุ้มค่าตัว
-- [ ] **1 adapter = seam สมมติ · 2 adapters = seam จริง** — ห้ามสร้าง seam ถ้ายังไม่มีอะไรแปรผันข้ามมันจริง (= Speculative Generality)
-- [ ] **interface คือ test surface** — caller กับ test ข้าม seam เดียวกัน. ถ้าอยากเทสต์ *เลย* interface เข้าไป = module รูปร่างผิด ไม่ใช่ test เขียนยาก
+| Concern | Apply to the change |
+|---|---|
+| Format/imports/unused code | Follow configured conventions; restrict auto-fixes to authorized files and preserve public compatibility |
+| Lint/types | Run configured checks; explain legitimate exceptions without hiding failures |
+| Complexity/naming | Assess readability, cohesion and change locality; project limits, not universal line counts |
+| Tests | Exercise acceptance, boundaries and error paths; follow configured coverage without treating coverage as correctness |
+| Security | Relevant validation/auth/secret/dependency checks; retain required specialist review and project gates |
+| Docs/build | Update affected public contracts and verify applicable build/config behavior |
 
-**Human readability (ก่อน push อ่าน diff ตัวเอง 1 รอบ)**:
-- [ ] **Intent revealing** — ชื่อ + structure บอกเจตนาได้โดยไม่ต้องอ่าน implementation
-- [ ] **Linear flow** — อ่าน top-to-bottom เข้าใจได้. ห้ามกระโดดข้าม helper > 3 hop
-- [ ] **Comment "why"** — code อ่านได้แล้ว; comment เฉพาะตอน trade-off / business rule / quirk
-- [ ] **Symmetry** — pattern ซ้ำในไฟล์ใช้ shape เดียวกัน (อ่าน 1 รอบเข้าใจ 10)
-- [ ] **Abstraction level** — function เดียวอย่าผสม high-level + low-level (e.g., business logic + bit twiddling)
+Reuse evidence only for matching content, command and environment. Recheck changed
+behavior and affected dependencies; no duplicate suite per reviewer unless independence
+or a disputed/high-risk claim requires it. Never label unavailable checks as passed.
 
-**Self-check format ตอน hand-off**:
-```
-Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
-- Gate 0 self-check:
-  - SOLID: SRP ✓ OCP ✓ LSP ✓ ISP ✓ DIP ✓
-  - Cohesion: high (1 module = 1 concern)
-  - Readable: diff อ่านแล้ว linear; no surprise
-- Trade-off documented: <link to comment line:N> (if any)
-```
+## Pre-commit hook
 
-> ถ้า self-check fail → refactor ก่อน hand-off ห้าม "Chris จะ review ให้". Chris จะ reject + bd revision รอบใหม่
-
-### Per-language tool matrix (🔴 บังคับ use ตาม stack)
-
-| Stack | 1 Format | 2 Imports | 3 Unused | 4 Lint | 5 Type | 6 Complexity | 9 Security |
-|---|---|---|---|---|---|---|---|
-| **Python** | `ruff format` / black | `ruff --fix I` / isort | `ruff --fix F401,F841` | `ruff E,F,B,N,UP,S,A,C90,SIM,RET` | `mypy --strict` | `radon cc -nb` | `bandit` / semgrep |
-| **TypeScript/JS** | `biome format` / prettier | `biome check --apply` / `eslint-plugin-import/order` | `eslint --fix no-unused-vars,no-unused-imports` / ts-unused-exports | `biome check` / `eslint @typescript-eslint/strict` | `tsc --strict --noUncheckedIndexedAccess` | `eslint complexity` | `npm audit` / semgrep |
-| **Go** | `gofmt` / `goimports` | `goimports` (built-in) | `golangci-lint unused` | `golangci-lint` (`govet,staticcheck,ineffassign,unused,gosec`) | (compile = check) | `gocyclo -over 10` | `gosec` (in golangci) |
-| **Java** | `google-java-format` / spotless | spotless (importOrder) | `error-prone UnusedVariable` | spotbugs + checkstyle | `@Nullable`/`@NonNull` strict | `pmd CyclomaticComplexity` | spotbugs (FindSecBugs) |
-| **Kotlin** | `ktfmt` / ktlint | ktlint (import-ordering) | `detekt UnusedImports` | `detekt` | (compile + `-Werror`) | detekt complexity rules | detekt (`detekt-formatting`) |
-| **Rust** | `cargo fmt` (rustfmt) | rustfmt (built-in) | `cargo +nightly udeps` | `cargo clippy -- -D warnings` | (compile = check) | clippy `cognitive_complexity` | `cargo audit` |
-| **Vue/Nuxt** | prettier + biome | biome | eslint-plugin-vue + ts-unused-exports | eslint-plugin-vue + biome | tsc + `vue-tsc` | eslint complexity | npm audit |
-| **PHP** | php-cs-fixer / pint | php-cs-fixer (ordered_imports) | rector dead-code | phpstan / psalm | phpstan strict | phpmd | `composer audit` |
-
-> **Rule**: ใช้ all-in-one tool (Ruff / Biome / golangci-lint) ดีกว่า stitch หลาย tool — boundary error น้อย, config เดียว
-
-### Gate 1: Format
-- Auto-format on save (IDE) + pre-commit hook + CI gate (3 จุด)
-- **ห้าม**: manual format / "ไม่ตรง project standard but readable"
-
-### Gate 2: Organize Imports
-- Sort + group: stdlib → 3rd-party → local
-- Alpha-sort within group
-- ห้าม wildcard import (`from x import *` / `import *`)
-- ห้าม relative `..` import เกิน 1 level
-
-### Gate 3: Remove Unused
-- Unused **import** → ลบ (F401 / no-unused-vars)
-- Unused **local variable** → ลบ (F841)
-- Unused **function parameter** → ลบ หรือ prefix `_` ถ้าจำเป็นต้องเก็บ signature
-- Unused **function/class export** → ลบหรือ mark internal (ts-unused-exports / vulture)
-- ห้าม `# noqa` / `// eslint-disable` โดยไม่ comment "why" + bd track
-
-**Deferred-shortcut convention** (จาก ponytail — ทางลัดที่ YAGNI ladder ตัดไว้):
-- รูปแบบบังคับ: `shortcut(bd:<id>): <reason>; upgrade → <path>`
-- ตัวอย่าง: `# shortcut(bd:42): in-memory dict; upgrade → Redis เมื่อ >10k key`
-- `grep -rn 'shortcut(bd' .` / `/review --debt` รวบเป็น ledger → "later" ไม่กลาย "never"
-- ห้าม shortcut โดยไม่มี bd id (ต้อง track ได้)
-
-### Gate 4: Lint (strict — diagnose)
-- ดู per-language matrix; เปิด strict rule set ทั้งหมด ไม่ใช่ default ที่อ่อน
-- Lint warning = bd issue (track หรือ fix); ห้าม ignore
-
-### Gate 5: Type Check (🔴 strict)
-- Py: `mypy --strict` — ห้าม `Any` เลี่ยงได้
-- TS: `tsc --strict --noUncheckedIndexedAccess` — ห้าม `any`, ใช้ `unknown` + narrow
-- Java: explicit null annotation (`@Nullable`/`@NonNull`)
-- ห้าม `# type: ignore` / `// @ts-ignore` / `@SuppressWarnings` โดยไม่ ticket
-
-### Gate 6: Complexity
-- Cyclomatic ≤ 10 / function
-- Cognitive ≤ 15 / function
-- Function ≤ 50 บรรทัด (≤ 30 ดีกว่า)
-- File ≤ 500 บรรทัด
-- Nesting ≤ 3 (early return / guard clause แทน)
-
-### Gate 7: Naming
-- Variable: `noun` ที่บอก what (ไม่ใช่ `data`/`info`/`temp`)
-- Function: `verb_noun` (`calculate_total`)
-- Boolean: `is_*`/`has_*`/`should_*`/`can_*`
-- Constant: `UPPER_SNAKE`
-- ห้าม abbreviation ที่ไม่เป็นมาตรฐาน
-- ห้าม magic number/string → constant + comment "why"
-
-### Gate 8: Test
-- Unit coverage ≥ 80% business logic (Chris's responsibility; Dave smoke ก่อน hand-off)
-- AAA pattern + G-W-T naming
-- Edge case + error path
-- ห้าม skipped/disabled test ไม่มี bd track
-
-### Gate 9: Security Lint
-- SAST per language (ดู matrix Gate 9 column)
-- Secret scan (gitleaks / `git-secrets`) — block commit ที่มี API key / password / cert
-- Dependency audit (`npm audit` / `pip-audit` / `cargo audit`) — block critical/high vulns
-- **ห้าม**: ignore security warning โดยไม่ Sentinel approve
-
-### Gate 10: Doc
-- Docstring/JSDoc สำหรับ public API (signature + example + edge case)
-- Inline comment เฉพาะ "why" ไม่ใช่ "what"
-- README update ถ้า API change
-
----
-
-## Pre-commit hook (🔴 บังคับทุก repo)
-
-ติดตั้ง [`pre-commit`](https://pre-commit.com) + `.pre-commit-config.yaml` ให้ครอบ Gate 1-5 + 9 → ทุก `git commit` ถูก block ถ้า gate ใด fail. **ห้าม `--no-verify`** ใน production code
-ตัวอย่าง config เต็ม (Python / TS) + setup steps → **`pre-commit-config.md`** (ไฟล์ข้าง SKILL.md นี้)
-
-## Quality Smells (🚫 reject)
-
-| Smell | Why bad | Fix |
-|-------|---------|-----|
-| God class (> 500 lines) | hard to test/change | extract module |
-| Long parameter list (> 4) | hard to read | parameter object |
-| Duplicate code | DRY violation | extract function |
-| Deep nesting (> 3) | cognitive load | early return / guard clause |
-| Magic number/string | meaning unclear | named constant |
-| Comment explaining hack | code smell | refactor + remove comment |
-| `try` ... `pass` | swallow error | log + re-raise / handle |
-| Unused import / variable | dead code | ลบ ห้าม keep "for later" |
-| Wildcard import (`from x import *`) | namespace pollution | explicit import |
-
----
-
-## Pre-Push Checklist (all 11 gates)
-
-```bash
-# Gate 0 — Architecture self-check (Dave answers each checkbox above ก่อนรัน mechanical gates)
-
-make fmt          # Gate 1 — auto-format
-make imports      # Gate 2 — organize imports
-make clean-unused # Gate 3 — remove unused (CI auto-fail if anything found)
-make lint         # Gate 4 — strict lint
-make typecheck    # Gate 5 — strict types (no Any/any)
-make complexity   # Gate 6 — cyclomatic + size limits
-make test         # Gate 8 — unit + coverage
-make security     # Gate 9 — SAST + secret scan + dep audit
-make doc-check    # Gate 10 — public API docstring present
-```
-
-หรือเรียก `make pre-push` ที่รวมทุก mechanical gate ในคำสั่งเดียว:
-
-```makefile
-# Makefile snippet
-pre-push: fmt imports clean-unused lint typecheck complexity test security doc-check
-	@echo "✅ Gates 1-10 pass — Dave: confirm Gate 0 self-check before push"
-```
-
-ทุก check ผ่าน → ค่อย push. CI ก็ต้องรันชุดเดียวกัน (pre-commit + GitHub Actions / GitLab CI / CircleCI)
-
-> **Gate 0 ไม่อยู่ใน Makefile** — ตั้งใจให้ Dave หยุดคิด 30 วินาทีก่อน push, ไม่ใช่ auto-pass. มันคือ judgment ไม่ใช่ tool
-
----
+Existing hooks and required gates remain in force. This skill does not mandate a
+hook manager or new interpreter. Only for authorized hook setup, read
+`pre-commit-config.md`; it is an optional example, not a runtime requirement.
+Do not bypass configured controls to force a successful commit.
 
 ## Hand-off
 
-```
-Dave  ▸ Chris   : impl + smoke (dev-gate passed)
-Chris ▸ Quinn   : 7-dim + unit ≥ 80% + mutation ≥ 70%
-```
-
----
-
-## ห้าม
-
-- ห้ามเขียน code ก่อน test (TDD core)
-- ห้าม commit test ที่ยัง fail (ใช้ skip/xfail + bd issue)
-- ห้าม refactor พร้อม add behavior — แยก commit
-- ห้าม mock business logic — mock เฉพาะ external (DB/API/clock)
-- ห้ามใช้ `time.sleep` ใน test → fake time/freeze
-- ห้าม disable lint rule โดยไม่ comment + bd track
-- ห้าม `// @ts-ignore` / `# type: ignore` โดยไม่ ticket
-- ห้าม commit `console.log` / `print` debug
-- ห้ามใช้ `any` (TS) / `Any` (Py) เป็นทางลัด
-- ห้าม PR ที่ลด coverage (CI ตั้ง gate, ratchet)
-- ห้าม merge code ที่ build แดง
+Return changed artifacts, decisive commands/results, applicable failed/unavailable
+checks and remaining risks. Required checks failing means incomplete verification,
+not permission to skip/xfail them. A green build is not permission to commit or push.
 
 ## Skill composition (where to go next)
 
-| Situation | Next skill | Reason |
+| Situation | Next skill | Boundary |
 |---|---|---|
-| Test pass แต่ยังไม่มี CI gate | → `automate-test` | Pyramid ratio + CI threshold + contract test (dev-gate = per-task; automate-test = project-wide) |
-| Code touches frontend | → `ui-test` | E2E + visual + a11y automation (dev-gate ไม่ครอบ visual) |
-| Frontend public-facing (perf/SEO/security) | → `web-q` | CWV + Lighthouse + security headers budget |
-| Touch security control (auth/crypto/PII) | → `secure` | Sentinel threat model + abuse case (dev-gate ไม่ classify threat) |
-| Hand-off Phase 2 → 3b review | → `review-checklist` skill | Chris 7-dim + Quinn integration matrix (used by /implement Phase 3b + /review)
+| Authorized project-wide CI/strategy change | `automate-test` | Not mandatory for one regression test or merely because CI is absent |
+| Relevant UI interactions | `ui-test` | Applicable visual/interaction evidence |
+| Public web quality investigation | `web-q` | Only affected performance/SEO/security concerns |
+| Security-sensitive change | `secure` | Relevant specialist review |
+| Review handoff | `review-checklist` | Review findings, not duplicate implementation |

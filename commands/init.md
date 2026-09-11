@@ -228,6 +228,6 @@ Default: **Caddy** (auto HTTPS, simple)
 
 ## Skill composition
 
-- After `/init` → `/design-system` (start first feature design) หรือ `/automate-test` (test pyramid setup)
-- After `/init` setup project → invoke `automate-test` skill ทันทีเพื่อ wire CI gate ตั้งแต่ day 1
+- After `/init` → `/design-system` for feature specification, or `automate-test` for authorized project-wide CI strategy work.
+- Reuse existing CI. Invoke `automate-test` only when setup/strategy changes are in scope, not automatically after every init.
 - v3.1 merged `/setup-project` เข้ามาเป็น `--quick` mode (alias เก่ายัง work ผ่าน v3.x)

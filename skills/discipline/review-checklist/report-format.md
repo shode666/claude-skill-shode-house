@@ -1,6 +1,6 @@
 ---
 name: report-format
-description: Reference (lazy-load) ของ `review-checklist` — REVIEW report template (bd-native + markdown fallback) + Loop Routing table. โหลดตอนจะเขียน report
+description: Reference for review results, authorized project-selected storage and suggested follow-up routing. Load when returning a review report.
 ---
 
 ```lazy-load-contract
@@ -15,22 +15,22 @@ REQUIRED-BEFORE: review_report_post
 > แยกจาก `SKILL.md` เป็น output template ที่ใช้ตอนท้ายของ review เท่านั้น ไม่ต้องอยู่ใน preload
 > `shode-house-evidence` ชี้มาที่นี่ (single source of truth ของ REVIEW format)
 
-## REVIEW Report Format (bd-native primary, markdown fallback)
+## REVIEW Report Format (project-selected storage)
 
-ใช้ format ใน `shode-house-evidence` (REVIEW Report Format section). สรุป:
+This file owns the review format; `shode-house-evidence` links here, not vice versa.
 
-### bd notes (≤ 500 chars compact)
+### Compact task note (example when Beads is the designated tracker)
 ```
 [Chris|Quinn|Sentinel review bd-42] verdict: FAIL
 - 🔴 1: <file:line> <issue>
 - 🟠 2: <count + summary>
-- 🟡 5: <count, see md fallback>
+- 🟡 5: <count, see authorized linked report if needed>
 Coverage: unit 78% → 81% target hit; mutation 72%
 UX: Uma POST PASS (separate)
 Loop route: code → Phase 2
 ```
 
-### Markdown fallback (no bd) — `outputs/REVIEW-<feature>.md`
+### Linked report artifact (when the project uses Markdown)
 Full template per finding (file:line · why it matters · evidence path · suggested change)
 
 ### Output budget (🔴 §5.13 — bd:shode-roadmap/C-G1)
@@ -39,12 +39,21 @@ return ต่อ orchestrator = verdict + ตัวเลขสรุป + path 
 
 ### Storage rule (🔴 ห้ามเขียนซ้ำ 2 ที่)
 
-report อยู่ที่เดียว: มี bd → **bd notes เป็น primary** (markdown เฉพาะตอนยาวเกิน 500 chars แล้ว bd note ต้อง link ไปหา)
-ไม่มี bd → markdown fallback อย่างเดียว · **ห้าม** เขียนทั้ง bd และ md เนื้อหาเดียวกัน แล้วปล่อยให้ทั้งสองฝั่ง drift
+Return findings in the conversation by default. Persist only when the user or
+active project instructions authorize it, to that project's designated tracker or
+artifact location (Markdown, Jira, Redmine, Beads or another system). Reuse IDs and
+status conventions; do not select Beads merely because its CLI is installed.
+Keep one authoritative report, with links rather than duplicate content. If the
+designated system is inaccessible, return the report and disclose unsynchronized
+status; a permitted local handoff is pending synchronization, not a new tracker.
 
-### Always: link external tracker
-- ถ้ามี Jira key → `addCommentToJiraIssue` กลับ ticket ด้วย bd link หรือ md path
-- ถ้ามี GitHub PR → `gh pr review --comment "..."` หรือ inline comment
+### External posting authority
+
+A Jira key or PR URL identifies the review target, not permission to comment,
+submit a PR review, change status or create an issue. Post only when the user or
+active project instructions authorize that operation; the main session uses an
+available host tool and verifies the result. Delegates return findings to the owner,
+not directly to external systems. Do not claim a post succeeded without confirmation.
 
 ---
 
@@ -52,12 +61,14 @@ report อยู่ที่เดียว: มี bd → **bd notes เป็�
 
 Chris/Quinn/Sentinel **must recommend** loop route ใน report:
 
+Routes below are recommendations, not authorization to implement, deploy or post.
+
 | Finding type | Route → |
 |---|---|
 | Code logic / SOLID / perf | Phase 2 (Dave fix) |
 | UI / visual / a11y manual | Phase 1b (Uma redesign) |
 | Spec / AC / regulation gap | Phase 1a (Bella ∥ Sara revise) |
-| Test gap | Phase 2 (Dave) + invoke `automate-test` skill (Quinn) |
+| Test gap | Phase 2 (Dave regression test); `automate-test` only for a project-wide CI/strategy gap |
 | Security finding | Phase 1c (Sentinel threat model update) → Phase 2 |
 | Multi-route | Oliver triage (don't recommend; defer) |
 

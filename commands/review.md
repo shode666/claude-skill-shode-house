@@ -1,19 +1,26 @@
 ---
-description: "[shode-house] Code review + security (Chris + Quinn + Domain) — รับ path, Jira ID, หรือ bug description (+ screenshot)"
+description: "[shode-house] Review existing code and report findings; bug descriptions narrow scope, not permission to fix"
 allowed-tools: Task, Read, Grep, Glob, Bash, Skill, mcp__atlassian__getJiraIssue, mcp__atlassian__searchJiraIssuesUsingJql, mcp__atlassian__getJiraIssueRemoteIssueLinks, mcp__atlassian__addCommentToJiraIssue
 argument-hint: "[path | KJERP-402 | คำอธิบายบั๊กภาษาไทย (+ screenshot ได้) | --debt]"
 ---
 
 Review target: **$ARGUMENTS**
 
+## Intent and authority
+
+Review evaluates existing work; a bug description narrows the investigation, not
+permission to fix code. For root-cause investigation, use `diagnose` within the same
+read-only scope. A requested fix may continue through implementation only within
+the user's authorization. Send this scope to every delegate.
+Report storage and external posting follow `review-checklist/report-format.md`;
+a Jira key, PR URL or available write tool is not permission to post.
+
 ## Mode: `--debt` (จาก ponytail — deferred-shortcut harvest)
 
 ถ้า `$ARGUMENTS` = `--debt`:
 1. รัน (no Python) `grep -rnoE 'shortcut\(bd:[0-9]+\):[^"]*' . --include='*.*' | grep -v '/\.git/'` → รวบ `shortcut(bd:N):` comment ทั้ง repo (group ตาม bd id ด้วย `sort`/`awk`)
-2. **Storage (bd-first)** — detect: `[ -d ".beads" ] || bd ready --json >/dev/null 2>&1`
-   - **มี bd** → ต่อแต่ละ shortcut: ถ้า bd id อ้างถึงมีอยู่ → `bd update <id> --notes "<file:line + upgrade path>"`; ถ้า bd id ไม่มี/ไม่ตรง → `bd create -t debt "<reason>" --notes "<file:line; upgrade → path>"`. **ไม่เขียน .md**
-   - **ไม่มี bd** → write `outputs/DEBT-<date>.md` fallback (redirect grep output ข้างบน เข้าไฟล์)
-3. present สรุป (bd ids หรือ md path)
+2. รวบ findings พร้อม source path/line และ issue ref เดิม; ไม่สร้าง issue จากการ scan อย่างเดียว
+3. ส่งสรุปในแชท; ถ้าผู้ใช้หรือ project instructions อนุญาตให้บันทึก ใช้ storage rule ใน `review-checklist/report-format.md`
 4. ไม่รัน 7-dim review (mode นี้เก็บ debt อย่างเดียว) → จบ
 
 ไม่ใช่ `--debt` → ทำต่อ Step 0 ปกติ
@@ -67,11 +74,7 @@ Review ตาม path ตรงๆ
    confirm review 3 ไฟล์นี้? (y/n / เพิ่มไฟล์)
    ```
 
-5. **Track bug ใน beads**:
-   ```bash
-   bd create "BUG: $DESCRIPTION" -t bug -p high --labels=triage
-   ```
-   เก็บ issue ID ไว้ link กับ findings ทีหลัง
+5. Link existing task ID when supplied; creating or updating tracking follows the canonical report storage rule.
 
 ### Pattern D — Ambiguous → ถาม user
 
@@ -92,16 +95,16 @@ pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง comma
       4. ทุกทางไม่ได้ผลและงานเป็นชนิดที่ต้องมี diff จริง ๆ → ค่อยถาม
       ref ที่ user ระบุมาแล้วพัง หรือ diff ว่างทั้งที่ควรมี → **fail ตรงนี้** ไม่ใช่ไปตายใน sub-agent
 
-ผลลัพธ์ที่ต้องได้ก่อนไป Step 1: **diff command 1 บรรทัดที่รันแล้วไม่ว่าง** + ประโยคเดียวบอกขอบเขตที่จะเขียนใน report
+ผลลัพธ์ที่ต้องได้ก่อนไป Step 1: **diff command ที่ตรวจแล้ว หรือ full-file/snippet scope ตาม fallback ข้อ 3** + ประโยคเดียวบอกขอบเขตที่จะเขียนใน report
 
 ## Step 1 — Invoke review-checklist skill
 
 > v3.1: review checklist รวบศูนย์ใน `skills/discipline/review-checklist/SKILL.md`. Command นี้ = router + context-aware invoke
 
-🔴 **ก่อน spawn ใด ๆ ต้อง print block นี้ก่อนเสมอ** (ไม่ print = ห้าม spawn — เทียบ M1: no bd → STOP):
+🔴 **ก่อน spawn ใด ๆ ต้อง print block นี้ก่อนเสมอ** (pin review scope; no tracker installation prerequisite):
 
 ```
-[REVIEW DISPATCH CARD] bd:<id>
+[REVIEW DISPATCH CARD] target:<scope-or-existing-task-ref>
 - Chris    (7-dim)          : DISPATCH
 - Quinn    (test/SAST axis) : DISPATCH
 - Bella    (spec axis)      : DISPATCH | SKIP("no spec available — Pattern C, no Jira/bd/SPEC-*.md")
@@ -120,7 +123,7 @@ pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง comma
    ที่นี่) กับ prompt+diff ก่อน; เจอ = DISPATCH บังคับ
 4. ทุก DISPATCH ต้องมี Task call จริงติดกันหลัง card (ขนาน = spawn ครบก่อนรอผล; scorer วัด
    window ทับซ้อน) — จำนวน Task call = จำนวน DISPATCH line เป๊ะ
-5. ไม่ print card = ห้าม spawn (เทียบ M1: no bd → STOP)
+5. ไม่ print card = ห้าม spawn; task ref may be absent for an explicitly scoped file/snippet review
 
 ```bash
 [Oliver|review|target:$ARGUMENTS] kickoff   # pin fixed point ก่อน — see `review-checklist/intake.md`
@@ -138,7 +141,7 @@ pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง comma
 🔴 aggregate แยกหัวข้อ `## Standards` / `## Spec` — **ห้าม merge/rerank ข้ามแกน**
 
 **Context-aware focus**:
-- Pattern A (Jira) → cross-check code vs AC ใน description; bd link `bd create -t review-finding --links=$BUG_ID`
+- Pattern A (Jira) → cross-check code vs AC ใน description; retain the supplied issue link
 - Pattern C (bug description) → focus 7-dim เฉพาะ "เส้นทาง bug" ก่อน (calc logic / edge / expected vs actual); มิติอื่นเป็น secondary
 - Pattern B (path) → full 7-dim + integration matrix
 
@@ -150,31 +153,8 @@ Format + storage rules + severity grading + loop routing — **ทั้งห�
 - § Loop Routing Recommendation
 - § Anti-Puppet Gate (paste tool output)
 
-**Storage rule** (ห้ามซ้ำซ้อน):
-```bash
-# Detect storage:
-if [ -d ".beads" ] || bd ready --json >/dev/null 2>&1; then
-  # bd active → bd notes ONLY
-  if [ -n "$BD_ID" ]; then
-    bd update "$BD_ID" --notes "<compact REVIEW template, refs evidence paths>"
-  else
-    bd create -t review-finding "$ARGUMENTS" --notes "<full REVIEW template>"
-  fi
-else
-  # No bd → markdown fallback
-  SLUG="${KJERP_KEY:-${BUG_DATE:-$(echo "$ARGUMENTS" | tr -cd '[:alnum:]-' | cut -c1-40)}}"
-  cat > "outputs/REVIEW-$SLUG.md" <<EOF
-  <full REVIEW template>
-  EOF
-fi
-
-# Always: link to external tracker if applicable
-if [ -n "$KJERP_KEY" ]; then
-  addCommentToJiraIssue(issueIdOrKey="$KJERP_KEY", comment="สรุป findings + bd link หรือ md path")
-fi
-```
-
-→ ห้ามเขียนทั้ง bd + markdown — เลือกตาม project state
+Use the single storage/authorization rule in `review-checklist/report-format.md`.
+Do not duplicate tracker detection, report writes or posting logic here.
 
 ## ⚠️ Rules
 
@@ -182,5 +162,5 @@ fi
 - Domain-sensitive = บังคับผ่าน Domain Expert
 - อ่านโค้ดจริงทุกไฟล์ (prefer `Grep` > `Read` full file)
 - Run static analysis ถ้ามี (Bash)
-- ถ้ามี Jira → auto comment findings กลับที่ ticket
+- Jira/PR posting only when authorized under the shared report storage rule
 - ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim

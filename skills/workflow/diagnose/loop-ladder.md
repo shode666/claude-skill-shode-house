@@ -7,12 +7,17 @@ description: Reference (lazy-load) ของ `diagnose` — 10 วิธีส�
 LOAD: skills/workflow/diagnose/loop-ladder.md
 WHEN: feedback_loop_method_1_3_failed=true
 OWNER: developer
-REQUIRED-BEFORE: hypothesis_step
+REQUIRED-BEFORE: advanced_reproduction_attempt
 ```
 
 # Feedback loop ladder — 10 วิธี
 
 > แยกจาก `SKILL.md` v3.12.1 — เป็น reference material ไม่ใช่ invariant ที่ต้องอ่านทุก diagnosis
+
+Choose only safe methods permitted by the active diagnosis scope. This menu does
+not authorize code edits, production instrumentation, load generation or replay of
+mutating requests. If no safe reproduction is available, return tentative analysis
+and missing evidence as described in the parent skill; no interpreter is mandatory.
 
 **วิธีสร้าง เรียงตามลำดับที่ควรลอง**
 1. **Failing test** ที่ seam ซึ่งเข้าถึง bug (unit / integration / e2e)

@@ -57,7 +57,9 @@ Aaron deploy **per bd ready** (continuous delivery) หรือ user manual bat
 
 ## 🔴 Mandatory Bug Prevention (v2.2)
 
-### 1. Pre-commit hook (block bad commit)
+### 1. Pre-commit hook (only when chosen by the project)
+Existing hooks remain enforced; installing a manager is not mandatory. For authorized
+setup, follow `skills/workflow/dev-gate/pre-commit-config.md`. The list below is illustrative:
 ```yaml
 # .pre-commit-config.yaml
 - format (ruff/biome/gofmt)

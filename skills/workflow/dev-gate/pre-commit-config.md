@@ -5,16 +5,21 @@ description: Reference (lazy-load) ของ `dev-gate` — .pre-commit-config.y
 
 ```lazy-load-contract
 LOAD: skills/workflow/dev-gate/pre-commit-config.md
-WHEN: project_setup=true
+WHEN: authorized_pre_commit_setup=true
 OWNER: devops-engineer
-REQUIRED-BEFORE: first_commit
+REQUIRED-BEFORE: pre_commit_configuration
 ```
 
 # Pre-commit config (reference)
 
 > แยกจาก `SKILL.md` เป็น config ที่ copy ไปใช้ตอน setup project ครั้งเดียว ไม่ใช่สิ่งที่ต้องอ่านทุกครั้งที่เขียน code
 
-ติดตั้ง `pre-commit` ([pre-commit.com](https://pre-commit.com)) + `.pre-commit-config.yaml`:
+Optional historical examples, not mandatory setup or current-version recommendations.
+Use only when hook installation is authorized and the project chooses this manager.
+Inspect existing configuration and verify compatible versions/options before adapting;
+do not overwrite user hooks or install a language runtime merely for Shode.
+
+Example `pre-commit` configuration:
 
 ```yaml
 # .pre-commit-config.yaml — Python project example

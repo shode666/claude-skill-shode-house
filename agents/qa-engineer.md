@@ -129,17 +129,15 @@ Trigger เมื่อ feature เปลี่ยน state: **edit / update / c
 
 ## ขอบเขต
 
-### Test Pyramid (🔴 บังคับ ratio)
-```
-       /E2E\         10% (Quinn — Playwright)
-      /Integ\        20% (Quinn — Testcontainers)
-     / Unit  \       70% (Chris — pytest/Vitest/JUnit)
-```
-Inverted = anti-pattern (slow + fragile)
+### Test strategy
+
+Use `automate-test` for authorized project-wide risk/check selection and thresholds,
+not for every regression. Per-change test discipline belongs to `dev-gate`.
+No universal unit/integration/E2E ratio; retain configured project gates.
 
 ### 1. Integration
 - Real DB/cache/broker/external API
-- Speed: 100ms-1s; coverage critical 100%, normal 70%+
+- Measure runtime and coverage against project targets; prioritize affected critical boundaries
 - Tools: **Testcontainers** (Postgres/Redis/Kafka/MinIO), WireMock, Schemathesis, k6
 - Pattern: Setup→Execute→Verify→Teardown; isolated DB / tx rollback
 - Test: repository, API e2e, message producer/consumer, cache, tx boundary, retry/circuit breaker

@@ -1,5 +1,11 @@
 # shode-house
 
+**3.16 preview — skills-first team:** [portable team skill](.agents/skills/shode-house-team/SKILL.md)
+uses host tools, risk-based roles and resumable checkpoints without custom runtime scripts.
+This repository skill is separate from the legacy `.plugin` below; four-host execution
+has not yet been verified. [Install without scripts](docs/portable-team-install.md)
+or read the [release contract](docs/3.16-release-contract.md).
+
 > **Multi-Agent Software Engineering Operating System** สำหรับ Claude Code / Cowork —
 > 19 agent ใน 7 ทีม ที่มี ownership ชัด, quality gate ที่ต้องมีหลักฐาน, token-aware context routing,
 > CI invariant ที่พิสูจน์ด้วย mutation test และ behavioral A/B eval
@@ -244,7 +250,7 @@ harness + วิธีรัน → [`eval/README.md`](eval/README.md) · [`eval
 |---------|----------|
 | `/shode-house:consult [คำถาม]` | ปรึกษาด่วน — route ไป agent ตัวเดียว |
 | `/shode-house:init [project]` | Init project scaffold — **default**: interactive wizard; `--quick "<stack>"` direct Aaron Docker-first |
-| `/shode-house:design-system [feature]` | Smart Spec pipeline — **default**: spec → suggest implement; `--stop`: stop at spec; `--estimate`: add T-shirt sizing; `--stop --estimate` = proposal mode |
+| `/shode-house:design-system [request]` | Legacy name for feature specification; UI-only requests stay in UX scope. `--stop`: no implementation suggestion; `--estimate`: requested sizing |
 | `/shode-house:implement [feature]` | Phase 2-4 — Dave + Uma + Chris ∥ Quinn (uses `review-checklist` skill) |
 | `/shode-house:review [path\|jira\|bug]` | Ad-hoc code review (uses `review-checklist` skill) |
 
@@ -258,8 +264,8 @@ harness + วิธีรัน → [`eval/README.md`](eval/README.md) · [`eval
 | Skill | Owner | Trigger |
 |-------|-------|---------|
 | [`meeting`](skills/workflow/meeting/SKILL.md) | ALL | **Entry-point** + index ไป discipline skills (Recite Card อยู่ที่ `output-styles/oliver.md` §1) |
-| [`dev-gate`](skills/workflow/dev-gate/SKILL.md) | Dave + Chris | TDD red-green-refactor + 7-gate quality |
-| [`automate-test`](skills/workflow/automate-test/SKILL.md) | Quinn + Chris + Aaron | CI test pyramid 70/20/10 + threshold |
+| [`dev-gate`](skills/workflow/dev-gate/SKILL.md) | Dave + Chris | Per-change behavior tests + existing project quality gates |
+| [`automate-test`](skills/workflow/automate-test/SKILL.md) | Quinn + Chris + Aaron | Project-wide test/CI strategy; not a second feature-test pipeline |
 | [`diagnose`](skills/workflow/diagnose/SKILL.md) | Chris + Quinn + Dave | Bug + perf root cause — เริ่มที่ feedback loop |
 | [`data-migration`](skills/workflow/data-migration/SKILL.md) | Dave + Aaron + Sara | expand-contract + backfill + rollback drill |
 | [`api-contract`](skills/workflow/api-contract/SKILL.md) | Dave + Sara + Quinn | semver + deprecation window + consumer contract |
@@ -434,7 +440,7 @@ Pattern: ระบุ action + impact + rollback → ขอ confirm → execute
 
 **Add new domain expert**:
 1. Drop `agents/<name>.md` (ตาม 5-Dim Role template)
-2. Update Team Routing ใน `agents/orchestrator.md` + Team Structure ใน `skills/workflow/meeting/SKILL.md` + `skills/discipline/shode-house-routing/SKILL.md`
+2. Update role/domain ownership in `skills/discipline/shode-house-routing/SKILL.md` and affected dispatch callers in `agents/orchestrator.md`; `meeting` only points to owners, so do not copy team tables there
 3. `make validate` ต้องเขียว → bump version → `make pack`
 
 **Remove agent**: ลบไฟล์ + remove จาก routing + capability matrix
