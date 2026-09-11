@@ -513,12 +513,12 @@ jobs:
         # if absent from the runner instead of failing the build).
         run: bash tests/test-hooks.sh
 
-      - name: Build .plugin artifact
-        run: make pack
+      - name: Build legacy .plugin artifact (not 3.16)
+        run: make pack-legacy
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: shode-house-plugin
+          name: shode-house-legacy-plugin
           path: shode-house-v*.plugin
           if-no-files-found: error

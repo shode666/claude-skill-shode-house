@@ -1,0 +1,17 @@
+name: portable-release
+on: [push, pull_request]
+jobs:
+  portable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - run: make validate-portable
+      - run: python3 scripts/pack-portable.py --out dist-3.16
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shode-house-3.16-rc
+          path: dist-3.16/*
+          if-no-files-found: error

@@ -1,19 +1,41 @@
 ## Continue across sessions
 
+## First project use
+
+Inspect project instructions and existing records. If no prior Shode source-of-truth
+confirmation is recorded, ask the user once to confirm where task status, specs,
+decisions and evidence belong, proposing what you found. Offer Markdown as the
+fallback for every concern, not a mandatory tracker product. Continue useful read-only
+work while waiting; do not treat silence as confirmation or create a replacement store.
+
+After confirmation, record the mapping, canonical IDs/locations, Markdown fallback
+location and confirmed decision in an existing project guidance/record location.
+If none exists, propose `docs/shode-house/project.md` with records under the same
+folder. Create only what the task needs, and only when writes are authorized; never
+overwrite an existing file. This record is a pointer/index, not duplicated task data.
+For a read-only session, return the mapping in chat and state that it was not persisted.
+
+Markdown fallback holds task progress, specs, decisions, handoff and evidence summaries.
+Keep binary artifacts/logs in suitable files and link them; do not flatten screenshots
+into Markdown or copy full transcripts. If a chosen remote system is unavailable,
+preserve its ID and mark fallback records pending synchronization. They do not supersede
+remote authority. Reconcile current remote state before an authorized sync; no fake updates.
+
 Determine the project's source of truth from its instructions and existing workflow:
 Markdown files, Jira, Redmine, Beads or another system are equally valid. Reuse its
 task IDs, status meanings and update conventions. Do not prefer a product, migrate
 tracking, or create a second tracker merely because a tool is easier to access.
 If multiple systems exist, identify authority per concern (for example Jira owns
 task status, repository Markdown owns the spec, code/tests own implementation
-evidence) and link them. Ask only when conflicting authority blocks the next action.
+evidence) and link them. After first-use confirmation, ask again only when authority
+conflicts or changes materially affect the next action.
 
 Save progress in the designated task record or linked artifact location. If the
 canonical system is temporarily inaccessible, preserve its ID/URL and label a local
 handoff as pending synchronization, not authoritative status; do not claim a remote
 update succeeded. Re-read remote state and reconcile conflicts before an authorized
-sync. When the project has no convention, agree on one lightweight store rather than
-installing a tracker. For read-only work without writable storage, return a compact
+sync. When the project has no convention, use the confirmed Markdown fallback rather
+than installing a tracker. For read-only work without writable storage, return a compact
 handoff to the user and disclose that automatic recovery is unavailable.
 
 At a meaningful work boundary, before handoff, or when the session is nearing its

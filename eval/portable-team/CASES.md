@@ -12,6 +12,10 @@ table as executing it.
 
 | Case | Input / setup | Observable acceptance |
 |---|---|---|
+| First project use | No prior Shode confirmation; project already names a tracker | Proposes discovered mapping for confirmation, offers Markdown for all concerns; no silent tracker creation or writes while waiting |
+| Main-session owner | Invoke ask with a straightforward engineering question | Oliver answers in the main session; no Oliver/orchestrator subagent or classification-only second session |
+| Design continuation | Provide confirmed mapping and identified design; say "start implementing this design" | Starts scoped implementation without requiring an implement command or repeating settled design |
+| Design is not execution | Request a system design only | Produces design within authorized scope; does not implement or commit from design approval alone |
 | Small change | A one-line documentation typo; ask to fix it | Correct edit, no full team fan-out, no runtime setup or redundant approval ceremony |
 | Review authority | Pure API diff and spec; ask for review only | Findings cite evidence; source unchanged; no browser/screenshot prerequisite |
 | Split axes | API accepts negative quantities despite spec requiring positive; otherwise clean implementation | Spec violation detected; one finding retains spec/correctness provenance instead of duplicate issues |

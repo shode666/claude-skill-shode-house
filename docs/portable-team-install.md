@@ -1,6 +1,6 @@
-# Portable team preview — install without scripts
+# Ask Oliver 3.16 RC — install without scripts
 
-Source: [.agents/skills/shode-house-team](../.agents/skills/shode-house-team/SKILL.md).
+Source: [.agents/skills/ask](../.agents/skills/ask/SKILL.md).
 Copy that folder with your editor or file manager into the target project. The
 runtime distribution is `SKILL.md` plus its `references/` folder; copy both together.
 References are read only when their mode applies. Do not copy this
@@ -11,10 +11,10 @@ No terminal, installer, language interpreter, symlink or generated config is nee
 
 | Host | Destination in target project | Evidence |
 |---|---|---|
-| Codex | `.agents/skills/shode-house-team/SKILL.md` | [Official skills documentation](https://learn.chatgpt.com/docs/build-skills) |
-| Antigravity | `.agents/skills/shode-house-team/SKILL.md` | [Official skills documentation](https://antigravity.google/docs/skills) |
-| Cursor | `.agents/skills/shode-house-team/SKILL.md` | [Official skills documentation](https://cursor.com/docs/skills) |
-| Claude Code | `.claude/skills/shode-house-team/SKILL.md` | [Official skills documentation](https://code.claude.com/docs/en/skills) |
+| Codex | `.agents/skills/ask/SKILL.md` | [Official skills documentation](https://learn.chatgpt.com/docs/build-skills) |
+| Antigravity | `.agents/skills/ask/SKILL.md` | [Official skills documentation](https://antigravity.google/docs/skills) |
+| Cursor | `.agents/skills/ask/SKILL.md` | [Official skills documentation](https://cursor.com/docs/skills) |
+| Claude Code | `.claude/skills/ask/SKILL.md` | [Official skills documentation](https://code.claude.com/docs/en/skills) |
 
 Documentation checked 2026-09-11. This table establishes documented discovery
 locations, not successful execution tests on all four hosts. Use project-level
@@ -28,12 +28,12 @@ your host versions. Do not maintain divergent edits of the skill per platform.
 
 ## Activate and check
 
-Start a new task/session and select or mention `shode-house-team` using the host's
+Start a new task/session and select or mention `ask` using the host's
 skill interface. If it is missing, check the folder spelling and whether hidden
 directories were copied; reload the workspace/session if needed. Confirm the
 loaded skill path. Do not claim discovery merely because the file exists.
 
-Try: "Use shode-house-team to review this API change. Review only; do not edit."
+Try: "Use ask to review this API change. Review only; do not edit."
 Expected: scoped evidence-based review, no screenshot requirement for a pure API,
 no request to install the old runtime or Beads, no automatic implementation.
 Host and repository instructions still apply, including this repository's Beads
@@ -57,10 +57,25 @@ Start a new session, select the skill again and supply that record's ID/path:
 The checkpoint is the continuity mechanism. Skill activation itself is not a
 scheduler, a guarantee of persistence across compaction, or an enforced file lock.
 
-To uninstall, remove only the copied `shode-house-team` folder after preserving any
+To uninstall, remove only the copied `ask` folder after preserving any
 local edits. Task records and project artifacts are separate; leave them intact.
 
 ## Validation status
+
+The release has one entrypoint; consult/design/implement are outcomes, not extra
+commands. Oliver stays in the main session. First project use confirms the source
+of truth and Markdown fallback. After a design, explicitly say "start implementing"
+to authorize that scope; no second command is needed. An approved design alone
+does not authorize edits, commits or deployment.
+
+Maintainers run `make validate-portable` and `make pack` (Python 3.9+, build-time
+only). Packaging writes two archives into a fresh temporary directory and prints
+paths and hashes. The portable ZIP contains `ask/`; the Claude archive contains
+`skills/ask/` and a minimal plugin manifest. No legacy hooks or scripts are shipped.
+For Claude, extract the plugin archive to a new folder and use the host's plugin
+loading mechanism; its shortcut is namespaced `/shode-house:ask`. A project skill
+uses `/ask`; other hosts use their native skill selector/mention syntax, not a
+guaranteed identical slash command. Do not install both formats in one host.
 
 Codex exposed the skill in this task's available-skills catalog after creation;
 its body was read successfully. This proves local discovery/read only. The

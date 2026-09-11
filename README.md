@@ -1,10 +1,15 @@
 # shode-house
 
-**3.16 preview — skills-first team:** [portable team skill](.agents/skills/shode-house-team/SKILL.md)
+**3.16 RC — one entrypoint:** [Ask Oliver](.agents/skills/ask/SKILL.md)
 uses host tools, risk-based roles and resumable checkpoints without custom runtime scripts.
 This repository skill is separate from the legacy `.plugin` below; four-host execution
 has not yet been verified. [Install without scripts](docs/portable-team-install.md)
 or read the [release contract](docs/3.16-release-contract.md).
+
+`make pack` builds the instruction-only 3.16 candidate in a new temporary folder;
+`make validate-portable` checks it. No runtime scripts are shipped. The material
+below describes the **legacy architecture**, retained for migration, not the new
+release payload. `make pack-legacy` explicitly builds that older distribution.
 
 > **Multi-Agent Software Engineering Operating System** สำหรับ Claude Code / Cowork —
 > 19 agent ใน 7 ทีม ที่มี ownership ชัด, quality gate ที่ต้องมีหลักฐาน, token-aware context routing,

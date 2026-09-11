@@ -3,7 +3,7 @@
 # Usage: make validate | make pack | make stats | make skills
 # NOTE: ใช้ TAB เป็น recipe prefix (v3.12) — `.RECIPEPREFIX` ต้องการ GNU Make >= 3.82
 #       แต่ macOS ยังมาพร้อม 3.81 -> `make pack` เดิมพังบนเครื่อง maintainer ("missing separator")
-.PHONY: help validate pack build stats skills clean
+.PHONY: help validate validate-portable pack pack-legacy build stats skills clean
 
 VERSION := $(shell jq -r .version .claude-plugin/plugin.json)
 PLUGIN  := shode-house-v$(VERSION).plugin
@@ -11,7 +11,9 @@ PLUGIN  := shode-house-v$(VERSION).plugin
 help:
 	@echo "shode-house dev-loop:"
 	@echo "  make validate   run the same invariant + lint gate as CI (bash + jq)"
-	@echo "  make pack       build $(PLUGIN) artifact (zip)"
+	@echo "  make pack       build instruction-only 3.16 RC archives in a fresh temp folder"
+	@echo "  make validate-portable  check 3.16 payload and mutation tests (Python 3.9+)"
+	@echo "  make pack-legacy build old $(PLUGIN) artifact (not 3.16)"
 	@echo "  make stats      skill/agent/command counts"
 	@echo "  make skills     list shipped skills by bucket"
 	@echo "  make clean      remove the built .plugin artifact"
@@ -28,6 +30,14 @@ validate:
 # zip เขียน temp archive ไว้ใน cwd เมื่อถูกขัดจังหวะ -> ให้มันไปอยู่ใน temp dir ของตัวเองแทน
 # แล้วย้ายเข้ามาเมื่อสำเร็จ (v3.12: เดิม `make clean` ใช้ glob `zi*` ซึ่งลบไฟล์ผู้ใช้ที่ขึ้นต้น zi ได้ เช่น zig/zip-config)
 pack build:
+	@python3 scripts/pack-portable.py
+
+validate-portable:
+	@python3 scripts/pack-portable.py --check
+	@python3 -m unittest discover -s tests -p test_portable_release.py
+	@python3 -O -m unittest discover -s tests -p test_portable_release.py
+
+pack-legacy:
 	@rm -f $(PLUGIN)
 	@d=$$(mktemp -d -t shode-pack.XXXXXX) && \
 	 (cd . && zip -rq "$$d/$(PLUGIN)" \
