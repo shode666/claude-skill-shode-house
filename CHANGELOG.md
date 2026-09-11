@@ -7,6 +7,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ---
 
+## [3.16.0] — Ask Oliver: instruction-only workflow — 2026-09-11
+
+- One `ask` skill, Oliver in the main session, scoped optional experts and five
+  on-demand references. No custom runtime scripts, hooks or mandatory tracker.
+- Project-selected sources of truth with Markdown fallback and resumable records;
+  explicit authorization, stale-evidence checks and UNKNOWN-effect reconciliation.
+- Application-layer/SRP guidance and proportional verification without mandatory
+  abstractions, team fan-out or duplicate review pipelines.
+- Codex skill UI configuration and an experimental Claude plugin manifest around
+  identical instruction bytes. Native agent rosters and legacy domain knowledge
+  packs are not included; project/domain evidence must still be consulted.
+- Scoped Codex behavior/recovery probes pass. Combined token benchmark gates still
+  FAIL; stable promotion accepts this disclosed limitation, not a savings claim.
+  Claude runtime parity is unverified. See [release notes](release/3.16-notes.md).
+
+---
+
 ## [3.15.0] — Runtime enforcement (roadmap Milestone A–G) — 2026-09-09
 
 > จาก "AI อ่านกฎที่ดีแล้วพยายามทำตาม" → "runtime บังคับ invariant ที่ deterministic". GS1 N=3 บน build นี้รันแล้ว: behavior **3/3 PASS** · cost median -5.3% ที่ **เคลมไม่ได้** (t=0.96) — ดูบรรทัดผลวัดด้านล่าง

@@ -1,4 +1,4 @@
-# Ask Oliver 3.16 RC — install without scripts
+# Ask Oliver 3.16.0 — install without scripts
 
 Stable qualification is **Codex only**, per the user's revised release scope.
 The other hosts below are experimental discovery locations, not verified support.
@@ -114,6 +114,10 @@ and same-line annotation recovery cases. These do not guarantee arbitrary
 concurrent merges, automatic compaction, multi-day uptime or four-host parity.
 [RC9 matched efficiency](../eval/portable-team/BENCHMARK-RC9-2026-09-11.md) still
 FAILS the combined token gates despite reducing total volume in both scenarios.
-RC10 changes host metadata/packaging only; the six instruction files are unchanged
-from RC9. Its new UI metadata has not had live-host acceptance testing. The package
-is not stable; no token-gate exception has been approved.
+RC10 added host metadata/packaging only; the six instruction files in 3.16.0 are
+unchanged from RC9. New UI metadata has static validation, not live-host acceptance
+testing. Stable promotion uses the shared instruction/workflow contract as the
+release boundary and accepts the failed token gates as a disclosed exception.
+This is not a claim of monetary savings, deterministic enforcement, complete domain
+expert knowledge or equivalent outcomes across models. See the
+[release decision](../release/3.16-notes.md).

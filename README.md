@@ -1,16 +1,22 @@
 # shode-house
 
-**3.16 RC — Codex-only qualification, one entrypoint:** [Ask Oliver](.agents/skills/ask/SKILL.md)
+**3.16.0 — stable instruction-only workflow, one entrypoint:** [Ask Oliver](.agents/skills/ask/SKILL.md)
 uses host tools, risk-based roles and resumable checkpoints without custom runtime scripts.
 This repository skill is separate from the legacy `.plugin` below. Claude Code,
 Cursor and Antigravity remain experimental, not stable-supported hosts.
 [Install without scripts](docs/portable-team-install.md)
 or read the [release contract](docs/3.16-release-contract.md).
 
-`make pack` builds the instruction-only 3.16 candidate in a new temporary folder;
+Download the assets from [v3.16.0](https://github.com/shode666/claude-skill-shode-house/releases/tag/v3.16.0).
+Stable describes the shared workflow contract, not deterministic model behavior or
+token savings. [Evidence and limitations](release/3.16-notes.md) remain explicit.
+
+`make pack` builds the instruction-only 3.16 release in a new temporary folder;
 `make validate-portable` checks it. No runtime scripts are shipped. The material
 below describes the **legacy architecture**, retained for migration, not the new
 release payload. `make pack-legacy` explicitly builds that older distribution.
+
+## Legacy architecture (3.15 and earlier; not the 3.16 payload)
 
 > **Multi-Agent Software Engineering Operating System** สำหรับ Claude Code / Cowork —
 > 19 agent ใน 7 ทีม ที่มี ownership ชัด, quality gate ที่ต้องมีหลักฐาน, token-aware context routing,
