@@ -82,10 +82,11 @@ loading mechanism; its shortcut is namespaced `/shode-house:ask`. A project skil
 uses `/ask`; other hosts use their native skill selector/mention syntax, not a
 guaranteed identical slash command. Do not install both formats in one host.
 
-Codex discovery and scoped live execution have been exercised. RC6
-[selective-history tests](../eval/portable-team/HISTORY-RC6-2026-09-11.md) and
-[recovery/blocker probes](../eval/portable-team/GAPS-RC6-2026-09-11.md) document
-their exact outcomes and limitations. They do not establish all
-[behavioral cases](../eval/portable-team/CASES.md), four-host parity, actual
-compaction/concurrent-write recovery or general token savings. Whole-workflow
-efficiency and Codex behavioral/recovery acceptance still block stable promotion.
+Codex discovery and scoped live execution have been exercised. Current-source
+[RC9 behavior/recovery](../eval/portable-team/BEHAVIOR-RC9-2026-09-11.md) passes
+the tested first-use, edits, diagnosis, missing-reference, risk, manual compaction
+and same-line annotation recovery cases. These do not guarantee arbitrary
+concurrent merges, automatic compaction, multi-day uptime or four-host parity.
+[RC9 matched efficiency](../eval/portable-team/BENCHMARK-RC9-2026-09-11.md) still
+FAILS the combined token gates despite reducing total volume in both scenarios.
+The package remains RC9, not stable; no token-gate exception has been approved.

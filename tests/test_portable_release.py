@@ -33,6 +33,10 @@ class PortableReleaseTests(unittest.TestCase):
             for item in built:
                 with zipfile.ZipFile(item["path"]) as archive:
                     self.assertIsNone(archive.testzip())
+                    expected = pack.archives()[1]["portable.zip"]
+                    self.assertEqual(set(archive.namelist()), set(expected))
+                    for name, content in expected.items():
+                        self.assertEqual(archive.read(name), content)
             with self.assertRaises(FileExistsError):
                 pack.build(out)
             self.assertEqual(before, {p.name: p.read_bytes() for p in out.iterdir()})
