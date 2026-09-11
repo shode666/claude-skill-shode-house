@@ -8,6 +8,9 @@ Cursor and Antigravity remain experimental, not stable-supported hosts.
 or read the [release contract](docs/3.16-release-contract.md).
 
 Download the assets from [v3.16.0](https://github.com/shode666/claude-skill-shode-house/releases/tag/v3.16.0).
+The marketplace on `main` installs the isolated `plugins/shode-house` tree, not
+the legacy repository root. Refresh an old catalog before installing: expect one
+ask skill, no hooks and no MCP servers.
 Stable describes the shared workflow contract, not deterministic model behavior or
 token savings. [Evidence and limitations](release/3.16-notes.md) remain explicit.
 

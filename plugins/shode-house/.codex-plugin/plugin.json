@@ -1,0 +1,19 @@
+{
+  "name": "shode-house",
+  "version": "3.16.0",
+  "description": "Oliver in the main session: one ask entrypoint, scoped engineering and Markdown-backed continuity.",
+  "author": {
+    "name": "shode666"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "shode-house",
+    "shortDescription": "Ask Oliver: scoped engineering and resumable delivery.",
+    "longDescription": "One ask skill with Oliver in the main session. No runtime scripts, hooks or required MCP servers. Token savings and Claude runtime parity are not guaranteed.",
+    "developerName": "shode666",
+    "category": "Productivity",
+    "capabilities": [],
+    "websiteURL": "https://github.com/shode666/claude-skill-shode-house",
+    "defaultPrompt": "Use the ask skill to help with this software task."
+  }
+}

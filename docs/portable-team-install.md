@@ -15,6 +15,25 @@ includes `agents/openai.yaml`. When installing directly from source, copy
 
 ## Choose a project location
 
+### Marketplace installation
+
+The repository marketplace on `main` now points to `plugins/shode-house`, an
+isolated install tree containing only the shared ask skill and host metadata.
+It has native Codex and Claude manifests, no root legacy hooks, MCP servers or
+19-agent roster. The root `.claude-plugin/plugin.json` remains the legacy build
+manifest; it is no longer the marketplace entry's source.
+
+If a cached catalog still displays 3.15 / 23 skills / Context7 / hooks, refresh
+the marketplace from its Git source before installing or updating. Confirm the
+new card shows 3.16.0 and one ask skill without hooks/MCP. Start a fresh session
+after updating; existing sessions may retain legacy instructions. Do not disable
+unrelated security controls. The immutable v3.16.0 tag predates this catalog repair;
+use current `main` for marketplace discovery, or the original release assets.
+
+The tracked install-tree Markdown copies must match the canonical release bytes;
+`tests/test_marketplace_release.py` checks drift, routing and contamination in CI.
+No generation script is required on the installing user's machine.
+
 | Host | Destination in target project | Evidence |
 |---|---|---|
 | Codex | `.agents/skills/ask/SKILL.md` | [Official skills documentation](https://learn.chatgpt.com/docs/build-skills) |
