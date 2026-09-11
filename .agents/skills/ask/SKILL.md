@@ -15,6 +15,8 @@ Inspect the project's source-of-truth mapping. If not yet confirmed, read
 Markdown is the fallback for every concern. Reuse an unchanged confirmed mapping:
 a standalone review/explanation does not need continuity guidance again. Read it
 when the mapping is missing/conflicting, resuming a checkpoint or saving a handoff.
+On resume, read the current record first; follow history links only to resolve a
+relevant discrepancy or dependency, not merely because they are linked.
 
 Use available host tools and project build/test tools; no custom runtime scripts,
 interpreter, hooks or tracker are required by this skill. Follow repository rules
