@@ -1,91 +1,113 @@
 #!/usr/bin/env python3
-"""ดึง usage record จาก transcript ของ Claude Code (WS10 collector).
+"""Maintainer-only Claude usage observations, NOT complete benchmark records.
 
-Claude Code เขียน transcript เป็น JSONL ที่ ~/.claude/projects/<project-slug>/<session>.jsonl
-ทุก assistant message มี message.usage -> input / cache_creation / cache_read / output
-
-  scripts/usage-from-transcript.py <transcript.jsonl> \
-      --scenario phase3b-base --run-dir outputs/token-usage/3.12.1 \
-      --plugin-version 3.12.1
-
-  scripts/usage-from-transcript.py --list          # หา transcript ล่าสุด
-
-🔴 รอบแรกให้เปิดไฟล์ที่ได้ดูด้วยตาก่อน 1 ไฟล์ ว่าเลข input/output ตรงกับที่เห็นใน
-   /cost หรือ status line จริง -- schema ของ transcript เปลี่ยนได้ตามเวอร์ชัน CLI
+Supply one transcript, --metadata JSON and --out. Native completion boundaries,
+resumed slices and whole-workflow coverage still require live host validation.
 """
-import json, sys, os, argparse, glob, pathlib, time
+import argparse
+import hashlib
+import json
+from pathlib import Path
 
-def rows(path):
-    for line in open(path, encoding='utf-8'):
-        line = line.strip()
-        if not line: continue
-        try: yield json.loads(line)
-        except Exception: continue
 
-def usage_of(r):
-    m = r.get('message') or {}
-    u = m.get('usage') or r.get('usage') or {}
-    return u if u else None
+def observe(raw, metadata, coverage="main-only"):
+    if coverage not in ("main-only", "subagents-only"):
+        raise ValueError("unsupported coverage")
+    if not isinstance(metadata, dict):
+        raise ValueError("metadata must be an object")
+    required = ("run_id", "invocation_id", "plugin_version", "model", "scenario",
+                "source_revision", "source_sha256", "fixture_sha256", "host_version")
+    for key in required:
+        value = metadata.get(key)
+        if not isinstance(value, str) or not value.strip() or value.lower() in ("unknown", "unavailable"):
+            raise ValueError(f"missing/invalid {key}")
+    for key in ("source_sha256", "fixture_sha256"):
+        if len(metadata[key]) != 64 or any(c not in "0123456789abcdef" for c in metadata[key]):
+            raise ValueError(f"invalid {key}")
+    if metadata.get("coverage") != coverage or not isinstance(metadata.get("settings"), dict):
+        raise ValueError("matching coverage and settings required")
+    fields = ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens", "output_tokens")
+    messages, identities = {}, set()
+    for line in raw.decode().splitlines():
+        if not line.strip():
+            continue
+        row = json.loads(line)
+        if not isinstance(row, dict):
+            raise ValueError("invalid transcript row")
+        message = row.get("message")
+        if not isinstance(message, dict) or "usage" not in message:
+            if "usage" in row:
+                raise ValueError("unsupported top-level usage")
+            continue
+        if row.get("type") != "assistant" or not isinstance(message.get("usage"), dict):
+            raise ValueError("unsupported usage row")
+        session, message_id = row.get("sessionId"), message.get("id")
+        if not all(isinstance(v, str) and v for v in (session, message_id)):
+            raise ValueError("native session/message identity required")
+        sidechain = row.get("isSidechain", False)
+        if type(sidechain) is not bool or sidechain != (coverage == "subagents-only"):
+            raise ValueError("mixed or mismatched main/subagent coverage")
+        agent = row.get("agentId") if sidechain else "main"
+        if not isinstance(agent, str) or not agent:
+            raise ValueError("native subagent identity required")
+        identities.add((session, agent))
+        if len(identities) != 1:
+            raise ValueError("mixed sources; collect separately")
+        counts = {}
+        for key in fields:
+            value = message["usage"].get(key)
+            if type(value) is not int or value < 0:
+                raise ValueError(f"missing/invalid {key}; do not assume zero")
+            counts[key] = value
+        if message_id in messages and messages[message_id] != counts:
+            raise ValueError("conflicting usage snapshots; schema review required")
+        messages[message_id] = counts
+    if not messages:
+        raise ValueError("no identifiable assistant usage")
+    session, agent = next(iter(identities))
+    provenance = {key: metadata[key] for key in (*required, "coverage", "settings")}
+    return {**provenance, "source_session_id": session, "source_agent_id": agent,
+            "raw_sha256": hashlib.sha256(raw).hexdigest(), "collector": "claude-observation-v2",
+            "observed_usage": {k: sum(u[k] for u in messages.values()) for k in fields},
+            "unique_messages": len(messages), "usage_complete": False, "duration_ms": None,
+            "quality_verdict": "NOT-EVALUATED", "benchmark_verdict": "UNSCORABLE",
+            "limitation": "Completion boundary, resumed slices and whole-workflow coverage unverified"}
 
-def agent_of(r):
-    # subagent invocation ถูกบันทึกด้วย field ต่างกันตามเวอร์ชัน -- ลองหลายทาง
-    for k in ('subagent_type', 'agent', 'agentType', 'name'):
-        v = r.get(k) or (r.get('message') or {}).get(k)
-        if isinstance(v, str) and v: return v
-    if r.get('isSidechain'): return 'subagent-unknown'
-    return 'main'
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('transcript', nargs='?')
-    ap.add_argument('--scenario'); ap.add_argument('--run-dir')
-    ap.add_argument('--plugin-version', default='unknown')
-    ap.add_argument('--model', default='unknown')
-    ap.add_argument('--command', default='')
-    ap.add_argument('--list', action='store_true')
-    a = ap.parse_args()
+def save(record, directory):
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / (hashlib.sha256(record["invocation_id"].encode()).hexdigest() + ".json")
+    for other in directory.glob("*.json"):
+        previous = json.loads(other.read_text())
+        if not isinstance(previous, dict):
+            raise ValueError("invalid existing observation")
+        same_source = (previous.get("source_session_id"), previous.get("source_agent_id")) == (record["source_session_id"], record["source_agent_id"])
+        if (same_source or previous.get("raw_sha256") == record["raw_sha256"]) and previous != record:
+            raise ValueError("source already ingested; overlapping/resumed slices unsupported")
+    content = json.dumps(record, indent=2, sort_keys=True) + "\n"
+    try:
+        with path.open("x") as stream:
+            stream.write(content)
+    except FileExistsError:
+        if path.read_text() != content:
+            raise ValueError("invocation identity collision")
+    return path
 
-    if a.list or not a.transcript:
-        pat = os.path.expanduser('~/.claude/projects/**/*.jsonl')
-        fs = sorted(glob.glob(pat, recursive=True), key=os.path.getmtime, reverse=True)[:10]
-        if not fs: print("ไม่เจอ transcript ใต้ ~/.claude/projects/ -- รันจากเครื่องที่ใช้ Claude Code"); return 1
-        for f in fs:
-            print(f"{time.strftime('%Y-%m-%d %H:%M', time.localtime(os.path.getmtime(f)))}  {f}")
+
+def main(coverage="main-only"):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("transcript", type=Path)
+    parser.add_argument("--metadata", required=True, type=Path)
+    parser.add_argument("--out", required=True, type=Path)
+    args = parser.parse_args()
+    try:
+        record = observe(args.transcript.read_bytes(), json.loads(args.metadata.read_text()), coverage)
+        print(save(record, args.out))
+        print("OBSERVATION ONLY: UNSCORABLE for whole-workflow benchmarking")
         return 0
+    except (ValueError, OSError) as error:
+        parser.exit(2, f"UNSCORABLE: {error}\n")
 
-    if not (a.scenario and a.run_dir):
-        print("ต้องมี --scenario และ --run-dir"); return 2
 
-    out = pathlib.Path(a.run_dir) / a.scenario
-    out.mkdir(parents=True, exist_ok=True)
-    run_id = f"{os.path.basename(a.run_dir.rstrip('/'))}-{a.scenario}"
-    n, by = 0, {}
-    for r in rows(a.transcript):
-        u = usage_of(r)
-        if not u: continue
-        agent = agent_of(r)
-        by.setdefault(agent, []).append(u)
-
-    for agent, us in by.items():
-        rec = {
-            "run_id": run_id, "plugin_version": a.plugin_version, "model": a.model,
-            "command": a.command, "phase": a.scenario, "agent": agent,
-            "input_tokens": sum(u.get('input_tokens', 0) for u in us),
-            "cache_read_tokens": sum(u.get('cache_read_input_tokens', 0) for u in us),
-            "cache_write_tokens": sum(u.get('cache_creation_input_tokens', 0) for u in us),
-            "output_tokens": sum(u.get('output_tokens', 0) for u in us),
-            "duration_ms": 0,
-            "turns": len(us),
-        }
-        i = 1
-        while (out / f"{agent}-{i}.json").exists(): i += 1
-        (out / f"{agent}-{i}.json").write_text(json.dumps(rec, ensure_ascii=False, indent=2))
-        n += 1
-        print(f"  {agent:24} turns={len(us):3}  in={rec['input_tokens']:>8,}  "
-              f"cache_read={rec['cache_read_tokens']:>9,}  out={rec['output_tokens']:>7,}")
-    print(f"เขียน {n} record ลง {out}")
-    if n and 'main' in by and len(by) == 1:
-        print("⚠️  เจอแต่ agent 'main' -- transcript นี้อาจไม่มี subagent หรือ field ชื่อต่างจากที่ script รู้จัก")
-    return 0
-
-sys.exit(main())
+if __name__ == "__main__":
+    raise SystemExit(main())

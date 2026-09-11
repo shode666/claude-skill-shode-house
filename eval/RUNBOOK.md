@@ -1,5 +1,12 @@
 # RUNBOOK — runtime baseline + A/B (WS8 / WS10)
 
+Historical v3.13 procedure, not the 3.16 release protocol. For 3.16 use
+[portable cases](portable-team/CASES.md) and the frozen experiment reports there.
+The old collector commands below have been retired: current Claude/Cowork
+collectors produce [partial observations](CLAUDE-USAGE-OBSERVATIONS.md), not
+benchmark-ready records. Do not execute historical checkout/install instructions
+against an active worktree or use their synthetic estimates as live usage.
+
 สิ่งเดียวที่ปลดล็อก promotion ของ v3.13 · ต้องรันบนเครื่องที่ใช้ Claude Code จริง
 (sandbox ของ session ทำแทนไม่ได้ — ไม่มี runtime, ไม่มี ~/.claude)
 
@@ -27,10 +34,9 @@ git checkout v3.12.1 && claude plugin install .      # ให้ CLI ใช้ 3
 # 1. เปิด session ใหม่ วาง prompt จาก eval/prompts/<scenario>.md แบบ verbatim
 # 2. รันจนจบ แล้วติ๊ก behavior assertion ในไฟล์นั้น (accuracy มาก่อน token)
 # 3. เก็บ usage
-scripts/usage-from-transcript.py --list        # หา transcript ล่าสุด
-scripts/usage-from-transcript.py <transcript.jsonl> \
-    --scenario <scenario-id> --run-dir eval/baseline/3.12.1 \
-    --plugin-version 3.12.1 --model <model-id> --command <command>
+# Current replacement (observation only; explicit source and provenance):
+python3 scripts/usage-from-transcript.py <transcript.jsonl> \
+    --metadata <metadata.json> --out <observations-directory>
 ```
 
 🔴 **รอบแรกให้เปิด record ที่ได้ดูด้วยตา** แล้วเทียบกับ `/cost` ของ session นั้น
@@ -39,6 +45,9 @@ scripts/usage-from-transcript.py <transcript.jsonl> \
 ```bash
 scripts/usage-report.py eval/baseline/3.12.1      # สรุป + จับ repeated load
 ```
+
+This historical report invocation accepts complete legacy records only. Never
+feed partial observations to it or manually add zero counters to make them pass.
 
 ## B — candidate บน 3.13
 
