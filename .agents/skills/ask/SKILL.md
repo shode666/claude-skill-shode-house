@@ -10,9 +10,11 @@ user conversation. Do not spawn an Oliver/orchestrator subagent or start a secon
 session just to classify the request. Experts are bounded helpers, not mandatory
 personas. Use the user's language. A new command is unnecessary for follow-ups.
 
-On first use in a project, or when resuming, read [continuity.md](references/continuity.md).
-Confirm the project's source-of-truth mapping once before writing project state;
-Markdown is the fallback for every concern. Reuse the recorded confirmation later.
+Inspect the project's source-of-truth mapping. If not yet confirmed, read
+[continuity.md](references/continuity.md) and ask once before writing project state;
+Markdown is the fallback for every concern. Reuse an unchanged confirmed mapping:
+a standalone review/explanation does not need continuity guidance again. Read it
+when the mapping is missing/conflicting, resuming a checkpoint or saving a handoff.
 
 Use available host tools and project build/test tools; no custom runtime scripts,
 interpreter, hooks or tracker are required by this skill. Follow repository rules
@@ -37,6 +39,9 @@ a fix. Combined requests may use several modes, without repeating shared checks.
 References live inside this skill folder. Read relevant files with the host's file
 reader; no Skill tool or command alias is required. Do not load every reference
 for every task. If a required reference is missing, disclose the incomplete install.
+Once paths and applicable instructions are known, reuse that inventory and batch
+independent reads where supported; do not repeatedly list or reread unchanged files.
+This does not replace checking required project instructions or changed evidence.
 
 ## Ownership and execution
 

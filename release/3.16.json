@@ -1,6 +1,6 @@
 {
   "name": "shode-house",
-  "version": "3.16.0-rc.1",
+  "version": "3.16.0-rc.2",
   "description": "Oliver in the main session: one ask entrypoint, scoped engineering and Markdown-backed continuity.",
   "source": ".agents/skills/ask",
   "files": [
