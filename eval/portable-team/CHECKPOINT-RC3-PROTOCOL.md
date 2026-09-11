@@ -1,6 +1,8 @@
 # Current-checkpoint evaluation protocol
 
-Status: predeclared, not executed. Beads `shode-house-5cs.11.6`.
+Status: predeclared before execution; completed results in GROWTH-RC3-2026-09-11.md
+and the evidence-driven RC4 retest in GROWTH-RC4-2026-09-11.md. Criteria below were
+not changed after results. Beads `shode-house-5cs.11.6`.
 
 ## Targeted experiment
 
