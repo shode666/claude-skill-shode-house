@@ -9,6 +9,7 @@ jobs:
         with:
           python-version: '3.9'
       - run: make validate-portable
+      - run: python3 -m unittest discover -s tests -p test_codex_usage.py
       - run: python3 scripts/pack-portable.py --out dist-3.16
       - uses: actions/upload-artifact@v4
         with:
