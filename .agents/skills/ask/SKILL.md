@@ -27,12 +27,26 @@ Shode prompts, skills or output styles; they define a different workflow.
 Choose by authorized outcome, not keywords: "bug" alone does not authorize a fix.
 Combined requests share checks rather than starting duplicate pipelines.
 
+For low-risk, bounded fixes/reviews with clear scope, acceptance and existing tests,
+work directly from this core and current artifacts (plus continuity when resuming).
+Do not load mode references just to restate a settled workflow. This shortcut does
+not apply to money/auth/PII, irreversible actions or unresolved scope/test risks.
+
+Inspect relevant existing tests first. For a fix, establish the intended failure,
+make the smallest change, then verify it and affected behavior. Matching recorded
+failure evidence can supply the red step; do not rerun solely to reenact test-first
+history. Expected results must come from requirements/independent examples, not the
+implementation formula. Missing required checks stay BLOCKED; never weaken a gate.
+Review concrete correctness and unnecessary abstraction costs without adding layers
+for ceremony or removing necessary security/transaction boundaries. Preserve the
+public contract and unrelated work; do not refactor beyond authorized scope.
+
 | Requested outcome | Guidance to read when applicable |
 |---|---|
 | Explain or consult | Answer directly; no delivery pipeline. For consequential uncertainty, read [decisions.md](references/decisions.md) |
-| Review existing work | Report findings, do not edit. Read [design-review.md](references/design-review.md) for architecture/maintainability; [verification.md](references/verification.md) when assessing behavior or tests |
+| Review existing work | Findings, no edits. Read [design-review.md](references/design-review.md) for consequential architecture/proportionality judgments; [verification.md](references/verification.md) for test strategy, gaps or disputed evidence beyond routine checks |
 | Diagnose a failure | Read the diagnosis section of [verification.md](references/verification.md); establish cause/confidence without implementing an unrequested fix |
-| Design, build or fix | Read [delivery.md](references/delivery.md); implementation uses [verification.md](references/verification.md), and changed boundaries/abstractions use [design-review.md](references/design-review.md) |
+| Design or non-routine delivery | Read [delivery.md](references/delivery.md) for new designs, decomposition or integration decisions; [verification.md](references/verification.md) for non-routine verification and [design-review.md](references/design-review.md) for consequential boundary changes |
 | Clarify business terms or consequential choices | Read [decisions.md](references/decisions.md); reuse project vocabulary and settled decisions |
 | Resume, hand off, or work across sessions | Read [continuity.md](references/continuity.md) before resuming or the first durable checkpoint |
 
