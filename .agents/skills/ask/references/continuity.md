@@ -49,10 +49,14 @@ limit, update the same task record with:
 - External actions already taken, operation IDs and uncertain outcomes, if any.
 
 Maintain one current checkpoint, updating changed facts rather than appending a
-full snapshot each session. Keep scope/approval boundaries, source-of-truth pointers,
+full snapshot each session. Leave unchanged facts alone; summarize verification as
+command/result and snapshot/environment, linking specs/tests instead of restating
+requirements, coverage lists or review narration. Keep scope/approval boundaries, source-of-truth pointers,
 current evidence, next action and unresolved risks or UNKNOWN operations directly
 available. Link superseded evidence and resolved history through existing durable
-records; read that history only when needed to resolve a discrepancy or dependency.
+records. When resolved history makes the current record expensive to reread, move
+it to an authorized history artifact and keep a pointer, not an inline copy. Read
+history only to resolve a discrepancy or dependency.
 Before removing the only copy of history, preserve it in an authorized artifact
 location and verify the link; if that is unavailable, retain it and disclose the
 context cost. Do not trim unresolved decisions or uncertain effects to meet a size
