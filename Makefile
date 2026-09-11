@@ -5,8 +5,8 @@
 #       แต่ macOS ยังมาพร้อม 3.81 -> `make pack` เดิมพังบนเครื่อง maintainer ("missing separator")
 .PHONY: help validate validate-portable pack pack-legacy build stats skills clean
 
-VERSION := $(shell jq -r .version .claude-plugin/plugin.json)
-PLUGIN  := shode-house-v$(VERSION).plugin
+VERSION = $(shell jq -r .version .claude-plugin/plugin.json)
+PLUGIN  = shode-house-v$(VERSION).plugin
 
 help:
 	@echo "shode-house dev-loop:"

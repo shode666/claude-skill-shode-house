@@ -456,7 +456,7 @@ assert_eq "$(jq -r '.routes.code' "$REPO_ROOT/references/state-machine/rework-ro
 t_start "packaging: make pack ships scripts/side-effect.sh + scripts/approval.sh + the new state-machine data files"
 ver=$(jq -r .version "$REPO_ROOT/.claude-plugin/plugin.json" 2>/dev/null)
 plugin="$REPO_ROOT/shode-house-v${ver}.plugin"
-pack_out=$(cd "$REPO_ROOT" && make pack 2>&1); pack_rc=$?
+pack_out=$(cd "$REPO_ROOT" && make pack-legacy 2>&1); pack_rc=$?
 assert_true "$pack_rc" "make pack should build successfully -- output: $pack_out"
 [ -f "$plugin" ] && t_ok || t_fail "expected artifact not found at $plugin"
 listing=$(unzip -l "$plugin" 2>/dev/null)
