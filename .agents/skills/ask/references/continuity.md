@@ -15,20 +15,12 @@ folder. Create only what the task needs, and only when writes are authorized; ne
 overwrite an existing file. This record is a pointer/index, not duplicated task data.
 For a read-only session, return the mapping in chat and state that it was not persisted.
 
-Markdown fallback holds task progress, specs, decisions, handoff and evidence summaries.
-Keep binary artifacts/logs in suitable files and link them; do not flatten screenshots
-into Markdown or copy full transcripts. If a chosen remote system is unavailable,
-preserve its ID and mark fallback records pending synchronization. They do not supersede
-remote authority. Reconcile current remote state before an authorized sync; no fake updates.
-
-Determine the project's source of truth from its instructions and existing workflow:
-Markdown files, Jira, Redmine, Beads or another system are equally valid. Reuse its
-task IDs, status meanings and update conventions. Do not prefer a product, migrate
-tracking, or create a second tracker merely because a tool is easier to access.
-If multiple systems exist, identify authority per concern (for example Jira owns
-task status, repository Markdown owns the spec, code/tests own implementation
-evidence) and link them. After first-use confirmation, ask again only when authority
-conflicts or changes materially affect the next action.
+Markdown fallback holds progress, specs, decisions, handoff and evidence summaries;
+link binary artifacts/logs rather than copying transcripts. Markdown, Jira, Redmine,
+Beads or other project-selected systems are equally valid. Reuse IDs, status meanings
+and update conventions; no tracker migration or competing store for convenience.
+For split authority, link each concern's owner (for example Jira status, Markdown
+spec, code/tests evidence). Reconfirm only authority conflicts or material changes.
 
 Save progress in the designated task record or linked artifact location. If the
 canonical system is temporarily inaccessible, preserve its ID/URL and label a local
