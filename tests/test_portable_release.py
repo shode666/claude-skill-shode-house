@@ -1,5 +1,6 @@
 """Maintainer checks: package allowlist, source identity and mutation failures."""
 import importlib.util
+import json
 from pathlib import Path
 import shutil
 import tempfile
@@ -18,10 +19,15 @@ class PortableReleaseTests(unittest.TestCase):
         self.assertEqual(config["release_host"], "codex")
         self.assertEqual(set(bundles), {"portable.zip"})
         config, bundles = pack.archives(include_experimental=True)
-        self.assertEqual(len(bundles["portable.zip"]), 6)
+        self.assertEqual(len(bundles["portable.zip"]), 7)
         self.assertEqual(len(bundles["claude.plugin"]), 7)
         for name, content in bundles["portable.zip"].items():
+            if name == "ask/agents/openai.yaml":
+                self.assertEqual(content, (ROOT / "release/hosts/codex/openai.yaml").read_bytes())
+                continue
             self.assertEqual(content, bundles["claude.plugin"]["skills/" + name])
+        manifest = json.loads(bundles["claude.plugin"][".claude-plugin/plugin.json"])
+        self.assertEqual(manifest, {key: config[key] for key in ("name", "version", "description")})
         for bundle in bundles.values():
             self.assertFalse(any(p.startswith(("hooks/", "agents/", "commands/", "scripts/", "output-styles/")) for p in bundle))
 
@@ -45,6 +51,35 @@ class PortableReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             built = pack.build(Path(directory), include_experimental=True)
             self.assertEqual(len(built), 2)
+            expected = pack.archives(include_experimental=True)[1]
+            for item, suffix in zip(built, ("portable.zip", "claude.plugin")):
+                with zipfile.ZipFile(item["path"]) as archive:
+                    self.assertEqual(set(archive.namelist()), set(expected[suffix]))
+                    for name, content in expected[suffix].items():
+                        self.assertEqual(archive.read(name), content)
+
+    def test_host_configuration_mutations_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shutil.copytree(ROOT / "release", root / "release")
+            shutil.copytree(ROOT / ".agents/skills/ask", root / ".agents/skills/ask")
+            metadata = root / "release/hosts/codex/openai.yaml"
+            original = metadata.read_bytes()
+            for content in (original + b'policy:\n  allow_implicit_invocation: false\n',
+                            original.replace(b'$ask', b'$wrong')):
+                metadata.write_bytes(content)
+                with self.assertRaises(ValueError):
+                    pack.archives(root)
+            metadata.write_bytes(original)
+            manifest = root / "release/hosts/claude/plugin.json"
+            original_manifest = manifest.read_bytes()
+            manifest.write_text('{"name":"wrong", "hooks":"./hooks.json"}\n')
+            with self.assertRaises(ValueError):
+                pack.archives(root)
+            manifest.write_bytes(original_manifest)
+            metadata.unlink()
+            with self.assertRaises(ValueError):
+                pack.archives(root)
 
     def test_missing_or_extra_runtime_file_rejected(self):
         with tempfile.TemporaryDirectory() as directory:

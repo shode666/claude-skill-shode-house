@@ -48,10 +48,33 @@ def payload(root=ROOT):
 def archives(root=ROOT, include_experimental=False):
     config, data = payload(root)
     portable = {f"ask/{name}": value for name, value in data.items()}
+    hosts = root / "release/hosts"
+    expected = {"codex/openai.yaml", "claude/plugin.json"}
+    require({p.relative_to(hosts).as_posix() for p in hosts.rglob("*") if p.is_file()} == expected,
+            "unexpected or missing host configuration")
+    for name in expected:
+        path = hosts / name
+        require(not path.is_symlink() and path.resolve().is_relative_to(root.resolve()),
+                "host configuration escapes repository")
+    metadata = (hosts / "codex/openai.yaml").read_bytes()
+    # Intentionally accept only this small UI-only YAML subset. No extra dependency,
+    # execution settings, implicit-invocation override or host tool declarations.
+    match = re.fullmatch(
+        r'interface:\n  display_name: ("[^\n]+")\n'
+        r'  short_description: ("[^\n]+")\n'
+        r'  default_prompt: ("[^\n]+")\n', metadata.decode("utf-8"))
+    require(match is not None, "invalid Codex UI-only metadata")
+    display, description, prompt = (json.loads(value) for value in match.groups())
+    require(display and 25 <= len(description) <= 64 and "$ask" in prompt,
+            "invalid Codex skill interface")
+    portable["ask/agents/openai.yaml"] = metadata
+    manifest = json.loads((hosts / "claude/plugin.json").read_text())
+    require(manifest == {"name": config["name"]}, "invalid Claude manifest template")
+    # Version and description have a single authority, not copied host values.
+    manifest.update({key: config[key] for key in ("version", "description")})
     if not include_experimental:
         return config, {"portable.zip": portable}
     claude = {f"skills/ask/{name}": value for name, value in data.items()}
-    manifest = {key: config[key] for key in ("name", "version", "description")}
     claude[".claude-plugin/plugin.json"] = (json.dumps(manifest, indent=2) + "\n").encode()
     return config, {"portable.zip": portable, "claude.plugin": claude}
 
@@ -86,8 +109,8 @@ if __name__ == "__main__":
                         help="also build the unverified Claude-format archive; not stable support")
     args = parser.parse_args()
     if args.check:
-        config, data = payload()
-        print(f"PASS {config['version']}: one ask entrypoint, {len(data)} instruction files")
+        config, bundles = archives(include_experimental=True)
+        print(f"PASS {config['version']}: one ask entrypoint, 6 instruction files, both host configs")
     else:
         destination = args.out or Path(tempfile.mkdtemp(prefix="shode-release-"))
         print(json.dumps(build(destination.resolve(), include_experimental=args.include_experimental), indent=2))

@@ -5,10 +5,13 @@ The other hosts below are experimental discovery locations, not verified support
 
 Source: [.agents/skills/ask](../.agents/skills/ask/SKILL.md).
 Copy that folder with your editor or file manager into the target project. The
-runtime distribution is `SKILL.md` plus its `references/` folder; copy both together.
+shared instruction source is `SKILL.md` plus its `references/` folder; copy both together.
 References are read only when their mode applies. Do not copy this
 repository's other `.agents` skills, scripts, hooks, output styles or `.plugin`.
 No terminal, installer, language interpreter, symlink or generated config is needed.
+For the complete Codex UI configuration, use the packaged `ask/` folder; it also
+includes `agents/openai.yaml`. When installing directly from source, copy
+`release/hosts/codex/openai.yaml` into the target skill's `agents/openai.yaml`.
 
 ## Choose a project location
 
@@ -30,6 +33,28 @@ when changing hosts until a single-location setup has been verified for all of
 your host versions. Do not maintain divergent edits of the skill per platform.
 
 ## Activate and check
+
+### Host configuration included
+
+| Host | Packaged configuration | Purpose |
+|---|---|---|
+| Codex | `ask/agents/openai.yaml` | Skill display name, short description and `$ask` starter prompt |
+| Claude Code (experimental) | `.claude-plugin/plugin.json` | Plugin identity; version/description filled from the release manifest at build time |
+
+The Claude package contains `skills/ask/` with the same six instruction files;
+the Codex-only UI metadata is not copied into it. A plain Claude project-skill
+installation needs only `.claude/skills/ask/`, not a plugin manifest.
+
+No `config.toml`, `settings.json`, MCP configuration or custom native agent roster
+is required for this design. Existing host model, permissions and project rules
+remain unchanged. `agents/openai.yaml` is UI metadata, **not a subagent definition**.
+Oliver stays in the main session; optional experts use available host delegation,
+not legacy agent files. The skill declares no `context: fork`, model override or
+tool permission grant. Automatic skill selection keeps the host default.
+
+These formats follow [Codex skill metadata](https://learn.chatgpt.com/docs/build-skills)
+and [Claude plugin configuration](https://code.claude.com/docs/en/plugins-reference).
+Configuration/packaging checks do not establish equivalent agent behavior.
 
 Start a new task/session and select or mention `ask` using the host's
 skill interface. If it is missing, check the folder spelling and whether hidden
@@ -89,4 +114,6 @@ and same-line annotation recovery cases. These do not guarantee arbitrary
 concurrent merges, automatic compaction, multi-day uptime or four-host parity.
 [RC9 matched efficiency](../eval/portable-team/BENCHMARK-RC9-2026-09-11.md) still
 FAILS the combined token gates despite reducing total volume in both scenarios.
-The package remains RC9, not stable; no token-gate exception has been approved.
+RC10 changes host metadata/packaging only; the six instruction files are unchanged
+from RC9. Its new UI metadata has not had live-host acceptance testing. The package
+is not stable; no token-gate exception has been approved.

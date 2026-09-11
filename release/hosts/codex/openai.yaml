@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ask Oliver"
+  short_description: "Scoped engineering and resumable delivery"
+  default_prompt: "Use $ask to help with this software task."
