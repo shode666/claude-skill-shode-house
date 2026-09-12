@@ -1,44 +1,32 @@
-# Full-team candidate packaging
+# Multi-host package: `plugins/shode-house`
 
-Maintainer-only `scripts/pack-team.py` builds test archives. It does not install,
-publish, certify compatibility, or introduce a runtime dependency. Source version
-is retained: a 3.15.0-based candidate is not a released 3.16.1.
+`scripts/pack-team.py --tree plugins/shode-house` generates the committed package from the
+repository source; `--check plugins/shode-house` (run by CI gate #25) fails on any drift.
+`--out DIR` builds the same tree as a `.plugin` archive for Cowork / release assets.
 
-Every variant keeps the full original-layout knowledge tree, 19 role sources and
-24 skill discovery adapters (23 retained skills plus ask). Only selected roles and
-their prerequisites are loaded during work. Oliver remains the main session.
+One tree serves four hosts:
 
-| Target | Configuration | Meaning and limits |
+| Host | Manifest | What is discovered |
 |---|---|---|
-| `claude-codex` | `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json` | Flat skill discovery; Claude agent adapters and one ask command. A Codex catalog result does not establish native registration of the agent files. |
-| `cursor` | `.cursor-plugin/plugin.json` | Native agent adapters use inherited model settings, not Claude tool/model metadata. Ask is a skill; no duplicate command. |
-| `antigravity` | root `plugin.json` marker | Flat skills plus full role resources. This is not a claim that the host registers agent files or can run an independent team. |
+| Claude Code | `.claude-plugin/plugin.json` | 24 flat skills, 19 agent adapters, `/shode-house:ask` |
+| Codex | `.codex-plugin/plugin.json` | 24 skills (agent files are not a Codex concept) |
+| Cursor | `.cursor-plugin/plugin.json` | skills + agents by folder discovery; `commands: []` because `commands/ask.md` uses the Claude command dialect |
+| Antigravity | root `plugin.json` | skills only; agents are knowledge resources, not native registrations |
 
-No automatic hooks, MCP startup or runner scripts ship as runtime components.
-Markdown can carry durable state; it cannot enforce locks, run in the background,
-or guarantee exactly-once external effects. Required independent verification stays
-blocked when the host has no real delegation facility.
+Layout: `knowledge/` holds every original file byte-for-byte (19 `agents/*.md`, the five
+skill buckets, `references/`, `output-styles/`, `commands/`). `agents/` and `skills/` are
+thin discovery adapters whose only job is to make the host read the full source and its
+prerequisite skills. Adapter frontmatter is host-neutral: `name`, `description`, `tools`,
+`skills`, `model: inherit` (Claude `color` and model aliases are dropped so no host has to
+resolve another host's model names). No hooks, MCP servers or runner scripts ship in the
+package; the harness is a coordination contract, not a runtime.
 
-Build a variant with `python3 scripts/pack-team.py --host cursor` (or
-`antigravity` / `claude-codex`). Output goes to a unique temporary directory by
-default. Existing artifact names are never overwritten. Building does not mutate
-the user's plugin installations or marketplace source.
+Limits that stay true regardless of layout: skill discovery does not prove separate
+workers exist; when a host has no delegation tool, required independent review is
+BLOCKED and Oliver must say so. Markdown checkpoints support resumption but cannot
+enforce locks or exactly-once external effects. Live evidence per host is recorded in
+CHANGELOG under the release entry, not here.
 
-Structural tests check source preservation, adapter reachability and configuration
-separation. Live delegation, resume/UNKNOWN reconciliation, remote-source installation
-and host-specific runtime behavior require their own evidence; archive validity is
-not an execution verdict. See the canonical recovery issue `shode-house-qdu` for
-current qualification status rather than treating this document as a task tracker.
-
-## Configuration sources
-
-Checked 2026-09-12. Host documentation changes; verify these before publication.
-
-- [Cursor plugin formats](https://cursor.com/docs/plugins) and
-  [official native manifest template](https://github.com/cursor/plugin-template/blob/main/plugins/starter-advanced/.cursor-plugin/plugin.json).
-- [Cursor subagents](https://cursor.com/docs/subagents): separate contexts and
-  supported metadata, including inherited model selection.
-- [Antigravity plugins](https://antigravity.google/docs/plugins): root marker and
-  skill directory; this page does not establish native custom-agent registration.
-- [Antigravity skills](https://antigravity.google/docs/skills): discovery and
-  full instruction activation.
+Host documentation checked 2026-09-12 (verify again before changing manifests):
+[Cursor plugins](https://cursor.com/docs/plugins) · [Cursor plugin reference](https://cursor.com/docs/reference/plugins)
+· [Antigravity plugins](https://antigravity.google/docs/plugins) · [Antigravity skills](https://antigravity.google/docs/skills).

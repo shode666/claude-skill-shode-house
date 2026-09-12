@@ -1,21 +1,22 @@
 # shode-house
 
-Recovery work in progress: [ask](skills/workflow/ask/SKILL.md) is the new team
-entrypoint. The original 19 roles and 23 skills remain, with ask added. This
-checkout is not yet a qualified 3.16.1 release; packaging and host acceptance are
-still under validation. Existing command files are retained during migration.
+**3.16.1** — the full software house is back: [ask](skills/workflow/ask/SKILL.md) is the
+single team entrypoint (Oliver in the main session), the original 19 roles and 23 skills
+are preserved, and the same package installs on Claude Code, Codex, Cursor and
+Antigravity from `plugins/shode-house`. 3.16.1 supersedes 3.16.0, which shipped a
+single-skill package without the team; the 3.16.0 tag and history are kept unchanged.
 
 > **Multi-Agent Software Engineering Operating System** สำหรับ Claude Code / Cowork —
 > 19 agent ใน 7 ทีม ที่มี ownership ชัด, quality gate ที่ต้องมีหลักฐาน, token-aware context routing,
 > CI invariant ที่พิสูจน์ด้วย mutation test และ behavioral A/B eval
 
-[![Version](https://img.shields.io/badge/version-3.14.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.16.1-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/shode666/claude-skill-shode-house/actions/workflows/ci.yml/badge.svg)](https://github.com/shode666/claude-skill-shode-house/actions/workflows/ci.yml)
 
 ครอบคลุม **ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI** + polyglot 14 languages · ภาษาไทยเป็นหลัก
 
-**What's new**: [CHANGELOG.md](CHANGELOG.md) · release ล่าสุด **v3.13.0** · main = 3.14.0-in-progress (public polish · architecture diagrams · reference project #1 — ดู CHANGELOG)
+**What's new**: [CHANGELOG.md](CHANGELOG.md) · release ล่าสุด **v3.16.1** (แทนที่ 3.16.0) · host notes: [docs/team-candidate-hosts.md](docs/team-candidate-hosts.md)
 
 ---
 
@@ -109,14 +110,31 @@ Chris   ∥ Quinn   : 7-dim clean · E2E green · spec-axis 6/6
 
 ## 🚀 Install
 
+Package source for every host: `plugins/shode-house` (generated from this repo by
+`scripts/pack-team.py --tree plugins/shode-house`; CI fails if it drifts).
+
 ### Claude Code (CLI/terminal)
 ```bash
 /plugin marketplace add shode666/claude-skill-shode-house
 /plugin install shode-house@shode-house
 ```
+Entry: `/shode-house:ask <request>` — Oliver runs the main session and dispatches the specialists.
+
+### Codex
+Add the repo as a plugin marketplace (`.claude-plugin/marketplace.json` is the shared catalog);
+`plugins/shode-house/.codex-plugin/plugin.json` registers the 24 skills. Start with the `ask` skill.
+
+### Cursor
+Install from this repository (`.cursor-plugin/marketplace.json` → `plugins/shode-house`).
+Skills and agent adapters are discovered; there is no slash command — invoke the `ask` skill.
+
+### Antigravity
+Copy or clone `plugins/shode-house` into `.agents/plugins/` (workspace) or
+`~/.gemini/config/plugins/` (global). Skills are discovered; agent files are knowledge only —
+if the host has no delegation tool, Oliver reports team execution BLOCKED instead of role-playing.
 
 ### Cowork (desktop app)
-- Drag & drop `.plugin` file → Cowork window
+- Drag & drop the `.plugin` file from the GitHub release → Cowork window
 - หรือ Settings → Plugins → Install from file
 
 ### Update

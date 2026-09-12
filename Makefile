@@ -15,7 +15,7 @@ help:
 	@echo "  make stats      skill/agent/command counts"
 	@echo "  make skills     list shipped skills by bucket"
 	@echo "  make test-team-package  verify 3.15 team knowledge survives packaging"
-	@echo "  make test-team-candidate  check full-team portable discovery adapters"
+	@echo "  make test-team-candidate  check plugins/shode-house (multi-host tree) against source"
 	@echo "  make clean      remove the built .plugin artifact"
 
 # validate = รัน gate ชุดเดียวกับ CI ในเครื่อง (v3.12 — เดิม .pre-commit-config อ้าง target นี้ทั้งที่ไม่มีอยู่)
@@ -55,6 +55,7 @@ test-team-package: pack
 	python3 tests/test_team_entry.py
 
 test-team-candidate:
+	python3 scripts/pack-team.py --check plugins/shode-house
 	python3 tests/test_team_entry.py
 	python3 tests/test_team_candidate.py
 

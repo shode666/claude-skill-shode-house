@@ -438,6 +438,7 @@ jobs:
           [ $fail -eq 0 ] && ok "section refs + invariants + rule conservation"
 
           sec "25. full-team preservation and discovery adapters (structural, not live acceptance)"
+          python3 scripts/pack-team.py --check plugins/shode-house || fail=1
           python3 tests/test_team_entry.py || fail=1
           python3 tests/test_team_candidate.py || fail=1
 
