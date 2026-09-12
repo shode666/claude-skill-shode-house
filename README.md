@@ -139,11 +139,12 @@ if the host has no delegation tool, Oliver reports team execution BLOCKED instea
 - Drag & drop the `.plugin` file from the GitHub release → Cowork window
 - หรือ Settings → Plugins → Install from file
 
-### Update
+### Update (e.g. from 3.16.0)
 ```bash
 /plugin marketplace update shode-house
-/plugin install shode-house@shode-house
+/plugin update shode-house@shode-house      # `install` alone keeps the already-installed version
 ```
+Check with `/plugin list` — the version must read 3.16.1.
 
 Prerequisite (optional): `brew install node` (Context7 MCP ใช้ npx) · `brew install beads` (task tracker `bd`)
 
