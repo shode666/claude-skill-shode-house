@@ -14,7 +14,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 - **Non-interactive host รอ worker แบบ foreground** — ห้ามจบ turn ทั้งที่ worker ยังรัน/verdict ยังไม่รวม (คู่กับ `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` ฝั่ง CLI)
 - Structural tests เพิ่ม 2 (invariant ของ harness + mutation ลบแล้วต้อง fail) รวม 22; `make validate` เขียวโดยไม่ขยับเพดาน
 - **Update path**: `claude plugin install` ไม่ upgrade รุ่นที่ติดตั้งแล้ว — ต้อง `plugin update shode-house@shode-house` (พบตอน 3.16.0 → 3.16.1 บนเครื่อง maintainer; README/release notes ระบุแล้ว)
-- **วัด startup/preload เทียบ v3.15.0** (prompt วางแผน read-only เดียวกัน, fixture เดียวกัน, N=3/ฝั่ง, `/shode-house:implement` ของ 3.15 vs `/shode-house:ask`): _MEASURE_PLACEHOLDER_
+- **วัด startup/preload เทียบ v3.15.0** (prompt วางแผน read-only เดียวกัน, fixture เดียวกัน, N=3/ฝั่ง, `/shode-house:implement` ของ 3.15 vs `/shode-house:ask`): **first-turn context (startup) median 35,822 → 24,800 tokens (−31%; spread ≤ 2% ทั้งสองฝั่ง) · total input รวม cache read 344,138 → 170,021 (−51%; ช่วง 3.15 = 340k–391k, 3.16.2 = 120k–250k ไม่ทับกัน) · output 4,316 → 3,328 · turns 15 → 12 · file reads 8 → 6 · list cost $0.626 → $0.465 (−26%)** — ทั้ง 6 run ไม่ delegate และคืนแผนความยาวใกล้กัน (3.6–5.5k chars); เป็นตัวเลขของ startup + วางแผน ไม่ใช่ full delivery run และ N=3 — ยืนยันทิศทาง "ลดโหลดซ้ำ" ได้ แต่ห้ามอ้าง % กับงานเต็มวงจร; raw ที่ `outputs/measure-3.16.2/` (maintainer), `summarize.py` stdlib
 - ยังไม่ทำในรุ่นนี้: Cursor/Antigravity runtime จริง, Cowork drag-drop `.plugin`, live re-run ของกฎ iteration cap (structural เท่านั้น)
 
 ---
