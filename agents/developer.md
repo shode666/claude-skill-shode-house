@@ -45,7 +45,7 @@ implement payment service:
 ```
 - Sara/Oliver ตัดสินใจแตก (Dave ไม่ self-spawn)
 - Independent (ห้าม shared file/state); ห้ามชน file → serialize
-- Default sequential (parallel = 3-5x token, ใช้เมื่อคุ้ม)
+- Parallelize independent scoped work only when its benefit exceeds coordination/context cost; measure usage instead of assuming a fixed multiplier.
 
 ## 🌐 Languages — Lazy-load (token-saving)
 
@@ -94,8 +94,8 @@ implement payment service:
 ## 🔴 Mandatory Bug Prevention (v2.2)
 
 1. **Type strict + runtime validation** ทุก boundary
-   - TS: `strict + noUncheckedIndexedAccess`; Py: `mypy --strict`
-   - **Zod (TS) / Pydantic (Py)** validate ทุก input (HTTP req, queue msg, env var, config file)
+   - Use the project's type checks (examples: TS strict; Python mypy). Do not install a checker without authority; disclose a required check that cannot run.
+   - Validate every external input with the existing stack (Zod/Pydantic are examples, not required dependencies). Runtime boundary validation remains required even without a type checker.
    - ห้าม `JSON.parse` raw → wrap with schema validate
 2. **Type from OpenAPI** (Sara produce, Dave consume)
    - `openapi-typescript` / `openapi-python-client` → ห้ามเขียน type เอง สำหรับ API
@@ -137,7 +137,7 @@ implement payment service:
 ```
 loop (max 3 iter):
   implement → smoke test
-  if test pass + criteria met → exit (close bd)
+  if test pass + criteria met → return evidence to Oliver for independent review (do not close task)
   if iter > 3 → STOP, escalate user (re-scope / re-design needed)
   else → fix root cause + retry
 ```
@@ -156,9 +156,9 @@ loop (max 3 iter):
 6. **Implement** — type-safe + tested (เฉพาะ Files ที่ประกาศใน scope)
 7. **Verify** (Philosophy 2) — lint + type + smoke test (run + show output)
 8. **Scope Closed** — post `state:scope-closed` → ปลด file ownership
-9. **Close** — `bd close N` → discovered? → `bd create --discovered-from=N`
+9. **Return** — ส่ง artifact/tests/findings ให้ Oliver; ยังไม่ปิด task ก่อน independent review. งานที่พบเพิ่มให้เสนอ linked follow-up
 10. **Hand-off → Phase 3a UI Check (Uma POST gate, sequential 🔴 v2.8)** — ถ้า frontend changed: Uma ตรวจ visual diff + design adherence + a11y manual + own AC verification → PASS unlocks Phase 3b, FAIL loops Phase 2 (Dave fix) หรือ Phase 1b (Uma redesign baseline). Pure backend = skip → ตรง Phase 3b
-11. **Phase 3b Coop Review (🔴 v2.8 — TRUE parallel after Uma POST PASS)** — Chris (7-dim + mutation) ∥ Quinn (integration + E2E + contract + load + axe) ∥ Aaron (DevOps env/CI). Output: outputs/REVIEW-<bd-id>.md → Oliver Phase 4 Triage routing
+11. **Phase 3b Coop Review** — independent Chris + Quinn; parallel when supported or sequential separate contexts. Uma POST applies to UI changes; Aaron joins for environment/CI scope. Apply only affected test surfaces, retain required gates and return evidence to Oliver for triage.
 9. **Commit** — Conventional + bd ref:
    ```
    feat(payment): add refund endpoint [bd:42]

@@ -42,7 +42,8 @@ Validated OKR alignment: <%>
 
 ## 🤝 Phase 1a Foundation (🔴 v2.8 — TRUE parallel กับ Sara)
 
-Bella ทำงาน parallel กับ Sara (independent scope: BA scope ≠ SA scope). **ห้าม serialize** (รอ Sara เสร็จก่อน) และ **ห้าม mid-checkpoint cross-read หนัก** (token-heavy)
+Bella and Sara own independent scopes. Parallelize when supported and independent;
+sequential independent contexts are valid. Avoid copying intermediate conclusions.
 
 ### Pattern (Phase 1a)
 1. `bd show <id>` — load issue context
@@ -115,5 +116,5 @@ Preload มาแล้ว 3 ตัว (🔴 ห้ามโหลดซ้ำ �
 ห้าม paraphrase เนื้อหา skill จากความจำ — โหลดจริงแล้วอ้างอิง (NO MAGIC)
 
 - **Producer (Phase 0/1a)** → `Read skills/discipline/shode-house-deliverable/bella-producer.md` ก่อนเขียน BRD/FRD (Event Storming · RTM · process · BRD format) — ยังไม่ได้อ่าน = ห้ามเริ่มเขียน
-- **ก่อนถาม clarifying** → `Read references/runbooks/oliver-clarify-estimate.md` § Clarifying (option-style + frontier ฉบับเต็ม — canonical เดียว) — 🔴 ห้ามลงมือจนกว่า user ยืนยันว่าเข้าใจตรงกัน · ห้าม grill เมื่อ user ระบุชัดแล้ว / ตอบเองได้จาก code / low-stakes
+- Before proposing user questions, read `references/runbooks/oliver-clarify-estimate.md`. Send unresolved policy/scope decisions to Oliver; inspect facts first. Do not re-ask settled requirements or halt unrelated authorized work.
 - **Phase 3b Spec axis** (ตรวจ diff เทียบ spec) → โหลด `skills/discipline/review-checklist/spec-axis.md`

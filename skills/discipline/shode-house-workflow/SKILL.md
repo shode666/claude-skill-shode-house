@@ -8,19 +8,22 @@ description: |
 
 # shode-house — Workflow Discipline
 
+เริ่ม/resume engagement หรือก่อน delegate ครั้งแรก: อ่าน `harness.md` ข้างไฟล์นี้
+เพื่อยืนยัน source of truth, host tools, owner, checkpoint และการ reconcile UNKNOWN
+
 > Oliver owns workflow. Phase Contract บังคับ. Hooks + Gates make pipeline auditable. สำหรับ Drift Defense (M1-M8) ดู `shode-house-drift` skill
 
 ---
 ## 🧵 Task Tracking — tracker = single source of truth ของ status/dep
 
-Default **beads (bd)**:
+เลือก source of truth ตาม project ที่ user ยืนยัน (ดู `harness.md`); ไม่มีของเดิมใช้ Markdown ได้ทุก concern. ตัวอย่างต่อไปนี้สำหรับ project ที่เลือก **beads (bd)** เท่านั้น:
 ```bash
 bd create "..." -p1 -t feature   # create
 bd ready --json                  # next unblocked
-bd update <id> --notes "..."     # progress (bd active = notes only, ห้ามเขียน markdown ซ้ำ)
+bd update <id> --notes "..."     # Beads example: progress + link to the confirmed evidence home
 bd close <id> --reason "<sha> <test>"  &&  bd show <id>   # 🔴 M8 close-on-done + paste
 ```
-- **Markdown deliverable** (BRD/ADR/SPEC/REVIEW) อยู่ `outputs/` — **status/dep = tracker เท่านั้น** (ห้าม markdown TODO list)
+- **Markdown deliverable** (BRD/ADR/SPEC/REVIEW) อยู่ตำแหน่งที่ project เลือก; status/dep อยู่ canonical record เดียว ซึ่งอาจเป็น Markdown ได้
 - abstraction: `tracker.create(title,priority,type,blockedBy?)` · `.ready()` · `.close(id)` · `.link(from,to,type)` — tracker อื่น + คำถามเลือก tracker → `smart-coop.md` § Tracker options
 
 ## 🎚️ Engagement Mode (🔴 Oliver เลือกก่อนเริ่ม)
@@ -33,12 +36,11 @@ bd close <id> --reason "<sha> <test>"  &&  bd show <id>   # 🔴 M8 close-on-don
 
 ## 🚦 Phase orchestration — ห้าม (🔴 Oliver enforce, ย้ายมาจาก discipline v3.10)
 
-- 🔴 ห้าม serialize Phase 1a (Bella → Sara รอคิว); ห้าม parallel Phase 1b (Uma/Domain ต้องอ่าน 1a spec ก่อน design/validate)
-- 🔴 ห้าม skip Phase 3a Uma POST gate. Dave → Chris+Quinn ตรงเลย โดยไม่ผ่าน Uma = UI bug ลึกค่อย rework
-- 🔴 ห้าม serialize Phase 3b (Chris → Quinn รอคิว); parallel เท่านั้น (different scope)
+- Phase 1a Bella/Sara ใช้ independent context; parallel เมื่อ host รองรับและไม่มี dependency มิฉะนั้น sequential ได้. Phase 1b Uma/Domain ต้องอ่าน 1a spec ที่รวมแล้วก่อน design/validate
+- UI changed → ห้าม skip Phase 3a Uma POST gate. Pure backend → บันทึก not-applicable พร้อม diff evidence แล้วเข้า 3b ได้
+- Phase 3b Chris/Quinn ตรวจคนละ scope และ verdict อิสระ; parallel เมื่อทำได้ หรือ sequential คนละ context โดยห้ามคัดลอก verdict กัน
 - 🔴 ห้าม skip Phase 4 Triage routing. Review fail → loop ไป phase ที่ตรง finding (code→2, UI→1b, spec→1a); ห้าม "ผ่านครึ่ง ๆ" ข้ามไป Deploy
-- 🔴 ห้าม close Phase 3 (3a/3b) ก่อน post review report. **bd active → `bd update <id> --notes` ONLY** (ห้ามเขียน markdown ซ้ำ). **No bd → `outputs/REVIEW-<feature>.md`** (markdown fallback). ใช้ template structure จาก "REVIEW Report Format" section
-- 🔴 ห้ามเขียน review เป็น markdown ถ้ามี bd. bd = single source of truth; markdown = audit redundancy + drift risk
+- ห้าม close Phase 3 (3a/3b) ก่อน review report อยู่ใน evidence home ที่ project ยืนยัน; task record เก็บ link ไม่ copy ซ้ำ. ใช้ REVIEW Report Format
 
 ---
 
@@ -56,8 +58,7 @@ bd close <id> --reason "<sha> <test>"  &&  bd show <id>   # 🔴 M8 close-on-don
 
 ## 🔒 Run Durability (3 กฎที่ session ตายแล้วยังกู้ได้)
 
-> Session ของ agent **ไม่ durable** — process ตาย/context เต็ม/user ปิด = state หายหมด. เรากู้ด้วย `bd` ที่มีอยู่แล้ว ไม่ต้องมี engine
-> Runtime guarantee ระดับ target project (journal/idempotency/replay) = **Aaron generate** ตาม `references/patterns/durable-agent-runtime.md` — ห้าม ship engine ใน plugin
+> Sessions are not durable. Use the confirmed project record per `harness.md`, not a second required JSON/SESSION-STATE store. Project runtime engineering is separate authorized work, not a plugin prerequisite.
 
 **1. Run stamp — บันทึกตอน pick bd (ไม่มี = reproduce ไม่ได้)**
 ```bash
@@ -75,11 +76,11 @@ bd update <id> --notes "approved: gate=<gate> by=<who> at=<ISO8601> artifact=<pa
 
 **3. Resume protocol — session ตายกลาง pipeline**
 ```
-1. bd show <id>          → อ่าน run stamp + phase ล่าสุดที่ posted
-2. Read outputs/<bd-id>/state.json  → phases{} ที่ status=passed
-3. ตรวจ artifact ของ phase นั้นมีอยู่จริง (ไฟล์ + sha) — มี notes แต่ไม่มีไฟล์ = ยังไม่เสร็จจริง
-4. resume จาก phase แรกที่ยังไม่ passed — ห้ามรัน phase ที่ passed ซ้ำ (เสีย token + ทับ artifact)
-5. R0/destructive ที่ทำไปแล้วก่อนตาย → ห้ามทำซ้ำโดยไม่ถาม (ไม่มี idempotency key)
+1. Read the current canonical checkpoint: run stamp, phase, owners, outstanding gates.
+2. Verify referenced artifacts/revisions; records without artifacts do not prove completion.
+3. Reuse passed evidence only for matching scope/content/environment; recheck changed dependencies.
+4. Reconcile UNKNOWN external operations from intent, stable key and authoritative receipts.
+5. Never repeat an uncertain effect merely because the user says yes; unresolved outcome remains blocked per harness.md.
 ```
 
 **Pointer**: DoD checklist = `shode-house-deliverable/definition-of-done.md` § Definition of Done (single source) — Oliver enforce ก่อนปิด bd: ทุก DoD item ต้องมี evidence path

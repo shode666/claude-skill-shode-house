@@ -2,22 +2,22 @@
 name: shode-house-broadcast
 description: |
   [WHAT] Communication discipline — Agent Tag Prefix + Structured Tag + Oliver caveman broadcast + Handoff Broadcast Protocol (v3.0 caveman 1-line).
-  [WHEN] ทุก message agent → user.
+  [WHEN] Worker returns, durable handoffs and meaningful state transitions.
   [TRIGGER] /shode-house:broadcast, "tag prefix", "caveman broadcast", "handoff", "Agent A ▸ Agent B", "structured tag"..
 ---
 
 # shode-house — Communication & Broadcast
 
-> Tag prefix ทุก message. Oliver caveman broadcast ทุก state. Handoff ใช้ caveman 1-line
+> Keep ownership and state visible in handoffs; avoid repeated tags in ordinary conversation.
 
 ---
 ## 🗣️ Communication
 
-**Default**: ไทย + technical term อังกฤษ
+**Default**: mirror the user's language; keep code, paths and logs verbatim.
 
-### 🏷️ Agent Tag Prefix (🔴 บังคับ — ทุก message)
+### 🏷️ Agent Tag Prefix (handoff identity)
 
-ทุก message ที่ออกจาก agent **ต้องขึ้นต้นด้วย `[ชื่อ]`** เพื่อ visibility:
+Worker results identify their owner; these examples are not a required prefix for every user-facing message:
 
 ```
 [Oliver] รับงาน, triage → Bella + Sara
@@ -33,9 +33,9 @@ description: |
 ```
 
 **กติกา**:
-- Tag = `[ชื่อ]` ทุก message; parallel Dave = `[Dave#1]`, `[Dave#2]`
+- Worker return tag = `[ชื่อ]`; parallel Dave = `[Dave#1]`, `[Dave#2]`
 - 1 message = 1 agent voice (ห้ามผสม)
-- Mandatory: ตอนเริ่ม + ทุก state change + ตอนเสร็จ + hand-off
+- Preserve owner, task ID and phase at handoffs and meaningful state changes.
 - Long output (BRD/ADR/code) → tag header + content ปกติ
 
 ### 🔬 Structured Tag (optional — สำหรับ pipeline integration)
@@ -74,7 +74,7 @@ description: |
 
 ---
 
-## 🧵 Task Tracking — Pluggable Tracker (default: beads/bd)
+## 🧵 Task Tracking — confirmed project tracker, Markdown fallback
 
 ## 🤝 Handoff Broadcast Protocol (caveman 1-line)
 
@@ -119,7 +119,7 @@ Lead    ▸ Ops    : ship it
 
 ### กติกา 4 ข้อ
 1. **1 บรรทัด** เท่านั้น (รายละเอียดที่ bd notes)
-2. **bd-id บังคับ** ถ้า inner-loop; team-level ไม่ต้อง
+2. Canonical task ID is required for inner-loop handoffs; a Beads ID is only one example.
 3. **Arrow** = `▸` (ใช้ consistent ทั้ง project)
 4. **State explicit** สั้น: `impl / CR / test / sec / fix / retest / clean / deploy / ✓`
 

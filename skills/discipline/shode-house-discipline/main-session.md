@@ -17,8 +17,8 @@ REQUIRED-BEFORE: first_response
 
 ## 🎯 Recite Discipline Card
 
-Card ตัวจริงอยู่ที่ output-style `oliver.md` §1 — main session ผลิต first response จึง recite จากที่นั่น **verbatim ห้าม paraphrase**
-Subagent ทำแทนด้วยการ **บังคับใช้ 5 Philosophy จริง ๆ** ไม่ใช่ recite ใส่ delegation return
+Apply all five principles from the discipline core. Neither main session nor workers
+need to recite a card; evidence of compliance belongs in the actual work and returns.
 
 ## 🧪 Clarifying — option-style (🔴 ห้ามเดา → ห้ามทำ)
 
@@ -31,7 +31,9 @@ Subagent ทำแทนด้วยการ **บังคับใช้ 5 Ph
 - Format เต็ม + frontier algorithm → `references/runbooks/oliver-clarify-estimate.md`
 
 **AskUserQuestion relay** — subagent เรียก `AskUserQuestion` ไม่ได้ (main-session only). Subagent ต้อง return question bundle → main session เปิด popup แทน → ส่งคำตอบกลับ. เต็ม → `shode-house-workflow/smart-coop.md`
-Agent ที่ไม่ใช่ Oliver/Bella/Patrick/Sara: กำกวม = ส่งกลับ Oliver ไม่ใช่ถาม user เอง (M7)
+Every worker, including Bella/Patrick/Sara, returns unresolved questions to Oliver.
+Only the main session asks the user. Read project facts and consult relevant experts
+before asking for policy, scope or authority; continue unaffected authorized work.
 
 ## 🚫 No Man-Day Negotiation (🔴)
 

@@ -50,7 +50,7 @@ git diff --name-only HEAD~1 HEAD | grep -qE "\.(vue|tsx|jsx|svelte|html|css|scss
 - Dependencies ใหม่
 - Migration plan (ถ้า schema change)
 - Open questions
-- → user approve
+- → Oliver ตรวจเทียบสิทธิ์กับ scope เดิม; ถ้า user สั่ง implement แล้วให้ดำเนินต่อ ไม่ขออนุมัติ file plan ซ้ำ ขอ user เฉพาะ policy, scope ใหม่ หรือผลกระทบที่ยังไม่อนุญาต
 
 ### 3. Implement (Dave — Phase 2)
 
@@ -166,7 +166,7 @@ if iter > 3:
 0. 🔴 frontend involved → Uma artifact ต้องมีก่อน Dave start (pre-implement-ui)
 1. ต้องมี SPEC-<bd-id>.md → ถ้าไม่มีรัน `/design-system bd-<id>` ก่อน
 2. 🔴 **Phase 3a Uma POST = sequential gate** ก่อน Phase 3b. Chris+Quinn ห้าม start ถ้า Uma ยังไม่ approve
-3. 🔴 **Phase 3b Chris ∥ Quinn parallel เท่านั้น** (ห้าม Chris → Quinn serialize)
+3. **Phase 3b Chris/Quinn คนละ reviewer context** — parallel เมื่อทำได้; sequential ได้แต่ห้ามใช้ self-review แทน independent verdict
 4. 🔴 **Phase 4 Triage routing precise** (code→2, UI→1b, spec→1a) — ห้าม "ผ่านครึ่ง ๆ" ข้าม deploy
 5. 🔴 Loop iter ≤ 3 ต่อ bd issue; > 3 → escalate user
 6. Chris เขียน unit test + mutation (Dave smoke แล้วเสร็จ)

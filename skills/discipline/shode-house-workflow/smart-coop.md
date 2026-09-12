@@ -66,10 +66,10 @@ REQUIRED-BEFORE: phase_dispatch
 ```
 
 ### ❌ Anti-pattern (จะถูก block)
-- ❌ Phase 1a serialize (Bella เสร็จก่อนแล้วโยน Sara) — ขัด parallel
+- ❌ Phase 1a Sara คัดลอกข้อสรุป Bella แทนทำ architecture analysis ของตน; sequential คนละ context ทำได้
 - ❌ Phase 1b Uma start ก่อน 1a sign-off — Uma เดา spec
 - ❌ Phase 3a skip — Dave → Chris+Quinn ตรงไม่ผ่าน Uma → UI bug ลึก
-- ❌ Phase 3b serialize Chris → Quinn — ขัด parallel
+- ❌ Phase 3b Quinn ใช้ verdict Chris แทน integration evidence ของตน; sequential คนละ reviewer ทำได้
 - ❌ Dave#1 + Dave#2 แตะ file เดียวกัน — ต้อง Scope Contract enforce
 
 ### ✅ Correct pattern
@@ -79,10 +79,10 @@ REQUIRED-BEFORE: phase_dispatch
 - ✅ Phase 3b: Chris+Quinn truly parallel (no order dep)
 
 ### 🗂️ State persistence (pure JSON, no script)
-Agent maintain state ใน `outputs/<bd-id>/state.json` via Read/Write tools.
-**Required**: `schema_version, bd_id, engagement{name,mode,started_at,domain[]}, current_phase, iter, phases{<phase>:{status,owners[],artifacts[]}}, handoff_log[], findings{critical,high,medium,low}, open_questions[]`
+Oliver maintain checkpoint ใน canonical record ของ project ตาม `harness.md`; ไม่สร้าง state อีกชุดหากมี record ที่ครอบคลุมอยู่แล้ว. JSON ต่อไปนี้เป็นทางเลือก ไม่ใช่ runner prerequisite.
+**Required meaning**: task ID, engagement/scope, current phase/iteration, phase status/owners/artifacts/revisions, findings, open questions, approvals, UNKNOWN operations และ next action. Markdown/Jira links ใช้แทน JSON fields ได้
 **Phase status enum**: `pending | in_progress | conditional_pass | passed | failed | skipped`
-**Oliver bootstrap**: Read state.json (resume) or Write new; ถ้า `iter > 3` escalate; Edit on phase transition; ห้าม advance ถ้า prev status ≠ passed/conditional_pass หรือ missing artifacts/owners. Gate = Oliver discipline (verify schema on Read; self-check before advance).
+**Oliver bootstrap**: อ่าน current record + artifact revisions ก่อน resume; ถ้า `iter > 3` escalate. ห้าม advance เมื่อ required evidence/owner ขาด. `conditional_pass` ไม่ปลด blocker ที่ยัง unresolved. Prompt check ไม่ใช่ deterministic runtime enforcement
 
 ### 🪝 Lifecycle Hooks (per phase — Aaron auto-trigger)
 
@@ -131,10 +131,14 @@ When Domain SME (Felix/Iris/Sam/Tara/Elena/Brooke/Emma) flags scope gap in Phase
 | **Phase 5 Deploy** | Aaron (continuous per bd) | approval gate + rollback plan ready | health check + observability live |
 | **Phase 6 Operate** | Reggie | service in production | SLO burn watched, incident response per runbook |
 
-Aaron implements hooks via Makefile/CI — agent ไม่ต้อง manual
+These lifecycle hooks describe pre/post conditions, not mandatory executable hooks.
+Use existing project/host verification and record the evidence. Aaron adds automation
+only when it is part of the authorized project work, never to make the plugin usable.
+Do not claim deterministic enforcement merely because a condition is written here.
 
 ### 📝 Prompt Template Substitution (commands convention)
 
+Illustrative notation only; this plugin does not supply a template interpreter.
 Static (host): `{{PROJECT_NAME}}` `{{STACK}}` `{{DOMAIN}}` `{{TRACKER}}` `{{ENV}}` `{{ENGAGEMENT_ID}}` `{{USER}}` `{{DATE}}` `{{BRANCH}}`
 Shell eval (sandbox, per iteration): `` {{!`git rev-parse HEAD`}} `` · `` {{!`bd ready --json | jq '.[0].id'`}} ``
 > ใช้เฉพาะที่จำเป็น — over-template = อ่านยาก
@@ -173,16 +177,16 @@ Use case: parallel Dave, hotfix-while-feature, A/B. **Batch backlog (N item อ�
 
 | Tracker | Init | Create | Ready | Close |
 |---------|------|--------|-------|-------|
-| **beads (bd)** default | `bd init` | `bd create "..." -p1 -t feature` | `bd ready --json` | `bd close N --reason "<sha> <test>"` + `bd show N` |
+| **beads (bd)** if selected | `bd init` | `bd create "..." -p1 -t feature` | `bd ready --json` | `bd close N --reason "<sha> <test>"` + `bd show N` |
 | **GitHub Issues** | (gh authed) | `gh issue create -t "..." -l p1` | `gh issue list -l "ready"` | `gh issue close N` |
 | **Linear** | (linear auth) | `linear issue create -t "..."` | `linear issue list --state Todo` | `linear issue update --state Done` |
 | **Jira** | (atlassian MCP) | `mcp jira create ...` | JQL ready query | transition to Done |
 | **Asana** | (asana auth) | `asana task create ...` | section query | task complete |
 
-**Tracker selection** (Engagement Plan Phase 2 — option-style):
+**Tracker selection**: reuse user-confirmed homes; ask only on first use if still unknown. Do not select/install a new tracker by default. Example choices:
 ```
 Q: Tracker?
-A) beads (bd) — local, fast, AFK-friendly (Recommended for solo/small)
+A) Markdown — fallback for all concerns when no existing tool is chosen
 B) GitHub Issues — repo-bound, free, public/team
 C) Linear — modern UI, paid (best for product team)
 D) Jira — enterprise, complex, paid
@@ -195,6 +199,6 @@ E) Asana — task-focused, paid (cross-functional)
 - `tracker.close(id)` — done
 - `tracker.link(from, to, type)` — dep (blocks/related/parent-child/discovered-from)
 
-**Markdown deliverable** (BRD/ADR/spec) อยู่ `outputs/` — แต่ **status/dep = tracker เท่านั้น** (ห้าม markdown TODO list)
+Status/dependencies, specs and evidence use the confirmed homes; Markdown may own any concern. Keep one authoritative copy and links elsewhere. Beads/Redmine/other trackers remain valid explicit choices
 
 ---

@@ -79,10 +79,10 @@ trade/order/exchange/FIX → Tara
 
 | Conflict | Winner |
 |----------|--------|
-| Business vs Tech | Domain Expert |
+| Business rule vs Tech | Domain ให้ข้อเท็จจริง/ข้อจำกัด; Sara เสนอทางเลือก; user ตัดสิน policy/scope ที่ยังไม่ตกลง |
 | Architecture vs Implementation | Sara |
 | Look & feel / visual direction / interaction pattern | **Uma** (Design Authority) — ยกเว้นชน a11y law / security / regulation → constraint ชนะ |
-| Security vs Performance | Chris/Quinn |
+| Security vs Performance | Sentinel ตรวจข้อจำกัดความปลอดภัย; Sara เทียบทางเลือก; expert ไม่มีสิทธิ์ยกเว้น approval ของ user |
 | Quality vs Timeline | Chris+Quinn (block) |
 | Complex vs Simple | Keep simple (YAGNI) |
 | Standard vs Custom | Standard |
@@ -107,9 +107,10 @@ Relative scale (no time anchor):
 
 ## ⚖️ Parallel vs Sequential
 
-**Parallel = 3-5x token cost.** Default = sequential.
+เลือก parallel จาก dependency, host capability และต้นทุน context จริง ไม่ใช่จำนวนบรรทัดหรือ multiplier ที่ไม่ได้วัด
 
-Use parallel เมื่อ: subtask ≥ 100 บรรทัด **AND** truly independent **AND** ≥ 3 subtasks
+สองงานที่ independent ก็ parallel ได้ เช่น Chris กับ Quinn; ถ้า host ไม่รองรับ ให้เรียกแยก sequential โดยรักษา reviewer context และ verdict เป็นอิสระ ห้ามแทนด้วย Oliver self-review แล้วเรียก independent
+Producer/consumer ที่ต้องใช้ผลกันหรือเขียนไฟล์เดียวกันต้องรอ; การลด token ต้องไม่ตัด expert ที่ถูก trigger หรือ evidence ที่ gate ต้องใช้
 > Implementation: Worktree Isolation (ดู Workflow Discipline)
 > ห้ามใช้ "deadline matter" เป็น reason parallel — agent ไม่มี deadline ของตัวเอง (per `shode-house-discipline/main-session.md` § No Man-Day)
 
@@ -132,10 +133,10 @@ bd-3:               Sara design ▸ Dave ───
 
 long run = หลาย bd ต่อเนื่อง. enforce ด้วย harness contract (ดู `/init` rule 11 + Oliver Harness Contract Check):
 
-- **Checkpoint** = bd tracker เอง (state per bd) + `outputs/<bd>/state.json` → พังแล้ว resume: `bd ready` หยิบ bd ที่ยังไม่ปิดต่อ
+- **Checkpoint** = confirmed canonical record ตาม `shode-house-workflow/harness.md`; resume จาก phase/owner/evidence จริง ไม่สร้าง store ที่สอง
 - **Fan-out cap** = WIP limit ต่อ stage (default 2-3); ห้าม spawn bd พร้อมกันเกิน cap (token spike + Oliver context bloat)
 - **Retry/backoff** = bd fail → iter++ (max 3, per Phase 4) → escalate; ไม่ retry เงียบ
-- **Reduce** = สถานะรวมอ่านจาก bd/state.json ไม่ดึงทุก bd เข้า context พร้อมกัน
+- **Reduce** = อ่าน current checkpoint และงานที่พร้อม ไม่ดึงประวัติทุก task เข้า context
 - guarantee ที่ต้อง enforced runtime จริง (หลักพัน bd) → Aaron generate runner เข้า project (ดู § Harness, ไม่ ship ใน plugin)
 
 ---
@@ -144,7 +145,7 @@ long run = หลาย bd ต่อเนื่อง. enforce ด้วย har
 
 - **Model tier ตาม judgment ไม่ใช่ตาม prestige**: fable-5 = cross-team architecture/security judgment · opus = regulated-domain judgment · sonnet = execution/structured pattern · **haiku = mechanical sub-task เท่านั้น** (status digest, broadcast aggregation, bd hygiene, format conversion) — Oliver ระบุผ่าน Task `model` override; ห้ามใช้ haiku ผลิต deliverable ที่มี sole owner
 - **Lazy-load**: Dave อ่าน `references/languages/<lang>.md` เฉพาะภาษาที่ใช้; skill โหลดเมื่อ trigger เท่านั้น
-- **bd = single source of truth**: bd active → `bd update --notes` only; ห้ามเขียน markdown ซ้ำ (redundancy + drift)
+- **Confirmed source of truth**: status/spec/evidence ใช้ home ที่ project เลือก รวม Markdown; เก็บ links แทนสำเนาซ้ำ
 - **Caveman broadcast**: 1 บรรทัดต่อ handoff; รายละเอียดไป bd notes
 
 ## 👥 Team Structure

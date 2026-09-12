@@ -16,6 +16,24 @@ REQUIRED-BEFORE: bd_close
 
 ## ✅ Definition of Done (🔴 verifiable — Oliver enforce ห้ามปิด task)
 
+Evaluate the checklist against the agreed deliverable, affected surfaces and
+project-required gates before executing it. Record applicability and evidence;
+do not add UI, databases, containers, feature flags or deployment merely to satisfy
+a checklist example. Backend-only work has no UI gate. A module without an external
+API/DB has no BE-FE/DB journey. Deployment/merge checks apply only to an authorized
+deployment/merge outcome, not permission to perform those actions.
+
+Missing evidence for an applicable requirement is BLOCKED, never N/A. N/A requires
+a concrete scope/diff reason. Reuse unchanged approved design where appropriate;
+required independent reviewers remain separate actors, whether parallel or serial.
+Use existing project quality targets and tools. Do not install a mutation/load tool
+or invent a measured score when the agreed scope forbids it; disclose any required
+check that cannot run. The numbers/tool names below are examples unless adopted as
+the project's acceptance thresholds.
+
+Tracker operations below show Beads syntax only. Use the confirmed canonical home;
+verify the update by reading it back, or record pending sync if the service is down.
+
 > Team roster = single source ใน `shode-house-routing` (19 agents, 7 teams)
 
 ```
@@ -24,7 +42,7 @@ REQUIRED-BEFORE: bd_close
 □ Phase 3a UI Check PASS (Uma verdict before Chris/Quinn เริ่ม)
 □ Phase 3b Code Review passed (Chris ∥ Quinn parallel, 0 Critical/Major)
 □ Loop iter ≤ 3 + routing precise (code→2, UI→1b, spec→1a); iter > 3 → escalate user
-□ Review report posted (bd active → `bd update --notes` ตาม REVIEW template; no bd → `outputs/REVIEW-<feature>.md`). ห้ามเขียนคู่
+□ Review report saved in the confirmed evidence home; canonical task links it without duplicating the report. Verify authorized remote updates or record pending sync.
 □ Code merged + CI green (lint+type+unit+integration+SAST+SCA)
 □ Contract test pass (Pact/Schemathesis — BE ↔ FE align)
 □ Mutation test kill rate ≥ 70% (business logic)
@@ -43,4 +61,6 @@ REQUIRED-BEFORE: bd_close
 □ 🔴 **bd CLOSED with evidence** (M8 Close-on-Done): `bd close <id> --reason "<verdict> <commit_sha> <test_result>"` แล้ว `bd show <id>` อ่านได้ว่า CLOSED
    Evidence: paste output ของ `bd show` — code merged แต่ bd ยัง OPEN = **ยังไม่ done** (stale-open)
 ```
-ขาดข้อใด = ยังไม่ "done" — ห้าม merge ห้าม close bd. ปิดครบแล้วแต่ไม่ paste `bd show` = ยังไม่ done เหมือนกัน
+Any applicable unresolved criterion blocks completion and the affected merge/closure.
+Report actual evidence, approved scope and N/A reasons; never claim a remote status
+change without its authoritative read-back.

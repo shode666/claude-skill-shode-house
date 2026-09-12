@@ -11,7 +11,12 @@ budget ratchet ทุกตัว (#16/#20/#22) ให้รางวัลก�
   3. ตรวจเฉพาะ 'บรรทัดกฎ' -- heading กับ blockquote เป็นป้ายชื่อ ไม่ใช่ตัวกฎ (§ ref มี gate #24a ดูแล)
   4. เทียบทีละ fragment -- บรรทัดเดียวมักผสมตัวกฎกับข้อความนำทาง
 """
-import re, subprocess, sys, pathlib
+import re, subprocess, sys, pathlib, importlib.util
+
+_spec = importlib.util.spec_from_file_location("rule_migrations", pathlib.Path(__file__).with_name("rule-migrations.py"))
+_migrations = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_migrations)
+MIGRATIONS = _migrations.load(pathlib.Path(__file__).resolve().parents[1])
 
 THRESHOLD = 0.55
 TOKEN = re.compile(r'[A-Za-z][A-Za-z0-9_.\-]{2,}|[฀-๿]{3,}')
@@ -52,6 +57,10 @@ for f in changed:
         if line.lstrip().startswith(('#', '>')):
             continue
         for frag in re.split(r'[·|]|\. ', line):
+            migration = MIGRATIONS.get((f, frag.strip()))
+            if migration:
+                print(f"  migrated {f}: {frag.strip()[:48]} -> {migration['replacement']} (structural trace; not runtime proof)")
+                continue
             old = toks(frag)
             if len(old) < 4 or any(t.endswith('.md') for t in old):
                 continue

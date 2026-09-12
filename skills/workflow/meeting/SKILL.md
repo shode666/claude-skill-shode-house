@@ -1,7 +1,7 @@
 ---
 name: meeting
 description: |
-  [WHAT] Thin entry-point ของ shode-house — Recite 5 Philosophy + index ไปยัง 7 split discipline skills.
+  [WHAT] Team orientation and index to the seven discipline skills; ask is the public engagement entry.
   [WHEN] ก่อนเริ่ม engagement กับทีม shode-house.
   [TRIGGER] /shode-house:meeting, "shode-house", "ประชุมทีม", "เริ่มงานกับทีม", "Oliver", "Bella".
 ---
@@ -17,10 +17,10 @@ description: |
 
 ## 🎯 Recite Discipline Card
 
-**Single source = `output-styles/oliver.md` §1** — main session recite verbatim จากที่นั่น (กติกา: `shode-house-discipline/main-session.md` § Recite Discipline Card)
+**Single source = `output-styles/oliver.md` §1** — apply the five principles in work; no printed recital is required. Continue through `skills/workflow/ask/SKILL.md` without starting a second engagement.
 ห้าม copy card มาไว้ที่นี่ (v3.1 vs v3.5 เคย drift แล้ว). ทุก agent preload `shode-house-discipline` อยู่แล้ว
 
-> Philosophy ขัดกับ rule อื่น → Philosophy ชนะเสมอ
+> Plugin conventions do not override user, project or host instructions. Preserve safety and required evidence.
 
 ---
 
@@ -50,7 +50,9 @@ description: |
 | **Interactive** (Supervised) | Human approve ทุก hand-off + ดู agent output ก่อน next | งานใหม่/ละเอียดอ่อน, learning, audit |
 | **Hybrid** (Recommended default) | AFK ถึง pre-deploy → Interactive ตั้งแต่ deploy ขึ้น | งานทั่วไป — balance speed + safety |
 
-Oliver ถามก่อน Phase 2: "เลือก mode ไหน?" (option-style)
+Use the supervision preference already given. Ask only if a missing preference
+changes authority or materially affects the work. No mode creates permission:
+AFK never treats silence as approval or bypasses an external-action gate.
 
 ---
 
@@ -124,7 +126,7 @@ Oliver ถามก่อน Phase 2: "เลือก mode ไหน?" (option-
 - **PII/PHI** — encryption + access log + GDPR/PDPA compliance
 - **R0 actions** = STOP + ask (deploy prod, delete data, money movement, schema migration prod)
 - **Anti-Puppet** = ห้าม claim "done" ไม่มี paste evidence (รายละเอียดใน `shode-house-deliverable`)
-- ทุก message ต้องมี **agent tag prefix** เช่น `[Oliver|state:1a|bd:42]` (รายละเอียดใน `shode-house-broadcast`)
+- Durable handoffs include owner, phase and canonical task ID; no tag is required for every conversational sentence.
 
 ---
 
@@ -163,6 +165,6 @@ skills/
 - Agents ที่บอก *"ยึด meeting skill เป็น discipline foundation"* ยังถูกต้อง — meeting skill ตอนนี้ = thin entry-point + Recite Card + index
 - เพื่อ token saving: agent ควรเสริม pointer เช่น *"+ ยึด `shode-house-discipline` (mandatory) + `shode-house-evidence` (when claiming)"* แต่ไม่บังคับใน wave นี้ adopt iteratively
 - เนื้อหา 1316 บรรทัดเดิมยังอยู่ครบ — แค่กระจายไปยัง 7 sub-skills + reference table ในไฟล์นี้
-- ทุก agent ที่ load skill นี้จะอ่าน ~180 บรรทัด (vs 1316 เดิม) = **86% token reduction** สำหรับ entry context
+- The historical line-count reduction is not a measured token or quality result.
 
 ดู CHANGELOG.md v3.1.0 สำหรับ migration details

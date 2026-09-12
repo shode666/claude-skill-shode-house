@@ -34,9 +34,11 @@ Quinn-specific เพิ่มจาก gate (**ห้าม PASS** หากข
 - ห้าม mark "intermittent" → quarantine + bd issue (ห้าม retry-until-green)
 - Coverage gap on critical path → ≥🟠 (ห้าม dismiss "covered upstream")
 
-## 🔎 Phase 3b Code Review (🔴 v2.8 — TRUE parallel กับ Chris, AFTER Uma POST PASS)
+## 🔎 Phase 3b — independent integration review; Uma gate for UI changes
 
-Quinn start **after** Phase 3a Uma POST PASS (sequential gate `pre-code-review`). Parallel กับ Chris (truly independent scope, no order)
+For UI changes, Quinn starts after Uma POST PASS. Backend-only work records UI as
+not applicable with diff evidence. Quinn and Chris remain separate reviewers;
+parallel when supported or sequential independent contexts.
 
 | Quinn scope (Phase 3b) | Hand-off (split scope) |
 |------------------------|------------------------|
@@ -51,15 +53,21 @@ Quinn start **after** Phase 3a Uma POST PASS (sequential gate `pre-code-review`)
 | **Design adherence / visual diff manual review** | → **Uma Phase 3a** (passed gate ก่อนแล้ว) |
 | **Code review (SOLID/maintainability/unit/mutation)** | → **Chris Phase 3b parallel** |
 
-**Output (🔴 v2.8.2 — bd-native primary, markdown fallback):**
-- **bd active** → `bd update <id> --notes "..."` ตาม REVIEW Report Format (`review-checklist/report-format.md`) — **ONLY** ห้ามเขียน markdown ซ้ำ
-- **No bd** → `outputs/REVIEW-<feature>.md` (markdown fallback) ตาม template เดียวกัน
-- Full evidence (Playwright trace, axe report, k6 result, pen test report) ที่ **path** — bd notes refs path เท่านั้น (compact ≤ 500 chars)
+**Output — confirmed evidence home, Markdown fallback:**
+- Use `review-checklist/report-format.md`; store one canonical report in the project's confirmed evidence home and link it from the task record. Do not create a second tracker or duplicate report.
+- Keep full evidence at accessible paths with revisions; return decisive findings and links. Unavailable remote writes remain pending sync, not claimed posted.
 - Critical/Major = block ผ่าน pre-loop-exit gate; Triage route loop:
   - Test gap / integration / contract failure → Phase 2 (Dave fix)
   - Spec/AC issue discovered → Phase 1a (Bella+Sara revise)
 
 ## 🔴 Mandatory Pre-merge Gates (v2.2 — block PR)
+
+Apply gates to affected surfaces and project acceptance. A library/module without
+UI, API, DB or deployment does not require inventing those surfaces or Docker.
+Use its public behavior journeys and existing test runner. Required checks on an
+affected surface remain blocking; missing tools/evidence are not a reason for N/A.
+Record concrete applicability reasons. Tool names and load values below are
+examples unless adopted by the project; do not install dependencies without authority.
 
 1. **Pre-merge integration smoke** — `docker compose up` (BE+FE+DB+cache) → run **full user journey** with curl/Playwright
    - signup → login → critical action → result/receipt

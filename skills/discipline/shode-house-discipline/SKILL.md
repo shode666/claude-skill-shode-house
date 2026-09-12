@@ -16,7 +16,15 @@ description: |
 4. **SCOPE DRIFT** — track stated vs actual. "ทำเพิ่มนิดนึง" = warning
 5. **R0 / R1 / R2** — R0 (irreversible) STOP+ask | R1 (costly) inform+rollback | R2 (easy) just do
 
-> Philosophy ขัดกับ rule อื่น → Philosophy ชนะ
+> Plugin policy never overrides user/project/host instructions. Token savings must preserve capabilities, experts and acceptance evidence.
+
+## Harness portability
+
+`bd`/`outputs/<bd-id>` examples apply only to Beads projects. Use the confirmed
+project's tools/records; no parallel tracker. Missing tools: return the limitation
+to Oliver, never claim execution. Start/resume/delegate: read
+`skills/discipline/shode-house-workflow/harness.md`. Owners, gates, evidence and
+checkpoints remain required without a runner.
 
 ## 🛡️ Safety (🔴)
 
@@ -53,7 +61,7 @@ description: |
 
 ## 🚧 M1 — Ingress Guard (🔴 ทุก agent ก่อน respond ทุก message)
 
-1. `bd show <id>` → ไม่มี bd-id → **STOP** route Oliver triage
+1. Read canonical task record; missing required ID/context → return to Oliver (not Beads-only).
 2. read state → `{pick|impl|ui-check|review|triage|done}`
 3. classify msg → `{new-task|fix|spec-change|question|done-claim|cancel}`
 4. route check → message type × state = valid? FAIL → **STOP** explicit reroute
@@ -62,12 +70,12 @@ description: |
 
 ## 🤝 Handoff Contract — minimum fields (🔴 ทุก delegate)
 
-1. Producer เขียน artifact ลงไฟล์ก่อน hand-off → `outputs/<bd-id>/<NN>-<agent>-<phase>.md`
-2. Delegation ส่ง **PATH ไม่ส่งเนื้อหา** + ต้องมี `bd-id` + `paths` + `phase` + `iter` เสมอ
+1. Producer บันทึก artifact ในตำแหน่งที่ project ยืนยันก่อน hand-off
+2. Delegation ส่ง task ID/record + paths/revision + phase/iter + scope/acceptance; path ต้องเปิดได้ใน consumer context
 3. Consumer `Read` ไฟล์เอง — ห้ามพึ่งสรุปใน delegation message
 4. Producer return = verdict + artifact path + open questions (ห้าม dump transcript)
 
-## 🏷️ Tag prefix + Return format (🔴 ทุก message)
+## 🏷️ Structured worker return and durable handoff
 ```
 [<Agent>|state:<phase>|bd:<id>] <VERDICT>
 - did      : <1-2 บรรทัด>
@@ -75,14 +83,17 @@ description: |
 - artifact : outputs/<bd-id>/<file>
 - next     : <agent/phase ถัดไป | BLOCKED: reason>
 ```
-ไม่มี bd → `bd:none` · ไม่มี phase → `state:adhoc`
+Use the canonical task ID; `bd` is a Beads example, not a tracker requirement.
+This return structure is for worker results, not every user-facing message.
 **ทุก phase transition = 1 บรรทัด** `<Agent A> ▸ <Agent B> : <what> (bd-id)` — ห้ามข้าม
 ตัดคำบรรยายได้ **ห้ามตัด**: evidence · security finding · ตัวเลข · dissent · สิ่งที่ทำไม่สำเร็จ. ตัวอย่างเต็ม → `reporting.md`
 
 ## ✅ Close on Done (🔴 M8 — ทุก agent)
 
-งาน land → `bd close <id> --reason "<verdict> <sha> <test_result>"` → `bd show <id>` → **paste ที่อ่านได้ว่า CLOSED**
-`bd list` ไม่ใช่หลักฐาน · `PARTIAL`/`BLOCKED` คง OPEN + note · ห้ามจบ session โดยมีงานเสร็จแต่ bd ยัง OPEN
+Only Oliver closes the canonical task with evidence and authority, then reads back
+its status (`bd close` + `bd show` for Beads). Workers return results, not closure.
+PARTIAL/BLOCKED stay open with a checkpoint; unavailable/unauthorized updates stay
+pending sync, never claimed CLOSED.
 
 ## 🧰 Skill loading + pointer
 

@@ -3,7 +3,7 @@
 # Usage: make validate | make pack | make stats | make skills
 # NOTE: ใช้ TAB เป็น recipe prefix (v3.12) — `.RECIPEPREFIX` ต้องการ GNU Make >= 3.82
 #       แต่ macOS ยังมาพร้อม 3.81 -> `make pack` เดิมพังบนเครื่อง maintainer ("missing separator")
-.PHONY: help validate pack build stats skills clean
+.PHONY: help validate pack build stats skills clean test-team-package test-team-candidate
 
 VERSION := $(shell jq -r .version .claude-plugin/plugin.json)
 PLUGIN  := shode-house-v$(VERSION).plugin
@@ -14,6 +14,8 @@ help:
 	@echo "  make pack       build $(PLUGIN) artifact (zip)"
 	@echo "  make stats      skill/agent/command counts"
 	@echo "  make skills     list shipped skills by bucket"
+	@echo "  make test-team-package  verify 3.15 team knowledge survives packaging"
+	@echo "  make test-team-candidate  check full-team portable discovery adapters"
 	@echo "  make clean      remove the built .plugin artifact"
 
 # validate = รัน gate ชุดเดียวกับ CI ในเครื่อง (v3.12 — เดิม .pre-commit-config อ้าง target นี้ทั้งที่ไม่มีอยู่)
@@ -46,6 +48,15 @@ stats:
 	@printf 'agents:   %s\n' "$$(ls agents/*.md | wc -l | tr -d ' ')"
 	@printf 'skills:   %s (shipped buckets)\n' "$$(find skills/workflow skills/ops skills/ui skills/style skills/discipline -name SKILL.md | wc -l | tr -d ' ')"
 	@printf 'commands: %s\n' "$$(ls commands/*.md | wc -l | tr -d ' ')"
+
+# Maintainer-only inventory regression, not a runtime dependency or parity claim.
+test-team-package: pack
+	python3 tests/test_team_package.py $(PLUGIN)
+	python3 tests/test_team_entry.py
+
+test-team-candidate:
+	python3 tests/test_team_entry.py
+	python3 tests/test_team_candidate.py
 
 skills:
 	@for b in workflow ops ui style discipline; do echo "[$$b]"; for d in skills/$$b/*/; do echo "  - $$(basename $$d)"; done; done

@@ -76,14 +76,14 @@ User message → Oliver classify (1-line caveman):
 | **Oliver** | "ready merge" — ต้องมี Chris+Quinn+Sentinel(+Uma) bd notes ครบ | — |
 | **Reggie** | "✓ prod stable" — ต้อง SLO 2hr observed | — |
 
-### M4 — User Comment = FAIL by default
+### M4 — User feedback invalidates the affected claim
 
 ```
-User comments on agent claim ("ยังไม่ดี" / "ลองใหม่" / "เพิ่มอันนี้"):
-  → bd update <id> --notes "user-feedback: <quote>"
-  → iter++
-  → reopen Phase ที่ feedback ชี้ไป (default = Phase 2)
-  → ห้าม close bd ในรอบเดียวกัน
+Inspect feedback against acceptance and evidence:
+  defect → record finding, reopen affected criterion/phase, increment iteration
+  scope change → record revised acceptance and route its owners before editing
+  question/status → answer from evidence without inventing a failure or new scope
+  unresolved finding → hold closure; no automatic PASS after a worker's claim
 ```
 
 ห้าม Dave "OK เพิ่มให้ครับ" → fix ตรง ๆ โดยไม่ผ่าน iter counter
@@ -103,7 +103,7 @@ User: "เปลี่ยน amount เป็น decimal"
 
 ### M6 — Conversation State pin (persistent)
 
-ไฟล์ `outputs/SESSION-STATE.md` (Oliver maintain) — สำคัญสำหรับ warm follow-up:
+Oliver maintain current checkpoint ใน record ที่ project ยืนยันตาม `shode-house-workflow/harness.md`. ตัวอย่าง Markdown ต่อไปนี้ไม่บังคับสร้าง `outputs/SESSION-STATE.md` ซ้ำ:
 ```
 Active Engagement: E-1 "Refund flow"
 Active bd issues:
@@ -117,7 +117,7 @@ Pending gates:
   - pre-loop-exit (bd-42) : waiting Quinn + Sentinel notes
 ```
 
-ทุก agent **read SESSION-STATE first** → ห้าม respond ก่อน
+ทุก agent อ่าน current task record ที่ Oliver ส่งมาและ artifacts ที่เกี่ยวข้องก่อนลงมือ; ไม่บังคับโหลด checkpoint ทุก task หรือ history ทั้งหมด
 
 ### M7 — Direct-to-agent block
 
@@ -136,7 +136,7 @@ User direct ping → Dave (bypass Oliver):
 > **Measured failure mode**: งานเสร็จจริง (merged / test green / verdict PASS) แต่ bd ค้าง OPEN — backlog โกหก, รอบถัดไปทำซ้ำ
 
 ```
-งาน land แล้ว → bd ต้อง CLOSED ในรอบเดียวกัน (3 ขั้น ห้ามข้าม):
+Beads example, only when the project has selected Beads:
   1. bd close <id> --reason "<verdict> <commit_sha> <test_result>"
   2. bd show <id>            → ต้องอ่านได้ว่า CLOSED
   3. paste output ของข้อ 2   → หลักฐาน ไม่ใช่คำพูดของ agent
@@ -147,9 +147,14 @@ User direct ping → Dave (bypass Oliver):
 | **Oliver** | "bd-42 CLOSED [paste `bd show`]" | "ปิด bd แล้ว" / "เคลียร์ backlog แล้ว" (ไม่มี output) |
 | Dave/Chris/Quinn | "verdict FIXED, sha a1b2c3d, 214 passed" | "ปิด bd ให้แล้ว" (close = Oliver Phase 4 เท่านั้น) |
 
+For any tracker, Oliver updates the canonical task after required acceptance and
+authorized closure, then reads it back. Record the revision and actual evidence.
+Unavailable remote updates remain pending sync; never create a parallel tracker
+or claim CLOSED without the authoritative result.
+
 **ห้าม**:
-- ❌ จบ run / session โดยมี item verdict = FIXED แต่ bd ยัง OPEN
-- ❌ `bd close` ที่ `--reason` ว่าง หรือไม่มี commit sha + test result
+- ❌ claim task closure when the selected record was not updated and verified
+- ❌ close without the applicable revision, verification and reason
 - ❌ close `PARTIAL` / `BLOCKED` ให้ตัวเลขสวย — **คง OPEN + note ตรงไปตรงมา**
 - ❌ เชื่อ `bd list` เป็นหลักฐานสถานะ — `bd show` เท่านั้นที่ trust ได้
 

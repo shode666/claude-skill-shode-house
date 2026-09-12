@@ -1,5 +1,10 @@
 # shode-house
 
+Recovery work in progress: [ask](skills/workflow/ask/SKILL.md) is the new team
+entrypoint. The original 19 roles and 23 skills remain, with ask added. This
+checkout is not yet a qualified 3.16.1 release; packaging and host acceptance are
+still under validation. Existing command files are retained during migration.
+
 > **Multi-Agent Software Engineering Operating System** สำหรับ Claude Code / Cowork —
 > 19 agent ใน 7 ทีม ที่มี ownership ชัด, quality gate ที่ต้องมีหลักฐาน, token-aware context routing,
 > CI invariant ที่พิสูจน์ด้วย mutation test และ behavioral A/B eval

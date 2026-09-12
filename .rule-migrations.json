@@ -1,0 +1,39 @@
+{
+  "migrations": [
+    {
+      "source": "skills/discipline/shode-house-workflow/SKILL.md",
+      "old_fragment": "- 🔴 ห้ามเขียน review เป็น markdown ถ้ามี bd",
+      "replacement": "skills/discipline/review-checklist/report-format.md",
+      "requires": ["Store one canonical report in the confirmed evidence home", "including Markdown when", "do not copy the report into competing sources of truth"],
+      "reason": "User explicitly requires project-selected source of truth and Markdown fallback; preserve single authoritative report, not a Beads-only prohibition."
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/SKILL.md",
+      "old_fragment": "bd = single source of truth; markdown = audit redundancy + drift risk",
+      "replacement": "skills/discipline/review-checklist/report-format.md",
+      "requires": ["Store one canonical report in the confirmed evidence home", "including Markdown when", "do not copy the report into competing sources of truth"],
+      "reason": "Replace tracker-specific policy, not the no-duplicate-source invariant."
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/SKILL.md",
+      "old_fragment": "resume จาก phase แรกที่ยังไม่ passed — ห้ามรัน phase ที่ passed ซ้ำ (เสีย token + ทับ artifact)",
+      "replacement": "skills/discipline/shode-house-workflow/harness.md",
+      "requires": ["Resume invalidates approvals/evidence only where scope or content changed", "does not replay completed external actions or rerun all historical phases", "Revalidate affected artifacts and dependencies"],
+      "reason": "Retain non-replay of completed work but require revalidation when evidence becomes stale."
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/SKILL.md",
+      "old_fragment": "R0/destructive ที่ทำไปแล้วก่อนตาย → ห้ามทำซ้ำโดยไม่ถาม (ไม่มี idempotency key)",
+      "replacement": "skills/discipline/shode-house-workflow/harness.md",
+      "requires": ["A timeout or interruption is UNKNOWN", "Reconcile UNKNOWN operations", "never use a new key to bypass", "not blind permission to repeat it"],
+      "reason": "Strengthen recovery: renewed approval alone cannot make an uncertain external effect safe to repeat."
+    },
+    {
+      "source": "skills/discipline/shode-house-drift/SKILL.md",
+      "old_fragment": "งาน land แล้ว → bd ต้อง CLOSED ในรอบเดียวกัน (3 ขั้น ห้ามข้าม):",
+      "replacement": "skills/discipline/shode-house-drift/SKILL.md",
+      "requires": ["Oliver updates the canonical task after required acceptance and", "authorized closure, then reads it back", "Unavailable remote updates remain pending sync", "claim CLOSED without the authoritative result"],
+      "reason": "Preserve evidence-backed closure and read-back for the selected tracker, including honest pending sync."
+    }
+  ]
+}

@@ -50,7 +50,8 @@ Sara claim "existing tech stack X" / "we use Y" / "current arch supports Z" → 
 
 ## 🤝 Phase 1a Foundation (🔴 v2.8 — TRUE parallel กับ Bella)
 
-Sara ทำงาน parallel กับ Bella (independent scope: SA scope ≠ BA scope). **ห้าม serialize** (รอ Bella เสร็จก่อน)
+Sara and Bella own independent scopes; parallel when supported and independent,
+otherwise sequential separate contexts without copying each other's conclusions.
 
 ### Pattern (Phase 1a)
 1. `bd show <id>` — load issue context
@@ -79,14 +80,19 @@ Sara ทำงาน parallel กับ Bella (independent scope: SA scope ≠ B
 
 > Hand-off: Phase 1b Uma + Domain reads bd notes + (ถ้าจำเป็น) openapi.yaml — Sara produce openapi.yaml ก่อน Phase 2 ถ้ามี API contract
 
-## 🔴 Mandatory — Contract-first + DB constraint (bug prevention)
+## 🔴 Contract-first + DB constraints (when those surfaces exist)
+
+Apply API contracts to actual API boundaries and database constraints to actual
+databases. Do not introduce HTTP, OpenAPI, a database or a generator into a small
+module merely to satisfy this section. Public module behavior still needs an
+explicit contract and validation. Reuse the project's stack and verification tools.
 
 **1. Contract-first OpenAPI** (ก่อน Dave code):
 - Sara produce `outputs/api/openapi.yaml` ก่อน BE+FE coding
 - Schema คุม request/response/error, version semver
 - Dave#BE + Dave#FE generate type จาก openapi (`openapi-typescript`, `openapi-python-client`)
 - Quinn run **Schemathesis** ใน CI → block merge ถ้า drift
-- → ตัด BE/FE mismatch 100%
+- Detect BE/FE mismatch with contract verification; a schema alone is not proof.
 
 **2. DB constraint as source of truth** (Sara + Dave):
 - NOT NULL, FK, CHECK, UNIQUE ใน schema (ไม่ใช่แค่ app)
@@ -278,6 +284,6 @@ Q: [คำถาม]
 2. คำตอบ reshape tree → คำนวณ frontier ใหม่ → รอบถัดไป
 3. 🔴 คำถามที่คำตอบขึ้นกับคำถามที่ยังเปิดอยู่ในรอบนี้ = **ของรอบถัดไป ไม่ใช่รอบนี้**
 4. frontier ข้อไหนต้องใช้ fact จาก environment → **dispatch sub-agent ไปหา แล้วไม่หยุดรอ**: sub-agent ที่ยังวิ่ง = prerequisite ที่ยัง unsettled → เฉพาะคำถามใต้มันที่รอ ที่เหลือถามเลย
-5. **จบเมื่อ frontier ว่าง** — ทุกกิ่งถูกเยี่ยม ไม่มีอะไร assume เงียบ ๆ. **ห้ามลงมือจนกว่า user ยืนยันว่าเข้าใจตรงกัน**
+5. When necessary decisions are settled, continue authorized work. Return unresolved policy/scope/authority questions to Oliver; do not demand another confirmation for an already approved design.
 
 **ห้าม grill เมื่อ**: user ระบุชัดแล้ว · ตอบเองได้จาก code/file · low-stakes เปลี่ยนทีหลังง่าย · tactical work ที่ไม่กำหนด direction

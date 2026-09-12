@@ -32,7 +32,7 @@ Q: [คำถาม]
 2. คำตอบ reshape tree → คำนวณ frontier ใหม่ → รอบถัดไป
 3. 🔴 คำถามที่คำตอบขึ้นกับคำถามที่ยังเปิดอยู่ในรอบนี้ = **ของรอบถัดไป ไม่ใช่รอบนี้**
 4. frontier ข้อไหนต้องใช้ fact จาก environment → **dispatch sub-agent ไปหา แล้วไม่หยุดรอ**: sub-agent ที่ยังวิ่ง = prerequisite ที่ยัง unsettled → เฉพาะคำถามใต้มันที่รอ ที่เหลือถามเลย
-5. **จบเมื่อ frontier ว่าง** — ทุกกิ่งถูกเยี่ยม ไม่มีอะไร assume เงียบ ๆ. **ห้ามลงมือจนกว่า user ยืนยันว่าเข้าใจตรงกัน**
+5. Finish when decisions necessary for the authorized scope are settled. Hold only work dependent on unresolved user decisions; continue unaffected authorized work. Existing explicit scope/design approval does not require another confirmation of understanding.
 
 **ห้าม grill เมื่อ**: user ระบุชัดแล้ว · ตอบเองได้จาก code/file · low-stakes เปลี่ยนทีหลังง่าย · tactical work ที่ไม่กำหนด direction
 

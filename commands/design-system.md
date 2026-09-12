@@ -253,7 +253,7 @@ User responses → M2 classify:
 
 ## ⚠️ Rules
 
-1. 🔴 **Phase 1a parallel เท่านั้น** (ห้าม Bella → Sara serialize; ห้าม mid-checkpoint cross-read หนัก)
+1. **Phase 1a independent Bella/Sara** — parallel เมื่อ host รองรับ; sequential ได้โดยรักษา scope/context แยกแล้ว cross-read ตอนรวมผล
 2. 🔴 **Phase 1b sequential เท่านั้น** (Uma + Domain ต้องอ่าน 1a sign-off ก่อน start)
 3. 🔴 **บังคับ Uma's own AC** ใน 1b (Phase 3a Uma POST จะ verify AC นี้)
 4. 🔴 **บังคับ baseline screenshot** ใน 1b (สำหรับ visual diff Phase 3a)

@@ -15,11 +15,11 @@ REQUIRED-BEFORE: review_report_post
 > แยกจาก `SKILL.md` เป็น output template ที่ใช้ตอนท้ายของ review เท่านั้น ไม่ต้องอยู่ใน preload
 > `shode-house-evidence` ชี้มาที่นี่ (single source of truth ของ REVIEW format)
 
-## REVIEW Report Format (bd-native primary, markdown fallback)
+## REVIEW Report Format (confirmed evidence home, Markdown fallback)
 
 ใช้ format ใน `shode-house-evidence` (REVIEW Report Format section). สรุป:
 
-### bd notes (≤ 500 chars compact)
+### Compact task summary (Beads example)
 ```
 [Chris|Quinn|Sentinel review bd-42] verdict: FAIL
 - 🔴 1: <file:line> <issue>
@@ -30,7 +30,7 @@ UX: Uma POST PASS (separate)
 Loop route: code → Phase 2
 ```
 
-### Markdown fallback (no bd) — `outputs/REVIEW-<feature>.md`
+### Markdown report — use the confirmed evidence path
 Full template per finding (file:line · why it matters · evidence path · suggested change)
 
 ### Output budget (🔴 §5.13 — bd:shode-roadmap/C-G1)
@@ -39,12 +39,17 @@ return ต่อ orchestrator = verdict + ตัวเลขสรุป + path 
 
 ### Storage rule (🔴 ห้ามเขียนซ้ำ 2 ที่)
 
-report อยู่ที่เดียว: มี bd → **bd notes เป็น primary** (markdown เฉพาะตอนยาวเกิน 500 chars แล้ว bd note ต้อง link ไปหา)
-ไม่มี bd → markdown fallback อย่างเดียว · **ห้าม** เขียนทั้ง bd และ md เนื้อหาเดียวกัน แล้วปล่อยให้ทั้งสองฝั่ง drift
+Store one canonical report in the confirmed evidence home, including Markdown when
+selected alongside Jira, Beads or another task tracker. Other records link to it;
+do not copy the report into competing sources of truth. Keep full findings and
+evidence in the artifact; compact summaries must not discard dissent or blockers.
 
-### Always: link external tracker
-- ถ้ามี Jira key → `addCommentToJiraIssue` กลับ ticket ด้วย bd link หรือ md path
-- ถ้ามี GitHub PR → `gh pr review --comment "..."` หรือ inline comment
+### External tracker or PR updates
+An identifier or URL is not permission to post. Use actual available tools only
+when the request/project authority covers that update. Otherwise return the report
+and proposed update to Oliver. Record unavailable authorized updates as pending
+sync, never claim they were posted. Include an accessible artifact link, not a
+local-only path that the remote reader cannot open.
 
 ---
 

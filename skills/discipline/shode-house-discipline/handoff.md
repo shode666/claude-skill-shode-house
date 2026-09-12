@@ -13,16 +13,16 @@ REQUIRED-BEFORE: delegate_task
 # Handoff schema (เต็ม)
 
 sub-agent เกิดใน **context ว่าง** — เห็นแค่ agent body + delegation message + target `CLAUDE.md`
-prose = lossy channel → **ส่ง path ไม่ส่งเนื้อหา**
+ส่ง path/revision เป็นหลัก; ถ้า consumer ไม่มี shared filesystem ส่งเฉพาะ excerpt ที่จำเป็นพร้อม source/revision ตาม harness และเปิดเผยข้อจำกัด
 
 ## Schema
 
 ```
-bd      : <bd-id>              (บังคับ — ไม่มี = STOP route Oliver)
+task    : <canonical task ID and record path/URL> (Beads/Jira/Redmine/Markdown ตาม project)
 phase   : <phase name>          เช่น phase-2, phase-3b
 iter    : <n>                   รอบที่เท่าไรของ bd นี้
 paths   : outputs/<bd-id>/<NN>-<agent>-<phase>.md  (≥1 path)
-task    : <1-3 บรรทัด ว่าต้องทำอะไร ไม่ใช่เล่าว่าเกิดอะไรมาก่อน>
+outcome : <งานที่อนุญาต + scope/non-goals + write ownership>
 gate    : <verdict ที่ต้องได้กลับ | gate ที่ต้องผ่าน>
 ```
 
@@ -40,7 +40,7 @@ gate    : PASS/FAIL + severity table + artifact path
 
 ## ❌ ตัวอย่างที่ผิด
 
-- สรุปเนื้อหา spec ลงใน delegation message แทนที่จะส่ง path → consumer อ่านของจริงไม่ได้ ตัดสินจากสรุปที่ lossy
-- ไม่มี `bd` → agent ปลายทางทำงานโดยไม่มี tracker (M1 ต้อง STOP)
+- ส่งสรุป spec ที่ตรวจต้นฉบับไม่ได้โดยไม่แจ้งข้อจำกัด → consumer ตัดสินจากข้อมูลที่ lossy; ใช้ artifact ที่เข้าถึงได้หรือ provenance-marked excerpt
+- ไม่มี canonical task/context ที่ต้องใช้ → ส่งกลับ Oliver ให้เติม ไม่สร้าง Beads แทน tracker เดิม
 - `paths` ชี้ไฟล์ที่ยังไม่ได้เขียน → producer ต้องเขียน artifact **ก่อน** hand-off เสมอ
 - return dump transcript ทั้งหมด → return = verdict + artifact path + open questions เท่านั้น

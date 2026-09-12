@@ -39,7 +39,7 @@
       "preload": true,
       "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
       "verification": "ci:path-tool",
-      "anchor": "Delegation ส่ง **PATH ไม่ส่งเนื้อหา**"
+      "anchor": "Delegation ส่ง task ID/record"
     },
     {
       "id": "response-language",
@@ -53,13 +53,13 @@
     },
     {
       "id": "recite-card",
-      "rule": "Recite Discipline Card",
+      "rule": "Apply discipline without ceremonial repetition",
       "owner": "main session",
       "trigger": "first response",
       "preload": false,
       "source_of_truth": "output-styles/oliver.md",
       "verification": "output-style-test",
-      "anchor": "ขึ้นต้นด้วย Recite Card verbatim"
+      "anchor": "All five rules remain required"
     },
     {
       "id": "askuser-relay",

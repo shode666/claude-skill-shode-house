@@ -26,7 +26,7 @@
 - IN ≤ 3 bullets, ระบุ outcome ไม่ใช่ activity ("POST /payments/create endpoint" ไม่ใช่ "เขียน code")
 - OUT ระบุสิ่งที่ user/Oliver อาจ assume ว่าทำแต่ไม่ทำในรอบนี้ (กัน "ทำเพิ่มนิดนึง")
 
-**Files** — กัน agent overlap (file ownership lock)
+**Files** — coordinated ownership, not a filesystem lock
 - ระบุ paths ที่จะ Write/Edit (read-only ไม่ต้อง list)
 - Glob pattern OK ถ้าชัดเจน (`src/payment/**`)
 - ระหว่างที่ contract นี้ active → agent อื่นที่ Files overlap → **block + wait**
@@ -48,7 +48,7 @@
 3. Oliver scan active contracts:
    a. Files overlap กับ active agent อื่น? → BLOCK, agent wait
    b. ไม่ overlap → ผ่าน
-4. User confirm/reject (Interactive mode) หรือ auto-pass (AFK mode after no objection)
+4. Verify existing authorization covers this scope. If not, obtain explicit approval before editing. AFK/silence never grants approval; approved unchanged scope does not need repeated confirmation.
 5. Agent implement (เฉพาะ Files ที่ประกาศ)
 6. agent post "scope closed" → ปล่อย file ownership
 ```
