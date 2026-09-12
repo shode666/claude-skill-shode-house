@@ -119,6 +119,8 @@ Package source for every host: `plugins/shode-house` (generated from this repo b
 /plugin install shode-house@shode-house
 ```
 Entry: `/shode-house:ask <request>` — Oliver runs the main session and dispatches the specialists.
+Unattended runs (`claude -p`): set `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0`, otherwise the CLI kills
+reviewers still running after 600 s before Oliver can integrate their verdicts.
 
 ### Codex
 Add the repo as a plugin marketplace (`.claude-plugin/marketplace.json` is the shared catalog);
