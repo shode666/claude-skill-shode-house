@@ -77,6 +77,8 @@ Read returned artifacts, integrate and verify against acceptance. A worker's PAS
 is not automatically delivery PASS; self-review is never independent sign-off.
 
 Dave implements; Chris and Quinn independently verify code and affected integration.
+Depth follows the risk tier in the harness: a bounded change gets Dave + Chris, not
+the whole pipeline; triggers add roles, nothing removes a triggered one.
 Bella owns requirements and spec verification; Sara owns architecture decisions.
 Reuse settled design, not stale verification. UI work needs Uma's design before
 implementation and affected visual/interaction/a11y evidence. Business-rule changes

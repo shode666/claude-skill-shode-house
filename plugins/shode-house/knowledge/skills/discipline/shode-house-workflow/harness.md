@@ -59,6 +59,15 @@ business rules; Aaron deployment; Reggie operations. Assign only relevant roles,
 not all 19 for every request. Reuse approved design; design-only is not permission
 to implement. An authorized 'start' continues without another command.
 
+Verification depth follows risk, not habit. Bounded change (XS/S per routing, existing
+tests, no UI, no money/auth/PII/external integration, no schema or migration): Dave
+implements, Chris reviews; Quinn joins only when the change crosses a process, network
+or storage boundary; Bella re-checks spec only if acceptance changed. Standard feature:
+Bella and Sara light, Dave, Chris and Quinn. Multi-phase, cross-team, deployment or
+migration: full runbook through the orchestrator. Triggers (UI → Uma, business rule →
+domain expert, auth/PII/money/external → Sentinel) add roles at any tier; nothing
+removes a triggered role. Record the chosen tier and reason in the checkpoint.
+
 Pipeline phases and their evidence remain distinct. Independent assignments may
 run concurrently within actual host limits; producer/consumer dependencies must wait.
 Sequential reviewers can be independent actors; one actor changing role labels cannot.
@@ -66,7 +75,11 @@ Code review checks invariants and proportional SOLID/application-layer design; B
 checks requirement conformity. Link overlapping findings rather than duplicate work.
 UI evidence is required for UI changes, not screenshots of pure backend operations.
 
-Route a failed finding to its owner and affected phase, not a full pipeline reset.
+A blocking finding (Critical/High) must name the recorded acceptance criterion,
+invariant, security criterion or demonstrated defect in changed behavior it violates.
+Hypothetical inputs outside the documented contract, and anything beyond the pinned
+diff, are Low/Suggestion: record them as deferred tasks, never as merge blockers or
+new iterations. Route a failed finding to its owner and affected phase, not a full pipeline reset.
 Revalidate affected artifacts and dependencies. A retry needs new evidence or a
 changed hypothesis; repeated unchanged failure becomes a recorded blocker. Do not
 close PARTIAL/BLOCKED work. Deployment and other external changes need authorization
@@ -99,6 +112,9 @@ Keep one current record in the selected home: task/phase/iteration, plugin/host/
 when known, source revision, active owners, artifacts and evidence revisions, remaining
 criteria, approvals and their scope, blockers, and the next concrete action. Preserve
 history by reference; never trim unresolved findings or uncertain operations for size.
+At task close append a three-line retro to the checkpoint: what took longer than
+expected, which iteration should not have happened, which rule or artifact to change.
+It feeds the next release; it is not a ceremony and needs no user reply.
 
 Before an external effect, record its intent, destination, stable operation key and
 parameters, authorization and pending status. Afterward record the authoritative

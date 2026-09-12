@@ -44,7 +44,7 @@ diff scope ที่ pin แล้ว · spec source (ไม่มี = รา�
 2. **Anti-Puppet** — ห้าม claim PASS โดยไม่ paste tool output (axe / coverage / Semgrep / Pact) · ห้าม "looks good" ต้อง cite `file:line` · ห้าม skip แกนเพราะ "minor change"
 3. **Visual verify** — UI changes require actual screenshot/interaction, console and network evidence per `ui-test`. Backend-only API/CLI/library work uses response, behavior and relevant integration evidence, not screenshots. Missing applicable evidence = **BLOCKED**; browser MCP is not required.
 4. **Finding ทุกข้อ** ระบุ `file:line` + severity + วิธีแก้ และ track ใน tracker ไม่ใช่ค้างในแชท (`report-format.md`)
-5. **ขอบเขต = diff จาก fixed point ที่ pin ไว้** — นอกขอบเขต = 💡 ไม่ใช่ block
+5. **ขอบเขต = diff จาก fixed point ที่ pin ไว้** — นอกขอบเขต = 💡 ไม่ใช่ block; 🔴/🟠 ต้องระบุ AC/invariant/security criterion ที่ละเมิด หรือ defect ที่ demo ได้ใน changed behavior — input สมมติที่อยู่นอก contract ที่บันทึกไว้ = 🔵/💡 deferred ไม่เปิด iteration ใหม่
 6. **money/PII/auth** → Domain Expert + Sentinel ลงชื่อก่อน merge
 
 ## 🛑 Stop condition (🔴 objective-based — ไม่ใช่ turn cap)

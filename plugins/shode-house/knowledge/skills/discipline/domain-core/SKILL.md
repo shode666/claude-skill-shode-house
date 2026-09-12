@@ -37,4 +37,6 @@ Format: <Standard Name> <Version> <Clause/Section> [<Date>] — <Claim>
 
 🔴 ห้าม reuse ถ้อยคำตัวอย่างเป็น requirement จริง — ต้องเปิด primary source ของ clause นั้นทุกครั้ง
 
+🔴 ตัวเลข/threshold/วันที่ใน role file ของทุก domain expert (เช่น CAR, RBC, PCI version) เป็นตัวอย่าง ณ วันเขียน — ก่อนใช้ใน deliverable ต้องตรวจกับ primary source ฉบับปัจจุบันแล้ว cite ตาม format ข้างบน
+
 ตัวอย่าง ✅/❌ + วิธีตรวจว่า source ที่เจอเป็น primary จริงไหม → `source-validation.md`

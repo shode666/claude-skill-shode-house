@@ -83,6 +83,10 @@ class TeamEntryTest(unittest.TestCase):
         "Do not decide business policy, widen scope or add",
         "Amending an acceptance criterion is the requirements owner's call",
         "never end the\nturn with workers still running",
+        "Verification depth follows risk, not habit",
+        "nothing\nremoves a triggered role",
+        "A blocking finding (Critical/High) must name the recorded acceptance criterion",
+        "append a three-line retro to the checkpoint",
     )
 
     def harness_missing(self, text):
