@@ -76,6 +76,28 @@ class TeamEntryTest(unittest.TestCase):
         mutated.pop("skills/discipline/domain-core/SKILL.md")
         self.assertTrue(any("missing prerequisite:" in e for e in entry_errors(self.entry, mutated)))
 
+    HARNESS_INVARIANTS = (
+        "Iteration cap: three review",
+        "no user channel exists",
+        "mark the task BLOCKED",
+        "Do not decide business policy, widen scope or add",
+        "Amending an acceptance criterion is the requirements owner's call",
+        "never end the\nturn with workers still running",
+    )
+
+    def harness_missing(self, text):
+        return [f for f in self.HARNESS_INVARIANTS if f not in text]
+
+    def test_harness_unattended_invariants_present(self):
+        harness = self.contents["skills/discipline/shode-house-workflow/harness.md"]
+        self.assertEqual([], self.harness_missing(harness))
+
+    def test_harness_invariant_removal_is_detected(self):
+        harness = self.contents["skills/discipline/shode-house-workflow/harness.md"]
+        start = harness.index("Iteration cap:")
+        mutated = harness[:start] + harness[harness.index("\n\n", start) + 2:]
+        self.assertTrue(self.harness_missing(mutated))
+
     def test_broken_entry_reference_is_detected(self):
         mutated = self.entry.replace("engineering-loop.md", "does-not-exist.md")
         self.assertTrue(any("broken entry reference:" in e for e in entry_errors(mutated, self.contents)))

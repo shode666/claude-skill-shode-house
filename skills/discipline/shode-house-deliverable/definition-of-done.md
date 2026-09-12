@@ -41,7 +41,7 @@ verify the update by reading it back, or record pending sync if the service is d
 □ Phase 1b Expand passed (Uma* sign UI accept + baseline; Domain* sign regulation/rule; integrated SPEC saved)
 □ Phase 3a UI Check PASS (Uma verdict before Chris/Quinn เริ่ม)
 □ Phase 3b Code Review passed (Chris + Quinn independent, 0 Critical/Major)
-□ Loop iter ≤ 3 + routing precise (code→2, UI→1b, spec→1a); iter > 3 → escalate user
+□ Loop iter ≤ 3 + routing precise (code→2, UI→1b, spec→1a); iter > 3 → escalate user, or BLOCKED + checkpoint when no user channel (harness § iteration cap)
 □ Review report saved in the confirmed evidence home; canonical task links it without duplicating the report. Verify authorized remote updates or record pending sync.
 □ Code merged + CI green (lint+type+unit+integration+SAST+SCA)
 □ Contract test pass (Pact/Schemathesis — BE ↔ FE align)

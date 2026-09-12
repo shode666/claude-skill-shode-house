@@ -66,6 +66,13 @@ changed hypothesis; repeated unchanged failure becomes a recorded blocker. Do no
 close PARTIAL/BLOCKED work. Deployment and other external changes need authorization
 for that action, not just a green implementation check.
 
+Iteration cap: three review→fix iterations per task. When the cap is reached, or a
+finding needs a policy/scope call and no user channel exists (non-interactive run),
+stop iterating: record a safety point (local commit when authorized), write the
+blocker with options and a recommendation into the checkpoint, mark the task BLOCKED
+or PARTIAL, and end the turn. Do not decide business policy, widen scope or add
+iterations to reach green without the user.
+
 ## Expert questions versus user decisions
 
 Read code/records first for project facts; ask the relevant expert for technical or
@@ -74,6 +81,11 @@ scope or authority. Experts provide recommendations, not user permission. Bundle
 questions with options, recommendation and the affected work; use the host's popup
 when available or Markdown when not. Continue independent work while a decision is
 pending. No silence-as-approval; no repeated file-plan approval within existing scope.
+Amending an acceptance criterion is the requirements owner's call: route it to Bella
+for a conformity re-check, or record it as a deviation with rationale and keep the
+task PARTIAL until she confirms. Oliver does not silently rewrite AC to pass review.
+In non-interactive runs, wait for dispatched workers in the foreground; never end the
+turn with workers still running or their verdicts unintegrated.
 
 ## Long-run checkpoint and uncertain effects
 
