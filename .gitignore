@@ -8,6 +8,8 @@ node_modules/
 __pycache__/
 *.pyc
 /outputs/
+# Local synthetic projects and benchmark artifacts (not the tracked tests/ suite)
+/test/
 # Zip temp files from failed builds (random-named mktemp artifacts)
 zi[a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z]*
 ziqn*
@@ -22,3 +24,9 @@ shode-house-v*.plugin
 
 # Cowork side-panel exports
 Claude outputs/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.beads/proxieddb/
