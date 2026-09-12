@@ -1,0 +1,18 @@
+{
+  "name": "shode-house",
+  "owner": {
+    "name": "shode666",
+    "url": "https://github.com/shode666"
+  },
+  "metadata": {
+    "description": "Shode House: full software-house team plugin marketplace."
+  },
+  "plugins": [
+    {
+      "name": "shode-house",
+      "source": "plugins/shode-house",
+      "version": "3.16.1",
+      "description": "Shode House 3.16.1: Oliver + 18 specialists, 24 skills, independent review. Supersedes 3.16.0."
+    }
+  ]
+}

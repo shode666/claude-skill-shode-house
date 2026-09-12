@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.15.0",
-  "description": "Multi-agent software house team v3.15.0: 19 agents + 23 skills + 5 commands. Runtime state machine, routing registry, scope lock, hooks enforcement.",
+  "version": "3.16.1",
+  "description": "Multi-agent software house team v3.16.1: 19 agents + 23 skills + ask entry. Full knowledge preserved; instruction-only runtime for Claude Code, Codex, Cursor and Antigravity.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"

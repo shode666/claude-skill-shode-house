@@ -1,0 +1,14 @@
+{
+  "v": 1,
+  "_comment": "Triage-class -> responsible-phase routing table for scripts/workflow-state.sh's `rework <bd-id> <class>` subcommand (bd: shode-roadmap/C-D1). Transcribed verbatim from output-styles/oliver.md section 5 'Triage routing' line: code/perf/security -> Phase 2, UI/design -> Phase 1b, spec/AC/regulation -> Phase 1a -- not invented here, and not re-declared as prose anywhere else (single source for the mapping; oliver.md keeps the short human-readable line, this file is what the script actually reads). Phase-name shorthand resolved against references/state-machine/transitions.json's `states` list: Phase 2 = 2-implement, Phase 1b = 1b-design, Phase 1a = 1a-spec. `rework` still goes through workflow-state.sh's normal advance() edge/enter_requires/iter-cap machinery (it calls cmd_advance internally) -- this table only supplies the TARGET phase; it does not grant a new edge by itself. The two rework-only edges this table's 'code'/'perf'/'security' and 'ui'/'design' rows depend on (from 4-triage, where Oliver's Phase 4 triage step actually runs per the PEV loop diagram in oliver.md section 5) are declared in transitions.json's own `transitions` array, same DRY rule as every other edge in this repo -- not duplicated here.",
+  "routes": {
+    "code": "2-implement",
+    "perf": "2-implement",
+    "security": "2-implement",
+    "ui": "1b-design",
+    "design": "1b-design",
+    "spec": "1a-spec",
+    "ac": "1a-spec",
+    "regulation": "1a-spec"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "shode-house/references/scope/manifest.schema.json",
+  "title": "shode-house scope manifest (Milestone E -- ROADMAP-runtime-10.md SS7.1-7.3, bd: shode-roadmap/C-E1)",
+  "description": "Per-bd concurrency scope lock. `agents[].owns` = SS7.1 scope manifest. `shared_files` = SS7.2 shared-file strategy (exclusive/append-only/merge-owner/generated -- data-driven, no filename is hardcoded in scripts/scope-check.sh). `base_sha` = SS7.3 optimistic-conflict snapshot store, written only by `scope-check.sh ... --snapshot`, never hand-edited. This file is a REFERENCE (schema + example) only -- the live manifest that scripts/scope-check.sh actually reads lives at .shode-house/scope/<bd-id with / -> -->.json inside a project that opted into shode-house (same convention as .shode-house/state/*.json for scripts/workflow-state.sh). Read by script/CI only -- never preloaded into an agent context (CLAUDE.md 'token/run ห้ามเพิ่ม').",
+  "type": "object",
+  "required": ["schema_version", "bd_id", "agents"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "bump when the shape below changes; scripts/scope-check.sh may refuse to read an unknown version rather than guess (NO MAGIC)."
+    },
+    "bd_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "matches the bd-id passed as scope-check.sh's first argument. Slashes are encoded as '--' in the manifest FILENAME only (not in this field)."
+    },
+    "agents": {
+      "type": "array",
+      "minItems": 1,
+      "description": "SS7.1 scope manifest -- one entry per concurrently-active agent instance for this bd (e.g. 'Dave#1', 'Dave#2', 'Chris'). First matching owns[] pattern wins; two entries should never own an overlapping path -- that is an authoring error scope-check.sh cannot resolve for you (fix the manifest, not the script).",
+      "items": {
+        "type": "object",
+        "required": ["agent", "owns"],
+        "additionalProperties": false,
+        "properties": {
+          "agent": {
+            "type": "string",
+            "minLength": 1,
+            "description": "free-form agent identity string, matched byte-for-byte against scope-check.sh's <agent> argument -- same identity the Scope Contract (references/scope-lock.md) was posted under."
+          },
+          "owns": {
+            "type": "array",
+            "description": "shell case-pattern strings (same glob dialect as the Scope Contract's 'Files:' field, e.g. 'src/orders/**'). `*` already matches across '/' in this dialect -- there is no filesystem-globstar distinction to configure.",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "shared_files": {
+      "type": "object",
+      "description": "SS7.2 shared-file strategy. Keyed by a case-pattern path (same dialect as owns[]). Checked BEFORE agents[].owns[] -- an explicit shared-file strategy always wins over an implicit ownership glob.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["mode"],
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "enum": ["exclusive", "append-only", "merge-owner", "generated"],
+            "description": "exclusive: only `owner` may write, denies everyone else, same as merge-owner's access rule but intended for files nobody should ever co-edit (e.g. a single generated-but-checked-in fixture). merge-owner: only `owner` writes directly; other agents must route their change through the owner instead of writing the path themselves. append-only: any agent registered in this bd's agents[] may write (concurrent appends to a journal-like file do not need a single owner). generated: nobody hand-writes this at all -- always denied, message points at `regenerate_via`."
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1,
+            "description": "required when mode is exclusive or merge-owner; must equal one of agents[].agent for the DENY message to name someone real."
+          },
+          "regenerate_via": {
+            "type": "string",
+            "description": "required when mode is generated -- the command that actually produces this file, so a DENY message is actionable instead of a dead end."
+          },
+          "coupled_with": {
+            "type": "array",
+            "description": "optional -- other paths whose content this file's correctness silently depends on. --snapshot / --verify also snapshot/check these paths together with the primary one. This is the direct fix for the ac632a3 incident (see example.manifest.json): a CI step in .github/workflows/ci.yml assumed eval/scenarios/golden.json's old schema while a different, correctly scope-locked agent changed golden.json under its own Files -- neither agent's Scope Contract overlapped, so nothing in SS7.1 alone would have caught it. Declaring the coupling here means a --verify on ci.yml also reports CONFLICT if golden.json drifted, even though the writer only touched ci.yml.",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "note": {
+            "type": "string",
+            "description": "free-text rationale, shown nowhere by the script -- documentation for humans reading the manifest."
+          }
+        },
+        "allOf": [
+          { "if": { "properties": { "mode": { "const": "exclusive" } } }, "then": { "required": ["owner"] } },
+          { "if": { "properties": { "mode": { "const": "merge-owner" } } }, "then": { "required": ["owner"] } },
+          { "if": { "properties": { "mode": { "const": "generated" } } }, "then": { "required": ["regenerate_via"] } }
+        ]
+      }
+    },
+    "base_sha": {
+      "type": "object",
+      "description": "SS7.3 optimistic-conflict snapshot store. Written only by `scope-check.sh <bd-id> <agent> <path> --snapshot`; read only by `--verify`. Keyed by agent, then by path, to a sha256 hex digest (or the literal string ABSENT if the file did not exist at snapshot time). Not part of what a human author fills in when creating a manifest.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string",
+          "pattern": "^([0-9a-f]{64}|ABSENT)$"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "shode-house",
+  "version": "3.16.1",
+  "description": "Shode House: full expert team, scoped delivery, independent verification and resumable work.",
+  "author": {
+    "name": "shode666",
+    "url": "https://github.com/shode666"
+  },
+  "license": "MIT",
+  "displayName": "Shode House",
+  "keywords": [
+    "software-house",
+    "agents",
+    "skills"
+  ],
+  "commands": []
+}

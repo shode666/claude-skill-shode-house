@@ -21,6 +21,38 @@ inventory = module("team_inventory", ROOT / "tests/test_team_package.py")
 
 
 class TeamCandidateTest(unittest.TestCase):
+    def test_unified_tree_carries_all_four_host_manifests_and_same_knowledge(self):
+        _, baseline = pack.payload()
+        version, entries = pack.unified_payload()
+        for path, body in baseline.items():
+            if path.startswith(("knowledge/", "skills/")):
+                self.assertEqual(body, entries[path], path)
+        for name in (".claude-plugin/plugin.json", ".codex-plugin/plugin.json",
+                     ".cursor-plugin/plugin.json", "plugin.json"):
+            manifest = json.loads(entries[name])
+            self.assertEqual("shode-house", manifest["name"])
+            self.assertEqual(version, manifest["version"], name)
+        # Cursor must not discover the Claude-dialect command; ask stays a skill there.
+        self.assertEqual([], json.loads(entries[".cursor-plugin/plugin.json"])["commands"])
+        self.assertIn("commands/ask.md", entries)
+
+    def test_agent_adapters_use_shared_host_neutral_frontmatter(self):
+        import re
+        _, entries = pack.unified_payload()
+        roles = [path for path in entries if path.startswith("agents/")]
+        self.assertEqual(19, len(roles))
+        for path in roles:
+            header = entries[path].decode().split("---", 2)[1]
+            self.assertNotRegex(header, re.compile(r"^(color|model: (sonnet|opus|claude))", re.M))
+            self.assertIn("model: inherit", header)
+            self.assertRegex(header, re.compile(r"^tools:", re.M))
+            self.assertRegex(header, re.compile(r"^skills:", re.M))
+
+    def test_committed_plugin_tree_matches_source(self):
+        tree = ROOT / "plugins/shode-house"
+        self.assertTrue(tree.is_dir(), "run: python3 scripts/pack-team.py --tree plugins/shode-house")
+        self.assertEqual([], pack.tree_drift(tree))
+
     def test_all_original_knowledge_matches_source(self):
         _, entries = pack.payload()
         for name in inventory.required_paths():
@@ -28,10 +60,11 @@ class TeamCandidateTest(unittest.TestCase):
             self.assertEqual((ROOT / name).read_bytes(), entries["knowledge/" + name])
 
     def test_no_automatic_runtime_hooks_or_mcp(self):
-        _, entries = pack.payload()
+        _, entries = pack.unified_payload()
         self.assertFalse(any(p.startswith(("hooks/", "scripts/")) for p in entries))
-        self.assertNotIn(".mcp.json", entries)
-        for name in (".codex-plugin/plugin.json", ".claude-plugin/plugin.json"):
+        for name in (".mcp.json", "mcp.json", "hooks.json", "mcp_config.json"):
+            self.assertNotIn(name, entries)
+        for name in (".codex-plugin/plugin.json", ".claude-plugin/plugin.json", ".cursor-plugin/plugin.json"):
             manifest = json.loads(entries[name])
             self.assertNotIn("hooks", manifest)
             self.assertNotIn("mcpServers", manifest)

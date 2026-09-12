@@ -104,10 +104,70 @@ def payload(root=ROOT):
     return manifest["version"], entries
 
 
-def build(destination, root=ROOT):
+def unified_payload(root=ROOT):
+    """One tree, four host manifests. Schema layout is not execution qualification."""
     version, entries = payload(root)
+    manifest = json.loads(entries[".claude-plugin/plugin.json"])
+    for path in list(entries):
+        if not path.startswith("agents/"):
+            continue
+        header, body = entries[path].decode().split("---", 2)[1:]
+        # Shared adapter frontmatter: name/description/tools/skills are kept,
+        # color is Claude-only, and model is inherited on every host so no host
+        # is asked to resolve another host's model alias. Full original stays in knowledge/.
+        kept = [line for line in header.splitlines() if not re.match(r"^(model|color):", line)]
+        entries[path] = ("---\n" + "\n".join(kept).strip() + "\nmodel: inherit\n---" + body).encode()
+    cursor = {key: manifest[key] for key in ("name", "version", "description", "author", "license")}
+    # commands/ask.md uses the Claude command dialect; Cursor gets ask as a skill only.
+    cursor.update(displayName="Shode House", keywords=["software-house", "agents", "skills"], commands=[])
+    entries[".cursor-plugin/plugin.json"] = (json.dumps(cursor, indent=2) + "\n").encode()
+    # Antigravity marker (also the agent-plugins.org root manifest shape).
+    marker = {"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+              "name": "shode-house", "version": version, "description": manifest["description"]}
+    entries["plugin.json"] = (json.dumps(marker, indent=2) + "\n").encode()
+    entries["HOST-NOTES.md"] = (
+        f"# Shode House {version} host notes\n\n"
+        "All 19 role sources and 24 skills are preserved under knowledge/. "
+        "Use ask as the entry; Oliver is the main session.\n\n"
+        "- Claude Code / Codex: `.claude-plugin` / `.codex-plugin` manifests, flat skills, agent adapters, `/ask` command.\n"
+        "- Cursor: `.cursor-plugin` manifest; skills and agents discovered, no command (ask is a skill).\n"
+        "- Antigravity: root `plugin.json` marker; skills only. Agent files are knowledge, not native registrations.\n\n"
+        "Skill discovery does not prove separate workers are available. If delegation is "
+        "unavailable, report team execution BLOCKED; never replace it with role-play.\n"
+        "No runtime scripts, automatic hooks or MCP startup are required.\n"
+    ).encode()
+    return version, entries
+
+
+def write_tree(destination, root=ROOT):
+    """Materialize the unified tree (the in-repo plugins/shode-house source)."""
+    version, entries = unified_payload(root)
+    destination = destination.resolve()
+    for name, content in entries.items():
+        target = destination / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if not target.exists() or target.read_bytes() != content:
+            target.write_bytes(content)
+    stale = [p for p in destination.rglob("*") if p.is_file()
+             and p.relative_to(destination).as_posix() not in entries]
+    for path in stale:
+        path.unlink()
+    return version, entries
+
+
+def tree_drift(destination, root=ROOT):
+    """Paths whose committed tree differs from a fresh build (empty = in sync)."""
+    _, entries = unified_payload(root)
+    destination = destination.resolve()
+    actual = {p.relative_to(destination).as_posix(): p.read_bytes()
+              for p in destination.rglob("*") if p.is_file()}
+    return sorted(set(actual) ^ set(entries) | {k for k in entries if k in actual and actual[k] != entries[k]})
+
+
+def build(destination, root=ROOT):
+    version, entries = unified_payload(root)
     destination.mkdir(parents=True, exist_ok=True)
-    output = destination / f"shode-house-v{version}-team-candidate.plugin"
+    output = destination / f"shode-house-v{version}-team.plugin"
     # Exclusive creation fails safely rather than overwriting an earlier candidate.
     with output.open("xb") as stream:
         with zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -121,12 +181,22 @@ def build(destination, root=ROOT):
             raise ValueError("archive integrity check failed")
     return {"path": str(output), "entries": len(entries),
             "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
-            "qualification": "NOT VERIFIED: host discovery, execution and release acceptance"}
+            "qualification": "structural only; see CHANGELOG for live evidence"}
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--out", type=Path)
+    parser.add_argument("--out", type=Path, help="directory for the .plugin archive")
+    parser.add_argument("--tree", type=Path, help="write the unified tree here (e.g. plugins/shode-house)")
+    parser.add_argument("--check", type=Path, help="exit 1 if this tree drifted from the source")
     args = parser.parse_args()
-    destination = args.out or Path(tempfile.mkdtemp(prefix="shode-team-candidate-"))
-    print(json.dumps(build(destination.resolve()), indent=2))
+    if args.check:
+        drift = tree_drift(args.check)
+        print("\n".join(drift) if drift else f"  ok {args.check} in sync with source")
+        raise SystemExit(1 if drift else 0)
+    if args.tree:
+        version, entries = write_tree(args.tree)
+        print(json.dumps({"tree": str(args.tree), "version": version, "entries": len(entries)}, indent=2))
+    else:
+        destination = args.out or Path(tempfile.mkdtemp(prefix="shode-team-"))
+        print(json.dumps(build(destination.resolve()), indent=2))

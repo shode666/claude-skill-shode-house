@@ -1,0 +1,62 @@
+{
+  "v": 2,
+  "_comment": "Declarative phase graph for scripts/workflow-state.sh (bd: shode-roadmap/C-A5 iter2, shode-roadmap/C-A6 iter0). Expands the iter-0/1 6-node tracer-bullet set into the real shode-house phase set named in ROADMAP-runtime-10.md SS1.1/SS1.2 and CLAUDE.md 'PEV Loop': 0-discover, 1a-spec, 1b-design, 1c-security, 2-implement, 3a-ui-check, 3b-review, 4-triage, 5-deploy, 6-operate. `conditional_phases` lists phases that may end in status=skipped (advance's <outcome> arg). `enter_requires` is a generic gate keyed by target phase name -- read by scripts/workflow-state.sh's enter_requires_check() for ANY key present here, not special-cased in code. This is the single place phase-to-phase edges are declared (FR-102 DRY, carried over from iter0) -- no other file may hardcode a second copy. The iter>3-forces-escalated rule is intentionally NOT an edge here (see scripts/workflow-state.sh comment above the escalate branch of cmd_advance) -- it is a self-transition status assignment on whatever phase is currently active, generic across every phase without needing 10 declared self-loop rows.",
+  "_enter_requires_rationale": "C-A6 iter0 -- every one of the 10 states now has an explicit enter_requires key (real gate object, or {} with the reason spelled out here; a phase silently missing a key would be indistinguishable from 'forgot to review it'). Each populated gate is transcribed from an ALREADY-EXISTING shode-house gate, never invented: output-styles/oliver.md SS5 '10 standard approval gates' + skills/discipline/shode-house-workflow/smart-coop.md 'Grouped by phase' pre-hook table. `2-implement` is unchanged from C-A5 (ROADMAP-runtime-10.md SS1.1's own worked example). -- 0-discover: {} -- genesis phase, has zero incoming edges in `transitions` (only ever entered by `init`); enter_requires would never be evaluated. -- 1a-spec: {} -- its only named pre-hook (smart-coop.md table) is 'bd issue context + CLAUDE.md loaded', a tooling precondition, not a prior-phase status; and 1a-spec is also the target of every `spec-change` edge (the universal 'go fix the spec' escape hatch from any later phase) which must stay unconditionally enterable regardless of any other phase's state -- gating it would break that recovery path. -- 1b-design: {1a-spec:[passed]} = pre-spec-expand ('Bella+Sara sign-off ก่อน Uma/Domain expand'). -- 1c-security: {1b-design:[passed,skipped]} = same defense-in-depth pattern C-A5 already used on 2-implement re 1b-design (a conditional phase must be resolved, not left pending, before the phase after it can be entered). -- 2-implement: unchanged (pre-implement-ui, C-A5 worked example). -- 3a-ui-check: {2-implement:[passed]} = pre-ui-check ('lint clean + unit green + smoke pass ก่อน Uma POST'). -- 3b-review: {} -- pre-code-review ('Uma POST PASS ก่อน Chris+Quinn เริ่ม') IS a real gate, but `transitions` has TWO legal inbound edges into 3b-review: `3a-ui-check -ui-pass->` and the backend-only bypass `2-implement -implement-done-backend-only->` (no frontend touched, 3a-ui-check never entered, stays 'pending' forever). enter_requires only expresses an AND over required_phase:[allowed-statuses] -- there is no OR-across-paths primitive, and adding {3a-ui-check:[passed,skipped]} would incorrectly reject the already-tested-legal backend-only bypass (tests/test-workflow-state.sh 'rew-2'). Encoding this correctly needs a schema change (alternative requirement-sets) that is out of this task's scope (ห้ามคิด gate ใหม่ = don't invent gate MECHANISM either, not just gate content) -- left {} rather than a gate that is wrong for half its inbound edges. -- 4-triage: {3b-review:[passed]} -- smart-coop.md Phase 4 pre-hook '3a + 3b reports ready'; the '3a reports ready' half is already guaranteed structurally (3b-review is only reachable via 3a-ui-check or the explicit bypass edge, not by skipping past the graph), so it is not re-stated as a second enter_requires clause on top of an intentionally-empty 3b-review gate. -- 5-deploy: {4-triage:[passed]} = pre-loop-exit ('Triage clean ... unlock Deploy'); the iter<=3 half of pre-loop-exit is already enforced by cmd_advance's iter-cap check for EVERY transition, not phase-specific, so it is not duplicated here. -- 6-operate: {5-deploy:[passed]} = pre-deploy-* resolves to 'deploy actually succeeded' before operate begins.",
+  "states": ["0-discover", "1a-spec", "1b-design", "1c-security", "2-implement", "3a-ui-check", "3b-review", "4-triage", "5-deploy", "6-operate"],
+  "conditional_phases": ["1b-design", "1c-security", "3a-ui-check"],
+  "enter_requires": {
+    "0-discover": {},
+    "1a-spec": {},
+    "1b-design": {
+      "1a-spec": ["passed"]
+    },
+    "1c-security": {
+      "1b-design": ["passed", "skipped"]
+    },
+    "2-implement": {
+      "1a-spec": ["passed"],
+      "1b-design": ["passed", "skipped"],
+      "1c-security": ["passed", "skipped"]
+    },
+    "3a-ui-check": {
+      "2-implement": ["passed"]
+    },
+    "3b-review": {},
+    "4-triage": {
+      "3b-review": ["passed"]
+    },
+    "5-deploy": {
+      "4-triage": ["passed"]
+    },
+    "6-operate": {
+      "5-deploy": ["passed"]
+    }
+  },
+  "transitions": [
+    {"from": "0-discover",   "to": "1a-spec",     "on": "discover-done"},
+    {"from": "1a-spec",      "to": "1b-design",   "on": "spec-signoff"},
+    {"from": "1b-design",    "to": "1c-security", "on": "design-done"},
+    {"from": "1c-security",  "to": "2-implement", "on": "security-done"},
+    {"from": "2-implement",  "to": "3a-ui-check", "on": "implement-done"},
+    {"from": "2-implement",  "to": "3b-review",   "on": "implement-done-backend-only"},
+    {"from": "3a-ui-check",  "to": "3b-review",   "on": "ui-pass"},
+    {"from": "3b-review",    "to": "4-triage",    "on": "verdict"},
+    {"from": "4-triage",     "to": "5-deploy",    "on": "clean-close"},
+    {"from": "5-deploy",     "to": "6-operate",   "on": "deployed"},
+
+    {"from": "3b-review",    "to": "2-implement", "on": "review-fail"},
+    {"from": "3a-ui-check",  "to": "1b-design",   "on": "ui-fail"},
+
+    {"from": "4-triage",     "to": "2-implement", "on": "rework-code-perf-security"},
+    {"from": "4-triage",     "to": "1b-design",   "on": "rework-ui-design"},
+
+    {"from": "1b-design",    "to": "1a-spec", "on": "spec-change"},
+    {"from": "1c-security",  "to": "1a-spec", "on": "spec-change"},
+    {"from": "2-implement",  "to": "1a-spec", "on": "spec-change"},
+    {"from": "3a-ui-check",  "to": "1a-spec", "on": "spec-change"},
+    {"from": "3b-review",    "to": "1a-spec", "on": "spec-change"},
+    {"from": "4-triage",     "to": "1a-spec", "on": "spec-change"},
+    {"from": "5-deploy",     "to": "1a-spec", "on": "spec-change"},
+    {"from": "6-operate",    "to": "1a-spec", "on": "spec-change"}
+  ]
+}

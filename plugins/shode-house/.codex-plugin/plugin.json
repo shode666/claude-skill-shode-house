@@ -1,0 +1,28 @@
+{
+  "name": "shode-house",
+  "version": "3.16.1",
+  "description": "Shode House: full expert team, scoped delivery, independent verification and resumable work.",
+  "author": {
+    "name": "shode666",
+    "url": "https://github.com/shode666"
+  },
+  "homepage": "https://github.com/shode666/claude-skill-shode-house",
+  "repository": "https://github.com/shode666/claude-skill-shode-house",
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Shode House",
+    "shortDescription": "Oliver and the full software-house expert team",
+    "longDescription": "Shode House: full expert team, scoped delivery, independent verification and resumable work.",
+    "developerName": "shode666",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/shode666/claude-skill-shode-house",
+    "defaultPrompt": [
+      "Work with Oliver and the team on this project."
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "shode-house",
-  "description": "Multi-agent software house team plugin marketplace.",
+  "description": "Shode House: full software-house team plugin marketplace.",
   "owner": {
     "name": "shode666",
     "url": "https://github.com/shode666"
@@ -8,9 +8,9 @@
   "plugins": [
     {
       "name": "shode-house",
-      "source": "./",
-      "description": "Multi-agent software house team v3.15.0: 19 agents, runtime enforcement.",
-      "version": "3.15.0",
+      "source": "./plugins/shode-house",
+      "description": "Shode House 3.16.1: Oliver + 18 specialists, 24 skills, independent review. Supersedes 3.16.0.",
+      "version": "3.16.1",
       "category": "agents",
       "tags": [
         "agents",

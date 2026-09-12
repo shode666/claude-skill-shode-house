@@ -1,0 +1,61 @@
+---
+name: shode-house-evidence
+description: Require project, UX and domain evidence before claims about behavior, regulations or measured performance. Use for evidence collection, verification claims and review reporting.
+---
+
+# shode-house — Evidence Protocol
+
+> ทุก claim ต้องมี evidence ตามมาทันที. ห้าม "ผมคิดว่า..." "น่าจะ..." "โดยปกติ..."
+
+---
+## 🔍 Project Evidence Protocol (🔴 v2.4 — NO MAGIC extension)
+
+**Real-world knowledge ≠ project-specific fact.** ก่อน claim ใดๆ เกี่ยว stack/version/config/feature/convention ของ project นี้ — ต้อง verify ด้วย artifact จริงของ project
+
+### 🚫 Forbidden phrase (ใช้ = ต้องมี evidence ตามมาทันที)
+- "usually" / "by default" / "typically" / "standard practice" / "best practice"
+- "Spring Boot/PG/Node/React ใช้..." (โดยไม่ check version + config)
+- "should support" / "น่าจะรองรับ" / "ปกติแล้ว"
+- "in most cases" / "โดยทั่วไป"
+
+### ✅ Required evidence types
+| Claim category | Evidence (paste actual output) |
+|----------------|--------------------------------|
+| Runtime version | `node -v`, `python --version`, `go version`, `java -version` |
+| Framework version | `Read package.json:N`, `Read pom.xml:N`, `Read pyproject.toml:N` |
+| Config format | `Glob '**/application.*'`, `Read tsconfig.json` |
+| Dependency installed | `pnpm list <pkg>`, `cat requirements.txt`, `go.mod` |
+| Feature available | `Bash` รันคำสั่ง paste output |
+| File exists/path | `Glob`/`ls` first ก่อน assume path |
+| Convention/pattern | Read CLAUDE.md / existing similar file ใน project |
+| DB/service version | `psql -c 'SELECT version()'`, `redis-cli INFO server` |
+
+### ❌ vs ✅ Pattern
+
+❌ "Spring Boot รองรับ JPA filter ครับ" (เดาจาก real-world)
+✅ "[Read pom.xml:25] spring-boot 3.2.1 + spring-data-jpa 3.2.1; [Read SecurityConfig.java:42] custom filter chain มีอยู่ — รองรับ"
+
+❌ "Node 22 รองรับ fetch native ครับ"
+✅ "[node -v] v16.20.0 — fetch ไม่รองรับ ต้องใช้ node-fetch หรือ axios"
+
+❌ "PG รองรับ JSONB"
+✅ "[psql -c 'SELECT version()'] PG 9.3.25 — JSONB ไม่รองรับ (มาเริ่ม 9.4) ต้อง upgrade หรือใช้ JSON"
+
+### Format
+ทุก factual claim เกี่ยว project นี้ cite ฟอร์ม `[<file>:<line>]` หรือ `[output: <command>]`
+
+> Anti-puppet (ถัดไป) บังคับ — ใช้คำต้องห้ามโดยไม่ cite = treated as guess = block
+
+---
+
+## 📎 Extension protocols — อยู่กับเจ้าของ
+
+| Protocol | อยู่ที่ | ใครใช้ |
+|---|---|---|
+| UX Evidence | `agents/ux-ui-designer.md` § UX Evidence | Uma |
+| Domain Evidence | `skills/discipline/domain-core/SKILL.md` § Citation contract | 7 domain experts |
+| REVIEW Report Format | `review-checklist/report-format.md` | Chris/Quinn/Sentinel |
+
+ทั้งหมดเป็น extension ของ Project Evidence ข้างบน — cite-before-claim บังคับทุก agent เสมอ
+
+## 🔐 Input Trust Levels (🔴 v2.5 — FS-inspired)

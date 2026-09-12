@@ -1,0 +1,16 @@
+{
+  "name": "shode-house",
+  "version": "3.16.1",
+  "author": {
+    "name": "shode666",
+    "url": "https://github.com/shode666"
+  },
+  "homepage": "https://github.com/shode666/claude-skill-shode-house",
+  "repository": "https://github.com/shode666/claude-skill-shode-house",
+  "license": "MIT",
+  "description": "Shode House: full expert team, scoped delivery, independent verification and resumable work.",
+  "skills": "./skills/",
+  "commands": [
+    "./commands/ask.md"
+  ]
+}
