@@ -1,9 +1,6 @@
 ---
 name: shode-house-workflow
-description: |
-  [WHAT] Workflow discipline — Phase Contract (Smart Coop) + lifecycle hooks + approval gates + worktree isolation + task tracking + token-saving runtime rules.
-  [WHEN] Pipeline kickoff.
-  [TRIGGER] /shode-house:workflow, "Phase Contract", "Smart Coop", "lifecycle hook", "approval gate", "worktree".
+description: Coordinate Plan/Execute/Verify/Triage, approvals, scoped ownership and durable recovery. Use for multi-phase delivery, delegation or resuming an engagement.
 ---
 
 # shode-house — Workflow Discipline

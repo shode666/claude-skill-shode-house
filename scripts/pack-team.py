@@ -24,7 +24,7 @@ def payload(root=ROOT):
     if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?", manifest["version"]):
         raise ValueError("invalid version")
     entries = {}
-    roots = [root / "agents", root / "references", root / "output-styles"]
+    roots = [root / "agents", root / "references", root / "output-styles", root / "commands"]
     roots += [root / "skills" / bucket for bucket in BUCKETS]
     for folder in roots:
         if not folder.is_dir() or folder.is_symlink():
@@ -68,7 +68,7 @@ def payload(root=ROOT):
                    f"Read [{Path(name).parent.name if name in skills else Path(name).stem}]({relative}) "
                    "in full before carrying out the task, including its declared prerequisite skills.\n"
                    "This is a discovery adapter, not a replacement for the role or skill knowledge.\n"
-                   "Resolve source-root paths beginning agents/, skills/, references/ or output-styles/ "
+                   "Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ "
                    "under this plugin's knowledge/ directory, not the user's project.\n"
                    "Use actual host tools and preserve host/project/user authority.\n")
         entries[target] = wrapper.encode()

@@ -1,9 +1,6 @@
 ---
 name: shode-house-evidence
-description: |
-  [WHAT] Evidence protocol — Project Evidence (NO MAGIC extension) + UX Evidence + Domain Evidence + REVIEW report format. บังคับ cite ก่อน claim.
-  [WHEN] ทุกครั้งที่ agent claim "ระบบนี้ทำ X" หรือ "regulation บังคับ Y" หรือ "perf p95 = Z".
-  [TRIGGER] /shode-house:evidence, "Project Evidence", "UX Evidence", "Domain Evidence", "cite", "evidence".
+description: Require project, UX and domain evidence before claims about behavior, regulations or measured performance. Use for evidence collection, verification claims and review reporting.
 ---
 
 # shode-house — Evidence Protocol

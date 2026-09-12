@@ -1,9 +1,6 @@
 ---
 name: shode-house-drift
-description: |
-  [WHAT] Workflow Drift Defense — M2-M8 (7 mechanisms; M1 Ingress Guard ย้ายไป `shode-house-discipline` v3.8) ป้องกัน workflow regression: Ingress Guard, Follow-up Classifier, Anti-Puppet Done, User Comment = FAIL, Spec change = mandatory bd revision, Conversation State pin, Direct-to-agent block, Close-on-Done Guard.
-  [WHEN] Every user message (M1 Ingress Guard).
-  [TRIGGER] /shode-house:drift, "Drift Defense", "M1", "M2", "M3", "M4".
+description: Guard active engagements against scope, routing and completion drift. Use for follow-ups, changed requirements, disputed claims, state recovery and evidence-backed closure.
 ---
 
 # shode-house — Workflow Drift Defense (M2-M8)

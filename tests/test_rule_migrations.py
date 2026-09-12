@@ -1,5 +1,6 @@
 """Mutation tests of migration validation, not LLM behavior assertions."""
 import copy
+import ast
 import importlib.util
 import json
 from pathlib import Path
@@ -10,6 +11,32 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("rule_migrations", ROOT / "scripts/rule-migrations.py")
 migrations = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(migrations)
+
+
+class InstructionLinesTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Load the actual pure parser without executing the CLI's git gate.
+        tree = ast.parse((ROOT / "scripts/rule-conservation.py").read_text())
+        function = next(node for node in tree.body
+                        if isinstance(node, ast.FunctionDef) and node.name == "instruction_lines")
+        namespace = {}
+        exec(compile(ast.Module(body=[function], type_ignores=[]), "rule-conservation.py", "exec"), namespace)
+        cls.parse = staticmethod(namespace["instruction_lines"])
+
+    def test_metadata_excluded_but_body_rules_preserved(self):
+        self.assertEqual(["ห้าม remove knowledge", "---", "final rule"], self.parse(
+            "---\ndescription: ห้าม metadata trigger\n---\nห้าม remove knowledge\n---\nfinal rule\n"))
+
+    def test_plain_markdown_preserved(self):
+        self.assertEqual(["# Rules", "ห้าม delete"], self.parse("# Rules\nห้าม delete\n"))
+
+    def test_empty_source(self):
+        self.assertEqual([], self.parse(""))
+
+    def test_unterminated_metadata_fails_closed(self):
+        with self.assertRaises(ValueError):
+            self.parse("---\ndescription: missing delimiter\nห้าม hide rule")
 
 
 class MigrationTest(unittest.TestCase):

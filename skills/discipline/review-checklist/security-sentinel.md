@@ -26,6 +26,7 @@ REQUIRED-BEFORE: phase_3b_verdict
 **Verdict rule**: finding จาก scanner ที่ยังไม่ triage = 🔴 Critical จนกว่าจะพิสูจน์ว่า false positive พร้อม paste เหตุผล
 ห้าม claim "security ผ่าน" โดยไม่ paste output ของ scanner ที่รันเอง
 
-Dispatch เข้าแกนนี้มาจาก `[REVIEW DISPATCH CARD]` ที่ Oliver print ก่อน fan-out เสมอ — Sentinel line
-= DISPATCH(trigger:keywords) หรือ SKIP(no trigger keyword) ตาม `WHEN:` line ข้างบน. Template จริง
-อยู่ที่ `commands/review.md` § Step 1 (ไม่ duplicate ที่นี่)
+The `[REVIEW DISPATCH CARD]` axis plan may live in the checkpoint/report. Sentinel
+is DISPATCH when the WHEN condition above applies, otherwise SKIP with evidence.
+Verify an actual separate assignment; printing a card is not execution. Template:
+`commands/review.md` § Step 1.

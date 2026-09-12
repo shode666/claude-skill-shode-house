@@ -1,9 +1,6 @@
 ---
 name: review-checklist
-description: |
-  [WHAT] Review orchestration core — ใครตรวจแกนไหน + severity + aggregation + gate ที่ห้ามข้าม; รายละเอียดแต่ละแกนอยู่ที่เจ้าของแกน.
-  [WHEN] Phase 3b ใน /implement และ /review.
-  [TRIGGER] /shode-house:review-checklist, "code review", "review", "7-dim", "Chris review", "Quinn integration test".
+description: Coordinate independent code, integration, spec, security and domain review with evidence, severity and merge gates. Use for implementation review and Phase 3b.
 ---
 
 # Review Checklist — core

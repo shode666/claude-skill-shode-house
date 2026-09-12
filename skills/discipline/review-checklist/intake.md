@@ -19,13 +19,16 @@ REQUIRED-BEFORE: review_start
 - [ ] **Spec source ระบุได้** — หาตามลำดับ: bd-id/issue ref ใน commit message → path ที่ user ส่ง → `outputs/SPEC-<bd-id>.md` / `outputs/<bd-id>/` → ถามผู้ใช้
       ไม่มี spec จริง ๆ → Spec axis รายงาน **"no spec available"** ห้าม pass เงียบ
 - [ ] **Static analysis tool พร้อม** (lint/SAST configured — Chris ใช้ Bash จริง ไม่ใช่ "ดู visually")
-- [ ] **Tracker available** (bd active หรือ Jira key — finding ต้อง track ไม่ใช่ chat message)
+- [ ] **Canonical task/evidence home available** — project-selected tracker or Markdown fallback; findings must survive the chat.
 - [ ] **Severity scale agreed** (project ใช้ 🔴/🟠/🟡/🔵/💡 default — ห้าม "minor/major" loose)
-- [ ] **ก่อน fan-out → print [REVIEW DISPATCH CARD]** ตาม `commands/review.md` § Step 1 (template + กติกา 5 ข้อ — ไม่ duplicate ที่นี่)
+- [ ] Record `[REVIEW DISPATCH CARD]` in the checkpoint or report before dispatch;
+      verify actual assignments against it. See `commands/review.md` § Step 1.
 
 ## When NOT to use
 
 - **Spike / throwaway script** — review overhead ไม่คุ้ม
 - **Generated code** (codegen output, ORM model auto-generated) — review template ไม่ใช่ instance
-- **Pure doc/markdown change** — Bella/Uma review เนื้อหา ไม่ใช่ review-checklist
-- **Production hot-fix P0** ที่ต้อง ship ทันที — รันเฉพาะ 🔴 Critical (Security + Correctness); defer มิติอื่นเป็น follow-up ที่ track ไว้
+- **Pure explanatory docs** — route content review appropriately. Agent instructions,
+  executable configuration and permission policy are not merely documentation.
+- **Production hot-fix P0** — a reduced emergency review needs explicit authority and
+  recorded risk/follow-up. Urgency alone does not waive required security/correctness gates.

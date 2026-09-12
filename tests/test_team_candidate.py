@@ -36,6 +36,12 @@ class TeamCandidateTest(unittest.TestCase):
             self.assertNotIn("hooks", manifest)
             self.assertNotIn("mcpServers", manifest)
 
+    def test_private_command_references_preserved_not_publicly_registered(self):
+        _, entries = pack.payload()
+        for path in (ROOT / "commands").glob("*.md"):
+            self.assertEqual(path.read_bytes(), entries["knowledge/commands/" + path.name])
+        self.assertEqual(["./commands/ask.md"], json.loads(entries[".claude-plugin/plugin.json"])["commands"])
+
     def test_versions_agree_and_only_ask_command_ships(self):
         version, entries = pack.payload()
         for name in (".codex-plugin/plugin.json", ".claude-plugin/plugin.json"):

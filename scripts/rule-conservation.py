@@ -29,6 +29,14 @@ def is_pointer(line): return '→' in line or '.md' in line
 
 def sh(*a): return subprocess.run(a, capture_output=True, text=True).stdout
 
+def instruction_lines(text):
+    """Check instructions, not discovery metadata or its example triggers."""
+    lines = text.splitlines()
+    if lines and lines[0] == '---':
+        end = lines.index('---', 1)  # malformed frontmatter fails closed
+        return lines[end + 1:]
+    return lines
+
 changed = [f for f in sh('git', 'diff', '--name-only', 'HEAD').split()
            if re.fullmatch(r'skills/discipline/[^/]+/SKILL\.md', f)]
 if not changed:
@@ -43,7 +51,7 @@ def corpus_for(src):
             continue
         if 'in-progress' in p.parts or 'deprecated' in p.parts:
             continue
-        for line in p.read_text(errors='ignore').splitlines():
+        for line in instruction_lines(p.read_text(errors='ignore')):
             t = toks(line)
             if t: out.append(t)
     return out
@@ -51,7 +59,7 @@ def corpus_for(src):
 fail = 0
 for f in changed:
     corpus = corpus_for(f)
-    for line in sh('git', 'show', f'HEAD:{f}').splitlines():
+    for line in instruction_lines(sh('git', 'show', f'HEAD:{f}')):
         if len(line) < 25 or not is_rule(line):
             continue
         if line.lstrip().startswith(('#', '>')):
@@ -68,7 +76,7 @@ for f in changed:
             # ยังอยู่ในไฟล์ตัวเอง (ไม่ได้ย้าย ไม่ได้ลบ) = ผ่าน
             cur = pathlib.Path(f).read_text(errors='ignore')
             if best < THRESHOLD and max(
-                    (len(old & toks(l)) / len(old) for l in cur.splitlines() if toks(l)),
+                    (len(old & toks(l)) / len(old) for l in instruction_lines(cur) if toks(l)),
                     default=0.0) < THRESHOLD:
                 print(f"  X {f}: กฎหาย ({best:.0%} match) -- {frag.strip()[:72]}")
                 fail = 1

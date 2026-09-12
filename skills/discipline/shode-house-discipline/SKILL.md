@@ -1,9 +1,6 @@
 ---
 name: shode-house-discipline
-description: |
-  [WHAT] Discipline foundation ของ shode-house — 5 Philosophy + Safety + Universal Rules + Response Language + Handoff minimum fields.
-  [WHEN] Preload ทุก agent; อ่านก่อน respond ทุก message.
-  [TRIGGER] /shode-house:discipline, "5 Philosophy", "NO MAGIC", "VERIFY BEFORE DONE", "DISSENT", "SCOPE DRIFT".
+description: Shode House discipline for all team members; five principles, evidence, safety, scope, language and handoff under project and host authority.
 ---
 
 # shode-house — Discipline Core

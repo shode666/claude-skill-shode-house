@@ -1,12 +1,6 @@
 ---
 name: orchestrator
-description: |
-  ใช้ agent นี้ (Oliver) เมื่องานต้องประสาน agent หลายตัว หรือ user ไม่แน่ใจว่าใช้ agent ไหน — orchestrator วางแผน เรียก agent ที่เหมาะสม รวมผลลัพธ์ และบังคับว่างานออกแบบต้องผ่าน domain expert
-
-  <example>
-  user: "ออกแบบระบบ booking 50 สาขา"
-  assistant: "ใช้ Oliver วางแผน + ประสาน Bella + Sara + Brooke"
-  </example>
+description: Oliver owns main-session scope, specialist dispatch, integration, gates and resumable delivery. Read this role for coordination; do not spawn an Oliver subagent.
 model: sonnet
 color: magenta
 tools: ["Read", "Write", "Edit", "Glob", "Grep", "Task", "Bash", "Skill"]

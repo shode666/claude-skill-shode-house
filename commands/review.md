@@ -6,13 +6,17 @@ argument-hint: "[path | KJERP-402 | คำอธิบายบั๊กภา�
 
 Review target: **$ARGUMENTS**
 
+In the unified distribution this file is a private scope/review reference reached
+from ask, not another required command. Use actual host tools and confirmed records;
+the frontmatter lists legacy Claude tool names, not authority to post externally.
+
 ## Mode: `--debt` (จาก ponytail — deferred-shortcut harvest)
 
 ถ้า `$ARGUMENTS` = `--debt`:
 1. รัน (no Python) `grep -rnoE 'shortcut\(bd:[0-9]+\):[^"]*' . --include='*.*' | grep -v '/\.git/'` → รวบ `shortcut(bd:N):` comment ทั้ง repo (group ตาม bd id ด้วย `sort`/`awk`)
-2. **Storage (bd-first)** — detect: `[ -d ".beads" ] || bd ready --json >/dev/null 2>&1`
-   - **มี bd** → ต่อแต่ละ shortcut: ถ้า bd id อ้างถึงมีอยู่ → `bd update <id> --notes "<file:line + upgrade path>"`; ถ้า bd id ไม่มี/ไม่ตรง → `bd create -t debt "<reason>" --notes "<file:line; upgrade → path>"`. **ไม่เขียน .md**
-   - **ไม่มี bd** → write `outputs/DEBT-<date>.md` fallback (redirect grep output ข้างบน เข้าไฟล์)
+2. Store findings in the confirmed evidence home, Markdown fallback. Update linked
+   task records only with project/request authority; otherwise return proposed
+   updates. The legacy shortcut scan is not proof that every debt format was found.
 3. present สรุป (bd ids หรือ md path)
 4. ไม่รัน 7-dim review (mode นี้เก็บ debt อย่างเดียว) → จบ
 
@@ -67,11 +71,9 @@ Review ตาม path ตรงๆ
    confirm review 3 ไฟล์นี้? (y/n / เพิ่มไฟล์)
    ```
 
-5. **Track bug ใน beads**:
-   ```bash
-   bd create "BUG: $DESCRIPTION" -t bug -p high --labels=triage
-   ```
-   เก็บ issue ID ไว้ link กับ findings ทีหลัง
+5. Link findings to the confirmed canonical task. Creating a new tracker issue
+   requires workflow authority; otherwise return a proposed issue or Markdown
+   report in the agreed evidence home. Do not require Beads.
 
 ### Pattern D — Ambiguous → ถาม user
 
@@ -98,16 +100,17 @@ pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง comma
 
 > v3.1: review checklist รวบศูนย์ใน `skills/discipline/review-checklist/SKILL.md`. Command นี้ = router + context-aware invoke
 
-🔴 **ก่อน spawn ใด ๆ ต้อง print block นี้ก่อนเสมอ** (ไม่ print = ห้าม spawn — เทียบ M1: no bd → STOP):
+Before dispatch, record the axis plan below using the canonical task ID. Missing
+Beads or a ceremonial printout is not a blocker; missing scope/required ownership is.
 
 ```
-[REVIEW DISPATCH CARD] bd:<id>
+[REVIEW DISPATCH CARD] task:<canonical-id-or-path>
 - Chris    (7-dim)          : DISPATCH
 - Quinn    (test/SAST axis) : DISPATCH
 - Bella    (spec axis)      : DISPATCH | SKIP("no spec available — Pattern C, no Jira/bd/SPEC-*.md")
 - Sentinel (security depth) : DISPATCH(trigger:<keywords>) | SKIP("no trigger keyword")
 - Domain   (<expert>)       : DISPATCH(trigger:<keywords>) | SKIP("no trigger keyword")
-→ launch ทุก DISPATCH ติดกัน ก่อนรอผลตัวใด (Task = async) — ห้าม spawn เพิ่มทีหลัง
+→ dispatch separate reviewers; parallel only when supported and independent
 ```
 
 กติกา (เขียนติดกับ template — บังคับทั้ง 5 ข้อ):
@@ -118,9 +121,10 @@ pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง comma
    `review-checklist/security-sentinel.md` บรรทัด `WHEN: diff_touches in {auth,money,PII,crypto,
    secrets} OR secure_skill_triggered=true` (lazy-load-contract block — canonical, ห้าม fork list
    ที่นี่) กับ prompt+diff ก่อน; เจอ = DISPATCH บังคับ
-4. ทุก DISPATCH ต้องมี Task call จริงติดกันหลัง card (ขนาน = spawn ครบก่อนรอผล; scorer วัด
-   window ทับซ้อน) — จำนวน Task call = จำนวน DISPATCH line เป๊ะ
-5. ไม่ print card = ห้าม spawn (เทียบ M1: no bd → STOP)
+4. Each DISPATCH needs a real separate worker with full role knowledge. Serialize
+   when capacity/dependencies require it; role-play and renamed self-review do not count.
+5. Compare actual reviewer returns against the axis plan; missing required review
+   remains BLOCKED. The plan may be in the checkpoint rather than repeated in chat.
 
 ```bash
 [Oliver|review|target:$ARGUMENTS] kickoff   # pin fixed point ก่อน — see `review-checklist/intake.md`
@@ -150,31 +154,10 @@ Format + storage rules + severity grading + loop routing — **ทั้งห�
 - § Loop Routing Recommendation
 - § Anti-Puppet Gate (paste tool output)
 
-**Storage rule** (ห้ามซ้ำซ้อน):
-```bash
-# Detect storage:
-if [ -d ".beads" ] || bd ready --json >/dev/null 2>&1; then
-  # bd active → bd notes ONLY
-  if [ -n "$BD_ID" ]; then
-    bd update "$BD_ID" --notes "<compact REVIEW template, refs evidence paths>"
-  else
-    bd create -t review-finding "$ARGUMENTS" --notes "<full REVIEW template>"
-  fi
-else
-  # No bd → markdown fallback
-  SLUG="${KJERP_KEY:-${BUG_DATE:-$(echo "$ARGUMENTS" | tr -cd '[:alnum:]-' | cut -c1-40)}}"
-  cat > "outputs/REVIEW-$SLUG.md" <<EOF
-  <full REVIEW template>
-  EOF
-fi
-
-# Always: link to external tracker if applicable
-if [ -n "$KJERP_KEY" ]; then
-  addCommentToJiraIssue(issueIdOrKey="$KJERP_KEY", comment="สรุป findings + bd link หรือ md path")
-fi
-```
-
-→ ห้ามเขียนทั้ง bd + markdown — เลือกตาม project state
+**Storage rule**: use the confirmed evidence home per `review-checklist/report-format.md`.
+Keep one canonical report and links from task records, not competing copies. Preserve
+existing artifacts. External comments/updates need authority and actual available
+tools; missing service access remains pending sync, never claimed posted.
 
 ## ⚠️ Rules
 
@@ -182,5 +165,5 @@ fi
 - Domain-sensitive = บังคับผ่าน Domain Expert
 - อ่านโค้ดจริงทุกไฟล์ (prefer `Grep` > `Read` full file)
 - Run static analysis ถ้ามี (Bash)
-- ถ้ามี Jira → auto comment findings กลับที่ ticket
+- A Jira key alone does not authorize posting; return proposed updates to Oliver if authority is missing.
 - ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim
