@@ -1,22 +1,22 @@
 # shode-house
 
-**3.16.1** — the full software house is back: [ask](skills/workflow/ask/SKILL.md) is the
+**3.16.x** — the full software house is back: [ask](skills/workflow/ask/SKILL.md) is the
 single team entrypoint (Oliver in the main session), the original 19 roles and 23 skills
 are preserved, and the same package installs on Claude Code, Codex, Cursor and
-Antigravity from `plugins/shode-house`. 3.16.1 supersedes 3.16.0, which shipped a
+Antigravity from `plugins/shode-house`. 3.16.1+ supersedes 3.16.0, which shipped a
 single-skill package without the team; the 3.16.0 tag and history are kept unchanged.
 
 > **Multi-Agent Software Engineering Operating System** สำหรับ Claude Code / Cowork —
 > 19 agent ใน 7 ทีม ที่มี ownership ชัด, quality gate ที่ต้องมีหลักฐาน, token-aware context routing,
 > CI invariant ที่พิสูจน์ด้วย mutation test และ behavioral A/B eval
 
-[![Version](https://img.shields.io/badge/version-3.16.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.16.2-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/shode666/claude-skill-shode-house/actions/workflows/ci.yml/badge.svg)](https://github.com/shode666/claude-skill-shode-house/actions/workflows/ci.yml)
 
 ครอบคลุม **ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI** + polyglot 14 languages · ภาษาไทยเป็นหลัก
 
-**What's new**: [CHANGELOG.md](CHANGELOG.md) · release ล่าสุด **v3.16.1** (แทนที่ 3.16.0) · host notes: [docs/team-candidate-hosts.md](docs/team-candidate-hosts.md)
+**What's new**: [CHANGELOG.md](CHANGELOG.md) · release ล่าสุด **v3.16.2** · host notes: [docs/team-candidate-hosts.md](docs/team-candidate-hosts.md)
 
 ---
 
@@ -144,7 +144,7 @@ if the host has no delegation tool, Oliver reports team execution BLOCKED instea
 /plugin marketplace update shode-house
 /plugin update shode-house@shode-house      # `install` alone keeps the already-installed version
 ```
-Check with `/plugin list` — the version must read 3.16.1.
+Check with `/plugin list` — the version must read 3.16.2.
 
 Prerequisite (optional): `brew install node` (Context7 MCP ใช้ npx) · `brew install beads` (task tracker `bd`)
 

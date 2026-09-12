@@ -1,4 +1,4 @@
-# Shode House 3.16.1 host notes
+# Shode House 3.16.2 host notes
 
 All 19 role sources and 24 skills are preserved under knowledge/. Use ask as the entry; Oliver is the main session.
 

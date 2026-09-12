@@ -1,6 +1,6 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "shode-house",
-  "version": "3.16.1",
+  "version": "3.16.2",
   "description": "Shode House: full expert team, scoped delivery, independent verification and resumable work."
 }

@@ -7,6 +7,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ---
 
+## [3.16.2] — Unattended discipline + measured startup — 2026-09-12
+
+- **Harness: iteration cap มีผลจริงเมื่อไม่มีคน** — จากหลักฐาน 3.16.1 (resume run วนถึง iteration 4 เพราะ "escalate user" ไม่มี user): ตอนนี้ cap 3 review→fix ต่อ task; ถึง cap หรือมี policy/scope call ที่ไม่มีช่องถาม → บันทึก safety point (local commit เมื่อมีสิทธิ์) + blocker พร้อม options/recommendation ใน checkpoint → task BLOCKED/PARTIAL → จบ turn; ห้ามตัดสิน business policy หรือขยาย scope เพื่อให้เขียว (`harness.md`, DoD)
+- **AC amendment เป็นของ Bella** — Oliver แก้ AC เองไม่ได้ (3.16.1 ทำ C-5/C-6 เองโดย Bella ไม่ถูกเรียกซ้ำ): ส่ง Bella re-check หรือบันทึกเป็น deviation แล้วคง PARTIAL จนยืนยัน
+- **Non-interactive host รอ worker แบบ foreground** — ห้ามจบ turn ทั้งที่ worker ยังรัน/verdict ยังไม่รวม (คู่กับ `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` ฝั่ง CLI)
+- Structural tests เพิ่ม 2 (invariant ของ harness + mutation ลบแล้วต้อง fail) รวม 22; `make validate` เขียวโดยไม่ขยับเพดาน
+- **Update path**: `claude plugin install` ไม่ upgrade รุ่นที่ติดตั้งแล้ว — ต้อง `plugin update shode-house@shode-house` (พบตอน 3.16.0 → 3.16.1 บนเครื่อง maintainer; README/release notes ระบุแล้ว)
+- **วัด startup/preload เทียบ v3.15.0** (prompt วางแผน read-only เดียวกัน, fixture เดียวกัน, N=3/ฝั่ง, `/shode-house:implement` ของ 3.15 vs `/shode-house:ask`): _MEASURE_PLACEHOLDER_
+- ยังไม่ทำในรุ่นนี้: Cursor/Antigravity runtime จริง, Cowork drag-drop `.plugin`, live re-run ของกฎ iteration cap (structural เท่านั้น)
+
+---
+
 ## [3.16.1] — Full software house restored; multi-host package — 2026-09-12
 
 > **แทนที่ 3.16.0** (tag/history 3.16.0 เก็บไว้ไม่แก้). 3.16.0 ship แพ็ก `ask` skill เดียวที่ตัดทีม 19 บทบาทและความรู้ skill ส่วนใหญ่ออก — 3.16.1 สร้างใหม่จาก `v3.15.0` (`c67f7e3`) โดยเก็บ software house, harness, agents team และความรู้ครบ แล้วลด *การโหลดซ้ำ* ไม่ใช่ลดความสามารถ

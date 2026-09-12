@@ -9,8 +9,8 @@
     {
       "name": "shode-house",
       "source": "./plugins/shode-house",
-      "description": "Shode House 3.16.1: Oliver + 18 specialists, 24 skills, independent review. Supersedes 3.16.0.",
-      "version": "3.16.1",
+      "description": "Shode House 3.16.2: Oliver + 18 specialists, 24 skills, independent review. Supersedes 3.16.0.",
+      "version": "3.16.2",
       "category": "agents",
       "tags": [
         "agents",
