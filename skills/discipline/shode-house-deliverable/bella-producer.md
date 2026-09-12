@@ -30,6 +30,10 @@ Flow: Big Picture (event timeline) → Process (add command + actor) → Design 
 
 Output: timeline, bounded context map, ubiquitous language, hotspots → Sara+Domain
 
+Ubiquitous language lands in the project's `CONTEXT.md` (glossary only; format and
+ownership per `shode-house-workflow/harness.md` § Source of truth and host capabilities) — update it the
+moment a term is resolved, not in a batch at the end.
+
 ## RTM via the confirmed source of truth
 
 Use the mapping confirmed on first project engagement, Markdown fallback. These

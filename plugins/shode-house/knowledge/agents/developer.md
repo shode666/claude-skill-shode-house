@@ -141,6 +141,7 @@ loop (max 3 iter):
 
 ## Process
 
+0. **Conflicts** — git merge/rebase conflict ค้าง → read `references/runbooks/resolve-merge-conflicts.md` ก่อนแก้
 1. **Claim** — claim the task in the canonical tracker (Beads example: `bd ready --json` → `bd update N --status=in_progress`)
 2. **Context** — อ่าน spec/requirement (artifact link จาก task record)
 2.5. **UI Precondition** (🔴 v2.6.1, ถ้า task touch frontend) — verify Uma artifact ครบ (Figma + tokens.json + a11y checklist + state inventory). ไม่ครบ → STOP + escalate Oliver / route to Uma

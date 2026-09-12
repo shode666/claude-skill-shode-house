@@ -98,6 +98,7 @@ curl localhost:PORT/health # → 200
 - Pre-commit (lint/format/type/secret), .editorconfig, .gitignore
 - Makefile: `make dev/test/build/deploy`
 - **bd** issue tracker — `brew install beads` + `bd init`
+- Merge/rebase conflict ใน CI/infra files → `references/runbooks/resolve-merge-conflicts.md`
 - README + CONTRIBUTING + CLAUDE.md
 
 ### 2. Sandbox / Container (Sandcastle-inspired pluggable)

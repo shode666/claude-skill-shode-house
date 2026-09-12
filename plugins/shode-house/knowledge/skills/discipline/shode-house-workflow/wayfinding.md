@@ -116,7 +116,7 @@ out of scope ไม่มีวัน graduate; จะกลับมาได�
    **ถ้าไม่เจอ fog เลย** (ทางชัดอยู่แล้ว ทั้งงานจบใน session เดียว) → **ไม่ต้องมี map** หยุดแล้วถาม user ว่าจะเอายังไงต่อ (อาจไป `/design-system` ตรง ๆ)
 3. **สร้าง map** — Destination + Notes ครบ, Decisions so far ว่าง, หมอกร่างลง Not yet specified
 4. **สร้าง ticket เท่าที่ตั้งคำถามได้คม** เป็น child ของ map แล้ว **wire blocking เป็นรอบที่สอง** (issue ต้องมี id ก่อนถึงอ้างกันได้)
-5. **ยิง research subagent ขนาน** สำหรับทุก research ticket ที่เพิ่งสร้าง — เขียนผลลง `outputs/<map-id>/research-<name>.md` แล้ววาง path ไว้ที่ ticket (Handoff Contract: ส่ง path ไม่ส่งเนื้อหา)
+5. **ยิง research subagent ขนาน** สำหรับทุก research ticket ที่เพิ่งสร้าง — เขียนผลลง `outputs/<map-id>/research-<name>.md` (cite primary source ทุก claim) แล้ววาง path ไว้ที่ ticket (Handoff Contract: ส่ง path ไม่ส่งเนื้อหา)
 6. **หยุด** — charting เป็นงานของ session เดียว มันไม่ปิด ticket ให้ใคร
 
 ### B. Work through the map (user มาพร้อม map id)

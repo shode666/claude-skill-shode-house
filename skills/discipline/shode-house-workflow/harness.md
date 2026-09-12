@@ -16,6 +16,12 @@ make the workflow run. Preserve canonical IDs and store only pointers in other h
 If the selected service is unavailable, mark local Markdown updates pending sync;
 do not claim the remote issue changed. Reconcile before subsequent external writes.
 
+Shared language: keep one `CONTEXT.md` (glossary only: term, meaning, where it lives
+in the code, terms to avoid) in the record home. Bella owns it; every role reads it
+when present and uses its terms in artifacts, names and reports. Create it lazily on
+the first resolved term; challenge or record a conflicting term immediately. It is
+never a spec or a scratch pad.
+
 Record available file access, delegation, user-question, test and durable-record
 tools. Tool names in Claude examples are not portable APIs. Use actual host tools;
 never invent a Task, AskUserQuestion, Bash or Jira tool. Without delegation, report
