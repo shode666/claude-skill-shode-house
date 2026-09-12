@@ -55,8 +55,10 @@ def analyze(events, stderr_text="", expect_roles=(), unknown_op=None, max_iterat
     for role in expect_roles:
         checks[f"spawned_{role}"] = (role in roles, f"{roles.count(role)} spawn(s)")
     reviewers = roles.count("code-reviewer") + roles.count("qa-engineer")
-    checks["independent_review"] = (reviewers >= 1 and not self_review_claim,
-                                    f"{reviewers} reviewer spawn(s); self-review claim={self_review_claim}")
+    implemented = "developer" in roles
+    # A run that changed code needs an independent reviewer; a resume with nothing open may spawn nobody.
+    checks["independent_review"] = ((reviewers >= 1 or not implemented) and not self_review_claim,
+                                    f"{reviewers} reviewer spawn(s); implemented={implemented}; self-review claim={self_review_claim}")
     nested = [r for r, who in spawns if who != MAIN]
     checks["no_nested_spawn"] = (not nested, f"nested spawns: {nested}")
     iterations = max(roles.count("code-reviewer"), roles.count("qa-engineer"))

@@ -50,6 +50,15 @@ class TeamRunCheckTest(unittest.TestCase):
         checks, _ = trc.analyze(events, unknown_op="git push")
         self.assertFalse(checks["unknown_reconciled_before_retry"][0])
 
+    def test_resume_without_implementation_needs_no_reviewer(self):
+        checks, _ = trc.analyze([bash("git remote -v"), RESULT], unknown_op="git push")
+        self.assertTrue(checks["independent_review"][0])
+        self.assertTrue(checks["unknown_reconciled_before_retry"][0])
+
+    def test_implementation_without_reviewer_fails(self):
+        checks, _ = trc.analyze([spawn("developer"), RESULT])
+        self.assertFalse(checks["independent_review"][0])
+
     def test_missing_expected_role_and_self_review_fail(self):
         events = [spawn("developer"), {"type": "assistant", "message": {"content": [{"type": "text", "text": "I self-reviewed the diff and it passes."}]}}, RESULT]
         checks, _ = trc.analyze(events, expect_roles=["code-reviewer"])
