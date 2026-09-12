@@ -16,6 +16,7 @@ help:
 	@echo "  make skills     list shipped skills by bucket"
 	@echo "  make test-team-package  verify 3.15 team knowledge survives packaging"
 	@echo "  make test-team-candidate  check plugins/shode-house (multi-host tree) against source"
+	@echo "  scripts/team-run-check.py <run.jsonl>  score a claude -p stream-json team run against harness invariants"
 	@echo "  make clean      remove the built .plugin artifact"
 
 # validate = รัน gate ชุดเดียวกับ CI ในเครื่อง (v3.12 — เดิม .pre-commit-config อ้าง target นี้ทั้งที่ไม่มีอยู่)
@@ -58,6 +59,7 @@ test-team-candidate:
 	python3 scripts/pack-team.py --check plugins/shode-house
 	python3 tests/test_team_entry.py
 	python3 tests/test_team_candidate.py
+	python3 tests/test_team_run_check.py
 
 skills:
 	@for b in workflow ops ui style discipline; do echo "[$$b]"; for d in skills/$$b/*/; do echo "  - $$(basename $$d)"; done; done

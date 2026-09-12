@@ -441,6 +441,7 @@ jobs:
           python3 scripts/pack-team.py --check plugins/shode-house || fail=1
           python3 tests/test_team_entry.py || fail=1
           python3 tests/test_team_candidate.py || fail=1
+          python3 tests/test_team_run_check.py || fail=1
 
           echo
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi

@@ -27,6 +27,18 @@ BLOCKED and Oliver must say so. Markdown checkpoints support resumption but cann
 enforce locks or exactly-once external effects. Live evidence per host is recorded in
 CHANGELOG under the release entry, not here.
 
+## Evidence status per host
+
+| Host | Evidence so far | What counts as done |
+|---|---|---|
+| Claude Code | Live forward + resume runs (3.16.1), GitHub install + `/ask` reachability (3.16.1) | done; re-score any run with `scripts/team-run-check.py` |
+| Codex | app-server catalog read: 24 skills discovered (3.15 candidate) | one `ask` session on a fixture that delegates or honestly reports BLOCKED; capture the transcript |
+| Cursor | manifest/discovery only | install from this repo, run `ask` on a fixture, confirm a subagent from `agents/` actually starts |
+| Antigravity | manifest/discovery only | install into `.agents/plugins/`, run `ask`; expected result is Oliver reporting team execution BLOCKED (no delegation tool) |
+
+Gather host evidence with the same fixture and prompts as `outputs/live-3.16.1/run.sh`
+(maintainer machine); a host is "supported" in the README only after its row is done.
+
 Host documentation checked 2026-09-12 (verify again before changing manifests):
 [Cursor plugins](https://cursor.com/docs/plugins) · [Cursor plugin reference](https://cursor.com/docs/reference/plugins)
 · [Antigravity plugins](https://antigravity.google/docs/plugins) · [Antigravity skills](https://antigravity.google/docs/skills).
