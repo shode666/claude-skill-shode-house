@@ -1,5 +1,7 @@
 # shode-house
 
+<p align="center"><img src="docs/assets/shode-house-team.jpg" alt="Shode House — 19 AI specialists in 7 teams: Lead, Product & Design, Development, Quality & Security, DevOps & Operations, Domain Experts" width="900"></p>
+
 **3.16.x** — the full software house is back: [ask](skills/workflow/ask/SKILL.md) is the
 single team entrypoint (Oliver in the main session), the original 19 roles and 23 skills
 are preserved, and the same package installs on Claude Code, Codex, Cursor and
