@@ -7,15 +7,16 @@
 # budget exception #2 (3.14, 2026-09-08): REVIEW DISPATCH CARD ใน commands/review.md (+2,343 B) + pointer ใน spec-axis/security-sentinel (+290 B/scenario)
 #   เหตุผล: E2E GS1 run-1 (CLI 2.1.263) พิสูจน์ว่า /review dispatch non-deterministic — spawn แค่ Chris→Quinn→Felix, ไม่มี Bella/Sentinel ทั้งที่ trigger ครบ; CI #19 static จับไม่ได้
 # v3.17 P4 thin-router ratchet: all 12 scenarios re-measured DOWN after 7 roots became routers (full-fanout 491,150 -> 480,376 B)
-consult=39347
-design-system-be=72201
-design-system-fe=129551
-implement-be=131359
-implement-ui=166294
-phase3b-base=108929
-phase3b-sensitive=154731
-review-cmd=104536
-diagnose-fast=49236
-diagnose-full=86999
-map-mode=93874
-full-fanout=480376
+# v3.17 P6 ratchet: scenarios re-measured DOWN after the 19 agent files were simplified
+consult=39285
+design-system-be=71898
+design-system-fe=128497
+implement-be=128524
+implement-ui=163044
+phase3b-base=106733
+phase3b-sensitive=151823
+review-cmd=102211
+diagnose-fast=48492
+diagnose-full=85312
+map-mode=91612
+full-fanout=470801

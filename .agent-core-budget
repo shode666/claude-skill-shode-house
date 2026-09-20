@@ -1,22 +1,23 @@
 # agent core (body เฉพาะไฟล์ agent) baseline — CI #22 ratchet
 # v3.13 WS5-6: domain expert ถอด block ที่ซ้ำ 7 ตัวออกไป domain-core · Oliver ถอด clarify/man-day ไป runbook
 # หมายเหตุ: product-manager/security-engineer โตเล็กน้อย (+24/+6 B) เพราะ pointer ยาวกว่าข้อความเดิม
-booking-expert=6894
-business-analyst=7077
-code-reviewer=9553
-developer=12601
-devops-engineer=12777
-ecommerce-expert=7510
-erp-expert=6700
-fintech-expert=6190
-insurance-expert=6680
-orchestrator=16506
-product-manager=15119
-qa-engineer=13529
-sap-expert=7913
-security-engineer=8355
-solution-architect=14085
-sre-engineer=7036
-staff-engineer=7231
-trading-expert=6154
-ux-ui-designer=13213
+# v3.17 P6 agent-file simplification: all 19 keys ratcheted DOWN to measured file bytes (no agent relies on grace)
+booking-expert=6544
+business-analyst=6717
+code-reviewer=8460
+developer=11520
+devops-engineer=12378
+ecommerce-expert=7150
+erp-expert=6503
+fintech-expert=6021
+insurance-expert=6479
+orchestrator=15656
+product-manager=13285
+qa-engineer=12992
+sap-expert=7765
+security-engineer=8241
+solution-architect=12626
+sre-engineer=6875
+staff-engineer=6446
+trading-expert=5789
+ux-ui-designer=12961

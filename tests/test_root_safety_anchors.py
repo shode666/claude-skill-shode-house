@@ -53,6 +53,11 @@ REQUIRED = {
     "bias-tara-no-blind-vendor", "bias-tara-local-alternatives", "bias-tara-cite-before-vendor",
     "bias-oliver-only-oliver-closes", "own-chris-handoff-table", "own-quinn-handoff-table",
     "own-sentinel-not-mine-table", "own-uma-self-routing-table",
+    # P6 agent-file simplification: worker-recommended anchors on the slimmed agent roots
+    "bias-dave-money-invariants", "own-dave-no-self-approve", "bias-aaron-deploy-authority", "bias-aaron-no-blind-vendor", "aaron-no-manual-prod-deploy",
+    "bias-reggie-runbook-blocked", "bias-sara-no-microservices-default", "bias-iris-no-yield-oic", "bias-quinn-premerge-ui-blocked",
+    # P6 validation fixes (Sentinel F1b/F4)
+    "dave-observable-implement", "bias-chris-unsure-blocked", "bias-quinn-unsure-blocked",
 }
 DELIVERABLE_ROOT = "skills/discipline/shode-house-deliverable/SKILL.md"
 PRECEDENCE = ('**Stop and return outranks completion.** "Continue until complete" never overrides a Stop-and-return '

@@ -130,6 +130,8 @@ class TeamEntryTest(unittest.TestCase):
             "### Per-language tool matrix",
             "## Pre-commit integration (when authorized)",
             "## Hand-off",  # now "## Hand-off + completion boundary"
+            # P6 integration: checklist re-aligned with the 11-gate table (the source of truth); the prefix must survive
+            '- [ ] **Quality gate ผ่านครบ 11** (Gate 0-10, ดู Part 2): YAGNI · format · lint · type · complexity ≤10 · naming · test · coverage ≥ threshold · doc/comment "why" · security · observability',
             # P5 (8ss.28) byte payment: illustrative hand-off chain, owned by the workflow root (no rule)
             "Dave  ▸ Chris   : impl + smoke (dev-gate passed)",
             "Chris ▸ Quinn   : 7-dim + unit quality vs adopted targets",
@@ -154,6 +156,7 @@ class TeamEntryTest(unittest.TestCase):
         for ref in ("tdd.md", "quality-gates.md"):
             self.assertIn("[%s](%s)" % (ref, ref), core)
         self.assertIn("`shortcut(bd:N):` comment", core)
+        self.assertIn("**Quality gate ผ่านครบ 11** (Gate 0-10, ดู Part 2): architecture · format", core)
 
     def test_ui_test_router_keeps_every_baseline_line(self):
         d = "skills/ui/ui-test"

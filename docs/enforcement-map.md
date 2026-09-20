@@ -147,6 +147,18 @@ Recite Discipline Card, AskUserQuestion main-session relay, Spec axis (diff vs s
 | `bias-oliver-only-oliver-closes` | Specialists return scoped status; only Oliver declares the integrated task complete after the applicable reviews | `agents/orchestrator.md` | only Oliver declares the integrated task complete after the applicable harness reviews |
 | `own-chris-handoff-table` | Chris scope table: integration/E2E/contract/load/a11y automation is Quinn's, not Chris's | `agents/code-reviewer.md` | → **Quinn Phase 3b** (Chris ไม่ตรวจ) |
 | `own-quinn-handoff-table` | Quinn scope table: Quinn runs visual regression but does not approve the baseline (Uma) | `agents/qa-engineer.md` | baseline approval → **Uma Phase 3a** (Quinn ไม่ approve) |
+| `bias-dave-money-invariants` | Dave: dev-gate is proportional but required money invariants/tests are preserved | `agents/developer.md` | Apply `dev-gate` proportionally; preserve required money invariants/tests |
+| `own-dave-no-self-approve` | Dave never approves his own implementation | `agents/developer.md` | **Do not approve your own implementation** |
+| `bias-aaron-deploy-authority` | Aaron: deployment/environment must be authorized; AFK and green checks grant no authority | `agents/devops-engineer.md` | Deployment/environment must be authorized; AFK and green checks grant no authority |
+| `bias-aaron-no-blind-vendor` | Aaron: no blind acceptance of the user's stated cloud vendor | `agents/devops-engineer.md` | ห้าม blindly accept user "ใช้ AWS อยู่แล้ว" |
+| `aaron-no-manual-prod-deploy` | Aaron: no manual deploy straight to prod (R0) | `agents/devops-engineer.md` | ห้าม manual deploy ตรง prod |
+| `bias-reggie-runbook-blocked` | Reggie: missing required runbook = BLOCKED; repair returns to Oliver | `agents/sre-engineer.md` | Missing required runbook → BLOCKED; repair → Oliver |
+| `bias-sara-no-microservices-default` | Sara: no microservices default for a small/inexperienced team without HA need | `agents/solution-architect.md` | ห้าม default microservices เมื่อ team < 5 |
+| `bias-iris-no-yield-oic` | Iris: never yield to 'OIC does not require X' without the cited notice + version | `agents/insurance-expert.md` | ห้าม yield to user "OIC ไม่ได้บังคับ X" |
+| `bias-quinn-premerge-ui-blocked` | Quinn: missing applicable required evidence = BLOCKED at pre-merge-ui | `agents/qa-engineer.md` | Missing applicable required evidence → BLOCKED at `pre-merge-ui` |
+| `dave-observable-implement` | Dave: implementation is observable (structured logging + RED metrics) | `agents/developer.md` | observable: structured logging + RED metrics |
+| `bias-chris-unsure-blocked` | Chris: unsure whether the evidence is enough = BLOCKED and return to Oliver, never PASS | `agents/code-reviewer.md` | Unsure whether the evidence is enough → BLOCKED and return to Oliver, never PASS. |
+| `bias-quinn-unsure-blocked` | Quinn: unsure which verdict applies = BLOCKED or FAIL, never PASS or retry-until-green | `agents/qa-engineer.md` | unsure which verdict applies → default to BLOCKED or FAIL, never PASS or retry-until-green |
 | `own-sentinel-not-mine-table` | Sentinel scope table: NOT mine (handoff) column | `agents/security-engineer.md` | (Semgrep/Bandit/gosec) \| unit test design → Chris \| |
 | `own-uma-self-routing-table` | Uma self-routing table: implementation goes to Dave | `agents/ux-ui-designer.md` | \| Implementation \| → Dave (Phase 2) \| |
 

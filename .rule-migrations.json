@@ -409,6 +409,299 @@
         "Complete = no open § Stop and return condition, every § Hand-off evidence item pasted, and `shode-house-deliverable` § Completion"
       ],
       "reason": "8ss.28/29: completion boundary now names the Stop-and-return precedence and points at the canonical completion contract (broaden cases live there, anchored affected-validation-floor)."
+    },
+    {
+      "source": "agents/orchestrator.md",
+      "old_fragment": "**Primary bias**: Sycophancy (EM agree with user even when user wrong)",
+      "replacement": "agents/orchestrator.md",
+      "requires": [
+        "ห้าม skip Phase 1c (Threat Model) ถ้า trigger fired แม้ user บอก \"low risk\"",
+        "แยกข้อเท็จจริงที่ต้อง verify ออกจากคำสั่งเปลี่ยน scope"
+      ],
+      "reason": "8ss.30 P6 (SPEC §56, audit Table 5 #41): psychology label, not an instruction; the observable bias bullets below it stay verbatim, incl. anchor threat-model-no-waive."
+    },
+    {
+      "source": "agents/orchestrator.md",
+      "old_fragment": "- Reference scenario: fixture `oliver/01-user-pushback-on-correct-routing.json` ใน `skills/in-progress/eval-harness/` — **maintainer repo เท่านั้น ไม่ถูก pack เข้า .plugin**; ผู้ใช้ที่ติดตั้ง plugin จะไม่มีไฟล์นี้ ให้ถือว่าเป็นตัวอย่างเชิงอธิบาย ไม่ใช่ path ที่เปิดได้",
+      "replacement": "agents/orchestrator.md",
+      "requires": [
+        "เมื่อ user ทัก routing ให้ตรวจ scope และหลักฐานใหม่"
+      ],
+      "reason": "8ss.30 P6 (audit Table 5 #46): dead pointer to a maintainer-only fixture that is not packed; the line itself said it was illustrative. The routing-pushback rule it illustrated stays."
+    },
+    {
+      "source": "agents/orchestrator.md",
+      "old_fragment": "<!-- Why: realworld pain — agent over-scope, misinterpret, file overlap",
+      "replacement": "agents/orchestrator.md",
+      "requires": [
+        "Detail template + 3 ตัวอย่าง + amendment flow → `references/scope-lock.md`",
+        "Files overlap กับ active contract อื่น? → overlap = BLOCK"
+      ],
+      "reason": "8ss.30 P6 (SPEC §55): history comment (why the section exists), no rule; Scope Contract enforcement and the scope-lock.md pointer stay."
+    },
+    {
+      "source": "agents/ux-ui-designer.md",
+      "old_fragment": "**Primary bias**: Pattern-bias (Material vs HIG vs Tailwind tribal) + Position bias",
+      "replacement": "agents/ux-ui-designer.md",
+      "requires": [
+        "เลือก pattern/library (Material vs HIG vs Tailwind) → cite platform + brand evidence ก่อนเสนอ ไม่เลือกตามความเคยชินหรือ option แรก; ไม่แน่ใจ → หยุด ส่ง options + recommendation ให้ Oliver"
+      ],
+      "reason": "8ss.35 (P6-uma, SPEC §56, P6-C3): psychology label rewritten as observable behaviour — trigger (choosing a pattern/library), default when unsure (stop), escalation target (Oliver). The three observable bias bullets below it stay verbatim."
+    },
+    {
+      "source": "agents/developer.md",
+      "old_fragment": "ความสัมพันธ์ adversarial = healthy gate, ไม่ใช่ conflict",
+      "replacement": "agents/developer.md",
+      "requires": [
+        "Chris + Quinn ทำงาน **adversarial ต่อ Dave**"
+      ],
+      "reason": "8ss.31 P6: persona flavour (no instruction); the adversarial-review relationship and Dave's duties stay in § Adversary-Aware Hand-off."
+    },
+    {
+      "source": "agents/developer.md",
+      "old_fragment": "**Primary bias**: Sycophancy (user push \"skip test / just try\") + Defensive over-validation",
+      "replacement": "agents/developer.md",
+      "requires": [
+        "User pushes \"skip test / just try\" → explain demonstrated shortcut risks"
+      ],
+      "reason": "8ss.31 P6-C3 / SPEC §56: psychology label replaced by its observable trigger on the first bias bullet; over-validation bullet (failure-modes #001/#002) unchanged."
+    },
+    {
+      "source": "agents/developer.md",
+      "old_fragment": "$ pnpm test src/payments/refund.test.ts",
+      "replacement": "agents/developer.md",
+      "requires": [
+        "### Verify (Philosophy 2) — commands run + real output"
+      ],
+      "reason": "8ss.31 P6: report-template example output (no rule); template field kept."
+    },
+    {
+      "source": "agents/developer.md",
+      "old_fragment": "$ curl -X POST localhost:3000/payments/refund -d '{\"id\":\"abc\"}'",
+      "replacement": "agents/developer.md",
+      "requires": [
+        "### Verify (Philosophy 2) — commands run + real output"
+      ],
+      "reason": "8ss.31 P6: report-template example output (no rule); template field kept."
+    },
+    {
+      "source": "agents/developer.md",
+      "old_fragment": "- ห้ามบอก \"เสร็จ\" โดยไม่ verify (Philosophy 2)",
+      "replacement": "agents/developer.md",
+      "requires": [
+        "never claim done without evidence"
+      ],
+      "reason": "8ss.31 P6: in-file duplicate of the producer-side verify rule (§ Adversary-Aware Hand-off) and of preloaded shode-house-discipline § VERIFY BEFORE DONE."
+    },
+    {
+      "source": "agents/security-engineer.md",
+      "old_fragment": "**Primary bias**: Sycophancy (\"low risk feature\" yielding)",
+      "replacement": "agents/security-engineer.md",
+      "requires": [
+        "ห้าม yield to user \"low risk skip threat model\" — auto-trigger Phase 1c if PII/money/auth/external",
+        "ก่อน accept \"low risk\" claim → demand evidence + STRIDE quick pass; ถ้าผ่านจริง = explicit document"
+      ],
+      "reason": "8ss.36 P6-C3 / SPEC §56: psychology label dropped (not an instruction); the observable behaviour (trigger = user 'low risk' claim; default = auto-trigger Phase 1c / demand evidence; no yield) stays verbatim in the anchored bullets bias-sentinel-low-risk-hold / -evidence."
+    },
+    {
+      "source": "agents/code-reviewer.md",
+      "old_fragment": "🟠 High (bug ที่จะเกิด prod)",
+      "replacement": "skills/discipline/review-checklist/SKILL.md",
+      "requires": [
+        "🟠 **High** — wrong behavior / perf regression >10% / a11y critical → fix ก่อน merge"
+      ],
+      "reason": "8ss.32 P6-chris: Chris's private copy of the severity table removed; the single severity schema lives in review-checklist § Severity Grading, which code-reviewer preloads (skills: frontmatter). Agent keeps a 1-line pointer."
+    },
+    {
+      "source": "agents/code-reviewer.md",
+      "old_fragment": "- **Small PR > big** — < 400 บรรทัด (defect rate ต่ำกว่า 50%)",
+      "replacement": "agents/code-reviewer.md",
+      "requires": [
+        "- **Small PR > big** — < 400 บรรทัด"
+      ],
+      "reason": "8ss.32 P6-chris: rule kept verbatim; only the uncited statistic '(defect rate ต่ำกว่า 50%)' dropped (no source; conflicts with cite-before-claim)."
+    },
+    {
+      "source": "agents/code-reviewer.md",
+      "old_fragment": "- **Test the test** — mutation testing บอกว่า test จับ bug ได้จริง",
+      "replacement": "agents/code-reviewer.md",
+      "requires": [
+        "mutate code random → test ต้อง fail (ถ้าไม่ fail = test ไม่จับ bug)",
+        "inspect surviving meaningful mutants"
+      ],
+      "reason": "8ss.32 P6-chris: in-file duplicate of § Test Quality item 1 (mutation testing proves the test catches bugs); merged into that line."
+    },
+    {
+      "source": "agents/booking-expert.md",
+      "old_fragment": "**Primary bias**: Channel mono-culture (OTA-only default, ignore direct)",
+      "replacement": "agents/booking-expert.md",
+      "requires": [
+        "- ห้าม accept \"OTA-only\" plan ถ้ามี loyalty program / brand presence / direct demand potential"
+      ],
+      "reason": "8ss.39 P6 (SPEC §56, audit Table 5): psychology label line dropped; it is not an instruction — the observable bias bullets below it carry trigger and default direction and stay verbatim."
+    },
+    {
+      "source": "agents/ecommerce-expert.md",
+      "old_fragment": "**Primary bias**: Platform bias (Shopify default regardless of B2B/B2C complexity)",
+      "replacement": "agents/ecommerce-expert.md",
+      "requires": [
+        "- ห้าม default Shopify ถ้า B2B + tiered pricing + ERP integration + quote flow"
+      ],
+      "reason": "8ss.39 P6 (SPEC §56, audit Table 5): psychology label line dropped; it is not an instruction — the observable bias bullets below it carry trigger and default direction and stay verbatim."
+    },
+    {
+      "source": "agents/erp-expert.md",
+      "old_fragment": "**Primary bias**: Costing method anchor (FIFO default regardless of context)",
+      "replacement": "agents/erp-expert.md",
+      "requires": [
+        "- ห้าม default FIFO ถ้า industry = perishable / lot-traceable"
+      ],
+      "reason": "8ss.39 P6 (SPEC §56, audit Table 5): psychology label line dropped; it is not an instruction — the observable bias bullets below it carry trigger and default direction and stay verbatim."
+    },
+    {
+      "source": "agents/fintech-expert.md",
+      "old_fragment": "**Primary bias**: Pattern-bias (Stripe default) + Anchoring on user's stated PSP",
+      "replacement": "agents/fintech-expert.md",
+      "requires": [
+        "Verify a stated PSP's fit and risks; compare alternatives (2C2P, Omise, TrueMoney, PromptPay) when selection is unresolved"
+      ],
+      "reason": "8ss.39 P6 (SPEC §56, audit Table 5): psychology label line dropped; it is not an instruction — the observable bias bullets below it carry trigger and default direction and stay verbatim."
+    },
+    {
+      "source": "agents/insurance-expert.md",
+      "old_fragment": "**Primary bias**: Sycophancy on OIC interpretation (defer to user's regulation reading)",
+      "replacement": "agents/insurance-expert.md",
+      "requires": [
+        "- ห้าม yield to user \"OIC ไม่ได้บังคับ X\" — verify cite OIC notice + version"
+      ],
+      "reason": "8ss.39 P6 (SPEC §56, audit Table 5): psychology label line dropped; it is not an instruction — the observable bias bullets below it carry trigger and default direction and stay verbatim."
+    },
+    {
+      "source": "agents/sap-expert.md",
+      "old_fragment": "**Primary bias**: Std-vs-custom bias (default Z-program, skip standard CDS/BAdI)",
+      "replacement": "agents/sap-expert.md",
+      "requires": [
+        "- ห้าม default Z-program — explore standard first"
+      ],
+      "reason": "8ss.39 P6 (SPEC §56, audit Table 5): psychology label line dropped; it is not an instruction — the observable bias bullets below it carry trigger and default direction and stay verbatim."
+    },
+    {
+      "source": "agents/trading-expert.md",
+      "old_fragment": "**Primary bias**: Vendor bias (Bloomberg/FIX default) + Anchoring on user's stated tech",
+      "replacement": "agents/trading-expert.md",
+      "requires": [
+        "- ห้าม blindly accept Bloomberg + FIX 4.4 ถ้า latency tolerance > 50ms / single-venue / retail broker"
+      ],
+      "reason": "8ss.39 P6 (SPEC §56, audit Table 5): psychology label line dropped; it is not an instruction — the observable bias bullets below it carry trigger and default direction and stay verbatim."
+    },
+    {
+      "source": "agents/insurance-expert.md",
+      "old_fragment": "- Disclaimer: AI persona training cutoff ของ model ปัจจุบัน — validate critical claims with compliance officer + current OIC publication",
+      "replacement": "skills/discipline/domain-core/SKILL.md",
+      "requires": [
+        "**เริ่มทุก engagement ด้วย disclaimer 1 บรรทัด**",
+        "(CPA, actuary, compliance officer, SAP consultant), current official source or user organization's SME."
+      ],
+      "reason": "8ss.39 P6 (FR-P6-5, audit Table 5 #40): duplicate of domain-core § AI Persona Disclaimer, which insurance-expert preloads (skills: domain-core)."
+    },
+    {
+      "source": "agents/devops-engineer.md",
+      "old_fragment": "**Primary bias**: Pattern-bias (cloud vendor mono-culture, AWS default)",
+      "replacement": "agents/devops-engineer.md",
+      "requires": [
+        "Fit ไม่ชัด → ไม่ default ตาม vendor เดิม; เสนอทางเลือกพร้อม cite แล้ว escalate → Sara (ผ่าน Oliver)",
+        "ห้าม blindly accept user \"ใช้ AWS อยู่แล้ว\""
+      ],
+      "reason": "8ss.37 P6-C3: psychology label (Table 5 #21, not an instruction) replaced by an observable trigger + default direction + escalation target; the three observable bullets stay verbatim."
+    },
+    {
+      "source": "agents/devops-engineer.md",
+      "old_fragment": "→ Quinn เปิด `tests/e2e/` เขียน test ทันที ไม่เสีย 1-2 hr setup toolchain",
+      "replacement": "agents/devops-engineer.md",
+      "requires": [
+        "Authorized web scaffold: reuse/prepare UI checks with Quinn"
+      ],
+      "reason": "8ss.37: rationale/flavour sentence (no rule); the scaffold duty and the Quinn hand-off stay in the section lead line."
+    },
+    {
+      "source": "agents/sre-engineer.md",
+      "old_fragment": "**Primary bias**: Alert dismissal (normalize repeated alerts) + Sycophancy",
+      "replacement": "agents/sre-engineer.md",
+      "requires": [
+        "คำขอไม่ใช่ evidence — ไม่แน่ใจ → ไม่ mute ไม่ปิด; investigate ตาม incident criteria; ขัดแย้ง → Oliver",
+        "ห้าม dismiss recurring alert as \"false positive\""
+      ],
+      "reason": "8ss.37 P6-C3: psychology label (Table 5 #69, not an instruction) replaced by an observable trigger + default direction (do not mute/close) + escalation target; the three observable bullets stay verbatim."
+    },
+    {
+      "source": "agents/product-manager.md",
+      "old_fragment": "- **Why**: Patrick narrate Domain SME เอง = single-voice synthesis = sycophancy + self-preference risk (bias discipline embedded per-agent, v3.3)",
+      "replacement": "agents/product-manager.md",
+      "requires": [
+        "- **Why**: domain claims must come from the expert's own return (cite its path); a synthesised SME voice cannot be verified",
+        "- Never invent SME voices"
+      ],
+      "reason": "8ss.38 P6-C3 (audit Table 5): psychology rationale rewritten as the observable reason; the rule itself (Never invent SME voices / PENDING domain validation) is unchanged in the same section."
+    },
+    {
+      "source": "agents/product-manager.md",
+      "old_fragment": "**Primary bias**: Anchoring on stated OKR + Sunk-cost on committed feature",
+      "replacement": "agents/product-manager.md",
+      "requires": [
+        "RICE recalc with current data only",
+        "ห้าม anchor บน original OKR ถ้า context เปลี่ยน"
+      ],
+      "reason": "8ss.38 P6-C3 / SPEC §56: psychology label dropped (not an instruction); the operational bullets that carry the behaviour stay verbatim."
+    },
+    {
+      "source": "agents/staff-engineer.md",
+      "old_fragment": "**Primary bias**: Convergence bias (force one stack tribally) + Pattern-bias",
+      "replacement": "agents/staff-engineer.md",
+      "requires": [
+        "accept divergence default",
+        "refuse without explicit \"accept divergence\" doc"
+      ],
+      "reason": "8ss.38 P6-C3 / SPEC §56: psychology label dropped (not an instruction); the operational bullets incl. protected bias-stan-divergence-needs-doc stay verbatim."
+    },
+    {
+      "source": "agents/staff-engineer.md",
+      "old_fragment": "เริ่มงาน: \"Stan (Staff) รับงาน cross-team review ครับ\"",
+      "replacement": "agents/staff-engineer.md",
+      "requires": [
+        "คุณคือ **Stan** (สแตน) — Staff Engineer"
+      ],
+      "reason": "8ss.38 persona flavour (greeting line) removed per P6 brief; no rule — worker return format is owned by preloaded shode-house-discipline § Structured worker return."
+    },
+    {
+      "source": "agents/business-analyst.md",
+      "old_fragment": "**Primary bias**: Anchoring บน user's first phrasing → AC become tautology",
+      "replacement": "agents/business-analyst.md",
+      "requires": [
+        "เจอ tautology AC",
+        "ห้าม reuse leading question"
+      ],
+      "reason": "8ss.38 P6-C3 / SPEC §56: psychology label dropped (not an instruction); tautology/leading-question bullets carry the behaviour."
+    },
+    {
+      "source": "agents/solution-architect.md",
+      "old_fragment": "**Primary bias**: Pattern-bias (microservices/REST default) + Anchoring on user's stated stack",
+      "replacement": "agents/solution-architect.md",
+      "requires": [
+        "ห้าม default microservices เมื่อ team < 5 / no prior experience / no HA need → consider modular monolith",
+        "ห้าม REST default ถ้า use case = streaming / real-time / event-driven",
+        "Verify chosen stack fit/risks; compare unresolved choices, never reopen settled constraints by quota"
+      ],
+      "reason": "P6 (SPEC §56): psychology label removed; the observable behaviours it summarised (no microservices default, no REST default, verify the stated stack) stay verbatim in § Bias Discipline. Entry authored by the integrator: the worker's entries.json was empty."
+    },
+    {
+      "source": "skills/workflow/dev-gate/SKILL.md",
+      "old_fragment": "YAGNI · format · lint · type · complexity ≤10 · naming · test · coverage ≥ threshold · doc/comment \"why\" · security · observability",
+      "replacement": "skills/workflow/dev-gate/SKILL.md",
+      "requires": [
+        "architecture · format · imports · unused · lint · type · complexity ≤10 · naming · test + coverage ≥ threshold · security · doc/comment \"why\"",
+        "ผ่าน YAGNI ladder (Step 0) ก่อนทุกครั้ง"
+      ],
+      "reason": "P6 integration: checklist re-aligned with the Gate 0-10 table; YAGNI stays as Step 0; observability moved to agents/developer.md Process 6 (anchor dave-observable-implement)."
     }
   ]
 }

@@ -40,7 +40,7 @@ When to ask → `shode-house-discipline` § Ask vs derive
 
 - [ ] **Test runs locally** (red phase): ทุก new behavior มี failing test ก่อน implement
 - [ ] Required acceptance tests pass; tracked quarantine does not satisfy a missing required test or authorize skipping it.
-- [ ] **Quality gate ผ่านครบ 11** (Gate 0-10, ดู Part 2): YAGNI · format · lint · type · complexity ≤10 · naming · test · coverage ≥ threshold · doc/comment "why" · security · observability
+- [ ] **Quality gate ผ่านครบ 11** (Gate 0-10, ดู Part 2): architecture · format · imports · unused · lint · type · complexity ≤10 · naming · test + coverage ≥ threshold · security · doc/comment "why"
 - [ ] **Evidence paste**: command + output ใน hand-off (ห้าม "should work")
 
 ## หลักการ (🔴)

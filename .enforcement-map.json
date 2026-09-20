@@ -1267,6 +1267,138 @@
       "source_of_truth": "agents/ux-ui-designer.md",
       "verification": "ci:21 + test_root_safety_anchors",
       "anchor": "| Implementation | → Dave (Phase 2) |"
+    },
+    {
+      "id": "bias-dave-money-invariants",
+      "rule": "Dave: dev-gate is proportional but required money invariants/tests are preserved",
+      "owner": "developer",
+      "trigger": "implementation touching money",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/developer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Apply `dev-gate` proportionally; preserve required money invariants/tests"
+    },
+    {
+      "id": "own-dave-no-self-approve",
+      "rule": "Dave never approves his own implementation",
+      "owner": "developer",
+      "trigger": "implementation hand-off",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/developer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "**Do not approve your own implementation**"
+    },
+    {
+      "id": "bias-aaron-deploy-authority",
+      "rule": "Aaron: deployment/environment must be authorized; AFK and green checks grant no authority",
+      "owner": "devops-engineer",
+      "trigger": "deploy / environment change",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/devops-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Deployment/environment must be authorized; AFK and green checks grant no authority"
+    },
+    {
+      "id": "bias-aaron-no-blind-vendor",
+      "rule": "Aaron: no blind acceptance of the user's stated cloud vendor",
+      "owner": "devops-engineer",
+      "trigger": "infra proposal",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/devops-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม blindly accept user \"ใช้ AWS อยู่แล้ว\""
+    },
+    {
+      "id": "aaron-no-manual-prod-deploy",
+      "rule": "Aaron: no manual deploy straight to prod (R0)",
+      "owner": "devops-engineer",
+      "trigger": "prod deploy",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/devops-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม manual deploy ตรง prod"
+    },
+    {
+      "id": "bias-reggie-runbook-blocked",
+      "rule": "Reggie: missing required runbook = BLOCKED; repair returns to Oliver",
+      "owner": "sre-engineer",
+      "trigger": "alert / operate",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/sre-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Missing required runbook → BLOCKED; repair → Oliver"
+    },
+    {
+      "id": "bias-sara-no-microservices-default",
+      "rule": "Sara: no microservices default for a small/inexperienced team without HA need",
+      "owner": "solution-architect",
+      "trigger": "architecture proposal",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/solution-architect.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม default microservices เมื่อ team < 5"
+    },
+    {
+      "id": "bias-iris-no-yield-oic",
+      "rule": "Iris: never yield to 'OIC does not require X' without the cited notice + version",
+      "owner": "insurance-expert",
+      "trigger": "regulatory claim",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/insurance-expert.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม yield to user \"OIC ไม่ได้บังคับ X\""
+    },
+    {
+      "id": "bias-quinn-premerge-ui-blocked",
+      "rule": "Quinn: missing applicable required evidence = BLOCKED at pre-merge-ui",
+      "owner": "qa-engineer",
+      "trigger": "pre-merge-ui gate",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/qa-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Missing applicable required evidence → BLOCKED at `pre-merge-ui`"
+    },
+    {
+      "id": "dave-observable-implement",
+      "rule": "Dave: implementation is observable (structured logging + RED metrics)",
+      "owner": "developer",
+      "trigger": "implementation",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/developer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "observable: structured logging + RED metrics"
+    },
+    {
+      "id": "bias-chris-unsure-blocked",
+      "rule": "Chris: unsure whether the evidence is enough = BLOCKED and return to Oliver, never PASS",
+      "owner": "code-reviewer",
+      "trigger": "review verdict",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/code-reviewer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Unsure whether the evidence is enough → BLOCKED and return to Oliver, never PASS."
+    },
+    {
+      "id": "bias-quinn-unsure-blocked",
+      "rule": "Quinn: unsure which verdict applies = BLOCKED or FAIL, never PASS or retry-until-green",
+      "owner": "qa-engineer",
+      "trigger": "review verdict",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/qa-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "unsure which verdict applies → default to BLOCKED or FAIL, never PASS or retry-until-green"
     }
   ]
 }
