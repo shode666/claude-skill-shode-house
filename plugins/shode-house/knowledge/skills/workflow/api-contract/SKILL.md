@@ -1,9 +1,6 @@
 ---
 name: api-contract
-description: |
-  [WHAT] Public-interface discipline — semver policy, breaking-change checklist, deprecation window, consumer-driven contract test, event/schema evolution.
-  [WHEN] ทุก PR ที่แตะ REST/GraphQL/gRPC/event payload/public SDK/DB view ที่ทีมอื่นใช้.
-  [TRIGGER] /shode-house:api-contract, "breaking change", "semver", "API version", "deprecate", "backward compatible".
+description: Protect compatibility when changing a shared or public interface, such as a REST, GraphQL, gRPC, event or SDK contract with consumers outside the deploy unit, through breaking-change classification, versioning, deprecation and contract tests. Not for private function signatures or internal database schema.
 ---
 
 # API Contract (versioning + deprecation + consumer contract)

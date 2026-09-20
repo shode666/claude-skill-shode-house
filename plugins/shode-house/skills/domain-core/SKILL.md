@@ -1,12 +1,9 @@
 ---
 name: domain-core
-description: |
-  [WHAT] Domain expert core — AI Persona Disclaimer + citation contract (ต้อง cite primary source ก่อน claim regulation/standard/protocol) + กติกาเมื่อ cite ไม่ได้.
-  [WHEN] Preload ของ domain expert ทั้ง 7 ตัว (Felix, Iris, Tara, Elena, Sam, Brooke, Emma).
-  [TRIGGER] /shode-house:domain-core, "AI persona disclaimer", "citation", "primary source", "regulation cite".
+description: Shared contract for domain expert personas, requiring an AI persona disclaimer and primary-source citations for any claim about a regulation, standard or protocol, and explicit marking when a source cannot be verified. It governs domain claims, not general project evidence or which expert is needed.
 ---
 
-Read [domain-core](../../knowledge/skills/discipline/domain-core/SKILL.md) in full before carrying out the task, including its declared prerequisite skills.
+Use the referenced skill [domain-core](../../knowledge/skills/discipline/domain-core/SKILL.md) as the workflow entry point. Follow only the branches that apply to the current task, and load additional references only when the root skill directs you to.
 This is a discovery adapter, not a replacement for the role or skill knowledge.
 Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ under this plugin's knowledge/ directory, not the user's project.
 Use actual host tools and preserve host/project/user authority.

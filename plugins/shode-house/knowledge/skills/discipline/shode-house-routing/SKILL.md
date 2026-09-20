@@ -1,9 +1,6 @@
 ---
 name: shode-house-routing
-description: |
-  [WHAT] Agent routing + domain selection + conflict resolution + T-shirt sizing + parallel/sequential decision + Team v3.0 (19 agents in 7 teams) + RACI per phase + Input Trust Levels.
-  [WHEN] User request → Oliver triage.
-  [TRIGGER] /shode-house:routing, "ใครรับ", "agent ไหน", "delegate", "routing", "Oliver triage".
+description: Decide who owns a request, covering type of work, responsible role, conflict resolution, parallel versus sequential execution, and whether a domain specialist is needed because the work requires a domain rule decision rather than merely using domain vocabulary. Phase order and approvals are not decided here.
 ---
 
 # shode-house — Routing & Team Structure

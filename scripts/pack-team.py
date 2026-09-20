@@ -64,9 +64,17 @@ def payload(root=ROOT):
             relative = "../../knowledge/" + name
         if target in entries:
             raise ValueError(f"duplicate discovery path: {target}")
-        wrapper = ("---" + parts[1] + "---\n\n"
-                   f"Read [{Path(name).parent.name if name in skills else Path(name).stem}]({relative}) "
-                   "in full before carrying out the task, including its declared prerequisite skills.\n"
+        if name in roles:
+            # Role contract for fresh-context workers: hosts that do not inject
+            # `skills:` must read the role and its prerequisites themselves.
+            lead = (f"Read [{Path(name).stem}]({relative}) "
+                    "in full before carrying out the task, including its declared prerequisite skills.\n")
+        else:
+            # Skill adapters are thin entry points: no eager full-skill loading.
+            lead = (f"Use the referenced skill [{Path(name).parent.name}]({relative}) as the workflow entry point. "
+                    "Follow only the branches that apply to the current task, and load additional "
+                    "references only when the root skill directs you to.\n")
+        wrapper = ("---" + parts[1] + "---\n\n" + lead +
                    "This is a discovery adapter, not a replacement for the role or skill knowledge.\n"
                    "Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ "
                    "under this plugin's knowledge/ directory, not the user's project.\n"
@@ -75,7 +83,8 @@ def payload(root=ROOT):
     entries["commands/ask.md"] = (
         '---\ndescription: "Work with Oliver and the full Shode House team."\n---\n\n'
         'User request: $ARGUMENTS\n\n'
-        'Read `${CLAUDE_PLUGIN_ROOT}/skills/ask/SKILL.md` and its full referenced source. '
+        'Use `${CLAUDE_PLUGIN_ROOT}/skills/ask/SKILL.md` as the entry point and follow its referenced source; '
+        'load further references only when it directs you to. '
         'Oliver is the main session; delegate specialist work, never spawn Oliver.\n'
     ).encode()
     entries["LICENSE"] = source_entries["LICENSE"]

@@ -1,9 +1,6 @@
 ---
 name: shode-house-deliverable
-description: |
-  [WHAT] Output discipline — output contract (artifact + evidence path + no placeholder) + Anti-Puppet rule + pointer ไป DoD/ADR/UX evidence.
-  [WHEN] Preload ของ producer agent; บังคับก่อน hand-off ทุกครั้ง.
-  [TRIGGER] /shode-house:deliverable, "Definition of Done", "DoD", "Standard Output", "I Never Do", "Anti-Puppet".
+description: Output contract for anyone producing a deliverable, requiring a durable artifact, re-checkable evidence for every claim, no placeholders and no completion claim without real tool output. It defines what a finished handoff contains, not how work is routed or reviewed.
 ---
 
 # shode-house — Deliverable Core

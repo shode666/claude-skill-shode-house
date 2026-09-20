@@ -1,6 +1,6 @@
 ---
 name: shode-house-workflow
-description: Coordinate Plan/Execute/Verify/Triage, approvals, scoped ownership and durable recovery. Use for multi-phase delivery, delegation or resuming an engagement.
+description: Coordinate multi-phase delivery with phase gates, recorded approvals, run recovery and drift detection, governing how work proceeds, not who owns it.
 ---
 
 # shode-house — Workflow Discipline

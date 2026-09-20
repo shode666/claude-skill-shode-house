@@ -1,9 +1,6 @@
 ---
 name: secure
-description: |
-  [WHAT] Threat modeling (STRIDE/LINDDUN) + security architecture review + CSP/Trusted Types + secrets management + pen test + abuse case.
-  [WHEN] Phase 1c (post-architecture).
-  [TRIGGER] /shode-house:secure, "STRIDE", "LINDDUN", "threat model", "security review", "CSP".
+description: Threat model and review a design or change that crosses a meaningful security boundary, such as authentication, authorization, secrets, cryptography, personal or payment data, untrusted input or public exposure. Not for a live incident or unrelated local refactors.
 ---
 
 # Secure (Sentinel discipline — STRIDE + threat-driven dev)

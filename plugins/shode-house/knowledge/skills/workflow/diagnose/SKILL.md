@@ -1,9 +1,6 @@
 ---
 name: diagnose
-description: |
-  [WHAT] Structured debugging methodology — บังคับ reproduce → isolate → fix → prevent ก่อน "ลอง fix"; ห้าม patch โดยไม่มี root cause.
-  [WHEN] ทันทีที่ user รายงาน bug.
-  [TRIGGER] /shode-house:diagnose, "พัง", "ไม่ทำงาน", "ช้า", "ทำไมถึง", "bug".
+description: Investigate an unresolved failure, regression or performance problem with no active production impact, even one seen in production, by reproducing it and isolating the root cause before fixing. Not for mitigating a live outage or issues with a known cause.
 ---
 
 # Diagnose (structured debugging)

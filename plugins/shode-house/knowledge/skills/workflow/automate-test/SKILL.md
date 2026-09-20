@@ -1,9 +1,6 @@
 ---
 name: automate-test
-description: |
-  [WHAT] ตั้ง test pyramid 70/20/10 (unit/integration/E2E) + CI gate + threshold + contract/load test strategy.
-  [WHEN] Project bootstrap (Phase 0/setup).
-  [TRIGGER] /shode-house:automate-test, "automate test", "ตั้ง test pyramid", "CI test", "test gate", "coverage gate".
+description: Set up a project's test automation strategy and infrastructure, meaning the mix of unit, integration and end-to-end tests, CI gates and thresholds. Not for the tests of a single change, one changed screen, or spikes and one-off scripts.
 ---
 
 # Automate Test (CI test gate + pyramid)

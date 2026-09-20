@@ -1,6 +1,6 @@
 ---
 name: review-checklist
-description: Coordinate independent code, integration, spec, security and domain review with evidence, severity and merge gates. Use for implementation review and Phase 3b.
+description: Coordinate independent review of an implemented change by code, runtime, spec, security and domain with severity and merge gates, not self-approval.
 ---
 
 # Review Checklist — core

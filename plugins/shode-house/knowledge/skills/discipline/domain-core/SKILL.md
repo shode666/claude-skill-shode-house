@@ -1,9 +1,6 @@
 ---
 name: domain-core
-description: |
-  [WHAT] Domain expert core — AI Persona Disclaimer + citation contract (ต้อง cite primary source ก่อน claim regulation/standard/protocol) + กติกาเมื่อ cite ไม่ได้.
-  [WHEN] Preload ของ domain expert ทั้ง 7 ตัว (Felix, Iris, Tara, Elena, Sam, Brooke, Emma).
-  [TRIGGER] /shode-house:domain-core, "AI persona disclaimer", "citation", "primary source", "regulation cite".
+description: Shared contract for domain expert personas, requiring an AI persona disclaimer and primary-source citations for any claim about a regulation, standard or protocol, and explicit marking when a source cannot be verified. It governs domain claims, not general project evidence or which expert is needed.
 ---
 
 # Domain expert — core contract

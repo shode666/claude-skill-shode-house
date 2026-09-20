@@ -1,12 +1,9 @@
 ---
 name: diagnose
-description: |
-  [WHAT] Structured debugging methodology — บังคับ reproduce → isolate → fix → prevent ก่อน "ลอง fix"; ห้าม patch โดยไม่มี root cause.
-  [WHEN] ทันทีที่ user รายงาน bug.
-  [TRIGGER] /shode-house:diagnose, "พัง", "ไม่ทำงาน", "ช้า", "ทำไมถึง", "bug".
+description: Investigate an unresolved failure, regression or performance problem with no active production impact, even one seen in production, by reproducing it and isolating the root cause before fixing. Not for mitigating a live outage or issues with a known cause.
 ---
 
-Read [diagnose](../../knowledge/skills/workflow/diagnose/SKILL.md) in full before carrying out the task, including its declared prerequisite skills.
+Use the referenced skill [diagnose](../../knowledge/skills/workflow/diagnose/SKILL.md) as the workflow entry point. Follow only the branches that apply to the current task, and load additional references only when the root skill directs you to.
 This is a discovery adapter, not a replacement for the role or skill knowledge.
 Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ under this plugin's knowledge/ directory, not the user's project.
 Use actual host tools and preserve host/project/user authority.

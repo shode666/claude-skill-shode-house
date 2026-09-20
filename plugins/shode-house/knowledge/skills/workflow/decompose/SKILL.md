@@ -1,9 +1,6 @@
 ---
 name: decompose
-description: |
-  [WHAT] Split agreed scope into verifiable outcome slices with owners, acceptance criteria and explicit dependencies in the confirmed project tracker.
-  [WHEN] หลัง spec/BRD นิ่ง (Phase 1a sign-off).
-  [TRIGGER] /shode-house:decompose, "แตกงาน", "แตก epic", "split", "ซอยงาน", "epic".
+description: Split an agreed, signed-off scope into small, independently verifiable outcome slices with owners, acceptance criteria and explicit dependencies. Not for work whose finished shape is still unclear, tasks already small, or a backlog already verified and ready.
 ---
 
 # Decompose (epic → leaf task ที่ลงมือได้)

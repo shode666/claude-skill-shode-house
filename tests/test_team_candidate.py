@@ -97,6 +97,26 @@ class TeamCandidateTest(unittest.TestCase):
                 self.assertTrue(target.startswith("knowledge/"), path)
                 self.assertEqual((ROOT / target[len("knowledge/"):]).read_bytes(), entries[target])
 
+    def test_skill_adapters_never_force_full_reads(self):
+        # SPEC 12/95: skill adapters are thin entry points. Role adapters keep
+        # the role + prerequisite read (fresh-context worker contract, ADR-4).
+        import re
+        eager = re.compile(r"\bin full\b|read (this|the) (skill|full)", re.I)
+        _, entries = pack.unified_payload()
+        skills = [p for p in entries if p.startswith("skills/") and p.endswith("/SKILL.md")]
+        self.assertGreaterEqual(len(skills), 20)
+        for path in skills:
+            body = entries[path].decode().split("---", 2)[2]
+            self.assertIsNone(eager.search(body), path)
+            self.assertIn("as the workflow entry point", body, path)
+            self.assertIn("under this plugin's knowledge/ directory", body, path)
+            self.assertIn("preserve host/project/user authority", body, path)
+        self.assertIsNone(eager.search(entries["commands/ask.md"].decode()))
+        self.assertIsNotNone(eager.search(entries["skills/ask/SKILL.md"].decode().replace(
+            "Use the referenced", "Read this skill in full. Use the referenced")))
+        for path in (p for p in entries if p.startswith("agents/")):
+            self.assertIn("including its declared prerequisite skills", entries[path].decode(), path)
+
     def test_reproducible_and_never_overwrites(self):
         with tempfile.TemporaryDirectory(prefix="shode-pack-test-") as first:
             with tempfile.TemporaryDirectory(prefix="shode-pack-test-") as second:

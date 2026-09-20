@@ -1,9 +1,6 @@
 ---
 name: ui-test
-description: |
-  [WHAT] E2E + visual regression + a11y (axe) + mobile/responsive UI automation — บังคับ stable selector (`data-testid`).
-  [WHEN] Phase 3a UI done.
-  [TRIGGER] /shode-house:ui-test, "test UI", "E2E", "Playwright", "Cypress", "visual regression".
+description: Automated browser-level end-to-end, visual regression and accessibility testing of a changed, rendered user interface, plus the UI quality rules every frontend change follows. Not for backend-only changes, unrendered designs, or site performance audits.
 ---
 
 # UI Test (E2E + Visual + a11y automation)
