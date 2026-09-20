@@ -989,6 +989,61 @@
       "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
       "verification": "ci:21 + test_root_safety_anchors + core-3.17 E10b/E11 static shape",
       "anchor": "Local/disposable target = R2 only with cited evidence that the target is local (DSN · compose · env file); environment unknown or unverified = R0."
+    },
+    {
+      "id": "stop-over-completion",
+      "rule": "Stop and return outranks completion: continue-until never overrides a Stop-and-return condition, R0/R1 protocol, approval gate or ownership boundary — stop, record, return to Oliver",
+      "owner": "ทุก producer",
+      "trigger": "ทุกงาน",
+      "preload": true,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "\"Continue until complete\" never overrides a Stop-and-return condition, an R0/R1 protocol, an approval gate or an ownership boundary: when one applies, stop, record what is missing and return to Oliver"
+    },
+    {
+      "id": "completion-stop-when",
+      "rule": "Completion contract stop-when list (Stop-and-return · unauthorized R0/R1 · approval gate/sha mismatch · third review iteration · UNKNOWN external result …)",
+      "owner": "ทุก producer",
+      "trigger": "ทุกงาน",
+      "preload": true,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Stop when: any Stop-and-return condition · unauthorized R0/R1 · approval gate or sha mismatch · third review iteration failed · external result UNKNOWN"
+    },
+    {
+      "id": "completion-no-widen",
+      "rule": "Completion ACTION half: report PARTIAL/BLOCKED; never widen scope, retry an external effect or skip a gate to finish",
+      "owner": "ทุก producer",
+      "trigger": "ทุกงาน",
+      "preload": true,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "report PARTIAL/BLOCKED; never widen scope, retry an external effect or skip a gate to finish"
+    },
+    {
+      "id": "affected-validation-floor",
+      "rule": "Affected validation is a floor: the seven broaden cases incl. security boundaries",
+      "owner": "ทุก producer + reviewer",
+      "trigger": "validation",
+      "preload": true,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Affected validation = floor, not ceiling: broaden for shared libraries · build tooling · public contracts · database schema · deployment configuration · security boundaries · cross-module behaviour"
+    },
+    {
+      "id": "affected-validation-required-suites",
+      "rule": "Never skip a suite that project acceptance/CI requires; dependency manifest/auth/crypto diff gets full security checks",
+      "owner": "ทุก producer + reviewer",
+      "trigger": "validation",
+      "preload": true,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "never skip a suite the project's acceptance/CI requires; dependency manifest/auth/crypto diff → full security checks"
     }
   ]
 }

@@ -41,7 +41,15 @@ REQUIRED = {
     "diagnose-stop-no-symptom", "diagnose-no-guess-root-cause", "ask-conditions",
     # Sentinel P5 real-diff gate F2/F3: R2 needs evidence-of-local; dev-gate stop ACTION half
     "r2-needs-local-evidence", "devgate-stop-list-and-return",
+    # 8ss.29 completion contract (Sentinel C29-1/C29-3/C29-5): precedence + stop-when + affected-validation floor
+    "stop-over-completion", "completion-stop-when", "completion-no-widen",
+    "affected-validation-floor", "affected-validation-required-suites",
 }
+DELIVERABLE_ROOT = "skills/discipline/shode-house-deliverable/SKILL.md"
+PRECEDENCE = ('**Stop and return outranks completion.** "Continue until complete" never overrides a Stop-and-return '
+              "condition, an R0/R1 protocol, an approval gate or an ownership boundary: when one applies, stop, record "
+              "what is missing and return to Oliver — a stopped task reported honestly is a correct outcome, not a "
+              "failure to complete.")
 # P5-C2: anchors that must sit INSIDE the root's "### Stop and return" (under "## Inputs and decision boundaries").
 STOP_AND_RETURN = {
     "skills/workflow/dev-gate/SKILL.md": (
@@ -177,6 +185,31 @@ class RootSafetyAnchorTest(unittest.TestCase):
         self.assertNotEqual(dg, m2)
         self.assertTrue(self._boundary_violations(m1))
         self.assertTrue(self._boundary_violations(m2))
+
+    def test_completion_contract_precedence_sits_above_continue_until(self):
+        text = (ROOT / DELIVERABLE_ROOT).read_text()
+        section = re.search(r"(?ms)^## Completion\n(.*?)(?=^## |\Z)", text).group(1)
+        self.assertEqual(1, text.count(PRECEDENCE), "precedence sentence must appear verbatim exactly once")
+        self.assertIn(PRECEDENCE, section)
+        order = [section.index(PRECEDENCE), section.index("Continue inside the authorized scope until"),
+                 section.index("Stop when:"), section.index("Affected validation = floor")]
+        self.assertEqual(sorted(order), order, "precedence > continue-until > stop-when > validation")
+        for case in ("shared libraries", "build tooling", "public contracts", "database schema",
+                     "deployment configuration", "security boundaries", "cross-module behaviour"):
+            self.assertIn(case, section)
+        self.assertNotRegex(section, r"(?i)skip (the )?full suite|affected only|only affected")
+        # owner-by-pointer, no copy (C29-1): the two callers cite the section and do not restate the sentence
+        for path in ("skills/workflow/dev-gate/SKILL.md", "commands/implement.md"):
+            caller = (ROOT / path).read_text()
+            self.assertRegex(caller, r"(?m)^## Completion$", path)
+            self.assertIn("`shode-house-deliverable` § Completion", caller)
+            self.assertNotIn("outranks completion", caller)
+        self.assertIn("Complete = no open § Stop and return condition", (ROOT / "skills/workflow/dev-gate/SKILL.md").read_text())
+        impl = (ROOT / "commands/implement.md").read_text()
+        self.assertIn("only Oliver closes, then reads back", impl)  # "no intervention" is not auto-close (C29-4)
+        for kept in ("pre-implement-ui", "Phase 3a", "Phase 3b", "M8 Close-on-Done Guard"):
+            self.assertIn(kept, impl)
+        self.assertGreaterEqual((ROOT / "commands/review.md").read_text().count("REVIEW DISPATCH CARD"), 1)
 
     def test_p5_reworded_lines_keep_their_stop_half(self):
         ui = (ROOT / "skills/ui/ui-test/SKILL.md").read_text()

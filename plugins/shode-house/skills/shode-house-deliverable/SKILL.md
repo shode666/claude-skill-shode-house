@@ -1,6 +1,6 @@
 ---
 name: shode-house-deliverable
-description: Output contract for anyone producing a deliverable, requiring a durable artifact, re-checkable evidence for every claim, no placeholders and no completion claim without real tool output. It defines what a finished handoff contains, not how work is routed or reviewed.
+description: Output and completion contract for anyone producing a deliverable - durable artifact, re-checkable evidence for every claim, no placeholders, no completion claim without real tool output. Not how work is routed or reviewed.
 ---
 
 Use the referenced skill [shode-house-deliverable](../../knowledge/skills/discipline/shode-house-deliverable/SKILL.md) as the workflow entry point. Follow only the branches that apply to the current task, and load additional references only when the root skill directs you to.

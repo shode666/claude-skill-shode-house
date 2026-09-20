@@ -3,9 +3,9 @@ name: secure
 description: Threat model and review a design or change that crosses a meaningful security boundary, such as authentication, authorization, secrets, cryptography, personal or payment data, untrusted input or public exposure. Not for a live incident or unrelated local refactors.
 ---
 
-# Secure (Sentinel discipline — STRIDE + threat-driven dev)
+# Secure (STRIDE + threat-driven dev)
 
-> **Owner**: Sentinel (sole). Co-pilot: Sara (architecture context), Felix/Iris (regulation), Aaron (deploy headers)
+> **Owner**: Sentinel (sole).
 
 ## 💉 Prompt Injection / Untrusted Content (7 agent ถือ WebFetch/WebSearch)
 
@@ -29,14 +29,20 @@ When NOT to use
 - **POC throwaway** — รอ MVP ก่อนค่อย threat model
 - **Incident ที่กำลังเกิด** — ใช้ `incident` skill (Sentinel จะถูกเรียกใน war room); secure skill = preventive ไม่ใช่ reactive
 
-## Required inputs — refuse without
+## Inputs and decision boundaries
 
-ก่อนเริ่ม threat model:
+ก่อนเริ่ม threat model — หาเองจาก repo ก่อน (architecture doc · compose/k8s/IaC · gateway config) แล้ว cite แหล่งต่อรายการ; asset/boundary class ที่หาไม่พบ (เช่น secret store, third-party) ต้องเขียน "not found in <sources>" ห้ามละไว้:
+
+- [ ] **Asset inventory** (service / DB / queue / cache / secret store — STRIDE บน asset ที่ไม่ระบุ = วน asset เรื่อย ๆ) — cannot derive → return to Oliver
+- When to ask → `shode-house-discipline` § Ask vs derive
+
+### Stop and return
+
+ไม่มีในหลักฐาน → list สิ่งที่ขาด ส่งกลับ Oliver ห้ามสมมติเอง:
 
 - [ ] **Architecture document ครบ** (Sara C4 Container ขึ้นไป; ห้าม STRIDE ลอย ๆ บน Whitebox)
 - [ ] **Data classification ระบุ** (PII / payment / health / business confidential — ต้องรู้ว่าอะไรปกป้อง)
-- [ ] **Trust boundary list** (อย่างน้อย: internet, app tier, data tier, third-party — boundary ผิด = threat ผิด)
-- [ ] **Asset inventory** (service / DB / queue / cache / secret store — STRIDE บน asset ที่ไม่ระบุ = วน asset เรื่อย ๆ)
+- [ ] **Trust boundary list** (อย่างน้อย: internet, app tier, data tier, third-party — boundary ผิด = threat ผิด) — list ที่ derive ต้องให้ Sara confirm ผ่าน Oliver ก่อน sign-off STRIDE
 - [ ] **Regulation scope confirmed** (PCI-DSS? GDPR/PDPA? HIPAA? BOT? — ดึง Felix/Iris ตาม domain)
 
 ## When NOT to use
@@ -69,7 +75,6 @@ When NOT to use
 ## Asset inventory
 - Asset 1: <user PII>; sensitivity: H; owner: Bella/Felix
 - Asset 2: <auth token>; sensitivity: H; owner: Sentinel
-- ...
 
 ## Trust boundary
 - Browser ↔ API gateway (untrusted → semi-trusted)
@@ -163,9 +168,6 @@ The chapter labels below follow ASVS 4.x and are illustrative checks, not a comp
 ```
 ✅ "[STRIDE: outputs/STRIDE-refund.md] 6 threats T1-6, 6 mitigations, 4 security AC injected"
 ✅ "[Semgrep: sast.json] critical=0 high=2 path:line"
-✅ "[Observatory: api.com] grade=A+, 115/100"
-✅ "[Pen test: outputs/pentest.md] ASVS L2, 0 critical, 1 medium (bd-99)"
-✅ "[gitleaks: scan-2026-05-25.json] 0 finding"
 ❌ "secure" (no evidence)
 ```
 
@@ -178,21 +180,12 @@ The chapter labels below follow ASVS 4.x and are illustrative checks, not a comp
 - ห้าม skip Phase 1c สำหรับ feature touching auth/PII/money
 - ห้าม approve security ที่ไม่ paste tool output (anti-puppet)
 
-## Handoff
-
-```
-Sentinel ▸ Dave   : security AC ready (bd-42, STRIDE done)
-Sentinel ▸ Aaron  : CSP enforce config (cf-headers update)
-Sentinel ▸ Reggie : new attack surface, runbook update needed
-Sentinel ▸ Felix  : PCI scope reduction via tokenization (joint review)
-```
-
 ## Skill composition (where to go next)
 
 | Situation | Next skill | Reason |
 |---|---|---|
-| STRIDE done → security AC ready for dev | → `dev-gate` | Dave implement security control with TDD; Chris verify (secure produces AC, dev-gate enforces TDD) |
-| Threat found → exploit in production | → `incident` | Reggie war room + Sentinel co-lead (secure = preventive; incident = reactive) |
-| Security headers / CSP / web-q overlap | → `web-q` | Uma + Aaron + Sentinel jointly own headers (web-q = measurement; secure = policy) |
+| STRIDE done → security AC ready for dev | → `dev-gate` | Dave implement security control with TDD; Chris verify |
+| Threat found → exploit in production | → `incident` | Reggie war room + Sentinel co-lead |
+| Security headers / CSP / web-q overlap | → `web-q` | Uma + Aaron + Sentinel jointly own headers |
 | Test gap แสดงว่า security control ไม่มี test | → `automate-test` + `ui-test` | Add abuse-case test + a11y/CSP smoke in CI |
-| Pen test finding ต้อง fix | → `diagnose` → `dev-gate` | RCA + TDD-driven fix (secure ไม่ implement)
+| Pen test finding ต้อง fix | → `diagnose` → `dev-gate` | RCA + TDD-driven fix

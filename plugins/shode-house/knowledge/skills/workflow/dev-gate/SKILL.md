@@ -8,7 +8,7 @@ description: Apply test-first development and quality gates during implementatio
 > **Owner**: Dave (implement) + Chris (verify). เปิด skill นี้ตอนเขียน production code
 
 Purpose: implement, fix or refactor production code test-first and hand it off with quality-gate
-evidence. This root is sufficient on its own; references add depth for one branch only.
+evidence.
 
 ## Always
 
@@ -23,11 +23,21 @@ evidence. This root is sufficient on its own; references add depth for one branc
 - **Pure config change** (yaml/json/env tweak) — review + smoke test พอ ไม่ต้อง TDD
 - **Production hot-fix P0/P1** — ใช้ `incident` skill ก่อน; dev-gate ตามมาตอน follow-up fix
 
-## Required inputs — refuse without
+## Inputs and decision boundaries
 
-ก่อน hand-off Phase 2 → 3, confirm ทุก checklist. ถ้าขาด **list สิ่งที่ขาด แล้วหยุด** — ห้าม claim "done":
+Derive first + cite: acceptance + design decisions → task record + linked spec/ADR · gate commands/thresholds → project config (Makefile · package scripts · CI). Not found → return the question to Oliver; never guess, never ask the user directly.
+When to ask → `shode-house-discipline` § Ask vs derive
+
+### Stop and return
+
+ขาดข้อใด → **list สิ่งที่ขาด แล้วหยุด** ส่งกลับ Oliver:
 
 - [ ] Approved acceptance + affected design decisions, linked from the task record; bounded work needs no new BRD/ADR ceremony.
+- Required check รันไม่ได้ → BLOCKED ส่งกลับ Oliver; ห้าม install dependency เองโดยไม่มี authority
+- จะ suppress security warning → Sentinel ก่อน (§ ห้าม)
+
+### Hand-off evidence (Phase 2 → 3) — ขาดข้อใด = ยังไม่ done, ห้าม claim "done"
+
 - [ ] **Test runs locally** (red phase): ทุก new behavior มี failing test ก่อน implement
 - [ ] Required acceptance tests pass; tracked quarantine does not satisfy a missing required test or authorize skipping it.
 - [ ] **Quality gate ผ่านครบ 11** (Gate 0-10, ดู Part 2): YAGNI · format · lint · type · complexity ≤10 · naming · test · coverage ≥ threshold · doc/comment "why" · security · observability
@@ -56,11 +66,11 @@ YAGNI/compression ตัดได้เฉพาะ "ความซับซ้
 
 | Situation | Load / use | Reason |
 |---|---|---|
-| New behaviour or bug-fix regression test | → [tdd.md](tdd.md) before writing the first test | seams to confirm, worked example, TDD scope, 3 test anti-patterns |
-| Refactor (behaviour unchanged) | stay in this root: § 3 Refactor + § ห้าม; add [quality-gates.md](quality-gates.md) when a module/interface is reshaped | tests stay green; no new behaviour in the same commit |
-| Quality validation: a gate fails, its criterion is unclear, a new module/interface/abstraction appears, a suppression/skip/shortcut is considered, or Chris verifies gates | → [quality-gates.md](quality-gates.md) before hand-off | Gate 0 checklist + self-check format, Gate 1–10 detail, smells, pre-push sequence |
+| New behaviour or bug-fix regression test | → [tdd.md](tdd.md) before writing the first test | seams, worked example, test anti-patterns |
+| Refactor (behaviour unchanged) | stay in this root: § 3 Refactor + § ห้าม; add [quality-gates.md](quality-gates.md) when a module/interface is reshaped | tests stay green |
+| Quality validation: a gate fails, its criterion is unclear, a new module/interface/abstraction appears, a suppression/skip/shortcut is considered, or Chris verifies gates | → [quality-gates.md](quality-gates.md) before hand-off | gate detail, smells, pre-push sequence |
 | Touch security control (auth/crypto/PII) | → `secure` | Sentinel threat model + abuse case (dev-gate ไม่ classify threat) |
-| Language-specific conventions | → only the active language's file `references/languages/<lang>.md` | detail lives there and is never copied here; do not load other languages |
+| Language-specific conventions | → only the active language's file `references/languages/<lang>.md` | — |
 
 Dave/Chris: reuse the project's verified gate commands. When a gate lacks a known
 command or tooling is being configured, read [tool-matrix.md](tool-matrix.md) before
@@ -110,7 +120,7 @@ configured production checks with `--no-verify`.
 
 ## Part 2: Quality Gates (🔴 11 gates — รัน local + pre-commit + CI)
 
-Every gate applies to every hand-off; this table is the pass criterion. Detail per gate → [quality-gates.md](quality-gates.md) (routing above).
+Every gate applies to every hand-off; this table is the pass criterion.
 
 | # | Gate | Read/Write | ตรวจอะไร | บล็อก hand-off ถ้า fail |
 |---|---|---|---|---|
@@ -128,18 +138,9 @@ Every gate applies to every hand-off; this table is the pass criterion. Detail p
 
 ---
 
-## Hand-off + completion boundary
+## Completion
 
-```
-Dave  ▸ Chris   : impl + smoke (dev-gate passed)
-Chris ▸ Quinn   : 7-dim + unit quality vs adopted targets
-```
-
-Complete = every item of § Required inputs confirmed with pasted evidence, and validation covers the
-affected behaviour (broaden it when the change touches shared libraries, build tooling, public
-contracts, database schema, deployment configuration or security boundaries). Review of the hand-off is not dev-gate's job → `review-checklist`.
-
----
+Complete = no open § Stop and return condition, every § Hand-off evidence item pasted, and `shode-house-deliverable` § Completion (continue-until · stop-when · affected validation = floor + broaden cases) met.
 
 ## ห้าม
 
@@ -160,7 +161,7 @@ contracts, database schema, deployment configuration or security boundaries). Re
 
 | Situation | Next skill | Reason |
 |---|---|---|
-| Test pass แต่ยังไม่มี CI gate | → `automate-test` | Pyramid ratio + CI threshold + contract test (dev-gate = per-task; automate-test = project-wide) |
-| Code touches frontend | → `ui-test` | E2E + visual + a11y automation (dev-gate ไม่ครอบ visual) |
+| Test pass แต่ยังไม่มี CI gate | → `automate-test` | Pyramid ratio + CI threshold + contract test |
+| Code touches frontend | → `ui-test` | E2E + visual + a11y automation |
 | Frontend public-facing (perf/SEO/security) | → `web-q` | CWV + Lighthouse + security headers budget |
-| Hand-off Phase 2 → 3b review | → `review-checklist` skill | Chris 7-dim + Quinn integration matrix (used by /implement Phase 3b + /review)
+| Hand-off Phase 2 → 3b review | → `review-checklist` skill | Chris 7-dim + Quinn integration matrix

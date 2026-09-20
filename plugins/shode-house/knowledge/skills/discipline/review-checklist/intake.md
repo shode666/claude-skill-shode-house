@@ -12,7 +12,7 @@ REQUIRED-BEFORE: review_start
 
 # Review intake
 
-## Required inputs — refuse without
+## Inputs and decision boundaries
 
 - [ ] **Review scope verified** — caller (Oliver/`/review`) ส่ง fixed point + working diff command สำหรับ diff review หรือ accessible full-file/snippet scope สำหรับ non-git review ไม่ให้ reviewer เดาเอง
       วิธี resolve = `commands/review.md` § Scope resolution; ตรวจ ref/diff เมื่อใช้ diff และตรวจ completeness ของ supplied content เมื่อเป็น full-content review

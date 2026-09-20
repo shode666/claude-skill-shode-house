@@ -138,11 +138,9 @@ Every gate applies to every hand-off; this table is the pass criterion.
 
 ---
 
-## Hand-off + completion boundary
+## Completion
 
-Complete = no open § Stop and return condition, every § Hand-off evidence item pasted, and validation covers the
-affected behaviour (broaden it when the change touches shared libraries, build tooling, public
-contracts, database schema, deployment configuration or security boundaries).
+Complete = no open § Stop and return condition, every § Hand-off evidence item pasted, and `shode-house-deliverable` § Completion (continue-until · stop-when · affected validation = floor + broaden cases) met.
 
 ## ห้าม
 

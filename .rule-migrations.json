@@ -364,6 +364,51 @@
         "Manual: keyboard navigation (tab order = visual order)"
       ],
       "reason": "P5 byte payment for CH-1: restated § a11y coverage and § a11y Coverage, which keep the rule."
+    },
+    {
+      "source": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "old_fragment": "`outputs/<id>/<NN>-<agent>-<phase>.md` is an example, not a required parallel store; chat alone is not durable handoff evidence.",
+      "replacement": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "requires": [
+        "use the confirmed evidence home and canonical task ID, including Markdown; chat alone is not durable handoff evidence."
+      ],
+      "reason": "8ss.29 byte payment for § Completion: the rule (confirmed evidence home, chat is not durable) stays; only the example path was dropped — the discipline root still shows `outputs/<bd-id>/<file>` and forbids a parallel tracker."
+    },
+    {
+      "source": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "old_fragment": "producer ตอนไม่แน่ใจ scope ของตัวเอง",
+      "replacement": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "requires": [
+        "standard output + \"I Never Do\" per agent → `output-contract.md`"
+      ],
+      "reason": "8ss.29 byte payment: reference table became a list; the load trigger for output-contract.md is kept, the 'who' column was descriptive."
+    },
+    {
+      "source": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "old_fragment": "ตัวอย่าง evidence ที่นับ/ไม่นับ",
+      "replacement": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "requires": [
+        "evidence examples → `anti-puppet.md`"
+      ],
+      "reason": "8ss.29 byte payment: same load trigger, shorter wording."
+    },
+    {
+      "source": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "old_fragment": "**ย้ายออกจาก skill นี้แล้ว**: AI Persona Disclaimer + citation contract → `domain-core` (domain expert preload ตัวนั้นแทน)",
+      "replacement": "skills/discipline/shode-house-deliverable/SKILL.md",
+      "requires": [
+        "## Completion"
+      ],
+      "reason": "8ss.29 byte payment: history note about content moved out in v3.13 (no rule); domain-core and incident own that content and are reached through their own preload/routing."
+    },
+    {
+      "source": "skills/workflow/dev-gate/SKILL.md",
+      "old_fragment": "Complete = every item of § Required inputs confirmed with pasted evidence, and validation covers the",
+      "replacement": "skills/workflow/dev-gate/SKILL.md",
+      "requires": [
+        "Complete = no open § Stop and return condition, every § Hand-off evidence item pasted, and `shode-house-deliverable` § Completion"
+      ],
+      "reason": "8ss.28/29: completion boundary now names the Stop-and-return precedence and points at the canonical completion contract (broaden cases live there, anchored affected-validation-floor)."
     }
   ]
 }

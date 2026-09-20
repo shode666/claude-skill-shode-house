@@ -12,15 +12,20 @@ description: Coordinate independent review of an implemented change by code, run
 See `intake.md` for content/generated/spike review. Agent instructions and permissions
 are not mere docs; urgency alone never waives required review or security gates.
 
-## Required inputs — refuse without
+## Inputs and decision boundaries
 
-diff scope ที่ pin แล้ว · spec source (ไม่มี = รายงาน "no spec available" ห้าม pass เงียบ) · static analysis tool · tracker · severity scale → checklist เต็ม `intake.md`
+spec source · configured checks · evidence home · severity scale → หาเองจาก repo/task record (ลำดับ + default → `intake.md`); not found → return to Oliver; when to ask → `shode-house-discipline` § Ask vs derive
+
+### Stop and return
+
+- diff scope ยังไม่ pin (fixed point หรือ supplied content ไม่ครบ) → ส่งกลับ Oliver — reviewer ไม่เดา scope เอง
+- spec source ไม่มี = รายงาน "no spec available" ห้าม pass เงียบ
 
 ## แกนของการ review — ใครทำอะไร
 
-- **Standards** (code ถูกหลักไหม) — Chris → `agents/code-reviewer.md` § 7 มิติ; Correctness = internal behavior/invariant/error-path เท่านั้น
-- **Standards / runtime** (พฤติกรรมตอนรัน) — Quinn → `agents/qa-engineer.md` § ขอบเขต (integration/E2E/contract/load/a11y/pen)
-- **Spec** (code ตรงกับ spec ไหม) — Bella → `spec-axis.md`
+- **Standards** — Chris → `agents/code-reviewer.md` § 7 มิติ; Correctness = internal behavior/invariant/error-path เท่านั้น
+- **Standards / runtime** — Quinn → `agents/qa-engineer.md` § ขอบเขต (integration/E2E/contract/load/a11y/pen)
+- **Spec** — Bella → `spec-axis.md`
 - **Security depth** (cond.) — Sentinel → `security-sentinel.md` + `secure` skill
 - **Domain** (cond.) — domain expert → `domain-validation.md`
 
@@ -40,27 +45,25 @@ diff scope ที่ pin แล้ว · spec source (ไม่มี = รา�
 
 ## 🔴 Gate ที่ทุกแกนต้องผ่าน
 
-1. **Adversary stance** — verify independently: demonstrated defect = FAIL; missing required evidence = BLOCKED/PARTIAL, never PASS. Counter "should be fine" with actual evidence, not assumed failure (→ `shode-house-routing`).
+1. **Adversary stance** — verify independently: demonstrated defect = FAIL; missing required evidence = BLOCKED/PARTIAL, never PASS. Counter "should be fine" with actual evidence, not assumed failure.
 2. **Anti-Puppet** — ห้าม claim PASS โดยไม่ paste tool output (axe / coverage / Semgrep / Pact) · ห้าม "looks good" ต้อง cite `file:line` · ห้าม skip แกนที่ harness tier/trigger กำหนดเพียงเพราะงานเล็ก
 3. **Visual verify** — UI changes require actual screenshot/interaction, console and network evidence per `ui-test`. Backend-only API/CLI/library work uses response, behavior and relevant integration evidence, not screenshots. Missing applicable evidence = **BLOCKED**; browser MCP is not required.
-4. **Finding ทุกข้อ** ระบุ `file:line` + severity + วิธีแก้ และ track ใน tracker ไม่ใช่ค้างในแชท (`report-format.md`)
+4. **Finding ทุกข้อ** ระบุ `file:line` + severity + วิธีแก้ และ track ใน tracker ไม่ใช่ค้างในแชท
 5. **Scope is pinned; severity follows impact.** Blockers need violated AC/invariant/security criteria or a demonstrated defect, including unchanged code newly exposed by this change. Unrelated findings retain severity but require separate repair authority. Hypothetical unsupported inputs alone do not justify new iterations.
 6. **money/PII/auth** → Domain Expert + Sentinel ลงชื่อก่อน merge
 7. **Fixed point** — review scope = `git diff <base>...HEAD` (three-dot = merge-base), pin ก่อน fan-out
 8. **Reviewer independence** — no agent approves its own primary deliverable
 
-## 🛑 Stop condition (🔴 objective-based — ไม่ใช่ turn cap)
+## 🛑 Stop condition (🔴 objective-based)
 
 Return when scoped axes are complete, the report is in the confirmed evidence home
-per `report-format.md`, and no blocking question remains. Do not require Beads.
+per `report-format.md`, and no blocking question remains.
 ห้ามวน re-read/re-run "เพื่อความมั่นใจ" — depth = checklist ครบ ไม่ใช่จำนวน turn; ยังไม่ครบ → ทำเฉพาะแกนที่ขาด
 
-## 📎 Reference (lazy-load)
+## 📎 Reference
 
-- รับงานครั้งแรก (scope/spec ยังไม่ครบ) → `intake.md`
+- รับงานครั้งแรก → `intake.md`
 - จะเขียน report / route loop → `report-format.md`
 - ตรวจแกน Spec → `spec-axis.md`
 - diff แตะ auth/money/PII/crypto → `security-sentinel.md`
 - diff แตะ business rule / regulation → `domain-validation.md`
-
-Used by `implement.md` 3b · `review.md`

@@ -1,37 +1,35 @@
 ---
 name: shode-house-deliverable
-description: Output contract for anyone producing a deliverable, requiring a durable artifact, re-checkable evidence for every claim, no placeholders and no completion claim without real tool output. It defines what a finished handoff contains, not how work is routed or reviewed.
+description: Output and completion contract for anyone producing a deliverable - durable artifact, re-checkable evidence for every claim, no placeholders, no completion claim without real tool output. Not how work is routed or reviewed.
 ---
 
-# shode-house — Deliverable Core
+# Deliverable Core
 
-> ทุก "done" ต้อง **verifiable** (paste evidence จริง). ทุก deliverable ผ่าน Anti-Puppet gate
+## Output contract (🔴)
 
-## 📤 Output contract (🔴 บังคับ)
-
-1. **Durable output** — use the confirmed evidence home and canonical task ID, including Markdown. `outputs/<id>/<NN>-<agent>-<phase>.md` is an example, not a required parallel store; chat alone is not durable handoff evidence.
+1. **Durable output** — use the confirmed evidence home and canonical task ID, including Markdown; chat alone is not durable handoff evidence.
 2. **Evidence path** — ทุก claim แนบ path/command/output ที่ตรวจซ้ำได้; claim ที่ไม่มี evidence = ยังไม่ทำ
 3. **No placeholder** — ห้ามส่งงานที่มี `TBD` / `<fill this>` / example data ปลอม โดยไม่ mark เป็น **OPEN QUESTION** พร้อมชื่อคนตอบ
 4. **No false done** — ทำไม่ได้ = พูดว่าทำไม่ได้ + เหตุผล (`PARTIAL` / `BLOCKED`) ห้าม claim PASS
-5. **Return = verdict + artifact path + open questions** ไม่ dump transcript
 
-## 🚫 Anti-Puppet Rule (🔴 Philosophy 2 enforcement — preload)
+## 🚫 Anti-Puppet Rule (🔴)
 
 ห้าม claim "เสร็จ / ผ่าน / deploy แล้ว / ปิด bd แล้ว" **โดยไม่ paste output ของ tool ที่รันจริง**
-รูปแบบที่นับเป็น evidence: console output · HTTP response · screenshot/trace path · `docker compose ps` · task read-back ที่แสดง CLOSED
-ห้าม claim project fact จาก real-world knowledge โดยไม่ verify ใน repo นี้ (NO MAGIC)
+รูปแบบที่นับเป็น evidence: console output · HTTP response · screenshot/trace path · task read-back ที่แสดง CLOSED
 ทำไม่ได้ → `"❌ ไม่ได้รัน เพราะ <reason>"` ตรงไปตรงมา ห้ามแกล้งผ่าน
 
-ตัวอย่าง ❌/✅ เต็ม + Anti-Real-World-Guess → `anti-puppet.md`
+## Completion
 
-## 📎 Reference (lazy-load — โหลดตาม deliverable type)
+**Stop and return outranks completion.** "Continue until complete" never overrides a Stop-and-return condition, an R0/R1 protocol, an approval gate or an ownership boundary: when one applies, stop, record what is missing and return to Oliver — a stopped task reported honestly is a correct outcome, not a failure to complete.
 
-| Deliverable / จังหวะ | โหลด | ใคร |
-|---|---|---|
-| ก่อนปิด bd / phase exit | `definition-of-done.md` | Oliver (enforce) + producer |
-| standard output + "I Never Do" ต่อ agent | `output-contract.md` | producer ตอนไม่แน่ใจ scope ของตัวเอง |
-| สร้าง/แก้ ADR | `adr.md` | Sara |
-| UI/a11y claim · Phase 1b, 3a | `ux-evidence.md` | Uma + frontend agent |
-| ตัวอย่าง evidence ที่นับ/ไม่นับ | `anti-puppet.md` | ทุก producer |
+Continue inside the authorized scope until: behaviour implemented · affected validation passes · failures you introduced fixed · applicable acceptance checked · changed files + evidence reported — not just the first plausible version.
+Stop when: any Stop-and-return condition · unauthorized R0/R1 · approval gate or sha mismatch · third review iteration failed · external result UNKNOWN · required access unavailable · genuine ambiguity · product/business/legal decision · out of scope → report PARTIAL/BLOCKED; never widen scope, retry an external effect or skip a gate to finish.
+Affected validation = floor, not ceiling: broaden for shared libraries · build tooling · public contracts · database schema · deployment configuration · security boundaries · cross-module behaviour; never skip a suite the project's acceptance/CI requires; dependency manifest/auth/crypto diff → full security checks.
 
-**ย้ายออกจาก skill นี้แล้ว**: AI Persona Disclaimer + citation contract → `domain-core` (domain expert preload ตัวนั้นแทน) · Postmortem Template → `incident` skill
+## 📎 Reference
+
+- closing a task / phase exit → `definition-of-done.md`
+- standard output + "I Never Do" per agent → `output-contract.md`
+- ADR → `adr.md`
+- UI/a11y claim (Phase 1b, 3a) → `ux-evidence.md`
+- evidence examples → `anti-puppet.md`

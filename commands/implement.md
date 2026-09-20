@@ -11,6 +11,11 @@ The full pipeline below applies when that tier requires it; retain triggered exp
 and their knowledge. Reuse approved design and implementation authority. Beads,
 shell and UI-tool examples are not prerequisites or permission to commit/deploy.
 
+## Completion
+
+Implement the authorized scope; continue until the changed behaviour is implemented and affected validation passes. Resolve ordinary implementation details from repository evidence; ask only per `shode-house-discipline` § Ask vs derive;
+continue-until · stop-when · validation scope → `shode-house-deliverable` § Completion; finishing without intervention is not closing: only Oliver closes, then reads back (Rule 10).
+
 ## Pipeline (Phase 2 → 3a → 3b → 4)
 
 ### 0. UI Precondition Check (Oliver — 🔴 auto-trigger)
@@ -48,8 +53,6 @@ this task using its recorded scope; do not count unrelated user edits as Dave's 
 ### 1. Context (Dave)
 
 - Read the task in the confirmed tracker + `outputs/SPEC-<bd-id>.md`
-- Identify section relevant (BRD section + ADR section + Uma's AC + Domain rule)
-- Read convention code existing (`Glob` + `Grep` similar pattern)
 - ปรึกษา Sara/Bella/Domain ถ้า spec ไม่ชัด — กลับ Phase 1a/1b
 
 ### 2. Plan (Dave present)
@@ -63,10 +66,7 @@ this task using its recorded scope; do not count unrelated user edits as Dave's 
 ### 3. Implement (Dave — Phase 2)
 
 - Follow project convention + Uma's wireframe + design tokens (ห้าม hardcode)
-- Type-safe, error handling, structured logging
 - Money → Decimal/integer (ห้าม float)
-- Feature flag (ถ้า risky)
-- Observability: log + metric (RED) + trace
 - Parallel Dave#1/#2 ถ้า truly independent files (Scope Contract enforce no overlap)
 - Commit only when authorized; if committing, use Conventional Commits + task ref (`feat(...): ... [bd:42]`). Otherwise record the source revision and uncommitted diff/artifact evidence.
 

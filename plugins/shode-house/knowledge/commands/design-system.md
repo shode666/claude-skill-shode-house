@@ -20,8 +20,7 @@ ARGS=$(echo "$ARGUMENTS" | sed -E 's/--stop|--estimate//g' | xargs)
 [[ "$ARGUMENTS" == *--stop* ]] && STOP=true
 [[ "$ARGUMENTS" == *--estimate* ]] && ESTIMATE=true
 
-# Sanity: --stop มักไปคู่กับ --estimate (proposal mode ต้องการ effort number)
-# ถ้า --stop ไม่มี --estimate → ถาม user 1 ครั้ง: "proposal mode ต้องการ estimation ด้วยมั้ย?"
+# `--stop` without `--estimate` → no estimation (No Man-Day default); say in the summary that `--estimate` adds it — do not ask
 ```
 
 | Flag combo | Mode | Use case |
