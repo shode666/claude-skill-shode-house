@@ -7,6 +7,27 @@ description: Decide who owns a request, covering type of work, responsible role,
 
 > Oliver = workflow/process owner. Stan (Staff) = cross-team tech depth. Sara (SA) = per-project tech decision
 
+Goal: every request gets exactly one accountable owner before work starts. Answer four questions, in order:
+
+1. **What type of work is this?** → § T-shirt + RACI phase row
+2. **Who owns it?** → § Single-owner capability matrix (not the sole owner = reroute, never absorb)
+3. **Is a domain specialist required?** → § Routing (a domain-rule decision is needed, not domain vocabulary)
+4. **Can it run in parallel?** → § Parallel vs Sequential (sequential unless all conditions hold)
+
+Owners disagree → § Conflict Resolution; undecidable → escalate to the user with the trade-off.
+
+## When NOT to use
+
+- Phase order, gates, approvals → `shode-house-workflow`
+- How a handoff is recorded → `../shode-house-discipline/handoff.md`
+- Safety tier (R0/R1/R2), evidence, scope conduct → `shode-house-discipline`
+- Routing never grants approval, waives a triggered expert or widens scope.
+
+## 📚 References (lazy)
+
+- Load `ownership.md` when adding/removing/renaming an agent, resolving a persona name to its agent file or team, or answering a question about team composition. Ordinary owner selection needs only this root.
+- Load `orchestration.md` before staggering a pipeline, running several tasks in one long run, or settling a reviewer-vs-producer dispute.
+
 ---
 ## 🔐 Input Trust Levels (🔴 FS-inspired)
 
@@ -29,17 +50,6 @@ description: Decide who owns a request, covering type of work, responsible role,
 
 ---
 
-## 👥 ทีม (19 agents = 12 core + 7 domain)
-
-> **Model**: inherit host/session settings by default. Agent frontmatter is a host-specific preference, not a portable model ID or permission to override the user's selection. Strategy + fallback: README § Model Strategy
-
-- **Core (12)**: Oliver (orchestrate) · Stan (staff) · Patrick (PM) · Bella (BA) · Sara (SA) · Uma (UX/UI) · Dave (dev, parallel #N) · Chris (CR) · Quinn (QA) · Sentinel (security) · Aaron (DevOps) · Reggie (SRE)
-- **Domain (7, pluggable)**: Felix (fintech) · Elena (ERP) · Sam (SAP) · Tara (trading) · Iris (insurance) · Brooke (booking) · Emma (e-commerce)
-
-> Add agent: drop `agents/<name>.md` + update routing table — done
-
----
-
 ## 💯 Universal Quality
 
 1. Right answer > first answer (ห้าม "พอใช้ได้")
@@ -55,6 +65,8 @@ description: Decide who owns a request, covering type of work, responsible role,
 ## 🧭 Routing
 
 ### Domain Selection
+
+Trigger = the change needs a **domain-rule decision** (regulation, compliance, ledger/settlement semantics, policy/claim rule, pricing/yield rule). Domain vocabulary alone (a variable named `payment`, a label, a rename) does not pull a specialist. Unsure whether a domain rule is decided → route to the specialist.
 ```
 เงิน/ชำระ/ธนาคาร/PromptPay/KYC → Felix
 บัญชี/stock/payroll/MRP generic → Elena
@@ -98,11 +110,13 @@ Relative scale (no time anchor):
 - **S** = single-file scope
 - **M** = multi-file scope, single concern
 - **L** = cross-module scope, multiple concerns
-- **XL** = cross-service / cross-domain → **split into smaller tasks with `decompose`** in the confirmed tracker (including Markdown); preserve tracer bullets, blocking dependencies and create-then-wire ordering. `bd` examples below apply only to Beads projects; other trackers keep their native IDs and operations.
+- **XL** = cross-service / cross-domain → **split into smaller tasks with `decompose`** in the confirmed tracker (including Markdown); preserve tracer bullets, blocking dependencies and create-then-wire ordering. `bd` examples in `orchestration.md` apply only to Beads projects; other trackers keep their native IDs and operations.
 
 ---
 
 ## ⚖️ Parallel vs Sequential
+
+Default = sequential. Parallel only when **all** hold: tasks are independent · file/state ownership is disjoint · expected benefit > coordination cost. One condition unknown → sequential.
 
 เลือก parallel จาก dependency, host capability และต้นทุน context จริง ไม่ใช่จำนวนบรรทัดหรือ multiplier ที่ไม่ได้วัด
 
@@ -111,55 +125,10 @@ Producer/consumer ที่ต้องใช้ผลกันหรือเ�
 > Implementation: Worktree Isolation (ดู Workflow Discipline)
 > ห้ามใช้ "deadline matter" เป็น reason parallel — agent ไม่มี deadline ของตัวเอง (per `shode-house-discipline/main-session.md` § No Man-Day)
 
-### Pipeline parallel (cross-bd staggered — producer/consumer)
-
-intra-bd มี parallel แล้ว (Dave#N, Chris∥Quinn). **cross-phase pipeline** (เช่น Sara detail-design chunk 1 → Dave build chunk 1 **พร้อม** Sara design chunk 2) ทำผ่าน **chunk-bd decomposition**:
-
-```
-bd-1: Sara design ▸ Dave build ─────────
-bd-2:        Sara design ▸ Dave build ───   ← Sara เลื่อนไป design bd-2 ตอน Dave build bd-1
-bd-3:               Sara design ▸ Dave ───
-```
-
-- แตก feature เป็น chunk-bd ที่ **interface ชัด** (Sara กำหนด contract ระหว่าง chunk ก่อน) → downstream chunk ไม่ block จนกว่า interface เปลี่ยน
-- Oliver schedule แบบ stagger: bd-N เข้า Phase 2 ขณะ bd-(N+1) อยู่ Phase 1 — **owner คนละ stage ไม่ชนกัน** (Sara=design stage, Dave=build stage)
-- ห้าม pipeline ถ้า chunk มี hard data-dep (bd-2 ต้องใช้ผล bd-1) → sequential
-- WIP cap: ไม่เกิน 2-3 bd in-flight ต่อ stage (กัน Sara/Dave context bloat + rework ตอน interface เปลี่ยน)
-
-## 🔁 Multi-bd Long-run Orchestration (🔴 wire harness contract)
-
-long run = หลาย bd ต่อเนื่อง. enforce ด้วย harness contract (ดู `/init` rule 11 + Oliver Harness Contract Check):
-
-- **Checkpoint** = confirmed canonical record ตาม `shode-house-workflow/harness.md`; resume จาก phase/owner/evidence จริง ไม่สร้าง store ที่สอง
-- **Fan-out cap** = WIP limit ต่อ stage (default 2-3); ห้าม spawn bd พร้อมกันเกิน cap (token spike + Oliver context bloat)
-- **Retry/backoff** = bd fail → iter++ (max 3, per Phase 4) → escalate; ไม่ retry เงียบ
-- **Reduce** = อ่าน current checkpoint และงานที่พร้อม ไม่ดึงประวัติทุก task เข้า context
-- หากต้องการ runtime enforcement เพิ่ม → Aaron เสนอ runner เป็น project opt-in; สร้าง/ติดตั้งเมื่อได้รับอนุญาตเท่านั้น ไม่ใช่ prerequisite ของ long run และไม่ ship ใน plugin
+- **Model selection**: keep host/session defaults unless an authorized override is available. Choose by task judgment and measured quality/cost, not model prestige; never translate model aliases between hosts or downgrade a required expert to save tokens. Mechanical summaries can use a cheaper model only when authorized, without replacing expert ownership or verification.
 
 ---
 
-## 🔧 Token-saving (🔴 runtime)
-
-- **Model selection**: keep host/session defaults unless an authorized override is available. Choose by task judgment and measured quality/cost, not model prestige; never translate model aliases between hosts or downgrade a required expert to save tokens. Mechanical summaries can use a cheaper model only when authorized, without replacing expert ownership or verification.
-- **Lazy-load**: Dave อ่าน `references/languages/<lang>.md` เฉพาะภาษาที่ใช้; skill โหลดเมื่อ trigger เท่านั้น
-- **Confirmed source of truth**: status/spec/evidence ใช้ home ที่ project เลือก รวม Markdown; เก็บ links แทนสำเนาซ้ำ
-- **Caveman broadcast**: 1 บรรทัดต่อ handoff; รายละเอียดอยู่ใน confirmed evidence home พร้อม canonical task ID
-
-## 👥 Team Structure
-
-7 teams ที่ทำงาน **parallel ภายในทีม + sequential ระหว่างทีม** (cross-team handoff = phase gate)
-
-| Team (short) | Agents | Phase ที่ active | Deliverable |
-|--------------|--------|------------------|-------------|
-| 🧭 **Lead** | Oliver + Stan | ทุก phase (orchestrate) | Workflow state + tech depth |
-| 🔍 **Discover** | Patrick + Domain SME | Phase 0 | OKR + opportunity + domain validation |
-| 📐 **Design** | Bella + Sara + Uma | Phase 1a/1b/3a | Spec + Architecture + UI artifacts |
-| 🎓 **Domain** | Felix/Elena/Sam/Tara/Iris/Brooke/Emma | Phase 0/1b/3b (pluggable) | Regulation cite + business rule |
-| 🛠 **Dev** | Dave (parallel Dave#N) | Phase 2 | Production code (data/ML = Dave interim จนกว่ามี dedicated agent) |
-| ✅ **Verify** | Chris + Quinn + Sentinel | Phase 3b | Code review + Test + Security |
-| 🚀 **Ops** | Aaron + Reggie | Phase 5/6 | Deploy + SLO + Incident |
-
-> Dropped Eval team (Evan agent over-engineer for current scale). Bias discipline embedded in each agent prompt (ไม่มี § No-Bias ใน discipline; อย่าอ้างถึง). Eval harness kept in `skills/in-progress/` for future major-release regression (maintainer offline use).
 
 ### Single-owner capability matrix (🔴 zero overlap)
 
@@ -183,7 +152,7 @@ long run = หลาย bd ต่อเนื่อง. enforce ด้วย har
 | API docs / Developer portal / Release notes | **Bella** (interim) | — (สร้าง Tex agent เมื่อ project ต้องการ docs portal เต็มรูป) |
 
 > Rule: ทุก agent ก่อน accept งานต้องประกาศ "ผมรับ capability X" — ถ้าไม่ใช่ sole owner = reroute
-> Interim owner = ไม่มี dedicated agent ตอนนี้ (YAGNI); สร้างเมื่อ project ต้องการจริง (ดู "Add agent" ด้านบน) — ไม่ใช่ phantom sole-owner
+> Interim owner = ไม่มี dedicated agent ตอนนี้ (YAGNI); สร้างเมื่อ project ต้องการจริง (ดู `ownership.md` § Add agent) — ไม่ใช่ phantom sole-owner
 
 ---
 
@@ -216,14 +185,16 @@ how the handoff is recorded.
 
 > Phase 7 (Sprint Learn) removed — per-bd reflect happens in Phase 4 Triage; continuous OKR review (Patrick) without bracket.
 
-### Adversarial relation: Chris/Quinn vs Dave (🔴 embedded discipline)
-
-| Question | Answer | Why |
-|---|---|---|
-| Chris/Quinn trust Dave's claim "test ผ่าน"? | ❌ ห้าม — Zero trust; ต้อง run + paste evidence เอง | Anti-Puppet (per discipline + review-checklist) |
-| Chris/Quinn verdict default? | ❌ FAIL until proven PASS with paste-output evidence | Pessimistic mindset → catch hidden bugs |
-| Dave push back ด้วย "should be fine"? | ❌ Chris/Quinn ห้าม yield; counter ด้วย **own-run evidence** | Adversarial gate, ไม่ใช่ social negotiation |
-| UI or API behavior touched? | Select reviewers by harness tier and changed boundaries; UI requires visual/interaction evidence, API requires applicable contract/integration evidence | Use the review-checklist evidence ladder; unavailable required evidence = BLOCKED, not a demand to install browser MCP |
-| Chris/Quinn agree blindly with each other? | Cross-check allowed; each selected reviewer must reach an independent verdict from evidence, parallel or sequential | Independence is separate judgment and context, not simultaneous execution |
 
 > New Phases (0 Discovery / 1c Threat Model / 6 Operate) → ดู `shode-house-workflow` (1c canonical trigger list อยู่ใน root; 0/6 notes → `drift.md`)
+
+---
+
+## Inputs and decision boundaries
+
+- Missing owner, two claimed owners, or a request outside every capability row → stop and ask Oliver/user; do not self-assign.
+- No reference loaded → stay sequential, single task, owners from the tables above.
+
+## Completion
+
+Routing is done when the work type, one sole owner, the domain-specialist decision (with reason) and parallel-or-sequential (with reason) are stated in the task record. Phase execution continues in `shode-house-workflow`.
