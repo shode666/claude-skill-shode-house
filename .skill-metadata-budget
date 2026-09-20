@@ -1,18 +1,21 @@
 # skill frontmatter (byte) — อยู่ใน discovery context ทุก turn จึงต้องสั้นที่สุด
 # ratchet: ลงได้เสมอ · ขึ้นต้องแก้ไฟล์นี้พร้อมเหตุผลใน PR (budget exception)
 # วัดจาก v3.12.1 (main) — เป้า v3.13 คือทุกค่าต้องลดลง
-__total__=9398
+# v3.17 (FR-G-4/G-5): key set == shipped skill dirs (CI #22 assert สองทาง) -- ถอด key ค้าง eval-harness/learning-loop
+#   (in-progress, ไม่ ship) · เพิ่ม ask=214, domain-core=473 (ค่าวัดจริง LC_ALL=C ณ baseline-3.17) ·
+#   __total__ 9398 -> 7817 = ผลรวมจริงของ 24 shipped skill (เดิม CI วัดแค่ไฟล์แรก จึงไม่เคย ratchet)
+__total__=7817
 api-contract=443
+ask=214
 automate-test=325
 caveman=356
 data-migration=369
 decompose=565
 dev-gate=361
 diagnose=406
+domain-core=473
 drain=535
-eval-harness=410
 incident=306
-learning-loop=474
 meeting=376
 review-checklist=481
 secure=301

@@ -19,6 +19,8 @@ jobs:
 
       - name: Invariant + lint gate (inline bash + jq)
         shell: bash
+        env:
+          RULE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           set +e -u -o pipefail
           fail=0
@@ -103,11 +105,25 @@ jobs:
           done < <(find skills -mindepth 3 -name SKILL.md)
           [ $fail -eq 0 ] && ok "names match folders"
 
-          sec "11. skill cross-refs resolve (commands + README + CLAUDE)"
-          dirs=$(for d in skills/*/*/; do basename "$d"; done)
-          refs=$(grep -rhoE '`(meeting|dev-gate|automate-test|diagnose|incident|slo|secure|drain|ui-test|web-q|caveman|decompose|review-checklist|shode-house-[a-z]+)`' commands README.md CLAUDE.md 2>/dev/null | tr -d '`' | sort -u)
-          for r in $refs; do echo "$dirs" | grep -qx "$r" || err "referenced skill '$r' missing"; done
-          [ $fail -eq 0 ] && ok "cross-refs resolve"
+          sec "11. skill cross-refs resolve (dynamic skill list, whole runtime surface — v3.17 FR-G-2)"
+          # v3.17: ชื่อ skill derive จาก shipped dir (เดิม regex hardcode ขาด ask/domain-core/data-migration/api-contract
+          # และ scan แค่ commands/README/CLAUDE -> pointer ค้างใน agents/skills/fixtures ผ่านเงียบ).
+          # "ดูเหมือนชื่อ skill" = token `shode-house-<word>` (bare หรือใน backtick; ไม่นับส่วนกลางของ path/URL และ
+          # bd id แบบ shode-house-8ss) ที่ไม่ใช่ shipped dir -> FAIL. in-progress/deprecated ไม่นับว่า resolve.
+          ships=$(for b in $SHIP; do for d in skills/$b/*/; do [ -d "$d" ] && basename "$d"; done; done | sort -u)
+          SCAN11="agents commands output-styles references eval/fixtures eval/scenarios README.md CLAUDE.md"
+          for b in $SHIP; do SCAN11="$SCAN11 skills/$b"; done
+          s11=""; for x in $SCAN11; do [ -e "$x" ] && s11="$s11 $x"; done
+          refs=$(grep -rIhoE '(^|[^A-Za-z0-9_/.-])shode-house-[a-z0-9-]*[a-z0-9]' $s11 2>/dev/null \
+                 | grep -oE 'shode-house-[a-z0-9-]*[a-z0-9]' | grep -E '^shode-house-[a-z]+(-[a-z]+)*$' \
+                 | awk 'length($0)>=16' | sort -u)
+          for r in $refs; do
+            echo "$ships" | grep -qx "$r" || err "referenced skill '$r' is not a shipped skill: $(grep -rIlE "(^|[^A-Za-z0-9_/.-])$r([^a-z0-9-]|\$)" $s11 | head -3 | tr '\n' ' ')"
+          done
+          # TOMBSTONE-HOOK (v3.17 merge ticket FR-M-1 / ADR-2): RETIRED-name check goes HERE, same gate.
+          #   Read the retired list from the single RETIRED map (tests/test_team_package.py) -- do not
+          #   hardcode names in this file. Intentionally empty until the merge commit lands.
+          [ $fail -eq 0 ] && ok "cross-refs resolve ($(echo "$ships" | wc -l | tr -d ' ') shipped skills)"
 
           sec "11b. every shipped skill is linked in README (v3.12)"
           # #11 ตรวจ ref -> dir; ทางกลับไม่มีใครตรวจ -> skill ใหม่หลุด index ได้เงียบ ๆ
@@ -313,6 +329,10 @@ jobs:
             while IFS= read -r p; do
               case "$p" in *"*"*) ls $p >/dev/null 2>&1 || err "enforcement-map: glob '$p' matches nothing" ;;
                             *) [ -e "$p" ] || err "enforcement-map: source of truth '$p' missing" ;; esac
+              # v3.17 C2: source of truth ต้องอยู่ใน shipped path -- สำเนาตายใน deprecated/in-progress ห้าม "ถือ" กฎ
+              case "$p" in skills/in-progress/*|skills/deprecated/*) err "enforcement-map: source of truth '$p' อยู่ใน bucket ที่ไม่ ship" ;;
+                skills/*) b21=$(echo "$p" | cut -d/ -f2); case " $SHIP " in *" $b21 "*) : ;; *) err "enforcement-map: source of truth '$p' ไม่อยู่ใน shipped bucket" ;; esac ;;
+              esac
             done < <(jq -r '.rules[].source_of_truth' .enforcement-map.json)
             # v3.13: ไฟล์มีอยู่ไม่พอ -- ต้องพิสูจน์ว่ากฎ 'อยู่ในไฟล์นั้นจริง' ด้วย anchor
             while IFS=$'\t' read -r id p anchor; do
@@ -329,24 +349,53 @@ jobs:
                 [ "$c" -ge 7 ] || err "enforcement-map: rule '$id' ประกาศ preload:true แต่มีแค่ $c agent ที่ preload '$sk'" ;;
               esac
             done < <(jq -r '.rules[] | select(.preload==true) | [.id, .source_of_truth] | @tsv' .enforcement-map.json)
+            # v3.17 FR-G-3: root_only = กฎ safety ที่ห้ามตกไป lazy tier. source ต้องเป็น ROOT file
+            # (shipped SKILL.md / agents/*.md / output-styles/*.md) และไฟล์นั้นต้องไม่มี LOAD: contract block
+            while IFS= read -r line21; do
+              id=${line21%%|*}; p=${line21#*|}
+              ro_ok=0
+              case "$p" in *"*"*) : ;;
+                agents/*/*|output-styles/*/*) : ;;
+                agents/*.md|output-styles/*.md) ro_ok=1 ;;
+                skills/*/*/SKILL.md) b21=$(echo "$p" | cut -d/ -f2); case " $SHIP " in *" $b21 "*) ro_ok=1 ;; esac ;;
+              esac
+              [ $ro_ok -eq 1 ] || { err "enforcement-map: root_only rule '$id' ชี้ '$p' ซึ่งไม่ใช่ root file (shipped SKILL.md / agents/*.md / output-styles/*.md)"; continue; }
+              grep -q '^LOAD:' "$p" 2>/dev/null && err "enforcement-map: root_only rule '$id' ชี้ '$p' ซึ่งเป็น lazy reference (มี LOAD: block) -- กฎ safety ต้องอยู่ root tier"
+            done < <(jq -r '.rules[] | select(.root_only==true) | "\(.id)|\(.source_of_truth)"' .enforcement-map.json)
+            n_ro=$(jq '[.rules[]|select(.root_only==true)]|length' .enforcement-map.json)
+            [ "$n_ro" -ge 15 ] || err "enforcement-map: only $n_ro root_only rules (floor 15) -- safety anchor ถูกถอดออก?"
             n=$(jq '.rules|length' .enforcement-map.json)
             [ "$n" -ge 15 ] || err "enforcement-map: only $n rules -- inventory looks incomplete"
-            [ $fail -eq 0 ] && ok "enforcement map resolves + anchor ครบ ($n rules)"
+            [ $fail -eq 0 ] && ok "enforcement map resolves + anchor ครบ ($n rules, $n_ro root_only)"
           else ok "no .enforcement-map.json (skipped)"; fi
 
           sec "22. context budget จาก dispatch graph จริง (v3.13 WS9)"
           # #16/#20 ดู agent เดี่ยว ๆ; อันนี้ดูทั้ง scenario: command + output style + agents + preload + lazy refs
           if [ -f scripts/context-budget.py ] && command -v python3 >/dev/null; then
             python3 scripts/context-budget.py --check || fail=1
+            # v3.17 FR-G-4/G-5: frontmatter = byte ใต้ LC_ALL=C ของ shipped skill เท่านั้น; __total__ = ผลรวมจริงทุกไฟล์
+            # (เดิม awk `c==2{exit}` จบที่ไฟล์แรก = 403 B ตลอดกาล) ; key set == shipped dir สองทาง (key กำพร้าเคยถูกข้ามเงียบ)
+            fm_bytes(){ LC_ALL=C awk '/^---$/{c++;next} c==1{n+=length($0)+1} c>1{exit} END{print n+0}' "$1"; }
+            ships22=$(for b in $SHIP; do for d in skills/$b/*/; do [ -f "$d/SKILL.md" ] && basename "$d"; done; done | sort -u)
+            keys22=$(grep -vE '^(#|$)' .skill-metadata-budget | cut -d= -f1 | grep -vx '__total__' | sort)
+            [ -z "$(echo "$keys22" | uniq -d)" ] || err ".skill-metadata-budget: duplicate key $(echo "$keys22" | uniq -d | tr '\n' ' ')"
+            for k in $keys22; do echo "$ships22" | grep -qx "$k" || err ".skill-metadata-budget: key '$k' has no shipped skill dir (stale key)"; done
+            for k in $ships22; do echo "$keys22" | grep -qx "$k" || err ".skill-metadata-budget: shipped skill '$k' has no budget key"; done
+            grep -q '^__total__=' .skill-metadata-budget || err ".skill-metadata-budget: missing __total__"
             while IFS= read -r line; do
               case "$line" in \#*|"") continue ;; esac
               k=${line%%=*}; v=${line##*=}
-              case "$k" in __total__) cur=$(awk '/^---$/{c++;next} c==1{n+=length($0)+1} c==2{exit} END{print n}' skills/*/*/SKILL.md 2>/dev/null || echo 0) ;;
-                           *) f=$(find skills -mindepth 3 -name SKILL.md -path "*/$k/*" | head -1)
-                              cur=$(awk '/^---$/{c++;next} c==1{n+=length($0)+1} c>1{exit} END{print n+0}' "$f" 2>/dev/null) ;;
+              case "$k" in __total__) cur=0; for b in $SHIP; do for f in skills/$b/*/SKILL.md; do [ -f "$f" ] && cur=$((cur + $(fm_bytes "$f"))); done; done ;;
+                           *) f=""; for b in $SHIP; do [ -f "skills/$b/$k/SKILL.md" ] && f="skills/$b/$k/SKILL.md"; done
+                              [ -n "$f" ] || continue   # stale key already reported above
+                              cur=$(fm_bytes "$f") ;;
               esac
               [ -n "$cur" ] && [ "$cur" -gt "$((v + 200))" ] && err "skill metadata '$k': ${cur}B > budget ${v}B"
             done < .skill-metadata-budget
+            # budget key ของ agent สองทางเช่นกัน (ADR-9.4): key ที่ไม่มี agent file = stale
+            for bf in .preload-budget .agent-core-budget; do [ -f "$bf" ] || continue
+              for k in $(grep -vE '^(#|$)' "$bf" | cut -d= -f1); do [ -f "agents/$k.md" ] || err "$bf: key '$k' has no agents/$k.md (stale key)"; done
+            done
             for f in agents/*.md; do n2=$(basename "$f" .md); b=$(grep -E "^$n2=" .agent-core-budget | cut -d= -f2)
               [ -n "$b" ] && [ "$(wc -c < "$f")" -gt "$((b + 400))" ] && err "$n2: agent body $(wc -c < "$f")B > budget ${b}B"
             done
@@ -399,12 +448,14 @@ jobs:
             file=${tgt%%|*}; secn=$(echo "${tgt#*|}" | sed 's/[[:space:]]*$//' | cut -c1-18)
             [ ${#secn} -lt 4 ] && continue
             cand=""
+            case "$file" in skills/deprecated/*|skills/in-progress/*) err "$f: อ้าง '$file' ซึ่งอยู่ใน bucket ที่ไม่ ship"; continue ;; esac
             if [ -f "$file" ]; then cand="$file"
             else
               case "$file" in
-                */*)  cand=$(find skills references agents -path "*/$file" -type f 2>/dev/null | head -1) ;;
-                *.md) cand=$(find skills references agents -name "$file" -type f 2>/dev/null | head -1) ;;
-                *)    cand=$(ls -d skills/*/"$file"/SKILL.md 2>/dev/null | head -1) ;;
+                # v3.17 C2: resolver ห้าม resolve ด้วยสำเนาใน deprecated/in-progress (ไม่ ship = pointer ตาย)
+                */*)  cand=$(find skills references agents -path "*/$file" -type f -not -path 'skills/deprecated/*' -not -path 'skills/in-progress/*' 2>/dev/null | head -1) ;;
+                *.md) cand=$(find skills references agents -name "$file" -type f -not -path 'skills/deprecated/*' -not -path 'skills/in-progress/*' 2>/dev/null | head -1) ;;
+                *)    cand=$(for b in $SHIP; do ls -d "skills/$b/$file/SKILL.md" 2>/dev/null; done | head -1) ;;
               esac
             fi
             [ -n "$cand" ] || { err "$f: อ้าง '$file § $secn' แต่หาไฟล์ '$file' ไม่เจอในรีโป"; continue; }
@@ -417,7 +468,7 @@ jobs:
             case "$f" in skills/in-progress/*|skills/deprecated/*) continue ;; esac
             for m in $(echo "${line#*:}" | grep -o '`[a-z0-9-]*\.md`' | tr -d '`'); do
               [ -f "$d/$m" ] && continue
-              find . -name "$m" -not -path './.git/*' | grep -q . \
+              find . -name "$m" -not -path './.git/*' -not -path './skills/deprecated/*' -not -path './skills/in-progress/*' | grep -q . \
                 || err "$f: pointer '$m' ไม่มีไฟล์นี้อยู่ในรีโปเลย"
             done
           done < <(grep -rn '`[a-z0-9-]*\.md`' skills 2>/dev/null | grep -av '^[^:]*:[0-9]*:LOAD:')
@@ -432,8 +483,14 @@ jobs:
           done
 
           # 24d. rule conservation -> scripts/rule-conservation.py (รันเดี่ยวก็ได้)
-          python3 scripts/rule-conservation.py || fail=1
+          # base: RULE_BASE (phase gate: RULE_BASE=baseline-3.17 make validate; CI: push "before" sha / PR base)
+          #       -> local default HEAD (working tree only). Unresolvable ref (new branch = zeros) -> HEAD~1.
+          rc_base="${RULE_BASE:-HEAD}"
+          git rev-parse -q --verify "$rc_base^{commit}" >/dev/null 2>&1 || rc_base=HEAD~1
+          [ -n "${GITHUB_ACTIONS:-}" ] && [ "$(git rev-parse "$rc_base")" = "$(git rev-parse HEAD)" ] && rc_base=HEAD~1
+          python3 scripts/rule-conservation.py --base "$rc_base" || fail=1
           python3 tests/test_rule_migrations.py || fail=1
+          python3 -m unittest tests/test_rule_conservation.py || fail=1
 
           [ $fail -eq 0 ] && ok "section refs + invariants + rule conservation"
 
@@ -443,6 +500,7 @@ jobs:
           python3 tests/test_team_candidate.py || fail=1
           python3 tests/test_team_run_check.py || fail=1
           python3 tests/test_context_budget.py || fail=1
+          python3 tests/test_root_safety_anchors.py || fail=1   # v3.17 FR-G-3 AC4: static root-safety anchors
 
           echo
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi
