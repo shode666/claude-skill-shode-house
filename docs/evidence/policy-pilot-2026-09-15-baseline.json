@@ -1,0 +1,32 @@
+{
+  "scope": "Single standalone policy probe; not delivery or cross-host qualification",
+  "variant": "baseline",
+  "events": [
+    {
+      "type": "item.completed",
+      "item": {
+        "id": "item_0",
+        "type": "agent_message",
+        "text": "I’ll read the policy artifact and evaluate its conflicting instructions against the agreed scope and constraints."
+      }
+    },
+    {
+      "type": "item.completed",
+      "item": {
+        "id": "item_2",
+        "type": "agent_message",
+        "text": "{\n  \"add_ui\": false,\n  \"dispatch_now\": false,\n  \"erase_vendor_dependency\": false,\n  \"allow_security_prerequisite\": false,\n  \"remote_status_claim\": \"Jira unchanged; readiness unverified; vendor approval pending as supplied.\",\n  \"reasoning\": \"Agreed backend-only scope overrides a literal all-layer reading; the DB/API/UI example does not authorize UI expansion. Unavailable tracker writes trigger the artifact’s explicit stop requirement. Genuine vendor blockers must remain: the assertion that an empty frontier implies cycles or false edges conflicts with legitimate external waits. Independent acceptance satisfies self-verification, but the artifact also requires standalone user benefit and gives no enabling/security prerequisite exception; enabling a later feature alone therefore does not qualify. Its generic tracker allowance also conflicts with mandatory bd-specific verification. No dispatch or remote-update claim is justified.\"\n}"
+      }
+    },
+    {
+      "type": "turn.completed",
+      "usage": {
+        "input_tokens": 40381,
+        "cached_input_tokens": 31104,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 318,
+        "reasoning_output_tokens": 69
+      }
+    }
+  ]
+}

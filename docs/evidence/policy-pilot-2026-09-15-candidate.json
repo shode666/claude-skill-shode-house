@@ -1,0 +1,32 @@
+{
+  "scope": "Single standalone policy probe; not delivery or cross-host qualification",
+  "variant": "candidate",
+  "events": [
+    {
+      "type": "item.completed",
+      "item": {
+        "id": "item_0",
+        "type": "agent_message",
+        "text": "I’ll read `candidate.md` only and evaluate its instructions against the agreed scope and constraints."
+      }
+    },
+    {
+      "type": "item.completed",
+      "item": {
+        "id": "item_2",
+        "type": "agent_message",
+        "text": "{\n  \"add_ui\": false,\n  \"dispatch_now\": false,\n  \"erase_vendor_dependency\": false,\n  \"allow_security_prerequisite\": true,\n  \"remote_status_claim\": \"Jira writes unavailable; no remote creation or updates claimed. Any proposed changes remain pending sync. No files modified.\",\n  \"reasoning\": \"Explicit rules limit slices to relevant layers, so the duplicate-refund backend fix requires no UI. Vendor approval legitimately blocks every task: checkpoint without dispatch and preserve dependencies. Independently testable token validation qualifies as an enabling slice when its downstream consumer is named and it fits agreed scope. Conflicts remain: the vertical example implies DB/API/UI completeness; edge tests narrowly require output/interface dependence despite explicit approval blockers; residual bd/-p wording conflicts with tracker neutrality. The explicit scope, external-blocker, and confirmed-tracker rules resolve these tensions.\"\n}"
+      }
+    },
+    {
+      "type": "turn.completed",
+      "usage": {
+        "input_tokens": 40261,
+        "cached_input_tokens": 31104,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 252,
+        "reasoning_output_tokens": 0
+      }
+    }
+  ]
+}
