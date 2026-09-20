@@ -1048,7 +1048,7 @@ rm -rf "$D"
 # =============================================================================
 t_start "packaging: make pack ships scripts/lib/lock.sh, executable"
 if command -v zip >/dev/null 2>&1 && command -v unzip >/dev/null 2>&1 && command -v zipinfo >/dev/null 2>&1; then
-  ( cd "$REPO_ROOT" && make pack-legacy >/tmp/lock-pack-out.$$ 2>&1 )
+  ( cd "$REPO_ROOT" && make pack >/tmp/lock-pack-out.$$ 2>&1 )
   make_rc=$?
   assert_true "$make_rc" "make pack must succeed"
   VERSION=$(jq -r .version "$REPO_ROOT/.claude-plugin/plugin.json")
