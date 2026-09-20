@@ -1,0 +1,534 @@
+{
+ "baseline_for": "v3.17 (bd shode-house-8ss)",
+ "version": "3.16.3",
+ "commit": "8323b1397bef0f3c119be956610d7c026041cb73",
+ "measured_at": "2026-09-20",
+ "locale": "LC_ALL=C (bytes)",
+ "host": "Cowork Linux VM (aarch64)",
+ "pytest_version": "pytest 9.1.1",
+ "pytest_summary": "178 passed, 3 skipped, 52 subtests passed in 1.99s",
+ "pytest_passed": 178,
+ "shipped_skill_count": 24,
+ "agent_count": 19,
+ "metadata_total_bytes": 7817,
+ "skills": {
+  "api-contract": {
+   "frontmatter_bytes": 444,
+   "root_bytes": 9587,
+   "root_lines": 114
+  },
+  "ask": {
+   "frontmatter_bytes": 214,
+   "root_bytes": 6360,
+   "root_lines": 105
+  },
+  "automate-test": {
+   "frontmatter_bytes": 326,
+   "root_bytes": 6329,
+   "root_lines": 155
+  },
+  "data-migration": {
+   "frontmatter_bytes": 370,
+   "root_bytes": 8696,
+   "root_lines": 115
+  },
+  "decompose": {
+   "frontmatter_bytes": 363,
+   "root_bytes": 11463,
+   "root_lines": 115
+  },
+  "dev-gate": {
+   "frontmatter_bytes": 362,
+   "root_bytes": 22211,
+   "root_lines": 335
+  },
+  "diagnose": {
+   "frontmatter_bytes": 407,
+   "root_bytes": 13376,
+   "root_lines": 138
+  },
+  "meeting": {
+   "frontmatter_bytes": 358,
+   "root_bytes": 9802,
+   "root_lines": 170
+  },
+  "drain": {
+   "frontmatter_bytes": 468,
+   "root_bytes": 18614,
+   "root_lines": 217
+  },
+  "incident": {
+   "frontmatter_bytes": 307,
+   "root_bytes": 10396,
+   "root_lines": 263
+  },
+  "secure": {
+   "frontmatter_bytes": 302,
+   "root_bytes": 10697,
+   "root_lines": 201
+  },
+  "slo": {
+   "frontmatter_bytes": 266,
+   "root_bytes": 7247,
+   "root_lines": 156
+  },
+  "ui-test": {
+   "frontmatter_bytes": 290,
+   "root_bytes": 11404,
+   "root_lines": 234
+  },
+  "web-q": {
+   "frontmatter_bytes": 311,
+   "root_bytes": 10549,
+   "root_lines": 264
+  },
+  "caveman": {
+   "frontmatter_bytes": 357,
+   "root_bytes": 4501,
+   "root_lines": 84
+  },
+  "domain-core": {
+   "frontmatter_bytes": 473,
+   "root_bytes": 2992,
+   "root_lines": 43
+  },
+  "review-checklist": {
+   "frontmatter_bytes": 196,
+   "root_bytes": 4940,
+   "root_lines": 65
+  },
+  "shode-house-broadcast": {
+   "frontmatter_bytes": 394,
+   "root_bytes": 5007,
+   "root_lines": 128
+  },
+  "shode-house-deliverable": {
+   "frontmatter_bytes": 417,
+   "root_bytes": 3221,
+   "root_lines": 40
+  },
+  "shode-house-discipline": {
+   "frontmatter_bytes": 184,
+   "root_bytes": 7988,
+   "root_lines": 104
+  },
+  "shode-house-drift": {
+   "frontmatter_bytes": 210,
+   "root_bytes": 8533,
+   "root_lines": 162
+  },
+  "shode-house-evidence": {
+   "frontmatter_bytes": 218,
+   "root_bytes": 3612,
+   "root_lines": 63
+  },
+  "shode-house-routing": {
+   "frontmatter_bytes": 383,
+   "root_bytes": 16883,
+   "root_lines": 232
+  },
+  "shode-house-workflow": {
+   "frontmatter_bytes": 197,
+   "root_bytes": 9905,
+   "root_lines": 126
+  }
+ },
+ "agent_file_bytes": {
+  "booking-expert": 6902,
+  "business-analyst": 6807,
+  "code-reviewer": 9640,
+  "developer": 11995,
+  "devops-engineer": 12549,
+  "ecommerce-expert": 7518,
+  "erp-expert": 6865,
+  "fintech-expert": 6326,
+  "insurance-expert": 6968,
+  "orchestrator": 16470,
+  "product-manager": 14374,
+  "qa-engineer": 13867,
+  "sap-expert": 8131,
+  "security-engineer": 8637,
+  "solution-architect": 12577,
+  "sre-engineer": 7478,
+  "staff-engineer": 7021,
+  "trading-expert": 6162,
+  "ux-ui-designer": 13319
+ },
+ "budget_files": {
+  "skill_metadata": {
+   "__total__": 9398,
+   "api-contract": 443,
+   "automate-test": 325,
+   "caveman": 356,
+   "data-migration": 369,
+   "decompose": 565,
+   "dev-gate": 361,
+   "diagnose": 406,
+   "drain": 535,
+   "eval-harness": 410,
+   "incident": 306,
+   "learning-loop": 474,
+   "meeting": 376,
+   "review-checklist": 481,
+   "secure": 301,
+   "shode-house-broadcast": 360,
+   "shode-house-deliverable": 375,
+   "shode-house-discipline": 375,
+   "shode-house-drift": 507,
+   "shode-house-evidence": 482,
+   "shode-house-routing": 382,
+   "shode-house-workflow": 345,
+   "slo": 265,
+   "ui-test": 289,
+   "web-q": 310
+  },
+  "preload": {
+   "booking-expert": 14273,
+   "business-analyst": 14568,
+   "code-reviewer": 16160,
+   "developer": 14568,
+   "devops-engineer": 14568,
+   "ecommerce-expert": 14273,
+   "erp-expert": 14273,
+   "fintech-expert": 14273,
+   "insurance-expert": 14273,
+   "orchestrator": 25854,
+   "product-manager": 14568,
+   "qa-engineer": 16160,
+   "sap-expert": 14273,
+   "security-engineer": 16160,
+   "solution-architect": 14568,
+   "sre-engineer": 14568,
+   "staff-engineer": 11433,
+   "trading-expert": 14273,
+   "ux-ui-designer": 14568
+  },
+  "agent_core": {
+   "booking-expert": 6894,
+   "business-analyst": 7077,
+   "code-reviewer": 9553,
+   "developer": 12601,
+   "devops-engineer": 12777,
+   "ecommerce-expert": 7510,
+   "erp-expert": 6700,
+   "fintech-expert": 6190,
+   "insurance-expert": 6680,
+   "orchestrator": 16506,
+   "product-manager": 15119,
+   "qa-engineer": 13529,
+   "sap-expert": 7913,
+   "security-engineer": 8355,
+   "solution-architect": 14085,
+   "sre-engineer": 7505,
+   "staff-engineer": 7231,
+   "trading-expert": 6154,
+   "ux-ui-designer": 13213
+  }
+ },
+ "always_on_bytes": {
+  "AGENTS.md": 5926,
+  "CLAUDE.md": 21094,
+  "SHODE-HOUSE-MASTER.md": 10475,
+  "output-styles/oliver.md": 10350
+ },
+ "context_budget_scenarios": {
+  "scenarios": {
+   "consult": {
+    "command": 1920,
+    "output_style": 10350,
+    "agents": 27398,
+    "lazy_refs": 0,
+    "total": 39668,
+    "agent_count": 1
+   },
+   "design-system-be": {
+    "command": 13412,
+    "output_style": 10350,
+    "agents": 49026,
+    "lazy_refs": 0,
+    "total": 72788,
+    "agent_count": 2
+   },
+   "design-system-fe": {
+    "command": 13412,
+    "output_style": 10350,
+    "agents": 98084,
+    "lazy_refs": 8832,
+    "total": 130678,
+    "agent_count": 4
+   },
+   "implement-be": {
+    "command": 12608,
+    "output_style": 10350,
+    "agents": 105031,
+    "lazy_refs": 3704,
+    "total": 131693,
+    "agent_count": 4
+   },
+   "implement-ui": {
+    "command": 12608,
+    "output_style": 10350,
+    "agents": 133171,
+    "lazy_refs": 10736,
+    "total": 166865,
+    "agent_count": 5
+   },
+   "phase3b-base": {
+    "command": 12608,
+    "output_style": 10350,
+    "agents": 78215,
+    "lazy_refs": 7873,
+    "total": 109046,
+    "agent_count": 3
+   },
+   "phase3b-sensitive": {
+    "command": 12608,
+    "output_style": 10350,
+    "agents": 124310,
+    "lazy_refs": 7873,
+    "total": 155141,
+    "agent_count": 5
+   },
+   "review-cmd": {
+    "command": 12509,
+    "output_style": 10350,
+    "agents": 78215,
+    "lazy_refs": 3704,
+    "total": 104778,
+    "agent_count": 3
+   },
+   "diagnose-fast": {
+    "command": 0,
+    "output_style": 10350,
+    "agents": 26816,
+    "lazy_refs": 13376,
+    "total": 50542,
+    "agent_count": 1
+   },
+   "diagnose-full": {
+    "command": 0,
+    "output_style": 10350,
+    "agents": 57223,
+    "lazy_refs": 19457,
+    "total": 87030,
+    "agent_count": 2
+   },
+   "map-mode": {
+    "command": 0,
+    "output_style": 10350,
+    "agents": 72091,
+    "lazy_refs": 14369,
+    "total": 96810,
+    "agent_count": 2
+   },
+   "full-fanout": {
+    "command": 0,
+    "output_style": 10350,
+    "agents": 477143,
+    "lazy_refs": 0,
+    "total": 487493,
+    "agent_count": 19
+   }
+  },
+  "agents": {
+   "booking-expert": {
+    "body": 6902,
+    "preload": 14592,
+    "total": 21494,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "domain-core"
+    ]
+   },
+   "business-analyst": {
+    "body": 6807,
+    "preload": 14821,
+    "total": 21628,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "shode-house-deliverable"
+    ]
+   },
+   "code-reviewer": {
+    "body": 9640,
+    "preload": 16540,
+    "total": 26180,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "review-checklist"
+    ]
+   },
+   "developer": {
+    "body": 11995,
+    "preload": 14821,
+    "total": 26816,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "shode-house-deliverable"
+    ]
+   },
+   "devops-engineer": {
+    "body": 12549,
+    "preload": 14821,
+    "total": 27370,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "shode-house-deliverable"
+    ]
+   },
+   "ecommerce-expert": {
+    "body": 7518,
+    "preload": 14592,
+    "total": 22110,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "domain-core"
+    ]
+   },
+   "erp-expert": {
+    "body": 6865,
+    "preload": 14592,
+    "total": 21457,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "domain-core"
+    ]
+   },
+   "fintech-expert": {
+    "body": 6326,
+    "preload": 14592,
+    "total": 20918,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "domain-core"
+    ]
+   },
+   "insurance-expert": {
+    "body": 6968,
+    "preload": 14592,
+    "total": 21560,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "domain-core"
+    ]
+   },
+   "orchestrator": {
+    "body": 16470,
+    "preload": 26426,
+    "total": 42896,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-workflow",
+     "shode-house-drift"
+    ]
+   },
+   "product-manager": {
+    "body": 14374,
+    "preload": 14821,
+    "total": 29195,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "shode-house-deliverable"
+    ]
+   },
+   "qa-engineer": {
+    "body": 13867,
+    "preload": 16540,
+    "total": 30407,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "review-checklist"
+    ]
+   },
+   "sap-expert": {
+    "body": 8131,
+    "preload": 14592,
+    "total": 22723,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "domain-core"
+    ]
+   },
+   "security-engineer": {
+    "body": 8637,
+    "preload": 16540,
+    "total": 25177,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "review-checklist"
+    ]
+   },
+   "solution-architect": {
+    "body": 12577,
+    "preload": 14821,
+    "total": 27398,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "shode-house-deliverable"
+    ]
+   },
+   "sre-engineer": {
+    "body": 7478,
+    "preload": 14821,
+    "total": 22299,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "shode-house-deliverable"
+    ]
+   },
+   "staff-engineer": {
+    "body": 7021,
+    "preload": 11600,
+    "total": 18621,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence"
+    ]
+   },
+   "trading-expert": {
+    "body": 6162,
+    "preload": 14592,
+    "total": 20754,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "domain-core"
+    ]
+   },
+   "ux-ui-designer": {
+    "body": 13319,
+    "preload": 14821,
+    "total": 28140,
+    "skills": [
+     "shode-house-discipline",
+     "shode-house-evidence",
+     "shode-house-deliverable"
+    ]
+   }
+  }
+ },
+ "audit_counts": {
+  "four_section_WHAT": 18,
+  "adapter_read_in_full": 24,
+  "refuse_without": 9,
+  "tracker_bd_commands": 95,
+  "strong_markers": 249,
+  "mandatory_read": 23,
+  "meeting_skill_mentions": 39
+ }
+}
