@@ -1,9 +1,6 @@
 ---
 name: dev-gate
-description: |
-  [WHAT] บังคับ TDD cycle (red → green → refactor) + quality gate (format/lint/type/complexity/naming/test/doc) ก่อน hand-off production code.
-  [WHEN] Phase 2 implement / refactor / bug-fix.
-  [TRIGGER] /shode-house:dev-gate, "TDD", "test first", "red-green-refactor", "clean code", "เน้น quality".
+description: Apply test-first development and quality gates during implementation or refactor of production code, ending with validation evidence before handoff. Not for spikes, generated code, pure configuration changes, or investigating a problem whose cause is still unknown.
 ---
 
 # Dev Gate (TDD + Quality Gates) — v3.0 merged

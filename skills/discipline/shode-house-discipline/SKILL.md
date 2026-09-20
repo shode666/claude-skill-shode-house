@@ -1,6 +1,6 @@
 ---
 name: shode-house-discipline
-description: Shode House discipline for all team members; five principles, evidence, safety, scope, language and handoff under project and host authority.
+description: Baseline conduct for every team member, covering evidence, input trust, safety, scope, language and handoff, not phase order or ownership.
 ---
 
 # shode-house — Discipline Core

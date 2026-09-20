@@ -1,9 +1,6 @@
 ---
 name: drain
-description: |
-  [WHAT] Deliver a verified ready backlog with isolated workers, bounded concurrency, independent review, serial integration and evidence-backed closure.
-  [WHEN] หลังมี routing plan (Oliver) AND item ถูก code-verify ว่า independent + concrete.
-  [TRIGGER] /shode-house:drain, "drain backlog", "จัดงานที่พร้อม", "batch fix", "ปิด bd ที่เหลือ", "clear the ready set".
+description: Deliver a verified set of independent, concrete, ready tasks using isolated workers, bounded concurrency, independent review, serial integration and evidence-backed closure. Not for interdependent or still-abstract work, new design decisions, or a production outage.
 ---
 
 # Drain (verified backlog → parallel worktree → serial merge → close-on-done)

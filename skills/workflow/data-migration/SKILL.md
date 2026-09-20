@@ -1,9 +1,6 @@
 ---
 name: data-migration
-description: |
-  [WHAT] Schema/data migration discipline — expand-contract, backfill, dual-write, rollback drill, zero-downtime, money/ledger safety.
-  [WHEN] ทุกครั้งที่ PR แตะ schema/DDL/seed/backfill.
-  [TRIGGER] /shode-house:data-migration, "migration", "schema change", "alter table", "backfill", "zero downtime".
+description: Plan and carry out a schema or data migration, such as DDL, backfill, dual write or expand-contract rollout, with rehearsed rollback and extra care for money and regulated data. Not for ordinary SQL queries, disposable local databases or a manual one-row production fix.
 ---
 
 # Data Migration (expand-contract + backfill + rollback drill)

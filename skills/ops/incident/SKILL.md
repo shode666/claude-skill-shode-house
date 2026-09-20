@@ -1,9 +1,6 @@
 ---
 name: incident
-description: |
-  [WHAT] Production incident response + runbook + on-call rotation + blameless postmortem + 5-why + action items.
-  [WHEN] หลัง alert ดัง / customer report.
-  [TRIGGER] /shode-house:incident, "พังใน prod", "service down", "alert ดัง", "P0", "P1".
+description: Respond to active production impact such as an outage, degradation, data loss or breach by assigning severity and mitigating first, then a blameless postmortem. Not for bugs not currently hurting production users, nor planned maintenance.
 ---
 
 # Incident (response + runbook + postmortem)

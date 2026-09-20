@@ -1,9 +1,6 @@
 ---
 name: caveman
-description: |
-  [WHAT] Ultra-compressed communication mode — ตัด filler/article/พิธีการ; เก็บเฉพาะ technical accuracy + security/number/code verbatim.
-  [WHEN] User ขอ explicitly.
-  [TRIGGER] /shode-house:caveman, "caveman", "พูดสั้น", "compress", "compress mode", "สั้นๆ".
+description: Switch to an ultra-compressed reply style that drops filler but keeps technical terms, code, numbers and security warnings verbatim, only when the user explicitly asks for terse output. It is never the default and ends when the user asks for normal prose.
 ---
 
 # Caveman Mode (compressed style)

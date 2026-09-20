@@ -1,9 +1,6 @@
 ---
 name: slo
-description: |
-  [WHAT] กำหนด SLI/SLO/error budget + capacity plan + observability + Grafana dashboard + burn-rate formula.
-  [WHEN] หลัง service production-ready.
-  [TRIGGER] /shode-house:slo, "SLO", "SLI", "error budget", "p95", "p99".
+description: Define reliability targets for a production service, covering service level indicators and objectives, error budget policy and burn-rate alerting. Not for responding to a live outage, nor for internal tools or one-off batch jobs.
 ---
 
 # SLO (Service Level Objective discipline)

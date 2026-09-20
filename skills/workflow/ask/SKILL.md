@@ -1,6 +1,6 @@
 ---
 name: ask
-description: Work with Oliver and the Shode House software team for consultation, diagnosis, design, implementation, review and resumable delivery. Continue the active engagement without another command.
+description: Entry point for engaging the Shode House software team on consultation, design, implementation, review or resuming an engagement. Asking to explain or review does not authorize edits.
 ---
 
 # Ask the Shode House team
