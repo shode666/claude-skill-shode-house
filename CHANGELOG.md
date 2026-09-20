@@ -7,6 +7,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ---
 
+## [3.16.3] — Carry-over before the 3.17 cycle (in progress on main, not tagged) — 2026-09-20
+
+- **Harness hardening** (bd `shode-house-5cs.*`): lock primitive `scripts/lib/lock.sh`, scope-check ownership/snapshot under lock, approval + side-effect gates, `guard-scope-write` hook, registry routes; shell suites expanded (hooks/lock/registry/reliability/scope-check/workflow-state)
+- **Lazy references**: diagnose Steps 2–3 → `full-investigation.md` (core 16,607 → 13,376 B); dev-gate eight-language matrix → `tool-matrix.md`; regression compares moved text against tag `v3.16.2` (`docs/context-audit-2026-09-15.md`)
+- **Prompt wording**: agents/commands/runbooks moved to proportional, evidence-based, tool-portable guidance (30-line/4-param = signal not gate; browser MCP optional; BLOCKED vs FAIL distinction); rule migrations recorded in `.rule-migrations.json`
+- **Measurement**: `context-budget.py --check`, usage-report and team-run-check extensions with unit tests; `eval/RUNBOOK.md` post-3.16.2 qualification protocol; delivery benchmark 2026-09-15 recorded as **in progress, not a qualification**
+- **Known (environment)**: 4 assertions fail only inside the Cowork Linux VM mount (`test-lock.sh` inode-identity + nested `make pack`; `test-scope-check.sh` mutation (a)/(b) lose the exec bit after `sed -i` on the FUSE mount) — re-verify on macOS before citing these suites as green
+- Baseline for v3.17 (`docs/PLAN-v3.17.md`, bd `shode-house-8ss`) is measured from this version
+
 ## [3.16.2] — Unattended discipline + measured startup — 2026-09-12
 
 - **Harness: iteration cap มีผลจริงเมื่อไม่มีคน** — จากหลักฐาน 3.16.1 (resume run วนถึง iteration 4 เพราะ "escalate user" ไม่มี user): ตอนนี้ cap 3 review→fix ต่อ task; ถึง cap หรือมี policy/scope call ที่ไม่มีช่องถาม → บันทึก safety point (local commit เมื่อมีสิทธิ์) + blocker พร้อม options/recommendation ใน checkpoint → task BLOCKED/PARTIAL → จบ turn; ห้ามตัดสิน business policy หรือขยาย scope เพื่อให้เขียว (`harness.md`, DoD)
