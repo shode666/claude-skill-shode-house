@@ -5,7 +5,8 @@
 #   (in-progress, ไม่ ship) · เพิ่ม ask=214, domain-core=473 (ค่าวัดจริง LC_ALL=C ณ baseline-3.17) ·
 #   __total__ 9398 -> 7817 = ผลรวมจริงของ 24 shipped skill (เดิม CI วัดแค่ไฟล์แรก จึงไม่เคย ratchet)
 # v3.17 merge 24->20 (FR-M-1): dropped the keys of the 4 retired skills; __total__ 6682 -> 5502 = measured sum of the 20 shipped skills
-__total__=5502
+# v3.17 P10 ratchet: shode-house-deliverable 311 -> 267 (measured), __total__ 5502 -> 5458
+__total__=5458
 api-contract=340
 ask=207
 automate-test=270
@@ -19,7 +20,7 @@ drain=292
 incident=267
 review-checklist=185
 secure=292
-shode-house-deliverable=311
+shode-house-deliverable=267
 shode-house-discipline=181
 shode-house-routing=349
 shode-house-workflow=190

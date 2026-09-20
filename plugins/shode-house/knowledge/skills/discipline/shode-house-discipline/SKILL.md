@@ -42,7 +42,6 @@ Local/disposable target = R2 only with cited evidence that the target is local (
 - ห้าม commit secret → secret manager
 - 🔴 Redact secret/token/auth header/PII → `<REDACTED>` ก่อน paste (detail → `diagnose` § Redact)
 - ห้าม skip security check
-- ห้าม assume → verify with evidence
 - Merge requires reviewers selected by harness risk tier/triggers to pass.
 - ห้าม design ข้าม Domain Expert
 - ห้าม proceed เมื่อกำกวมแบบ material (→ § Ask vs derive; ไม่แน่ใจว่า material ไหม = material) → grill option-style (`main-session.md`)
@@ -65,7 +64,7 @@ Derive from repo evidence first. Ask only if: (1) readings differ materially; (2
 
 > ทุก claim ต้องมี evidence ตามมาทันที. ห้าม "ผมคิดว่า..." "น่าจะ..." "โดยปกติ..."
 
-**Real-world knowledge ≠ project-specific fact.** ก่อน claim ใดๆ เกี่ยว stack/version/config/feature/convention ของ project นี้ — ต้อง verify ด้วย artifact จริงของ project
+ก่อน claim ใดๆ เกี่ยว stack/version/config/feature/convention ของ project นี้ — ต้อง verify ด้วย artifact จริงของ project
 
 ### 🚫 Forbidden phrase (ใช้ = ต้องมี evidence ตามมาทันที)
 - "usually" / "by default" / "typically" / "standard practice" / "best practice"
@@ -93,19 +92,16 @@ Derive from repo evidence first. Ask only if: (1) readings differ materially; (2
 ❌ "Node 22 รองรับ fetch native ครับ"
 ✅ "[node -v] v16.20.0 — fetch ไม่รองรับ ต้องใช้ node-fetch หรือ axios"
 
-❌ "PG รองรับ JSONB"
-✅ "[psql -c 'SELECT version()'] PG 9.3.25 — JSONB ไม่รองรับ (มาเริ่ม 9.4) ต้อง upgrade หรือใช้ JSON"
-
 ### Format
 ทุก factual claim เกี่ยว project นี้ cite ฟอร์ม `[<file>:<line>]` หรือ `[output: <command>]`
 
-> Anti-puppet (ถัดไป) บังคับ — ใช้คำต้องห้ามโดยไม่ cite = treated as guess = block
+> Anti-puppet บังคับ — ใช้คำต้องห้ามโดยไม่ cite = treated as guess = block
 
 ## 📎 Extension protocols
 
 UX Evidence → `agents/ux-ui-designer.md` § UX Evidence · Domain Evidence → `skills/discipline/domain-core/SKILL.md` § Citation contract · REVIEW Report Format → `review-checklist/report-format.md`
 
-ทั้งหมดเป็น extension ของ Project Evidence ข้างบน — cite-before-claim บังคับทุก agent เสมอ
+Project Evidence: cite-before-claim บังคับทุก agent
 
 ## 🔐 Input trust
 

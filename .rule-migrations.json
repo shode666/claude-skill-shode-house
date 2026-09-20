@@ -778,6 +778,76 @@
         "เริ่มงาน → read task + classify scope"
       ],
       "reason": "P7 ceremony (FR-P7-1): pre-P5 spelling of the same Sentinel greeting line (tracker-specific `bd show` already neutralised to `read task`); greeting removed, action half kept."
+    },
+    {
+      "source": "skills/discipline/shode-house-discipline/SKILL.md",
+      "old_fragment": "✅ \"[psql -c 'SELECT version()'] PG 9.3.25 — JSONB ไม่รองรับ (มาเริ่ม 9.4) ต้อง upgrade หรือใช้ JSON\"",
+      "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
+      "requires": [
+        "| DB/service version | `psql -c 'SELECT version()'`, `redis-cli INFO server` |",
+        "✅ \"[Read pom.xml:25] spring-boot 3.2.1"
+      ],
+      "reason": "P10 preload ratchet (8ss.49, CI #16 GRACE 600 -> 0): third illustrative bad/good example pair removed as a duplicate example, not a rule. The rule (verify DB/service version with real output) stays in the Required evidence types table row, and one worked example pair (Spring Boot) stays verbatim."
+    },
+    {
+      "source": "skills/discipline/shode-house-evidence/SKILL.md",
+      "old_fragment": "✅ \"[psql -c 'SELECT version()'] PG 9.3.25 — JSONB ไม่รองรับ (มาเริ่ม 9.4) ต้อง upgrade หรือใช้ JSON\"",
+      "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
+      "requires": [
+        "| DB/service version | `psql -c 'SELECT version()'`, `redis-cli INFO server` |",
+        "✅ \"[Read pom.xml:25] spring-boot 3.2.1"
+      ],
+      "reason": "Pre-merge spelling of the same line: at baseline-3.17 this example lived in the source skill named above (formerly separate; folded into the discipline root by the 24->20 merge). P10 preload ratchet (8ss.49, CI #16 GRACE 600 -> 0): third illustrative bad/good example pair removed as a duplicate example, not a rule. The rule (verify DB/service version with real output) stays in the Required evidence types table row, and one worked example pair (Spring Boot) stays verbatim."
+    },
+    {
+      "source": "skills/discipline/shode-house-discipline/SKILL.md",
+      "old_fragment": "- ห้าม assume → verify with evidence",
+      "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
+      "requires": [
+        "ห้าม claim project fact จาก real-world knowledge",
+        "Assumption = explicit + cite evidence จาก project นี้"
+      ],
+      "reason": "P10 validation fix (8ss.49, F3): payment for restoring the Node bad/good example pair (the only worked example of evidence overturning real-world knowledge). Same-file restatement: the Universal Rules bullet on real-world knowledge and Core Philosophy 1 (NO MAGIC) state the same rule with more precision."
+    },
+    {
+      "source": "skills/discipline/shode-house-discipline/SKILL.md",
+      "old_fragment": "ทั้งหมดเป็น extension ของ Project Evidence ข้างบน — cite-before-claim บังคับทุก agent เสมอ",
+      "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
+      "requires": [
+        "Project Evidence: cite-before-claim บังคับทุก agent",
+        "ทุก claim ต้องมี evidence ตามมาทันที"
+      ],
+      "reason": "P10 validation fix (8ss.49, F3): payment for restoring the Node bad/good example pair (the only worked example of evidence overturning real-world knowledge). Line shortened, not deleted: the root-only anchor `cite-before-claim บังคับทุก agent` stays verbatim in the root; only the restating lead-in (extension of Project Evidence above) and the filler word were trimmed."
+    },
+    {
+      "source": "skills/discipline/shode-house-evidence/SKILL.md",
+      "old_fragment": "ทั้งหมดเป็น extension ของ Project Evidence ข้างบน — cite-before-claim บังคับทุก agent เสมอ",
+      "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
+      "requires": [
+        "Project Evidence: cite-before-claim บังคับทุก agent",
+        "ทุก claim ต้องมี evidence ตามมาทันที"
+      ],
+      "reason": "Pre-merge spelling of the same line: at baseline-3.17 it lived in the source skill named above (folded into the discipline root by the 24->20 merge). P10 validation fix (8ss.49, F3): payment for restoring the Node bad/good example pair (the only worked example of evidence overturning real-world knowledge). Line shortened, not deleted: the root-only anchor `cite-before-claim บังคับทุก agent` stays verbatim in the root; only the restating lead-in (extension of Project Evidence above) and the filler word were trimmed."
+    },
+    {
+      "source": "skills/discipline/shode-house-discipline/SKILL.md",
+      "old_fragment": "**Real-world knowledge ≠ project-specific fact.**",
+      "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
+      "requires": [
+        "**Real-world knowledge ≠ this project's fact**",
+        "ต้อง verify ด้วย artifact จริงของ project"
+      ],
+      "reason": "P10 validation fix (8ss.49, F3): payment for restoring the Node bad/good example pair (the only worked example of evidence overturning real-world knowledge). Same-file restatement: the identical sentence stays in Core Philosophy 1 (NO MAGIC) of the root, and the verify-with-project-artifact instruction it introduced stays verbatim."
+    },
+    {
+      "source": "skills/discipline/shode-house-evidence/SKILL.md",
+      "old_fragment": "**Real-world knowledge ≠ project-specific fact.**",
+      "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
+      "requires": [
+        "**Real-world knowledge ≠ this project's fact**",
+        "ต้อง verify ด้วย artifact จริงของ project"
+      ],
+      "reason": "Pre-merge spelling of the same line: at baseline-3.17 it lived in the source skill named above (folded into the discipline root by the 24->20 merge). P10 validation fix (8ss.49, F3): payment for restoring the Node bad/good example pair (the only worked example of evidence overturning real-world knowledge). Same-file restatement: the identical sentence stays in Core Philosophy 1 (NO MAGIC) of the root, and the verify-with-project-artifact instruction it introduced stays verbatim."
     }
   ]
 }

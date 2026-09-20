@@ -1,4 +1,4 @@
-# shode-house dev-loop. Tools: bash, jq, zip (pack/stats/skills) + python3 (เฉพาะ design-intel smoke ใน gate #17)
+# shode-house dev-loop. Tools: bash, jq, zip (pack/stats/skills) + python3 stdlib (gate scripts + tests)
 # gh = publish only
 # Usage: make validate | make pack | make stats | make skills
 # NOTE: ใช้ TAB เป็น recipe prefix (v3.12) — `.RECIPEPREFIX` ต้องการ GNU Make >= 3.82

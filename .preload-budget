@@ -1,4 +1,4 @@
-# preload baseline ต่อ agent (byte) — CI #16 ratchet: ลงได้ ขึ้นไม่ได้เกิน grace 600 B
+# preload baseline ต่อ agent (byte) — CI #16 ratchet: ลงได้ ขึ้นไม่ได้ (grace 0 ตั้งแต่ v3.17 P10; เดิม 600 B)
 # อัปเดตเมื่อ 'ลด' ได้จริงเท่านั้น; จะ 'เพิ่ม' ต้องมีเหตุผลใน PR
 # v3.13 WS2-5 re-baseline: discipline core 11,502->7,138 · deliverable 6,123->3,165 ·
 #   review-checklist 9,245->4,095 · domain expert +domain-core preload (แทน body ที่ซ้ำ 7 ตัว)
@@ -10,22 +10,24 @@
 #   every agent preload went DOWN (-153 B; Oliver -1,155 B). Keys lowered only where measured < old baseline.
 # v3.17 P4 thin-router: shode-house-workflow root slimmed (examples/economy -> harness.md); Oliver 25,251 -> 23,422 B measured.
 # v3.17 P5/P6: keys ratcheted DOWN to measured where lower
-booking-expert=14273
-business-analyst=14531
-code-reviewer=16160
-developer=14531
-devops-engineer=14531
-ecommerce-expert=14273
-erp-expert=14273
-fintech-expert=14273
-insurance-expert=14273
-orchestrator=22684
-product-manager=14531
-qa-engineer=16160
-sap-expert=14273
-security-engineer=16160
-solution-architect=14531
-sre-engineer=14531
-staff-engineer=11432
-trading-expert=14273
-ux-ui-designer=14531
+# v3.17 P10 ratchet: discipline root 11,432 -> 11,032 B pays the v3.13 grace debt (7 experts +10 B, 3 reviewers +385 B);
+#   every key == measured and CI #16 GRACE 600 -> 0 (the C-G1 "+558 inside grace" note above is history)
+booking-expert=13883
+business-analyst=14131
+code-reviewer=16145
+developer=14131
+devops-engineer=14131
+ecommerce-expert=13883
+erp-expert=13883
+fintech-expert=13883
+insurance-expert=13883
+orchestrator=22284
+product-manager=14131
+qa-engineer=16145
+sap-expert=13883
+security-engineer=16145
+solution-architect=14131
+sre-engineer=14131
+staff-engineer=11032
+trading-expert=13883
+ux-ui-designer=14131

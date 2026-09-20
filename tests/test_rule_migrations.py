@@ -55,7 +55,7 @@ class MigrationTest(unittest.TestCase):
                 migrations.load(ROOT)
 
     def test_current_migrations_validate(self):
-        self.assertEqual(81, len(migrations.load(ROOT)))  # v3.17 merge: +3 historical notes of the retired team-entry skill; P4: +9 decompose thin-router rewordings; P5: +14 decision-boundary rewordings and byte payments; 8ss.29: +5 completion-contract payments; P6: +30 agent-file bias/persona rewordings; P6 integration: +1 dev-gate checklist re-alignment; P7: +8 ceremony (5 greeting lines incl. one pre-P5 spelling, 2 duplicate narration/load-trigger lines) and trust-label-internal rewording
+        self.assertEqual(88, len(migrations.load(ROOT)))  # v3.17 merge: +3 historical notes of the retired team-entry skill; P4: +9 decompose thin-router rewordings; P5: +14 decision-boundary rewordings and byte payments; 8ss.29: +5 completion-contract payments; P6: +30 agent-file bias/persona rewordings; P6 integration: +1 dev-gate checklist re-alignment; P7: +8 ceremony (5 greeting lines incl. one pre-P5 spelling, 2 duplicate narration/load-trigger lines) and trust-label-internal rewording; P10: +7 (1 duplicate evidence example pair (PG) x 2 source spellings: discipline root and the pre-merge evidence skill; 1 restated Universal Rules bullet; 2 restated evidence-protocol lines x 2 source spellings) removed/shortened in the discipline root to pay the CI #16 preload debt (GRACE 600 -> 0) while keeping the Node overturned-assumption example pair
 
     def test_each_replacement_anchor_is_required(self):
         for item in self.data["migrations"]:

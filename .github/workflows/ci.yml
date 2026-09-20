@@ -94,6 +94,13 @@ jobs:
           while IFS= read -r f; do
             awk '/^---$/{c++;next} c==1&&/^name:/{nm=1} c==1&&/^description:/{de=1} END{exit !(nm&&de)}' "$f" || err "$f: missing name/description"
           done < <(find skills -name SKILL.md; find agents -name '*.md')
+          # v3.17 FR-P10-1: shipped skill description cap -- it sits in discovery context on every turn (measured max 309 chars)
+          for b in $SHIP; do for f in skills/$b/*/SKILL.md; do [ -f "$f" ] || continue
+            d9=$(awk '/^---$/{c++;next} c==1&&/^description:/{sub(/^description:[ \t]*/,"");print;exit}' "$f")
+            [ "${#d9}" -le 320 ] || err "$f: description ${#d9} chars > 320 -- 1-2 sentences: capability + decision boundary (CLAUDE.md)"
+          done; done
+          # v3.17 FR-P10-3: CLAUDE.md header names the released version (single source = plugin.json)
+          v9=$(jq -r '.version' "$PJ"); head -1 CLAUDE.md | grep -qF "(v$v9)" || err "CLAUDE.md header version != plugin.json version (v$v9)"
           [ $fail -eq 0 ] && ok "frontmatter ok"
 
           sec "10. SKILL name == folder"
@@ -201,7 +208,7 @@ jobs:
           # v3.12: ratchet จริง = baseline ต่อ agent (เพดานกลางอย่างเดียวปล่อยให้ domain agent
           # โตจาก 16 KB ไป 31 KB ได้โดย CI ไม่รู้ตัว). baseline อยู่ใน .preload-budget
           BUDGET=31000          # เพดานแข็ง — ห้ามเกินไม่ว่ากรณีใด
-          GRACE=600             # ยอมให้ขยับจาก baseline ได้เท่านี้ (แก้คำผิด/เติมบรรทัดสั้น ๆ)
+          GRACE=0               # v3.17 P10: 600 -> 0. keys == measured; เพิ่ม byte ใน preloaded skill = ตัดที่อื่นใน change เดียวกัน หรือแก้ .preload-budget พร้อมเหตุผลใน PR
           BASELINE_FILE=.preload-budget
           for f in agents/*.md; do n=$(basename "$f" .md)
             line=$(awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "$f")
@@ -400,14 +407,14 @@ jobs:
                               [ -n "$f" ] || continue   # stale key already reported above
                               cur=$(fm_bytes "$f") ;;
               esac
-              [ -n "$cur" ] && [ "$cur" -gt "$((v + 200))" ] && err "skill metadata '$k': ${cur}B > budget ${v}B"
+              [ -n "$cur" ] && [ "$cur" -gt "$v" ] && err "skill metadata '$k': ${cur}B > budget ${v}B"
             done < .skill-metadata-budget
             # budget key ของ agent สองทางเช่นกัน (ADR-9.4): key ที่ไม่มี agent file = stale
             for bf in .preload-budget .agent-core-budget; do [ -f "$bf" ] || continue
               for k in $(grep -vE '^(#|$)' "$bf" | cut -d= -f1); do [ -f "agents/$k.md" ] || err "$bf: key '$k' has no agents/$k.md (stale key)"; done
             done
             for f in agents/*.md; do n2=$(basename "$f" .md); b=$(grep -E "^$n2=" .agent-core-budget | cut -d= -f2)
-              [ -n "$b" ] && [ "$(wc -c < "$f")" -gt "$((b + 400))" ] && err "$n2: agent body $(wc -c < "$f")B > budget ${b}B"
+              [ -n "$b" ] && [ "$(wc -c < "$f")" -gt "$b" ] && err "$n2: agent body $(wc -c < "$f")B > budget ${b}B"
             done
             [ $fail -eq 0 ] && ok "context budgets within ratchet"
           else ok "no context-budget script (skipped)"; fi
