@@ -113,9 +113,8 @@ def test_ac06_security_trigger_missed():
 
 # --- AC-7: usage-report.py med_p90 still works the same way for e2e scenario dirs (reuse, not reimplemented) ---
 def test_ac07_usage_report_med_p90_reused():
-    usage_report = '/home/claude/shode-house-a1/B1/repo/scripts/usage-report.py'
-    if not os.path.isfile(usage_report):
-        pytest.skip('usage-report.py not present in this tree (reused as-is, not modified per constraint)')
+    usage_report = os.path.join(ROOT, 'scripts', 'usage-report.py')
+    assert os.path.isfile(usage_report), 'required usage comparator is missing'
     uspec = importlib.util.spec_from_file_location('usage_report', usage_report)
     ur = importlib.util.module_from_spec(uspec)
     uspec.loader.exec_module(ur)

@@ -46,7 +46,7 @@ SCENARIOS = {
                            ['skills/discipline/review-checklist/spec-axis.md']),
     'diagnose-fast':      (None,                         ['developer'], ['skills/workflow/diagnose/SKILL.md']),
     'diagnose-full':      (None,                         ['developer','qa-engineer'],
-                           ['skills/workflow/diagnose/SKILL.md','skills/workflow/diagnose/loop-ladder.md']),
+                           ['skills/workflow/diagnose/SKILL.md','skills/workflow/diagnose/full-investigation.md','skills/workflow/diagnose/loop-ladder.md']),
     'map-mode':           (None,                         ['orchestrator','product-manager'],
                            ['skills/discipline/shode-house-workflow/wayfinding.md']),
     'full-fanout':        (None,                         sorted(os.path.basename(p)[:-3] for p in glob.glob('agents/*.md')), []),

@@ -1,5 +1,42 @@
 # RUNBOOK — runtime baseline + A/B (WS8 / WS10)
 
+## Current qualification protocol (post-3.16.2)
+
+Use the published baseline and an explicitly identified candidate snapshot in
+separate disposable fixtures. Never switch this dirty checkout or replace a user's
+installed plugin for a benchmark. Use host-supported temporary loading only after
+checking current host documentation and authority; retain actual loaded-source
+provenance. Host configuration files alone do not qualify a host.
+
+Keep task, fixture revision, model, reasoning settings, tool permissions and
+acceptance identical. Record host/model versions, source hashes, elapsed time,
+input/cached/output usage, attempted and successful deliveries, retries and each
+worker's actual trace. Missing usage is unknown, not zero. Alternate baseline and
+candidate runs to reduce order/cache effects. Choose repeats and tolerances before
+running; do not select only successful or cheapest runs afterward.
+
+Evaluate real implementation plus independent review, interrupted/resumed work and
+uncertain external effects in a disposable environment. Never perform real payments,
+deployments or remote tracker writes to manufacture qualification. Mocked operations
+must be labelled; a policy answer or synthetic context estimate is not delivery.
+
+Score critical invariants before performance: no removed roles, missed triggered
+review, fabricated evidence, unauthorized effects or duplicate uncertain effects.
+Compare token/time distributions only for matched workloads with quality outcomes
+reported alongside them. A single pair establishes neither a distribution nor a
+general saving. Test each claimed native host independently; unavailable hosts are
+NOT QUALIFIED, not equivalent to Codex.
+
+The 2026-09-15 standalone Codex policy pilot is recorded in
+`docs/evidence/policy-pilot-2026-09-15-{baseline,candidate}.json`. It is not a full
+delivery benchmark, and subsequent wording fixes need fresh evaluation.
+
+## Historical v3.13 procedure (not current installation instructions)
+
+The commands and version names below document the original campaign only. Do not
+run its checkout/install/uninstall steps against a user's active environment. Its
+Claude transcript scorer does not establish compatibility with other hosts.
+
 สิ่งเดียวที่ปลดล็อก promotion ของ v3.13 · ต้องรันบนเครื่องที่ใช้ Claude Code จริง
 (sandbox ของ session ทำแทนไม่ได้ — ไม่มี runtime, ไม่มี ~/.claude)
 
