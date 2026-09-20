@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import re
 import unittest
+import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("inventory", ROOT / "tests/test_team_package.py")
@@ -50,6 +51,48 @@ def entry_errors(entry, contents):
 
 
 class TeamEntryTest(unittest.TestCase):
+    def test_routing_dedup_retains_owner_and_phase_tables(self):
+        path = "skills/discipline/shode-house-routing/SKILL.md"
+        old = subprocess.check_output(["git", "show", "v3.16.2:" + path], cwd=ROOT, text=True)
+        current = (ROOT / path).read_text()
+        # These tables assign responsibility; shortening handoff examples must
+        # not remove an owner, phase, or domain route.
+        for start, end in (
+            ("### Domain Selection", "## ⚖️ Conflict Resolution"),
+            ("### Single-owner capability matrix", "## 🤝 Handoff Broadcast Protocol"),
+            ("## 📋 RACI per Phase", "### Adversarial relation"),
+        ):
+            section = old[old.index(start):old.index(end)]
+            rows = [line for line in section.splitlines() if line.startswith("|") or " → " in line]
+            self.assertTrue(rows)
+            for row in rows:
+                self.assertIn(row, current)
+        link = "../shode-house-broadcast/SKILL.md"
+        self.assertIn("(" + link + ")", current)
+        self.assertTrue(((ROOT / path).parent / link).resolve().is_file())
+
+    def test_language_matrix_retains_released_rows(self):
+        old = subprocess.check_output(["git", "show", "v3.16.2:skills/workflow/dev-gate/SKILL.md"], cwd=ROOT, text=True)
+        section = old[old.index("### Per-language tool matrix"):old.index("### Gate 1: Format")]
+        reference = (ROOT / "skills/workflow/dev-gate/tool-matrix.md").read_text()
+        rows = [line for line in section.splitlines() if line.startswith("|")]
+        self.assertEqual(10, len(rows))
+        for row in rows:
+            self.assertIn(row, reference)
+        core = (ROOT / "skills/workflow/dev-gate/SKILL.md").read_text()
+        self.assertIn("[tool-matrix.md](tool-matrix.md)", core)
+        self.assertNotIn(rows[0], core)
+
+    def test_full_diagnosis_reference_preserves_released_instructions(self):
+        old = subprocess.check_output(["git", "show", "v3.16.2:skills/workflow/diagnose/SKILL.md"], cwd=ROOT, text=True)
+        start = old.index("### 2. Reproduce + Minimise")
+        end = old.index("### 4. Fix + Regression test")
+        reference = (ROOT / "skills/workflow/diagnose/full-investigation.md").read_text()
+        self.assertIn(old[start:end].strip(), reference)
+        core = (ROOT / "skills/workflow/diagnose/SKILL.md").read_text()
+        self.assertIn("[full-investigation.md](full-investigation.md)", core)
+        self.assertNotIn(old[start:end].strip(), core)
+
     @classmethod
     def setUpClass(cls):
         cls.contents = {

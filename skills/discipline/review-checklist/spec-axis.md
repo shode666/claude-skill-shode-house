@@ -22,7 +22,7 @@ REQUIRED-BEFORE: spec_axis_verdict
 - **(c) ดูเหมือนทำแล้วแต่ผิด** — คำนวณ VAT ก่อนหักส่วนลด ทั้งที่ spec บอกหลัง
 
 **กฎการรัน (🔴)**
-1. Spec axis กับ Standards axis (Chris) **รันเป็น sub-agent คนละตัว** — ไม่ให้ context ปนกัน (per Handoff Contract: ส่ง path ของ diff + spec ไม่ส่งเนื้อหา)
+1. Spec axis กับ Standards axis (Chris) **รันเป็น sub-agent คนละตัว** — ส่ง accessible diff/spec paths และ revisions; ถ้าไม่ shared filesystem ส่ง necessary source-marked excerpts ตาม harness ไม่ส่ง inaccessible path อย่างเดียว
 2. รายงานแยกหัวข้อ `## Standards` และ `## Spec` — **ห้าม merge หรือ rerank ข้ามแกน** เพราะการแยกแกนมีไว้กันการบังกันเอง
 3. ปิดท้าย 1 บรรทัด: จำนวน finding ต่อแกน + ตัวแย่สุด **ในแต่ละแกน** — ห้ามเลือกผู้ชนะข้ามแกน
 4. ไม่มี spec → ข้าม Spec axis แล้วเขียน **"no spec available"** ใน report (ไม่ใช่ pass เงียบ ๆ)
@@ -30,7 +30,7 @@ REQUIRED-BEFORE: spec_axis_verdict
    evidenced SKIP. See `commands/review.md` § Step 1; verify the actual separate
    assignment, not whether a ceremonial card was printed.
 
-**Routing**: finding ของ Spec axis ส่วนใหญ่ route → **Phase 1a** (Bella ∥ Sara revise spec/AC) ไม่ใช่ Phase 2 — ยกเว้นข้อ (c) ที่ spec ถูกแต่ code ผิด → Phase 2
+**Routing**: approved spec ถูกแต่ implementation ขาด/ผิด/เกิน scope → Phase 2 (Dave); spec/AC เองผิดหรือขาด decision → Phase 1a (Bella/Sara). ห้ามเปลี่ยน spec เพื่อให้ incomplete implementation ผ่าน
 
 **🛑 Stop condition** (objective-based ตาม `review-checklist` § Stop condition): (a)(b)(c) ไล่ครบทุก AC ใน scope + report เขียนแล้ว + ไม่มี blocking question → return verdict ทันที ห้ามวน re-read เพิ่ม
 

@@ -12,7 +12,7 @@ REQUIRED-BEFORE: phase_3b_verdict
 
 # Security depth axis (Sentinel)
 
-รันเมื่อ diff แตะ auth / money / PII / crypto / secret หรือเมื่อ `secure` skill ถูก trigger — **parallel กับ Chris + Quinn ไม่ใช่หลังจาก**
+รันเมื่อ diff แตะ auth / money / PII / crypto / secret หรือเมื่อ `secure` skill ถูก trigger — parallel กับ reviewers อื่นเมื่อ host รองรับและ scope อิสระ; serialize ได้โดยคง separate assignment และ independent verdict
 
 | ขั้น | เครื่องมือตัวอย่าง | ขอบเขต |
 |---|---|---|
@@ -23,7 +23,7 @@ REQUIRED-BEFORE: phase_3b_verdict
 | Abuse case | threat model จาก `secure` skill | ทุก abuse case ที่ระบุไว้ต้องมี verdict |
 | Pen test | OWASP ASVS | เฉพาะ PCI / HIPAA / regulated scope |
 
-**Verdict rule**: finding จาก scanner ที่ยังไม่ triage = 🔴 Critical จนกว่าจะพิสูจน์ว่า false positive พร้อม paste เหตุผล
+**Verdict rule**: scanner finding ที่ยังไม่ triage = unresolved candidate; ตรวจ affected path และ evidence ก่อนกำหนด severity ตาม impact/acceptance ใน harness บันทึกเหตุผลทั้ง confirmed finding และ false positive ห้าม claim security PASS ขณะ required triage ยังไม่จบ
 ห้าม claim "security ผ่าน" โดยไม่ paste output ของ scanner ที่รันเอง
 
 The `[REVIEW DISPATCH CARD]` axis plan may live in the checkpoint/report. Sentinel

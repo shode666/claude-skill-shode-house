@@ -25,7 +25,9 @@ deployment/merge outcome, not permission to perform those actions.
 
 Missing evidence for an applicable requirement is BLOCKED, never N/A. N/A requires
 a concrete scope/diff reason. Reuse unchanged approved design where appropriate;
-required independent reviewers remain separate actors, whether parallel or serial.
+Required reviewers follow the harness risk tier/triggers and remain separate actors,
+whether parallel or serial. For bounded work, linked acceptance/design/evidence in
+one task record suffices; do not invent full BRD/ADR documents for phase labels.
 Use existing project quality targets and tools. Do not install a mutation/load tool
 or invent a measured score when the agreed scope forbids it; disclose any required
 check that cannot run. The numbers/tool names below are examples unless adopted as
@@ -47,10 +49,10 @@ verify the update by reading it back, or record pending sync if the service is d
 □ Contract test pass (Pact/Schemathesis — BE ↔ FE align)
 □ Mutation test on business logic when adopted or risk requires (example ≥ 70%)
 □ Pre-merge integration smoke pass (BE+FE+DB up + curl journey)
-□ UI Design (REQUIRED ถ้า frontend/UI changed): Uma wireframe (Figma link/frame ID) + tokens.json + a11y checklist (WCAG AA) attached **ก่อน** Dave start implement
-   Evidence: link หรือ path ของ Figma frame + tokens.json + a11y self-audit list
-□ UI Test (REQUIRED ถ้า frontend/components/pages/views/*.vue/*.tsx/*.jsx เปลี่ยน หรือ Uma involved): Playwright pass + visual diff approved + axe critical=0
-   Evidence: paste Playwright console + screenshot/diff path + axe report path + trace path
+□ UI Design (UI changed): Uma-approved design/existing design system + affected a11y criteria before Dave implements
+   Evidence: design link/path + applicable tokens/a11y criteria; Figma/tokens.json are examples
+□ UI Test (rendered UI/interaction changed): affected interaction/visual/a11y checks pass via project/host tools; applicable visual diff approved
+   Evidence: test output + screenshot/diff + a11y report + applicable trace; missing required evidence = BLOCKED
 □ Load smoke: p95 < SLO, error < 0.1%
 □ Deploy staging + Aaron screenshot ✅
 □ E2E user journey on staging (Quinn — Playwright trace)

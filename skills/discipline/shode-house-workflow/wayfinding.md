@@ -32,8 +32,7 @@ Phase 0 Discover (Patrick) → Phase 1a Spec (Bella ∥ Sara) → ... → drain
 
 **หาทาง ไม่ใช่พุ่งใส่ปลายทาง.** Map คือแผนที่ร่วมของ **decision ticket** — ticket ที่ผลลัพธ์คือ *การตัดสินใจ* ไม่ใช่ชิ้นงานที่ build เสร็จ. แก้ทีละใบจนกว่าทางจะชัด
 
-🔴 **Plan อย่างเดียว ห้าม do** — Map จบเมื่อ "ไม่เหลืออะไรต้องตัดสินใจก่อนลงมือ" แล้ว hand off เข้า pipeline ปกติ
-ความรู้สึกอยากลงมือทำเลย = สัญญาณว่ามาถึงขอบแผนที่แล้ว → **hand off** ไม่ใช่ทำต่อ (ยกเว้น Notes ของ effort นั้นเขียนไว้ว่าให้ทำ)
+Map resolves decisions, not implementation acceptance. Once necessary decisions settle, Oliver continues the authorized pipeline; planning-only scope still stops before implementation. Unrelated open decisions need not block independent approved work.
 
 ## โครงสร้างบน `bd`
 
@@ -82,7 +81,7 @@ Phase 0 Discover (Patrick) → Phase 1a Spec (Bella ∥ Sara) → ... → drain
 หมอกจับตัวเฉพาะ **ทางไปหา destination** — งานที่เลยปลายทางไปแล้ว = **out of scope** ไม่ใช่ fog
 เดิม SCOPE DRIFT เป็นกฎเฝ้าระวังที่ **ไม่มีที่ให้บันทึก** ว่า "อันนี้เราตัดออกแล้วนะ" → ตอนนี้มี
 
-ticket ที่มีอยู่แล้วแต่พบว่าอยู่เลย destination → **ปิดมัน** (ticket ที่ปิดแล้ว = พ้น frontier แน่นอน) + เขียน 1 บรรทัดใน Out of scope พร้อมเหตุผล
+Out-of-scope tickets: record exclusion and reason; cancel/defer only with tracker authority. Preserve history and other owners' work; exclusion is not successful completion.
 ❌ ห้ามใส่ใน Decisions so far — นั่นคือบันทึกของ *เส้นทางที่เดินจริง* ขอบเขตที่ตัดออกไม่ใช่ก้าวหนึ่งบนเส้นทาง
 out of scope ไม่มีวัน graduate; จะกลับมาได้ต่อเมื่อ **redraw destination** ซึ่งนับเป็น effort ใหม่ ไม่ใช่การทำต่อ
 
@@ -94,8 +93,8 @@ out of scope ไม่มีวัน graduate; จะกลับมาได�
 | Type | HITL? | ใครรับ | ใช้เมื่อ |
 |---|---|---|---|
 | **research** | AFK | Domain expert (regulation/business) · Sara (tech/vendor) — โหลด `shode-house-evidence` § Project Evidence Protocol, **primary source เท่านั้น** | ต้องรู้ข้อเท็จจริงนอก working directory ก่อนตัดสินใจ |
-| **prototype** | HITL | Uma (หน้าตา/flow) · Dave (logic/state) — throwaway ตาม `dev-gate` § When NOT to use, จบแล้ว commit ไว้ throwaway branch + บันทึก verdict | คำถามคือ "หน้าตาควรเป็นยังไง / behave ยังไง" |
-| **grilling** | HITL | Oliver · Bella · Patrick · Sara — ใช้ **frontier model** ใน `shode-house-discipline/main-session.md` § Clarifying | ค่าเริ่มต้น: เป็นการคุยเพื่อตัดสินใจ |
+| **prototype** | HITL | Uma (flow) · Dave (logic) — isolated throwaway per `dev-gate`; retain artifact/verdict, commit only if authorized | Resolve behavior/design uncertainty |
+| **grilling** | HITL | Oliver asks user; Bella/Patrick/Sara return questions/options through Oliver using `shode-house-discipline/main-session.md` | Human decision needed |
 | **task** | ทั้งคู่ | Aaron (provision/access) · owner (สมัคร service, ขอสิทธิ์) | ไม่มีอะไรให้ตัดสินใจ แต่ decision ติดอยู่จนกว่างานนี้จะเสร็จ. ปิดแล้วบันทึก fact ที่ ticket หลังต้องใช้ (ที่อยู่ credential, URL ใหม่, จำนวนแถว) |
 
 ## เรียกด้วยชื่อ ห้ามเรียกด้วยเลข (🔴)
@@ -106,18 +105,17 @@ out of scope ไม่มีวัน graduate; จะกลับมาได�
 
 ## 2 โหมด
 
-🔴 **ห้ามปิดเกิน 1 ticket ต่อ session** — ยกเว้น research ticket (fan-out ขนานได้)
-เหตุผล: ticket ถูกออกแบบให้พอดี 1 session; ปิดสองใบใน session เดียวแปลว่าใบที่สองถูกตัดสินด้วย context ที่เหนื่อยแล้วและปนกับใบแรก
+Continue eligible authorized tickets with per-ticket evidence and ownership. Checkpoint before context loss; session boundaries are not a one-ticket quota. Do not invent human decisions to keep running.
 
 ### A. Chart the map (user มาด้วยไอเดียก้อนใหญ่)
 
 1. **ตั้งชื่อ destination** — grill (frontier model) + สร้าง domain glossary ให้ชัดว่า map นี้กำลังไปหาอะไร. **destination ตรึง scope จึงต้องเสร็จก่อนเพื่อนเสมอ**
 2. **สำรวจ frontier แบบ breadth-first** — กวาดให้ทั่วพื้นที่ ไม่ลงลึกเส้นใดเส้นหนึ่ง; หา decision ที่เปิดอยู่ + ก้าวแรกที่ทำได้เลย
-   **ถ้าไม่เจอ fog เลย** (ทางชัดอยู่แล้ว ทั้งงานจบใน session เดียว) → **ไม่ต้องมี map** หยุดแล้วถาม user ว่าจะเอายังไงต่อ (อาจไป `/design-system` ตรง ๆ)
+   **No fog** → skip the map and continue the authorized pipeline; ask only for missing scope/authority.
 3. **สร้าง map** — Destination + Notes ครบ, Decisions so far ว่าง, หมอกร่างลง Not yet specified
 4. **สร้าง ticket เท่าที่ตั้งคำถามได้คม** เป็น child ของ map แล้ว **wire blocking เป็นรอบที่สอง** (issue ต้องมี id ก่อนถึงอ้างกันได้)
-5. **ยิง research subagent ขนาน** สำหรับทุก research ticket ที่เพิ่งสร้าง — เขียนผลลง `outputs/<map-id>/research-<name>.md` (cite primary source ทุก claim) แล้ววาง path ไว้ที่ ticket (Handoff Contract: ส่ง path ไม่ส่งเนื้อหา)
-6. **หยุด** — charting เป็นงานของ session เดียว มันไม่ปิด ticket ให้ใคร
+5. Oliver dispatches concrete ready research within host capacity, parallel or sequential separate workers; record sourced results in the canonical evidence home and return accessible pointers.
+6. Collect and verify worker results before dependent decisions. Continue authorized work; checkpoint when blocked or interrupted, never abandon running workers merely because charting ended.
 
 ### B. Work through the map (user มาพร้อม map id)
 
@@ -127,7 +125,7 @@ out of scope ไม่มีวัน graduate; จะกลับมาได�
 4. บันทึกผล: `bd close <id> --reason "<คำตอบ>"` → `bd show <id>` ยืนยัน CLOSED (M8) → append 1 บรรทัดเข้า Decisions so far
 5. **graduate fog** ที่คำตอบนี้ทำให้คมพอแล้ว → สร้าง ticket ใหม่ (create-then-wire) + **ลบ patch นั้นออกจาก Not yet specified** เพื่อไม่ให้มันอยู่สองที่
    คำตอบเผยว่า ticket ใด (ใบนี้หรือใบอื่น) อยู่เลย destination → **rule out of scope** ไม่ใช่แก้มันบนเส้นทาง
-   คำตอบล้มส่วนอื่นของแผนที่ → แก้หรือลบ ticket เหล่านั้น
+   คำตอบล้มส่วนอื่นของแผนที่ → amend/defer affected tickets within authority, preserving history and ownership
 
 > user รัน ticket ที่ unblocked ขนานกันได้ → **คาดหมายว่ามี session อื่นแก้ tracker พร้อมกัน** อ่าน `bd show` ใหม่ก่อนเขียนทับเสมอ
 

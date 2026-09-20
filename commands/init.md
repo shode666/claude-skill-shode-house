@@ -6,6 +6,12 @@ argument-hint: '[project-name | --quick "stack description"]'
 
 # /init — Project Scaffold
 
+Apply the requested scaffold/adoption scope and actual host capabilities. Reuse
+confirmed project choices and authorization; ask only for missing decisions or
+new scope. The examples below do not authorize installing tools, hooks, a tracker,
+or a runtime beyond that scope. Preserve existing project record homes and use
+the harness checkpoint when no separate script runtime has been adopted.
+
 **Mode detection** (Oliver):
 
 ```bash
@@ -30,9 +36,9 @@ fi
 - **brownfield** → **ADOPT mode (non-destructive)** — *check-first → reuse → gap-fill*:
   1. **Check ของเดิมก่อนเสมอ** (ห้ามเดา/ห้ามทับ): `harness-contract` marker มีไหม? · มี `CLAUDE.md`/`AGENTS.md` ไหม? · มี CI / test runner / pre-commit / Makefile / tracker (bd/Jira/Linear) อยู่แล้วไหม? (Glob/Grep ของจริง)
   2. **มีอยู่แล้ว → reuse + ปรับใช้** ของเขา (ไม่สร้างซ้ำ ไม่ทับ); เติมเฉพาะ **ส่วนที่ขาด**
-  3. **ขาดส่วนไหน → ask** (option-style) ก่อนเพิ่ม — ไม่ auto-add; เขียนเฉพาะไฟล์ที่ยังไม่มี
+  3. **ขาดส่วนไหน → ตรวจ scope ที่อนุญาต**: เติมส่วนที่อยู่ในคำขอได้; ถ้าเป็น scope ใหม่ให้ถามก่อน เขียนเฉพาะไฟล์ที่ยังไม่มี
   4. ไฟล์ที่จะชน → `<file>.shode-house.new` + ถาม user ก่อน merge; ไม่ auto-replace
-  5. **เขียน/append section `## Harness (shode-house)` ลง project's `CLAUDE.md`** (ถ้าไม่มี CLAUDE.md ใช้ `AGENTS.md`; ไม่ทับเนื้อเดิม) — เป็นทั้ง marker + เอกสารว่า harness ทำอะไร:
+  5. **เมื่อ scope รวมการบันทึก harness ใน project guidance** ให้ append section `## Harness (shode-house)` ลง project's `CLAUDE.md` (ถ้าไม่มีใช้ `AGENTS.md`; ไม่ทับเนื้อเดิม); มิฉะนั้นใช้ confirmed record home:
      ```md
      ## Harness (shode-house) — <date>
      <!-- harness-contract -->
@@ -42,9 +48,63 @@ fi
      - Runner: <generated path | ยังไม่ generate (YAGNI; gen เมื่อมี long-run need)>
      - Reused: <ของเดิมที่ปรับใช้> | Added: <ส่วนที่เติม>
      ```
-  6. diff preview ทุกไฟล์ + confirm ก่อน write (anti-puppet); commit แยก `chore(shode-house): adopt harness contract`
+  6. ตรวจ diff ทุกไฟล์; ไม่ขอ confirm ซ้ำสำหรับงานใน scope ที่อนุญาตแล้ว Commit แยก `chore(shode-house): adopt harness contract` เฉพาะเมื่อมี commit authority
 
 > data-loss = carve-out "ห้ามตัด/ห้ามเสี่ยง". brownfield adopt = **check ของเดิม → reuse → เติมที่ขาด → document ใน CLAUDE.md** โดยโครงสร้าง project เดิมไม่เปลี่ยน
+
+### Phase 0 — runtime ignore rule (only for an adopted script runtime)
+
+Apply this section only when the target project explicitly uses the separate
+script runtime described below. The distributed instruction-only plugin does not
+ship these scripts or require this directory. Do not install a runner, change hooks,
+or create runtime state to satisfy this reference. For other projects, keep the
+confirmed tracker/Markdown checkpoint workflow and skip this runtime-specific step.
+
+`.shode-house/` คือ runtime dir ที่ script ของ milestone นี้เขียน state/approval/side-effect ลงไป
+(bd:shode-house-5cs.5) — ต้องมี root-anchored ignore rule ใน target project's `.gitignore` ก่อน
+scaffold ต่อ ไม่งั้น approval JSON ที่ script เขียนจะโผล่เป็น untracked dirt ทุกครั้งที่ grant ใหม่
+(bd:shode-house-5cs.5 iter4 root cause). Leading slash ตั้งใจ — ระบุ dir ที่ ROOT เท่านั้น ไม่ ignore
+ทุก dir ชื่อนี้ทุก depth:
+
+```bash
+RUNTIME_IGNORE_RULE="/.shode-house/"
+
+# idempotent -- รันซ้ำกี่ครั้งก็เหลือ rule ที่ effective เดียว; ไม่ทับ/reorder/reformat
+# entry เดิมที่ไม่เกี่ยวข้อง; ไม่ duplicate ถ้ามี rule ที่ "เทียบเท่า" อยู่แล้วคนละ spelling
+# (".shode-house/", ".shode-house", "/.shode-house" -- ต่างแค่ leading/trailing slash)
+ensure_runtime_ignore_rule() {
+  local gi="$1" rule="$2" core line l
+  core="${rule#/}"; core="${core%/}"
+
+  if [ ! -f "$gi" ]; then
+    printf '%s\n' "$rule" > "$gi"
+    return 0
+  fi
+
+  # exact spelling อยู่แล้ว -> no-op
+  grep -qxF "$rule" "$gi" && return 0
+
+  # equivalent spelling อยู่แล้ว (ต่างแค่ leading/trailing slash ของชื่อเดียวกัน) -> no-op,
+  # ไม่ใช่ prefix/glob match แบบ ".shode-house/*" (นั่นคือคนละความหมาย ไม่นับเทียบเท่า)
+  while IFS= read -r line || [ -n "$line" ]; do
+    l="${line%/}"; l="${l#/}"
+    [ "$l" = "$core" ] && return 0
+  done < "$gi"
+
+  # append ต่อท้าย ไม่แตะ entry เดิมเลย; กัน glue กับบรรทัดสุดท้ายถ้าไฟล์ไม่มี trailing newline
+  if [ -s "$gi" ] && [ -n "$(tail -c1 "$gi")" ]; then
+    printf '\n' >> "$gi"
+  fi
+  printf '%s\n' "$rule" >> "$gi"
+}
+
+ensure_runtime_ignore_rule "./.gitignore" "$RUNTIME_IGNORE_RULE"
+```
+
+- ไม่มี `.gitignore` → สร้างใหม่ด้วย rule นี้บรรทัดเดียว
+- มี `.gitignore` แต่ไม่มี rule นี้ (exact หรือ equivalent spelling) → append ท้ายไฟล์ เก็บ entry เดิมไว้ครบ ไม่เรียงใหม่ ไม่ format ใหม่
+- รัน `/init` ซ้ำ (fresh หรือ brownfield) → เหลือ effective rule เดียวเสมอ ไม่มี duplicate line
+- เกิดก่อน Phase 2 scaffold (Aaron's `.gitignore` step ด้านล่างเติมรายการอื่นต่อจากที่นี่ ไม่ทับ)
 
 ---
 
@@ -118,7 +178,8 @@ Q6: Sandbox?
 - Sample BR/FR/Story tracker entry
 - Glossary template (ubiquitous language)
 
-[Oliver] config engagement defaults:
+[Oliver] record confirmed engagement defaults in the selected checkpoint;
+if the project explicitly adopted the script runtime, its config may be:
 - `.shode-house/config.yaml`:
   ```yaml
   mode: hybrid
@@ -165,7 +226,10 @@ Next steps:
 - `brew install beads node` + `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - ยืนยัน `bd`, `npx`, `uv` พร้อมใช้
 
-### 1. Mini-clarify (Aaron — 2 คำถาม เท่านั้น)
+### 1. Mini-clarify (Aaron prepares; Oliver asks — up to 2 unresolved questions)
+
+Aaron returns missing decisions to Oliver. Reuse confirmed answers; only Oliver
+asks the user, using the host's available question channel.
 - Deploy target (VPS / ECS / K8s / Cloud Run)
 - CI (GitHub Actions / GitLab / CircleCI)
 
@@ -222,8 +286,8 @@ Default: **Caddy** (auto HTTPS, simple)
 7. **Security baseline** → non-root, image scan
 8. **Observability from day 1** → log/metric/trace
 9. บังคับ verify (anti-puppet) — paste output จริง
-10. Save config ที่ `.shode-house/config.yaml` — agent อื่น read ได้
-11. **Harness contract (บังคับ establish ทุก project)** — Aaron เขียน `harness-contract` marker + ค่า (fan-out cap, retry/backoff, checkpoint via bd/ledger, token budget) ลงไฟล์ **ของ project ที่ทำงาน**: `./.shode-house/config.yaml` + section ใน project's `CLAUDE.md` (หรือ `AGENTS.md`) — เพื่อให้ Oliver Harness Contract Check เจอครั้งหน้า. Brownfield (มี repo อยู่แล้ว): non-destructive — เขียนแค่ marker ไม่ scaffold ทับ. หลักการ: plugin ดูแลแค่ contract; long/repetitive run จริง → generate runner fit stack เข้า project repo (ผ่าน dev-gate). ไม่มี need = ไม่ generate (YAGNI) แต่ contract ต้องมีเสมอ
+10. Save confirmed defaults in the existing record home; `.shode-house/config.yaml` is only for an explicitly adopted script runtime.
+11. **Harness contract** — establish coordination using the host tools and confirmed checkpoint described in `shode-house-workflow/harness.md`. Do not require marker/config files, hooks or a generated runner merely to satisfy the plugin. Aaron generates a project runner only for an authorized concrete runtime need; preserve brownfield structure and existing guidance.
 12. ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim
 
 ## Skill composition

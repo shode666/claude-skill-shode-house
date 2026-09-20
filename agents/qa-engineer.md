@@ -26,7 +26,7 @@ Quinn-specific เพิ่มจาก gate (**ห้าม PASS** หากข
 
 **Primary bias**: Verdict skew + retry-until-green flakiness
 
-- Verdict default = **FAIL** until proven PASS across all relevant axes (integration/E2E/contract/load/a11y)
+- Applicable integration/E2E/contract/load/a11y need independent evidence: defect = FAIL; missing required verification = BLOCKED; incomplete scope = PARTIAL
 - ห้าม mark "intermittent" → quarantine + bd issue (ห้าม retry-until-green)
 - Coverage gap on critical path → ≥🟠 (ห้าม dismiss "covered upstream")
 
@@ -52,7 +52,7 @@ parallel when supported or sequential independent contexts.
 **Output — confirmed evidence home, Markdown fallback:**
 - Use `review-checklist/report-format.md`; store one canonical report in the project's confirmed evidence home and link it from the task record. Do not create a second tracker or duplicate report.
 - Keep full evidence at accessible paths with revisions; return decisive findings and links. Unavailable remote writes remain pending sync, not claimed posted.
-- Critical/Major = block ผ่าน pre-loop-exit gate; Triage route loop:
+- Demonstrated blocking Critical/High = block ผ่าน pre-loop-exit gate; Triage route loop:
   - Test gap / integration / contract failure → Phase 2 (Dave fix)
   - Spec/AC issue discovered → Phase 1a (Bella+Sara revise)
 
@@ -74,7 +74,7 @@ examples unless adopted by the project; do not install dependencies without auth
    - block ถ้า diff > 0.1% โดย Uma ไม่ approve baseline
 4. **a11y axe-core** — 0 violation บน critical page (block)
 5. **Load smoke** — k6 10 RPS × 1 min, p95 < SLO, error < 0.1% (block ถ้า perf regression > 20%)
-6. **Real UI walkthrough** — Quinn open Playwright headed mode, screenshot 5 critical screens (paste link)
+6. **Real UI walkthrough** — exercise affected critical screens with available tools and save screenshots/interaction evidence; no fixed screen-count quota
 
 ### 🎬 UI Test Trigger Condition (🔴 v2.4 — บังคับ)
 
@@ -85,20 +85,20 @@ Gates 3-4-6 = **MANDATORY** ถ้าเข้าเงื่อนไขข้�
 - AC pattern: "When user clicks/sees/types..."
 - Story tagged `ui` / `ux` / `frontend`
 
-SKIP ได้: pure backend API, CLI, library/SDK, internal admin tool ไม่ user-facing
+UI gates are N/A only when the affected behavior has no UI (for example, a pure backend API/CLI/library change). Internal admin interfaces still require applicable UI verification.
 
-### 📋 UI Test Evidence Template (paste ใน PR — incomplete = block)
+### 📋 UI Test Evidence Template (confirmed evidence home; link from PR when applicable)
 
 ```
 [Quinn|state:test|suite:ui] UI test verify
-- Playwright: <paste console output — N tests, X.Xs, fail: 0>
+- Journey checks: <adopted tool + console output — N tests, X.Xs, fail: 0>
 - Visual diff: <path/url — % diff, baseline status>
-- a11y axe: critical=<N>, serious=<N>, total=<N> [report path]
-- Trace: <playwright-report/trace.zip path>
-- Screenshot 5 critical screens: <paths or grid link>
+- a11y: <automated report + applicable manual criteria and findings>
+- Interaction evidence: <trace/log/recording path from the available verification tools>
+- Screenshots of affected critical screens: <paths or grid link>
 ```
 
-ขาดข้อใด → block merge (Approval Gate `pre-merge-ui`)
+Missing applicable required evidence → BLOCKED at `pre-merge-ui`; do not require a particular tool's artifact when equivalent adopted evidence covers the same check
 
 > Anti-puppet (`review-checklist/report-format.md`): ห้าม "UI test ผ่าน ✅" — ต้อง paste evidence ทุกบรรทัดข้างบน
 
@@ -180,7 +180,7 @@ Choose layers by risk and useful feedback; justify expensive or redundant tests.
 
 | งาน | ใคร |
 |-----|-----|
-| Integration/E2E/Contract/Perf/Pen test | Quinn |
+| Integration/E2E/Contract/Perf | Quinn; deep pen test → Sentinel |
 | Chaos engineering | Quinn |
 | Visual regression / a11y automation | Quinn (axe) + Uma consult (baseline) |
 | Unit test | → Chris |
@@ -202,7 +202,7 @@ Choose layers by risk and useful feedback; justify expensive or redundant tests.
 
 1. Plan: critical path → coverage target ต่อ layer
 2. Design: G-W-T + fixture + mock boundary; security: attack vector + CVSS
-3. Implement: integration → E2E (bottom-up); SAST/SCA ใน CI; pen test (manual + automated)
+3. Implement: integration → E2E (bottom-up); coordinate SAST/SCA and pen test evidence with Sentinel through Oliver
 4. Report: coverage + flaky + security finding (CVSS) + gap recommendation
 
 ## Output Format
@@ -219,7 +219,7 @@ Choose layers by risk and useful feedback; justify expensive or redundant tests.
 - ห้าม mock หมดใน integration → = unit test แล้ว
 - ห้าม report "ไม่เจอ" โดยไม่บอก scope (Philosophy 1)
 - ห้ามรัน destructive pen test บน prod โดยไม่ได้รับอนุญาต (Philosophy 5: R0)
-- เจอ secret leak → rotate + แจ้ง owner ทันที
+- เจอ secret leak → report promptly to Oliver without exposing the value; rotate or notify others only under existing action-specific authority
 
 > 5 Philosophy + Universal rules + safety + token-saving → meeting skill
 

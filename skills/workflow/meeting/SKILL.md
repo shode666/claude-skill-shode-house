@@ -34,7 +34,7 @@ description: |
 | **`shode-house-evidence`** | เมื่อ claim "ระบบทำ X" หรือ "regulation บังคับ Y" หรือ "perf p95 = Z" | All claimers, Domain experts, Uma, Chris |
 | **`shode-house-routing`** | เมื่อต้อง delegate / triage / T-shirt / resolve conflict | Oliver primary |
 | **`shode-house-deliverable`** | เมื่อจะ hand-off, claim "done", เขียน postmortem, sign-off | Producers (Dave/Chris/Quinn/Aaron/Uma/Bella/Sara/Felix/...) |
-| **`shode-house-broadcast`** | ทุก message agent → user (tag prefix mandatory); state transition (caveman); hand-off | All; Oliver caveman; hand-off lines |
+| **`shode-house-broadcast`** | Structured worker returns, durable handoffs and meaningful state transitions | All; conversational messages need no mandatory tag |
 | **`shode-house-workflow`** | Phase Contract + Smart Coop + hooks + gates + worktree | Oliver primary |
 | **`shode-house-drift`** | Workflow Drift Defense 7 mechanisms (M1-M7) | Oliver enforcer |
 
@@ -46,8 +46,8 @@ description: |
 
 | Mode | Behavior | When |
 |------|----------|------|
-| **AFK** (Auto) | Oliver delegate ทุก phase + automated gate. User approve เฉพาะ R0 | งานชัด, trusted scope, deadline แน่น |
-| **Interactive** (Supervised) | Human approve ทุก hand-off + ดู agent output ก่อน next | งานใหม่/ละเอียดอ่อน, learning, audit |
+| **AFK** (Auto) | Oliver dispatches applicable roles and verifies required gates within existing authority | งานชัด, trusted scope, deadline แน่น |
+| **Interactive** (Supervised) | User checkpoints at the agreed boundaries; reuse approvals within their scope | งานใหม่/ละเอียดอ่อน, learning, audit |
 | **Hybrid** (Recommended default) | AFK ถึง pre-deploy → Interactive ตั้งแต่ deploy ขึ้น | งานทั่วไป — balance speed + safety |
 
 Use the supervision preference already given. Ask only if a missing preference

@@ -14,12 +14,17 @@ REQUIRED-BEFORE: pre_implement_ui_gate
 
 > แยกจาก agent prompt v3.12.1 — consultation สั้น ๆ ไม่ต้องแบก runbook ของทุก phase
 
+Use confirmed record homes, existing design decisions and actual host tools. The
+Bash, Figma and catalog commands below illustrate evidence collection; verify their
+availability and use equivalent supported tools. Missing tooling is a stated evidence
+limitation, not permission to install a toolchain or invent a passing result.
+
 ## 🎨 Phase 1b PRE-Design (🔴 v2.8 — sequential after Bella+Sara)
 
 Uma เข้า **after** Phase 1a sign-off (อ่าน bd notes ของ Bella+Sara). Sequential ไม่ใช่ parallel — Uma ต้องมี spec context ก่อน design
 
 ### Trigger
-Frontend trigger detected (touch UI/component/page/view/email/dashboard) — ถ้า Oliver decide skip → no Uma
+Frontend trigger detected (touch UI/component/page/view/email/dashboard) → Uma ตาม harness; explicit user/project/host scope takes precedence over plugin defaults, and omitted checks are recorded rather than claimed passed
 
 ### Process (Phase 1b)
 1. `bd show <id>` + read Phase 1a notes (BRD + ADR compact)
@@ -34,7 +39,7 @@ Frontend trigger detected (touch UI/component/page/view/email/dashboard) — ถ
 
    a. **Detect stack — ห้ามเดา** (NO MAGIC ฉบับ design): `package.json` deps · `pubspec.yaml` · `*.xcodeproj`/`Package.swift` · `composer.json` · `app.json`+react-native
       detect ไม่ได้และ stack มีผลกับคำแนะนำ → **ถาม user** ห้าม default. default ที่ hardcode ไว้ = misroute ทุกคำแนะนำแบบเงียบ ๆ
-   b. **Design dials แทนคำถามเปิด** — ถาม 3 ข้อนี้แทน "อยากได้แนวไหน": `--variance` (1 มินิมอล ↔ 10 bold) · `--motion` (1 subtle ↔ 10 choreography) · `--density` (1 โปร่ง ↔ 10 dashboard)
+   b. **Design dials แทนคำถามเปิด** — reuse existing design preferences; ถ้ายังต้องเลือก direction ถามเฉพาะค่าที่ขาด: `--variance` (1 มินิมอล ↔ 10 bold) · `--motion` (1 subtle ↔ 10 choreography) · `--density` (1 โปร่ง ↔ 10 dashboard)
    c. **MASTER + page override** (source of truth ข้าม bd — เดิม `tokens.json` เป็น artifact ราย bd เท่านั้น จึง drift ข้าม bd ได้)
       ```bash
       # มี MASTER อยู่แล้ว → อ่านก่อน ห้ามสร้างทับ

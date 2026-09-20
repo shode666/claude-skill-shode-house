@@ -17,6 +17,8 @@ REQUIRED-BEFORE: phase_dispatch
 > **โหลดไฟล์นี้เมื่อ**: kickoff pipeline · phase transition · ตั้ง approval gate · เขียน/อ่าน `state.json` · Aaron ตั้ง lifecycle hook
 > Handoff Contract ไม่อยู่ที่นี่ — อยู่ใน `shode-house-discipline` (ทุก agent ต้องรู้ ไม่ใช่แค่ตอนรัน pipeline)
 
+> Applicability: use the harness risk tier and triggered roles. UI-only phases/gates are not applicable to pure backend changes; record why. Parallel means optional concurrency between independent actors, subject to host capacity; separate sequential reviewers are valid. Beads/output paths below are examples within the confirmed record home, not a tracker migration requirement.
+
 **Smart Coop ≠ everything parallel.** ใช้ parallel เฉพาะที่ agent **truly independent** (no read dependency); ใช้ sequential gate ที่มี natural dependency
 
 ### Parallel-vs-Sequential Matrix
@@ -54,7 +56,7 @@ REQUIRED-BEFORE: phase_dispatch
 1. Uma read Dave's PR + own Phase 1b baseline
 2. Screenshot diff (Chromatic/Percy) + manual visual review
 3. Verify own accept criteria + a11y manual (keyboard, screen reader, focus)
-4. Verdict: PASS → Phase 3b unlocks; FAIL → loop Phase 2 (Dave fix)
+4. Verdict: PASS → Phase 3b unlocks; FAIL → triage to affected owner/phase (code→Dave, design→Uma, spec→Bella)
 ```
 
 ### Phase 3b Pattern (Parallel Review)
@@ -68,7 +70,7 @@ REQUIRED-BEFORE: phase_dispatch
 ### ❌ Anti-pattern (จะถูก block)
 - ❌ Phase 1a Sara คัดลอกข้อสรุป Bella แทนทำ architecture analysis ของตน; sequential คนละ context ทำได้
 - ❌ Phase 1b Uma start ก่อน 1a sign-off — Uma เดา spec
-- ❌ Phase 3a skip — Dave → Chris+Quinn ตรงไม่ผ่าน Uma → UI bug ลึก
+- ❌ Skip Uma POST for changed UI; pure backend records Phase 3a not-applicable and proceeds to its required reviews
 - ❌ Phase 3b Quinn ใช้ verdict Chris แทน integration evidence ของตน; sequential คนละ reviewer ทำได้
 - ❌ Dave#1 + Dave#2 แตะ file เดียวกัน — ต้อง Scope Contract enforce
 
@@ -82,9 +84,9 @@ REQUIRED-BEFORE: phase_dispatch
 Oliver maintain checkpoint ใน canonical record ของ project ตาม `harness.md`; ไม่สร้าง state อีกชุดหากมี record ที่ครอบคลุมอยู่แล้ว. JSON ต่อไปนี้เป็นทางเลือก ไม่ใช่ runner prerequisite.
 **Required meaning**: task ID, engagement/scope, current phase/iteration, phase status/owners/artifacts/revisions, findings, open questions, approvals, UNKNOWN operations และ next action. Markdown/Jira links ใช้แทน JSON fields ได้
 **Phase status enum**: `pending | in_progress | conditional_pass | passed | failed | skipped`
-**Oliver bootstrap**: อ่าน current record + artifact revisions ก่อน resume; ถ้า `iter > 3` escalate. ห้าม advance เมื่อ required evidence/owner ขาด. `conditional_pass` ไม่ปลด blocker ที่ยัง unresolved. Prompt check ไม่ใช่ deterministic runtime enforcement
+**Oliver bootstrap**: อ่าน current record + artifact revisions ก่อน resume; unresolved at the third review/fix iteration → checkpoint and escalate. ห้าม advance เมื่อ required evidence/owner ขาด. `conditional_pass` ไม่ปลด blocker ที่ยัง unresolved. Prompt check ไม่ใช่ deterministic runtime enforcement
 
-### 🪝 Lifecycle Hooks (per phase — Aaron auto-trigger)
+### 🪝 Lifecycle conditions (per phase — automation only when authorized)
 
 แต่ละ phase มี pre/post hook สำหรับ automated check:
 
@@ -96,13 +98,13 @@ When Domain SME (Felix/Iris/Sam/Tara/Elena/Brooke/Emma) flags scope gap in Phase
    - Oliver create `outputs/<bd>/05-oliver-user-clarify.md`
    - Format: friendly preamble + numbered questions + grouping by SME + explicit "USER ACTION REQUIRED"
    - 🔴 **subagent เรียก `AskUserQuestion` ไม่ได้** (Claude Code: tool นี้ยังไม่รองรับ agent ที่ spawn ผ่าน Task) —
-     Oliver-as-subagent จึง **return question bundle** ขึ้นไป ไม่เปิด popup เอง:
+     Any specialist needing user input returns a question bundle to Oliver, who remains the main session; never spawn an Oliver subagent:
      ```
      subagent  → return { questions[], options[], recommended } + path ของไฟล์ clarify
      main session (command) → เรียก AskUserQuestion (≤ 4 ข้อ) หรือ post markdown + สรุปในแชท (> 4 ข้อ)
                             → เขียนคำตอบกลับ tracker (bd update --notes) แล้วส่ง path ให้ subagent รอบถัดไป
      ```
-     Oliver ที่ยึด main session ผ่าน `output-styles/oliver.md` = main context เรียก popup ได้ปกติ
+     Oliver uses the main session's actual popup tool when available, otherwise Markdown. Host limits determine question batch size; the Claude example is not a portable API.
 3. **Block Phase 1a** until user response (M2 classify = `quest`, NOT M5 — no spec exists yet)
 4. **Clarification round cap** (G11 — max 2 rounds):
    - Round 1: initial SME questions to user
@@ -124,10 +126,10 @@ When Domain SME (Felix/Iris/Sam/Tara/Elena/Brooke/Emma) flags scope gap in Phase
 | **Phase 1a Foundation** | Bella ∥ Sara | bd issue context + CLAUDE.md loaded | BRD + ADR drafts done, light cross-read pass, `bd update <id> --notes` posted |
 | **Phase 1b Expand** | Uma + Domain (conditional) | 1a sign-off + frontend/business-rule trigger detected | Uma: wireframe + tokens + a11y baseline; Domain: regulation cite + rule. Integrated `outputs/SPEC-<bd-id>.md` saved |
 | **Phase 1c Threat Model** (conditional) | Sentinel | auth/PII/money/external trigger | STRIDE + abuse case + security AC injected to 1a |
-| **Phase 2 Implement** | Dave | UI artifact verified (pre-implement-ui), Scope Contract posted, worktree | lint + type + unit pass, smoke green, Scope Contract closed |
+| **Phase 2 Implement** | Dave | Scope Contract posted, verified write isolation; UI artifact required only for UI work | lint + type + unit pass, smoke green, Scope Contract closed |
 | **Phase 3a UI Check** | Uma (conditional) | implement done + frontend changed | screenshot diff approved + a11y manual + visual evidence (ladder) + Uma own AC verified → PASS/FAIL verdict |
-| **Phase 3b Code Review** | Chris + Quinn (independent; parallel when supported) | Phase 3a passed (no order between Chris/Quinn); **adversarial — verdict default FAIL** | Chris: 7-dim + risk-based test quality per adopted targets + visual evidence (ladder); Quinn: E2E + contract + load + axe + visual evidence (ladder); merged `outputs/REVIEW-<bd-id>.md` |
-| **Phase 4 Triage** | Oliver | 3a + 3b reports ready | route loop (Phase 1a/1b/2 by finding type) ∥ Clean → `bd close <id> --reason "<verdict> <sha> <test>"` + `bd show <id>` re-confirm CLOSED (🔴 M8 Close-on-Done — paste output) ∥ iter > 3 → escalate user. Per-bd reflect `bd remember <lesson>` |
+| **Phase 3b Code Review** | Selected reviewers per harness tier + triggered experts, independent | Phase 3a passed for UI or explicitly not applicable; no PASS without evidence | Chris: invariants/test quality; Quinn when applicable: integration/contract and relevant E2E/load; UI evidence only for UI. Record findings with revision in confirmed evidence home |
+| **Phase 4 Triage** | Oliver | Applicable review reports ready; UI N/A recorded for backend | Route findings to affected phase. Close only after required acceptance and closure authority; read back confirmed tracker, otherwise pending sync. At third unresolved review/fix iteration checkpoint and stop; retain per-task lesson |
 | **Phase 5 Deploy** | Aaron (continuous per bd) | approval gate + rollback plan ready | health check + observability live |
 | **Phase 6 Operate** | Reggie | service in production | SLO burn watched, incident response per runbook |
 
@@ -143,18 +145,17 @@ Static (host): `{{PROJECT_NAME}}` `{{STACK}}` `{{DOMAIN}}` `{{TRACKER}}` `{{ENV}
 Shell eval (sandbox, per iteration): `` {{!`git rev-parse HEAD`}} `` · `` {{!`bd ready --json | jq '.[0].id'`}} ``
 > ใช้เฉพาะที่จำเป็น — over-template = อ่านยาก
 
-### Loop with Exit (🔴 Dave/Quinn)
-```
-loop (max 5):
-  do → test
-  pass → exit | fail+max → escalate Sara | else → fix root cause + retry
-```
-- Binary: pass = pass (ห้าม "เกือบ pass")
-- Max iter ≠ keep trying → re-design
+### Loop with Exit (Dave/Quinn)
+
+Use the harness's three review→fix iteration cap; this reference grants no separate
+five-attempt allowance. Each retry requires a changed hypothesis or new evidence.
+At the cap with unresolved findings, preserve artifacts/evidence, record BLOCKED or
+PARTIAL with next owner and options, and stop. Passing tests do not override unresolved
+acceptance or approval gates.
 
 ### Approval Gates (⏸️ Oliver)
 ก่อน R0 (irreversible) → bullet check + ขอ approve
-**10 standard (🔴 phase-aligned)**: **pre-spec-expand** (🔴 Phase 1a → 1b: Bella+Sara sign-off ก่อน Uma/Domain expand), **pre-implement-ui** (🔴 Phase 1b → 2: Uma artifact ครบก่อน Dave start frontend), **pre-ui-check** (🔴 Phase 2 → 3a: lint clean + unit green + smoke pass ก่อน Uma POST), **pre-code-review** (🔴 Phase 3a → 3b: Uma POST PASS ก่อน Chris+Quinn เริ่ม), pre-merge, **pre-merge-ui** (🔴 Playwright/visual/axe evidence ก่อน merge UI change), **pre-loop-exit** (🔴 Phase 4 → 5: Triage clean + iter ≤ 3 → unlock Deploy), pre-deploy-staging/uat/prod, pre-data-migration, pre-destructive
+**10 standard (🔴 phase-aligned)**: **pre-spec-expand** (🔴 Phase 1a → 1b: Bella+Sara sign-off ก่อน Uma/Domain expand), **pre-implement-ui** (🔴 Phase 1b → 2: Uma artifact ครบก่อน Dave start frontend), **pre-ui-check** (🔴 Phase 2 → 3a: lint clean + unit green + smoke pass ก่อน Uma POST), **pre-code-review** (🔴 Phase 3a → 3b: Uma POST PASS for changed UI, or recorded UI not-applicable for backend, before selected reviewers start), pre-merge, **pre-merge-ui** (🔴 Playwright/visual/axe evidence ก่อน merge UI change), **pre-loop-exit** (🔴 Phase 4 → 5: Triage clean + iter ≤ 3 → unlock Deploy), pre-deploy-staging/uat/prod, pre-data-migration, pre-destructive
 > ดู Oliver agent file สำหรับ full table + format
 
 ### Worktree Isolation (parallel-safe — Aaron pattern)

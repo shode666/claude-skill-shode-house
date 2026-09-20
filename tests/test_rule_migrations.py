@@ -55,7 +55,7 @@ class MigrationTest(unittest.TestCase):
                 migrations.load(ROOT)
 
     def test_current_migrations_validate(self):
-        self.assertEqual(5, len(migrations.load(ROOT)))
+        self.assertEqual(11, len(migrations.load(ROOT)))
 
     def test_each_replacement_anchor_is_required(self):
         for item in self.data["migrations"]:

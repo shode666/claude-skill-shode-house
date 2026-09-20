@@ -12,7 +12,7 @@ description: |
 
 ## 📤 Output contract (🔴 บังคับ)
 
-1. **Output อยู่ใน artifact file** — `outputs/<bd-id>/<NN>-<agent>-<phase>.md` ไม่ใช่ในข้อความ chat
+1. **Durable output** — use the confirmed evidence home and canonical task ID, including Markdown. `outputs/<id>/<NN>-<agent>-<phase>.md` is an example, not a required parallel store; chat alone is not durable handoff evidence.
 2. **Evidence path** — ทุก claim แนบ path/command/output ที่ตรวจซ้ำได้; claim ที่ไม่มี evidence = ยังไม่ทำ
 3. **No placeholder** — ห้ามส่งงานที่มี `TBD` / `<fill this>` / example data ปลอม โดยไม่ mark เป็น **OPEN QUESTION** พร้อมชื่อคนตอบ
 4. **No false done** — ทำไม่ได้ = พูดว่าทำไม่ได้ + เหตุผล (`PARTIAL` / `BLOCKED`) ห้าม claim PASS

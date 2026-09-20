@@ -16,14 +16,19 @@ description: |
 - **Internal function/class ในโมดูลเดียวกัน** — refactor ได้เสรี ใช้ `dev-gate`
 - **API ที่ยังไม่มี consumer จริง** (pre-launch, consumer = ตัวเอง) — เร่ง iterate ได้ แต่ต้องประกาศ `v0`/unstable ชัดเจน
 - **Internal DB schema ที่ไม่มีใครนอกทีมอ่าน** — ใช้ `data-migration`
-- **UI component props** — ใช้ `design-system` (design token/component contract คนละเรื่อง)
+- **UI component props** — ให้ Uma ดู design-system/component contract (`agents/ux-ui-designer.md`)
 
-## Required inputs — refuse without
+## Required inputs — for the affected contract decision/release
 
 - [ ] **รายชื่อ consumer จริง** — ใครเรียก endpoint/topic นี้บ้าง (จาก access log / API gateway / service map / grep ใน monorepo). "น่าจะไม่มีใครใช้" ไม่นับ
 - [ ] **Versioning scheme ปัจจุบันของ project** (URI `/v1`, header, media type, package semver) — cite จาก repo
 - [ ] **Contract artifact** ที่มีอยู่ (OpenAPI / proto / GraphQL SDL / Avro-JSON schema) — ไม่มี = สร้างก่อน ห้ามแก้ contract ที่ไม่มีตัวตน
 - [ ] **Deprecation window ที่ยอมรับได้** (ตกลงกับ consumer/owner) ถ้าเป็น breaking
+
+Discover existing consumers and artifacts first. Missing inputs block the affected
+compatibility claim or release, not authorized investigation and preparation.
+Use the project's contract representation; create only the artifact needed to make
+the changed public interface explicit and reviewable.
 
 ## Breaking vs non-breaking (🔴 ตัดสินก่อนเขียนโค้ด)
 
@@ -55,7 +60,9 @@ T1  เตือนซ้ำเมื่อเหลือ ≤ 1/3 ของ win
 T2  ปิด — ต่อเมื่อ traffic = 0 ต่อเนื่อง หรือ owner ตัดสินใจปิดทั้งที่ยังมี traffic (บันทึกใน ADR ว่าใครรับ risk)
 ```
 
-Window ขั้นต่ำ: internal consumer 1 release cycle · ทีมอื่นในองค์กร ≥ 1 quarter · external/partner ตาม SLA สัญญา
+Planning examples: internal consumer 1 release cycle · ทีมอื่นในองค์กร 1 quarter.
+The actual window follows the adopted consumer agreement and external/partner SLA;
+these examples do not replace an existing agreement.
 **ห้ามลบก่อน T2 เพราะ "ไม่น่ามีใครใช้แล้ว"** — ใช้ metric ไม่ใช่ความรู้สึก
 
 ## Consumer-driven contract test (Quinn)
@@ -89,7 +96,7 @@ Window ขั้นต่ำ: internal consumer 1 release cycle · ทีมอ�
 ## ห้าม
 
 - ห้ามแก้ contract โดยไม่อัปเดต artifact (OpenAPI/proto/SDL) ใน commit เดียวกัน
-- ห้ามลบ endpoint/field โดยไม่มี metric ยืนยันว่า traffic = 0
+- Retire endpoint/field at T2 only with sustained zero-traffic evidence or explicit owner acceptance of measured remaining traffic, as recorded in the retirement policy above; execution still requires actual authorization
 - ห้ามเพิ่ม required field ใน minor
 - ห้ามเปลี่ยนความหมายของ event เดิม
 - ห้ามบอกว่า "ไม่ breaking" โดยไม่รัน diff tool

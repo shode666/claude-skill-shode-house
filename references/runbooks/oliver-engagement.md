@@ -14,6 +14,12 @@ REQUIRED-BEFORE: phase_dispatch
 
 > แยกจาก agent prompt v3.12.1 — งาน triage/route/state ประจำวันไม่ต้องแบก template นี้
 
+Apply this full runbook only for the harness tier that needs it. Reuse confirmed
+record homes, approved design and existing authority. Beads and outputs paths below
+are examples for projects using them; no template requires a new tracker or duplicate
+checkpoint. Phase approval is needed only where authority remains unsettled or the
+user explicitly chose approval at each handoff.
+
 ## Engagement Plan Template
 
 ```
@@ -70,7 +76,7 @@ Pipeline (🔴 v3.3 PEV loop per bd — no sprint outer loop):
 
 * = conditional (Uma ถ้า frontend; Domain ถ้า business rule; Sentinel ถ้า auth/PII/money)
 
-พร้อมเริ่มมั้ยครับ?
+ดำเนินต่อเมื่อ existing authorization ครอบ scope; ถ้ายังไม่ครอบให้ถามเฉพาะ decision ที่ขาด
 (ห้าม "Total: ~N days"; agent ส่งงาน task-complete, ไม่ time-bound. ห้าม sprint bracket)
 ```
 
@@ -94,7 +100,7 @@ Oliver maintain per-bd state (no sprint state — sprint removed):
   - **spec/AC/regulation/business rule** → Phase 1a (Bella ∥ Sara revise)
 - iter > 3 → **STOP** broadcast "[Oliver] bd-N exceeded iter 3 — escalating user: re-scope / kill / split"
 - bd close = Phase 4 Triage clean (0 Critical/Major) + iter ≤ 3 + `bd remember <lesson>` posted
-- 🔴 **M8 Close-on-Done**: `bd close <id> --reason "<verdict> <commit_sha> <test_result>"` แล้ว `bd show <id>` paste ยืนยัน CLOSED. ห้ามจบ run โดยมี item FIXED ที่ bd ยัง OPEN (stale-open). Batch backlog → `drain` skill
+- 🔴 **M8 Close-on-Done**: เมื่อ closure ได้รับ authority ใช้ `bd close <id> --reason "<verdict> <source_revision_and_diff_evidence> <test_result>"` แล้ว `bd show <id>` ยืนยัน CLOSED (หรือ equivalent canonical record). ใช้ commit SHA เมื่อมี authorized commit; ไม่สร้าง commit เพียงเพื่อให้ template ครบ. งาน PARTIAL/BLOCKED คงเปิดพร้อมเหตุผล. Batch backlog → `drain` skill
 
 ### Mode Selection (Phase 2 — บังคับเลือก option-style)
 
@@ -113,7 +119,7 @@ C) Interactive (Supervised) — human approve ทุก hand-off
 ## Process
 
 1. **Triage** — clarify ถ้ากำกวม (option-style)
-2. **Plan** → user approve
+2. **Plan** → verify existing authorization; ask only for unsettled scope/authority
 3. **Execute** — delegate, broadcast status, ตรวจ output ก่อน hand-off
 4. **Synthesize** — cross-check (BRD ↔ ADR ↔ code ↔ test via bd RTM)
 5. **Deliver** — `outputs/` + summary + next
@@ -200,14 +206,16 @@ User message → Oliver classify (1-line caveman):
   "ทำไม Y"                → quest   → answer, no phase change
   "OK / ผ่าน / approve"   → approve → bd close gate check
   "เพิ่ม Z"               → new     → bd create child issue
-  "เสร็จยัง"              → status  → bd show, no action
+  "เสร็จยัง"              → status  → inspect canonical record, answer briefly, continue active authorized work
 ```
 
 ห้าม Dave/Chris/Quinn/Sentinel/Uma proceed ก่อน Oliver classify
 
-### SESSION-STATE.md (Oliver maintain)
+### Canonical checkpoint (Oliver maintain)
 
-ทุก engagement Oliver maintain `outputs/SESSION-STATE.md`:
+Maintain one current checkpoint in the confirmed record home. Reuse an existing
+`outputs/SESSION-STATE.md` only when it is that checkpoint; otherwise link to the
+canonical record rather than create another competing state file. Example:
 ```
 Active Engagement: E-<N> "<title>"
 Active bd issues:
@@ -216,7 +224,9 @@ Last handoff: Dave ▸ Verify (bd-42, iter:2)
 Pending gates: pre-loop-exit (bd-42) — waiting Quinn + Sentinel notes
 ```
 
-ทุก agent **read SESSION-STATE first** → ห้าม respond ก่อน
+At start/resume each agent reads the accessible canonical checkpoint and assigned
+artifacts (or source-marked excerpts when files are not shared). Missing optional
+state files do not block an otherwise grounded response.
 
 ### Team Routing
 

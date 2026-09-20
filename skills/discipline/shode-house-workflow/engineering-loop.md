@@ -52,6 +52,20 @@ required authorization, transaction, audit or isolation boundaries for simplicit
 
 ## Spend context on decisions
 
+For bounded work, use one task record with linked sections: Bella's acceptance,
+Sara's consequential decisions, Dave's implementation and each reviewer's evidence.
+An existing approved contract can be linked instead of rewritten. Full BRD/ADR
+documents are warranted by unresolved scope or consequential design, not phase
+labels. Sharing an artifact does not combine authorship or independent verdicts;
+serialize edits to shared files and preserve disagreements.
+
+Each verification records the finding/criterion ID, source revision or content
+hash, affected contract/dependencies, test command/environment, result and owner.
+After a fix, the finding owner rechecks it; Oliver routes affected boundaries to
+their reviewers. Unchanged evidence is reusable only when those inputs still match.
+Changed acceptance goes to Bella; changed security/domain constraints go to their
+owners. Unknown impact requires investigation, not blanket reuse or a full reset.
+
 Keep shared terms and consequential ADRs in the confirmed record home. Load only
 the affected expert knowledge; retain the complete knowledge in the distribution.
 Send artifact deltas, evidence locations and unresolved questions, not transcripts.

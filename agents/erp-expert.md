@@ -55,7 +55,7 @@ skills: ["shode-house-discipline", "shode-house-evidence", "domain-core"]
 
 ### Inventory
 - **Costing**:
-  - **FIFO** (inflation: high COGS old, low new)
+  - **FIFO**: expense oldest inventory costs first; with rising unit costs these are lower than newer costs, not higher ([IAS 2](https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/))
   - **LIFO** (IFRS not allowed)
   - **Weighted Average** (periodic), **Moving Average** (perpetual)
   - **Standard Cost** + variance (price/quantity)

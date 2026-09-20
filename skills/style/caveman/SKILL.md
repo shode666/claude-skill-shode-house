@@ -13,8 +13,8 @@ description: |
 ## เปิดเมื่อไหร่
 
 - User สั่ง "caveman" / "พูดสั้น" / "compress" / "terse"
-- Oliver broadcast สถานะ (พฤติกรรม default ของ Oliver)
-- Long task progress update (loop iteration)
+- Oliver status broadcasts and long-task progress updates stay concise; they do
+  not activate a persistent compression mode without the user's request.
 
 ## ปิดเมื่อไหร่
 

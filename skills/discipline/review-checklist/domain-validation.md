@@ -12,7 +12,7 @@ REQUIRED-BEFORE: merge_approval
 
 # Domain validation axis (conditional)
 
-changed code แตะ keyword ของ domain ไหน → **domain expert ตัวนั้นต้อง validate parallel กับ Chris + Quinn**
+changed code แตะ business rule ของ domain ไหน → **domain expert ตัวนั้นต้อง validate**; keywords ช่วยหา scope แล้วตรวจ code path จริง Parallel กับ reviewers อื่นเมื่อ host รองรับและงานอิสระ มิฉะนั้น serialize โดยรักษา independent verdict
 money / regulation = **ห้าม merge โดยไม่มีลายเซ็นของ domain expert**
 
 | keyword ใน diff | expert |

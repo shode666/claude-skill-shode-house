@@ -13,13 +13,13 @@ description: |
 ## When NOT to use
 
 - **Internal tool / dev environment** — SLO ไม่จำเป็น (no user impact)
-- **MVP/Alpha** ที่ยังไม่มี baseline traffic — ตั้ง SLO ลอย ๆ ผิด; รอ 2-4 wk baseline ก่อน
+- **MVP/Alpha** ที่ยังไม่มี baseline traffic — label objectives as proposed; collect baseline before claiming measured attainment
 - **One-off batch job** — ใช้ success rate + alert บน failure พอ ไม่ต้อง SLO formal
 - **Stateless ephemeral container** (build job, transient worker) — SLI/SLO ไม่ make sense
 
-## Required inputs — refuse without
+## Required inputs — for measured production calibration
 
-ก่อนเขียน SLO document:
+Collect for production calibration; proposed objectives may be documented earlier:
 
 - [ ] **Service production-running ≥ 2 weeks** (มี baseline metric จริง; ห้าม "guess SLO")
 - [ ] **User journey identified** (อะไรคือ critical path — login? checkout? read?  — ต้องระบุ)
@@ -27,14 +27,16 @@ description: |
 - [ ] **Patrick alignment** (error budget policy — slow rollout vs feature freeze threshold)
 - [ ] **Current performance baseline** (p50/p95/p99 จริง 4 weeks — ห้าม "industry standard")
 
-ถ้าขาด → ตอบ "SLO ไม่ควรเขียนก่อนมี baseline; ขอ X, Y, Z ก่อน"
+Missing baseline blocks measured calibration/attainment claims, not planning the
+user journey, proposed objective or instrumentation. Label the available observation
+window and unresolved targets explicitly; agree the needed window with the owner.
 
 ## หลักการ (Google SRE Book)
 
 1. **SLI** = วัดของจริง (latency p95, availability ratio, error rate)
 2. **SLO** = เป้าหมายที่ user คาดหวัง (≥ 99.9% availability rolling 30d)
 3. **Error Budget** = (1 - SLO) × time period (0.1% × 30d = 43.2 min)
-4. **Burn Rate** = error per hour ÷ acceptable error per hour (1x = on pace; 14x = exhaust in 1d)
+4. **Burn Rate** = error per hour ÷ acceptable error per hour (1x = on pace; 14x = exhaust a full 30d budget in about 2.14d)
 
 ## SLI menu (ทำ less ดีกว่า more)
 
@@ -86,8 +88,8 @@ alerts:
 
 | Window | Burn rate | Severity | Why |
 |--------|-----------|----------|-----|
-| 1h | > 14x | **P0 page** | Exhaust monthly budget in 1d if continues |
-| 6h | > 6x | **P1 page** | Exhaust in 4d |
+| 1h | > 14x | **P0 page** | At 14x, exhaust full 30d budget in about 2.14d |
+| 6h | > 6x | **P1 page** | At 6x, exhaust full 30d budget in 5d |
 | 24h | > 3x | P2 ticket | Exhaust in 10d (trend concern) |
 | 72h | > 1x | Slow burn warning | Trend over week — investigate |
 
@@ -126,7 +128,7 @@ alerts:
 ## Evidence
 
 ```
-✅ "[SLO: slo-payment.yml] target=99.95% (21.6m/30d); actual=99.97% (12.4m used) — 57% budget left"
+✅ "[SLO: slo-payment.yml] target=99.95% (21.6m/30d); actual≈99.9713% (12.4m used) — 42.6% budget left"
 ✅ "[Grafana: dash-id=payment] p95=180ms (target<200) ✓"
 ✅ "[Burn alert: prom-alert-id=high-burn] not firing"
 ✅ "[Postmortem: 2026-05-22-payment-db-pool.md] MTTR=42min, 5-why complete"
