@@ -59,6 +59,53 @@ an unknown field is UNSCORABLE. `core` also requires a `success` result; `probe`
 | `artifacts` | each glob matches a written / `--files` path |
 | `result_matches` | each regex found in the final text only |
 
+## v3.17 core matrix — live runs (maintainer's Mac; the team cannot run `claude`)
+
+Runners live in the repo: `eval/run-e01.sh`, `eval/run-probes.sh` (shared `eval/run-lib.sh`). Each run gets a
+fresh fixture under `$TMPDIR` (`scripts/eval-fixture.sh --no-tracker --no-resolve`; never inside this repo) and
+its own NEW directory — an existing directory is refused, evidence is never overwritten. Do not edit the
+scripts while a run is in progress. Every run that starts is kept (no retry-until-green).
+
+```bash
+cd ~/workspace/shode-house
+# 1. run-path gate (FR-E-4): E01 x Sonnet x 1  -> outputs/eval-3.17/E01/sonnet-<UTC>/
+bash eval/run-e01.sh sonnet
+# 2. routing-probe baseline (FR-P0-4): plugin = baseline tag, harness = this checkout
+PLUGIN_REF=baseline-3.17 PROBE_IDS=all bash eval/run-probes.sh sonnet eval/baseline/3.16.3-probe
+#    default ids = P01..P15 · PROBE_IDS="P02 P15" = subset · PROBE_IDS=all = P01..P27
+#    (P16-P20 negatives, P21-P27 = remaining eval/fixtures/{triggers,routing}.yaml cases)
+```
+
+What the runner executes per run (from the fixture directory):
+`claude -p "<prompt>" --plugin-dir <repo|git-archive of PLUGIN_REF> --model <m> --max-turns <n> --output-format stream-json --verbose --dangerously-skip-permissions`
+with `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0`; `--max-budget-usd` (probe 1 / core 5) and, for probes, a
+`--settings` PreToolUse hook that denies `Task|Agent` are added only when `claude --help` lists those flags
+(the dispatch stays visible in the trace; the subagent does not run). Used flags are recorded in `meta.json`.
+Codex equivalent (manual record, user-run): `cd <fixture> && codex exec --json "<prompt>" > run.jsonl`, then the
+same scorer command — the scorer auto-detects Codex JSONL.
+
+Per-run files: `run.jsonl` · `run.stderr` · `run.files` (`git status --porcelain -uall` of the fixture) ·
+`run.diff` · `prompt.txt` · `tools-seen.txt` · `score.txt` (+`exit=<n>`) · `score.json` · `meta.json` with
+`host` · `cli_version` · `date` · `model` · `model_id` (from the init event) · `plugin_sha` · `plugin_ref` ·
+`plugin_dirty` · `harness_sha` · `scenario` · `start`/`end`/`seconds` · `flags` · `claude_exit` · `score_exit` ·
+`cost_usd` · `first_skill` · `first_agent` · `fixture`. Probes add `<out>/SUMMARY.tsv`
+(`id exit first_skill first_agent seconds`).
+
+Exit: scorer exit 0 PASS · 1 FAIL · 2 UNSCORABLE · 3 refused before start. For the gate, 0 or 1 both prove the
+run path; 2 means the trace is not what the scorer parses — open `tools-seen.txt` first: it lists the distinct
+tool names, the first `Skill` / `Task` / `Agent` tool_use input and whether the init event lists the plugin.
+**The shape of a real `Skill` tool_use is UNVERIFIED until the first E01 run**; the stub in
+`tests/fake_claude.py` proves wiring only.
+
+Order: run step 1 alone, send the result back, run step 2 only after the trace shape is confirmed (a wrong
+assumption would make all probe runs uninformative). Estimate, not a measurement (no 3.17 live run exists yet):
+E01 a few minutes and well under USD 1 on Sonnet; one probe is capped at 3 turns / USD 1 / 10 min, expected
+well under a minute and a few cents each, so 27 probes ≈ 15–30 min. Actual `cost_usd` per run is in `meta.json`.
+
+Send back: the whole run directory (`outputs/eval-3.17/E01/<run>/`, `eval/baseline/3.16.3-probe/`) or at least
+`meta.json`, `score.txt`, `tools-seen.txt`, `run.stderr` and `SUMMARY.tsv`. Check `run.jsonl` for secrets before
+sharing outside the machine.
+
 ## Historical v3.13 procedure (not current installation instructions)
 
 The commands and version names below document the original campaign only. Do not

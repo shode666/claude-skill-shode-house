@@ -3,7 +3,18 @@
 # รันครั้งเดียวก่อนเริ่มฝั่ง A -- ห้ามแก้ folder นี้อีกจนกว่าจะจบทั้ง A และ B
 set -euo pipefail
 
-DEST="${1:-$HOME/workspace/shode-eval}"
+# flags (3.17): --no-tracker = ไม่ bd init / ไม่สร้าง TRACKER.md (tracker-neutral run)
+#              --no-resolve = ไม่เขียน eval/prompts/resolved/ ใน plugin repo (runner 3.17 สร้าง fixture ใหม่ทุก run)
+DEST="" NO_TRACKER=0 NO_RESOLVE=0
+for arg in "$@"; do
+  case "$arg" in
+    --no-tracker) NO_TRACKER=1 ;;
+    --no-resolve) NO_RESOLVE=1 ;;
+    -*) echo "!! unknown flag: $arg"; exit 2 ;;
+    *) [ -z "$DEST" ] && DEST="$arg" || { echo "!! เกิน 1 path: $arg"; exit 2; } ;;
+  esac
+done
+DEST="${DEST:-$HOME/workspace/shode-eval}"
 PLUGIN_REPO="$(cd "$(dirname "$0")/.." && pwd)"
 
 # ยอมให้ dir ที่มีอยู่ได้ถ้าว่าง (หรือมีแค่ .git ที่ยังไม่มี commit) -- บางที่ลบ dir ไม่ได้
@@ -166,8 +177,62 @@ def export_sales(rows, start, end):
 EOF
 git add -A && git commit -qm "fixture: spec + phase artifacts for bd-101/102/103"
 
+# ── commit E01 (3.17): typo ใน error message + targeted test ที่ผ่านทั้งก่อน/หลังแก้ ──
+# ไฟล์ไม่แตะ money/PII/auth โดยเจตนา: E01 วัด "simple local fix" ไม่ใช่ security/domain trigger
+cat > .gitignore <<'EOF'
+__pycache__/
+*.pyc
+.pytest_cache/
+EOF
+cat > src/validators.py <<'EOF'
+def require_email(user):
+    """Raise ValueError when the user record has no usable email address."""
+    email = (user or {}).get("email", "")
+    if not email or "@" not in email:
+        raise ValueError("EMAIL_REQUIRED: user has no vaild emial address")
+    return email
+EOF
+touch tests/__init__.py
+cat > tests/test_validators.py <<'EOF'
+import os, sys, unittest
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+from validators import require_email
+
+
+class RequireEmailTest(unittest.TestCase):
+    def test_missing_email_raises_with_code(self):
+        with self.assertRaises(ValueError) as ctx:
+            require_email({"name": "a"})
+        self.assertTrue(str(ctx.exception).startswith("EMAIL_REQUIRED:"))
+
+    def test_valid_email_returned(self):
+        self.assertEqual(require_email({"email": "a@b.co"}), "a@b.co")
+
+
+if __name__ == "__main__":
+    unittest.main()
+EOF
+cat > tests/test_ledger.py <<'EOF'
+import os, sys, unittest
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+from ledger import post
+
+
+class LedgerPostTest(unittest.TestCase):
+    def test_unbalanced_raises(self):
+        with self.assertRaises(ValueError):
+            post([{"amount": "10.00"}])
+
+
+if __name__ == "__main__":
+    unittest.main()
+EOF
+git add -A && git commit -qm "fixture(3.17): validators + targeted tests (E01 typo)"
+
 # ── tracker ───────────────────────────────────────────────────────────
-if command -v bd >/dev/null 2>&1; then
+if [ "$NO_TRACKER" = 1 ]; then
+  BD_NOTE="--no-tracker: ไม่มี bd / TRACKER.md (tracker-neutral)"
+elif command -v bd >/dev/null 2>&1; then
   bd init -q 2>/dev/null || true
   bd create "POST /refunds ตาม SPEC-bd-101" 2>/dev/null || true
   bd create "หน้า refund history ตาม wireframe Uma" 2>/dev/null || true
@@ -188,6 +253,7 @@ EOF
 fi
 
 # ── prompt ที่ resolve sha จริงแล้ว ────────────────────────────────────
+if [ "$NO_RESOLVE" = 0 ]; then
 mkdir -p "$PLUGIN_REPO/eval/prompts/resolved"
 sed "s/abc1234/$BASE_SHA/" "$PLUGIN_REPO/eval/prompts/phase3b-base.md" \
   > "$PLUGIN_REPO/eval/prompts/resolved/phase3b-base.md"
@@ -197,6 +263,7 @@ for s in implement-backend implement-ui resume-run consult-single design-system-
          design-system-fe-domain diagnose-fast diagnose-full map-mode; do
   cp "$PLUGIN_REPO/eval/prompts/$s.md" "$PLUGIN_REPO/eval/prompts/resolved/$s.md"
 done
+fi
 
 cat <<EOF
 
