@@ -285,30 +285,170 @@ t1=$(date +%s)
 elapsed=$((t1 - t0))
 kill "$holder" 2>/dev/null
 assert_false "$rc" "advance should fail while a live holder has the lock"
-assert_contains "$err" "another writer in progress" "error should explain lock contention"
-[ "$elapsed" -le 5 ] && t_ok || t_fail "lock wait should be bounded (~2s budget), got ${elapsed}s"
+assert_contains "$err" "LOCK_BUSY" "error should explain lock contention with the machine-readable class (bd:shode-house-vz8 iter1 -- advance now does a small bounded retry on LOCK_BUSY, so this must still surface after retry is exhausted, never the old generic 'another writer in progress')"
+[ "$elapsed" -le 10 ] && t_ok || t_fail "lock wait should be bounded (WFSTATE_LOCK_MAX_ATTEMPTS attempts of the ~2s budget each, plus small jitter), got ${elapsed}s"
 after_sha=$(shasum "$sf")
 assert_eq "$after_sha" "$before_sha" "state must be untouched when the lock could not be acquired"
 rm -rf "$D"
 
 # ---------------------------------------------------------------------------
-t_start "lock contention: a stale lock (dead pid) is reaped automatically, does not block forever"
+# NO automatic stale-lock reclamation -- bd:shode-house-vz8 (user ruling on
+# bd:shode-house-5cs.7's THREE successive reap patches, each of which narrowed the
+# "reaper destroys a NEW legitimate holder's lock" race without closing it). Automatic
+# reclamation is removed entirely, in the shared scripts/lib/lock.sh this file now
+# sources. A dead holder's lock stays stuck BY DESIGN; the only way to clear one is the
+# explicit, audited `scripts/lib/lock.sh recover <lockdir> --reason "..."`.
+t_start "NO AUTO-REAP: a dead-pid holder's lock is NEVER reclaimed automatically -- advance fails closed (waits the real contention budget, not near-instant), state and the lock dir are both untouched"
 D=$(sandbox); mkdir -p "$D/.shode-house"
 export WFSTATE_ROOT="$D"
-"$SCRIPT" init lock-2 >/dev/null 2>&1
-# start and immediately reap a subprocess to get a guaranteed-dead pid
+"$SCRIPT" init dead-1 >/dev/null 2>&1
 ( : ) & dead_pid=$!
 wait "$dead_pid" 2>/dev/null
-lockd="$D/.shode-house/state/.lock-lock-2"
+lockd="$D/.shode-house/state/.lock-dead-1"
 mkdir -p "$lockd"
+printf 'dead-holder-token' > "$lockd/token"
 printf '%s' "$dead_pid" > "$lockd/pid"
 date +%s > "$lockd/ts"
+sf="$D/.shode-house/state/dead-1.json"
+before_sha=$(shasum "$sf")
 t0=$(date +%s)
-out=$("$SCRIPT" advance lock-2 1a-spec 2>&1); rc=$?
+out=$("$SCRIPT" advance dead-1 1a-spec 2>&1); rc=$?
 t1=$(date +%s)
-assert_true "$rc" "advance should succeed after reaping a dead-pid stale lock"
-[ "$((t1 - t0))" -le 1 ] && t_ok || t_fail "dead-pid reap should be near-instant, not wait out the full budget"
+assert_false "$rc" "advance against a dead-pid-held lock must FAIL (never silently reap and proceed)"
+assert_contains "$out" "RECOVERY_REQUIRED" "the failure must explain lock contention with the machine-readable class (bd:shode-house-vz8 iter1 -- a dead-pid-held lock classifies as RECOVERY_REQUIRED and is never retried)"
+elapsed=$((t1 - t0))
+[ "$elapsed" -ge 1 ] && t_ok || t_fail "must wait out the real contention budget (~2s), not return near-instant the way the old auto-reap did -- got ${elapsed}s"
+[ -d "$lockd" ] && t_ok || t_fail "the dead-pid lock directory must still exist -- NEVER auto-removed"
+assert_eq "$(cat "$lockd/token" 2>/dev/null)" "dead-holder-token" "the stuck lock's token must be byte-for-byte unchanged"
+after_sha=$(shasum "$sf")
+assert_eq "$after_sha" "$before_sha" "state must be completely untouched when the lock could not be acquired"
 rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+t_start "STALE LOCK + CONCURRENT RETRY-WORKERS: N=10 concurrent advance calls racing a permanently-stuck dead-pid lock all fail CLOSED -- 0 successes, state untouched, lock dir byte-identical (bd:shode-house-5cs.7's broken shape reproduced: this used to lose writes / duplicate journal seq via the buggy reap; now it cleanly refuses instead of corrupting)"
+D=$(sandbox); mkdir -p "$D/.shode-house" "$D/tmp-out"
+export WFSTATE_ROOT="$D"
+"$SCRIPT" init dead-2 >/dev/null 2>&1
+( : ) & dead_pid=$!
+wait "$dead_pid" 2>/dev/null
+lockd="$D/.shode-house/state/.lock-dead-2"
+mkdir -p "$lockd"
+printf 'dead-holder-token-2' > "$lockd/token"
+printf '%s' "$dead_pid" > "$lockd/pid"
+date +%s > "$lockd/ts"
+sf="$D/.shode-house/state/dead-2.json"
+before_sha=$(shasum "$sf")
+for i in $(seq 1 10); do
+  ( "$SCRIPT" advance dead-2 1a-spec >/dev/null 2>&1; echo $? > "$D/tmp-out/rc-$i" ) &
+done
+wait
+rc0_count=$(cat "$D"/tmp-out/rc-* | grep -c '^0$')
+assert_eq "$rc0_count" "0" "not one of the 10 concurrent retry-workers may succeed against a stuck lock -- got $rc0_count rc=0"
+after_sha=$(shasum "$sf")
+assert_eq "$after_sha" "$before_sha" "state must be byte-identical after 10 concurrent workers all failed to acquire"
+jf="$D/.shode-house/journal/dead-2.jsonl"
+jcount=$(wc -l < "$jf" | tr -d ' ')
+assert_eq "$jcount" "1" "the journal must hold ONLY the init line -- none of the 10 concurrent workers may have appended a transition (this is exactly what a duplicate-seq corruption used to look like: journal writes from callers that should never have proceeded)"
+assert_eq "$(tail -n1 "$jf" | jq -r '.op')" "init" "the one journal line must still be the init entry, not a transition from a worker that should have failed to acquire"
+assert_eq "$(cat "$lockd/token" 2>/dev/null)" "dead-holder-token-2" "the stuck lock's token must survive 10 concurrent contenders unchanged"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+t_start "RECOVERY REQUIRED BEFORE REUSE: the SAME stuck lock that just failed 10 concurrent advances becomes usable again ONLY after an explicit, audited scripts/lib/lock.sh recover -- and that recovery is on the record"
+D=$(sandbox); mkdir -p "$D/.shode-house"
+export WFSTATE_ROOT="$D"
+"$SCRIPT" init dead-3 >/dev/null 2>&1
+( : ) & dead_pid=$!
+wait "$dead_pid" 2>/dev/null
+lockd="$D/.shode-house/state/.lock-dead-3"
+mkdir -p "$lockd"
+printf 'dead-holder-token-3' > "$lockd/token"
+printf '%s' "$dead_pid" > "$lockd/pid"
+date +%s > "$lockd/ts"
+"$SCRIPT" advance dead-3 1a-spec >/dev/null 2>&1; rc_pre=$?
+assert_false "$rc_pre" "sanity: advance still fails before recovery"
+recover_out=$(bash "$REPO_ROOT/scripts/lib/lock.sh" recover "$lockd" --reason "bd:shode-house-vz8 test -- confirmed-dead crash, no live holder" 2>&1); recover_rc=$?
+assert_true "$recover_rc" "recover on a genuinely stuck lock (no newer holder raced in) must succeed"
+assert_contains "$recover_out" "RECOVERED" "recover output should confirm the lock was cleared"
+[ -d "$lockd" ] && t_fail "the lock directory must be GONE after a successful recover" || t_ok
+audit="$D/.shode-house/state/.lock-recoveries.jsonl"
+[ -f "$audit" ] && t_ok || t_fail "recovery must be audited -- expected $audit"
+jq empty "$audit" >/dev/null 2>&1
+assert_true "$?" "every line of the recovery audit log must be valid JSON"
+completed_lines=$(jq -r 'select(.outcome == "COMPLETED") | .lockdir' "$audit" 2>/dev/null | grep -c "^${lockd}\$")
+assert_eq "$completed_lines" "1" "the audit log must record exactly one COMPLETED recovery of this lockdir (bd:shode-house-vz8 iter1 -- outcome vocabulary is STARTED/REFUSED/FAILED/COMPLETED, uppercase)"
+out_post=$("$SCRIPT" advance dead-3 1a-spec 2>&1); rc_post=$?
+assert_true "$rc_post" "advance must succeed now that the stuck lock has been explicitly recovered"
+sf="$D/.shode-house/state/dead-3.json"
+assert_eq "$(jq -r '.current_phase' "$sf")" "1a-spec" "post-recovery advance should land cleanly"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# bd:shode-house-vz8 iter1 (Chris High + user protocol) -- restore-on-abort is DELETED
+# entirely, not repaired: once the quarantine rename succeeds, the canonical path is
+# never touched again and NEVER restored, even when the captured identity turns out to
+# be a legitimately newer holder. A later mismatch is RECOVERY_FAILED, the quarantine
+# stays on disk for an operator to inspect, and the audit records FAILED -- see
+# scripts/lib/lock.sh's own header for the full rationale (the old restore-on-abort was
+# ITSELF an unclosed TOCTOU: `mv` onto an existing directory silently nests instead of
+# failing).
+t_start "RECOVER NEVER RESTORES: recovery targets a lock it already observed as stale -- if a NEW legitimate holder acquires the SAME canonical path in the gap before recover's own atomic quarantine rename, recover must FAIL CLOSED (RECOVERY_FAILED) and must NEVER restore/recreate the canonical path (deterministic interleaving via LOCK_RECOVER_SYNC_PREMV, not timing luck)"
+D=$(sandbox); mkdir -p "$D/.shode-house"
+export WFSTATE_ROOT="$D"
+"$SCRIPT" init dead-4 >/dev/null 2>&1
+lockd="$D/.shode-house/state/.lock-dead-4"
+( : ) & dead_pid=$!
+wait "$dead_pid" 2>/dev/null
+mkdir -p "$lockd"
+printf 'dead-holder-token-4' > "$lockd/token"
+printf '%s' "$dead_pid" > "$lockd/pid"
+date +%s > "$lockd/ts"
+
+sync="$D/recover-sync"
+LOCK_RECOVER_SYNC_PREMV="$sync" LOCK_RECOVER_TOKEN_OVERRIDE="detvz8" \
+  bash "$REPO_ROOT/scripts/lib/lock.sh" recover "$lockd" --reason "racing recover test" >"$D/recover-out" 2>&1 &
+recover_pid=$!
+
+synced_wait=0
+while [ ! -e "${sync}.ready" ]; do
+  synced_wait=$((synced_wait + 1))
+  if [ "$synced_wait" -ge 100 ]; then t_fail "recover never reached its pre-mv sync point within 10s"; break; fi
+  sleep 0.1
+done
+
+# While recover is paused mid-decision (liveness gate already passed against the
+# ORIGINALLY-observed dead-4 holder): a NEW, LIVE, legitimate holder wins the SAME
+# canonical path -- marked distinctly so a survives-vs-recreated mixup can never read
+# as a false pass.
+rm -rf "$lockd"
+sleep 30 & new_holder_pid=$!
+mkdir -p "$lockd"
+printf 'new-holder-token' > "$lockd/token"
+printf '%s' "$new_holder_pid" > "$lockd/pid"
+date +%s > "$lockd/ts"
+: > "$lockd/MARKER-NEW-HOLDER"
+
+: > "${sync}.go"
+wait "$recover_pid" 2>/dev/null; recover_rc=$?
+kill "$new_holder_pid" 2>/dev/null
+
+assert_eq "$recover_rc" "6" "recover must report RECOVERY_FAILED (rc=6) when a newer holder raced in, not silently succeed and never restore"
+recover_out=$(cat "$D/recover-out")
+assert_contains "$recover_out" "RECOVERY_FAILED" "recover output must say RECOVERY_FAILED"
+assert_contains "$recover_out" "did not match" "recover output must explain the identity mismatch (a newer holder was captured)"
+# The new holder's directory was swept into quarantine by recover's mv and is GONE
+# from the canonical path -- this is the accepted, explicit tradeoff of deleting
+# restore-on-abort (a later failure never recreates the canonical lock, by any path).
+[ -d "$lockd" ] && t_fail "the canonical path must NOT be restored/recreated after a RECOVERY_FAILED -- restore-on-abort is deleted entirely" || t_ok
+quarantine="${lockd}.quarantine.detvz8"
+[ -d "$quarantine" ] && t_ok || t_fail "the quarantine copy must be RETAINED on disk (never auto-swept) so an operator can inspect it -- expected $quarantine"
+[ -f "$quarantine/captured/MARKER-NEW-HOLDER" ] && t_ok || t_fail "the new holder's marker must survive intact INSIDE the quarantine (not lost, not silently discarded) -- proves it was captured, not corrupted"
+assert_eq "$(cat "$quarantine/captured/token" 2>/dev/null)" "new-holder-token" "the new holder's token must be byte-for-byte intact inside the retained quarantine copy"
+[ ! -e "${lockd}.recovering" ] && t_ok || t_fail "the .recovering marker must be cleared even on a FAILED recovery (never left stuck by this file's own failure path)"
+audit="$D/.shode-house/state/.lock-recoveries.jsonl"
+failed_lines=$(jq -r 'select(.outcome == "FAILED" and .result == "RECOVERY_FAILED") | .lockdir' "$audit" 2>/dev/null | grep -c "^${lockd}\$")
+assert_eq "$failed_lines" "1" "the failed recovery attempt must ALSO be on the audit record, not just successful ones"
+rm -rf "$quarantine" "$D"
 
 # ---------------------------------------------------------------------------
 t_start "full happy-path loop through the declarative transition table (0-discover -> ... -> 6-operate, all 9 edges)"

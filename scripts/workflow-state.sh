@@ -41,6 +41,12 @@
 set -u -o pipefail
 
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Same override convention as TRANSITIONS/ERRORS_FILE below -- lets a mutated COPY of
+# this script (moved outside scripts/, see tests/test-reliability.sh's MUTATION (a))
+# still find the real scripts/lib/lock.sh instead of a nonexistent sibling next to the copy.
+WFSTATE_LOCK_LIB="${WFSTATE_LOCK_LIB:-$SELF_DIR/lib/lock.sh}"
+# shellcheck source=lib/lock.sh
+source "$WFSTATE_LOCK_LIB"
 ROOT="${WFSTATE_ROOT:-$PWD}"
 SHODE_DIR="$ROOT/.shode-house"
 STATE_DIR="$SHODE_DIR/state"
@@ -75,6 +81,45 @@ encode_bd() { printf '%s' "$1" | sed 's#/#--#g'; }
 state_file()   { printf '%s/%s.json'  "$STATE_DIR"   "$(encode_bd "$1")"; }
 journal_file() { printf '%s/%s.jsonl' "$JOURNAL_DIR" "$(encode_bd "$1")"; }
 lock_dir()     { printf '%s/.lock-%s' "$STATE_DIR"   "$(encode_bd "$1")"; }
+
+# ---- wfstate_acquire_lock <bd> <caller-label> (bd:shode-house-vz8 iter1) -- retry
+# belongs to CALLER semantics, not to scripts/lib/lock.sh (user ruling): this file's own
+# mutation commands (advance/retry/resume) do a small, bounded, jittered retry loop
+# on the ONLY two retryable outcomes lock_acquire can ever return -- LOCK_BUSY (ordinary
+# contention) and RECOVERY_IN_PROGRESS (an operator recovery is running, bounded because
+# recovery is expected to finish quickly, never because we assume it always will).
+# Everything else (LOCK_CORRUPT / RECOVERY_REQUIRED) is refused immediately, never
+# retried -- retrying those cannot help, only a human running
+# `scripts/lib/lock.sh recover` can. On success, sets global WFSTATE_LOCK_TOKEN and
+# returns 0. On exhaustion or an immediate non-retryable failure, dies with a message
+# distinct PER rc (never the single generic "another writer in progress" every rc used
+# to collapse into). MUST be called directly in the caller's own shell, never through
+# `$(...)` -- same reason validate_ledger_or_die() in side-effect.sh is: die()'s exit
+# only kills a command-substitution subshell, the caller never sees it.
+WFSTATE_LOCK_MAX_ATTEMPTS="${WFSTATE_LOCK_MAX_ATTEMPTS:-2}"
+WFSTATE_LOCK_TOKEN=""
+wfstate_acquire_lock() {
+  local bd="$1" label="$2" lockd; lockd=$(lock_dir "$bd")
+  local attempt=0 tok rc
+  while :; do
+    attempt=$((attempt + 1))
+    tok=$(lock_acquire "$lockd"); rc=$?
+    [ "$rc" -eq 0 ] && { WFSTATE_LOCK_TOKEN="$tok"; return 0; }
+    case "$rc" in
+      1|2) : ;;   # LOCK_BUSY | RECOVERY_IN_PROGRESS -- retryable, bounded
+      *) break ;; # LOCK_CORRUPT / RECOVERY_REQUIRED / anything else -- STOP, never retry
+    esac
+    [ "$attempt" -ge "$WFSTATE_LOCK_MAX_ATTEMPTS" ] && break
+    sleep "0.$((RANDOM % 4 + 1))"
+  done
+  case "$rc" in
+    1) die "$label: could not acquire lock for '$bd' after $attempt attempt(s) -- LOCK_BUSY (ordinary contention exhausted bounded retry) (${lockd})" ;;
+    2) die "$label: could not acquire lock for '$bd' after $attempt attempt(s) -- RECOVERY_IN_PROGRESS (an operator recovery is still running) (${lockd})" ;;
+    4) die "$label: could not acquire lock for '$bd' -- LOCK_CORRUPT (lock directory cannot be read -- permission problem?) (${lockd})" ;;
+    5) die "$label: could not acquire lock for '$bd' -- RECOVERY_REQUIRED (this lock looks crash-stuck; an operator must run 'scripts/lib/lock.sh recover') (${lockd})" ;;
+    *) die "$label: could not acquire lock for '$bd' -- unexpected lock_acquire rc=$rc (${lockd})" ;;
+  esac
+}
 
 is_known_phase() {
   jq -e --arg p "$1" '.states | index($p) != null' "$TRANSITIONS" >/dev/null 2>&1
@@ -175,38 +220,19 @@ bd_available() {
   return 0
 }
 
-# ---- lock: mkdir is atomic on POSIX (ADR-C5). Reaps a lock whose holder pid is dead
-# or whose age > 600s (stale-crash cleanup folded in here since hooks/SessionStart
-# reaping is out of this tracer bullet's scope). Waits up to ~2s otherwise, then fails
-# loud (never blocks forever).
-acquire_lock() {
-  local lockd="$1" waited=0
-  while ! mkdir "$lockd" 2>/dev/null; do
-    local pid="" ts="" now_epoch age
-    [ -f "$lockd/pid" ] && pid=$(cat "$lockd/pid" 2>/dev/null)
-    [ -f "$lockd/ts" ]  && ts=$(cat "$lockd/ts" 2>/dev/null)
-    if [ -n "$pid" ] && ! kill -0 "$pid" 2>/dev/null; then
-      rm -rf "$lockd" 2>/dev/null
-      continue
-    fi
-    if [ -n "$ts" ]; then
-      now_epoch=$(date +%s)
-      age=$((now_epoch - ts))
-      if [ "$age" -gt 600 ]; then
-        rm -rf "$lockd" 2>/dev/null
-        continue
-      fi
-    fi
-    waited=$((waited + 1))
-    [ "$waited" -ge 20 ] && return 1
-    sleep 0.1
-  done
-  printf '%s' "$$" > "$lockd/pid"
-  date +%s > "$lockd/ts"
-  return 0
-}
-
-release_lock() { rm -rf "$1" 2>/dev/null || true; }
+# ---- lock mechanics (mkdir-based, no automatic stale-lock reclamation) now live in
+# scripts/lib/lock.sh (bd:shode-house-vz8, sourced above via SELF_DIR) -- this file used
+# to carry its own copy (and scripts/side-effect.sh, scripts/scope-check.sh each carried
+# a near-identical copy of their own). bd:shode-house-5cs.7 (iter 3) found that every
+# copy's "reap a lock whose holder looks dead" branch could delete a brand-new
+# LEGITIMATE holder's lock instead of the actually-stale one it meant to reap (a holder's
+# release and its own process exit happen back-to-back, so a waiter that cached the
+# outgoing holder's pid a moment earlier sees it as "dead" right as some OTHER waiter's
+# fresh mkdir has just landed). Three successive patches (plain rm -rf -> re-read-then-
+# rm -> atomic-quarantine-then-verify) each narrowed that window without closing it.
+# bd:shode-house-vz8 closes it by removing automatic reclamation entirely, in the one
+# shared file all three consumers now use -- see scripts/lib/lock.sh's header for the
+# full contract (acquire/release/recover) and the exact race this replaces.
 
 next_journal_seq() {
   local jf; jf=$(journal_file "$1")
@@ -351,8 +377,9 @@ cmd_advance() {
   [ -f "$sf" ] || die "advance: no state file for '$bd' (run init first)"
 
   local lockd; lockd=$(lock_dir "$bd")
-  acquire_lock "$lockd" || die "advance: could not acquire lock for '$bd' -- another writer in progress (${lockd})"
-  trap 'release_lock "'"$lockd"'"' EXIT
+  wfstate_acquire_lock "$bd" "advance"
+  local lock_token="$WFSTATE_LOCK_TOKEN"
+  trap 'lock_release "'"$lockd"'" "'"$lock_token"'"' EXIT
 
   # crash-recovery hygiene: a prior crashed advance may have left a tmp state file --
   # never leave ambiguous litter around, but never touch the live state file itself.
@@ -496,8 +523,9 @@ cmd_retry() {
   is_known_error_class "$class" || die "retry: unknown error class '$class' (not in $ERRORS_FILE policies)"
 
   local lockd; lockd=$(lock_dir "$bd")
-  acquire_lock "$lockd" || die "retry: could not acquire lock for '$bd' -- another writer in progress (${lockd})"
-  trap 'release_lock "'"$lockd"'"' EXIT
+  wfstate_acquire_lock "$bd" "retry"
+  local lock_token="$WFSTATE_LOCK_TOKEN"
+  trap 'lock_release "'"$lockd"'" "'"$lock_token"'"' EXIT
 
   local from from_status seq
   from=$(jq -r '.current_phase' "$sf")
@@ -598,8 +626,9 @@ cmd_resume() {
   jq empty "$sf" >/dev/null 2>&1 || die "resume: $sf is not valid JSON -- cannot resume from a corrupt state file"
 
   local lockd; lockd=$(lock_dir "$bd")
-  acquire_lock "$lockd" || die "resume: could not acquire lock for '$bd' -- another writer in progress (${lockd})"
-  trap 'release_lock "'"$lockd"'"' EXIT
+  wfstate_acquire_lock "$bd" "resume"
+  local lock_token="$WFSTATE_LOCK_TOKEN"
+  trap 'lock_release "'"$lockd"'" "'"$lock_token"'"' EXIT
 
   local jf; jf=$(journal_file "$bd")
   local cur; cur=$(jq -r '.current_phase' "$sf")

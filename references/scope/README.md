@@ -1,5 +1,11 @@
 # references/scope/ -- machine-checkable scope lock (Milestone E)
 
+Applicability: this is documentation for the separate script runtime, only for
+projects that explicitly adopted it and verified its tools/hooks. The distributed
+instruction-only plugin does not supply or implicitly install that runtime. Without
+it, use scoped ownership and serialized writes under the harness; do not claim
+script enforcement from this reference alone.
+
 > bd: shode-roadmap/C-E1 · ROADMAP-runtime-10.md SS7 (Concurrency Safety) 7.1-7.3
 > Read by `scripts/scope-check.sh` and humans only -- never preloaded into an agent
 > context (no `agents/**` file and no preloaded skill points at this directory).

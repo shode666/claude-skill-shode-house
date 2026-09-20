@@ -22,8 +22,78 @@
 # (which paths were declared), not a special-cased branch per trigger name -- same
 # discipline the rest of this milestone's scripts follow.
 #
+# Production-bound gates (bd:shode-house-5cs.5) -- gate names matching "pre-deploy*",
+# "pre-merge*", "pre-data-migration*", "pre-destructive*", or exactly "production" --
+# additionally REFUSE to grant unless the working tree is CLEAN, full stop: `git status
+# --porcelain` must be empty. Production-bound gate list is authoritative at
+# output-styles/oliver.md:99 (that file is NO-list -- read-only, never edited here; cite
+# the line number so the next person does not have to rediscover it) -- it also names
+# pre-data-migration and pre-destructive, the two most irreversible gates in the system,
+# which the original iter0 pattern (pre-deploy*|pre-merge*|production only) missed.
+#
+# iter1 (bd:shode-house-5cs.3/.5 rework, per Bella/Oliver 3b-review ruling): the ORIGINAL
+# rationale here scoped the check to `git diff --quiet` + `git diff --cached --quiet`
+# (tracked-file drift only), deliberately excluding untracked files. Oliver overruled
+# that judgment call: for a production-bound gate the requirement is a CLEAN TREE, and a
+# brand-new UNTRACKED file (a new migration, a new deploy script) is exactly the kind of
+# unreviewed change the gate exists to catch -- it was invisible to both `git diff` and
+# `git diff --cached` (neither command sees untracked paths at all), which is the same
+# "approval looks valid, tree no longer matches what was approved" failure mode this gate
+# exists to close, just triggered by `git status`'s `??` state instead of `M`. `git status
+# --porcelain` (no `--ignored`) catches tracked drift (staged + unstaged) AND untracked
+# files in one check, while files matched by `.gitignore` are excluded by git's own
+# default `--porcelain` behavior -- so gitignored cruft (build output, local scratch
+# files) never blocks a grant, only genuinely unreviewed paths do. `.shode-house/approval/`
+# (APPROVAL_DIR -- the one directory this exact script ever writes an approval JSON
+# into) is also excluded from the check when the entry there is untracked, same
+# rationale as `.gitignore`d paths: it is not reviewed content, and without the
+# exclusion an approval JSON this very grant is about to write would self-dirty the
+# tree for the NEXT grant call in an un-gitignored target project. Non-production
+# gates are unaffected -- this check does not run for them at all.
+#
+# iter2 (bd:shode-house-5cs.5 rework, per Chris 3b-review Critical -- reproduced, Oliver
+# confirmed independently): iter1's exclusion above was a BLANKET pathspec
+# (":!.shode-house"), which hid the ENTIRE `.shode-house/` subtree -- not just this
+# script's own approval JSON, but ANY tracked, modified, real code file someone placed
+# under `.shode-house/` too (a "TAMPERED" append to a tracked `.shode-house/deploy.sh`
+# was invisible to the check and GRANTed over, including for pre-deploy-prod/
+# pre-destructive), AND any brand-new untracked file placed anywhere else under
+# `.shode-house/` by something other than this script. The fix does NOT special-case a
+# list of filenames -- it derives the exclusion from what `git status --porcelain`'s own
+# status code ALREADY tells us (a line's first two characters distinguish tracked drift,
+# "M"/"A"/"D"/"R"/"C"/"U" in either column, from untracked, "??"), narrowed to the ONE
+# directory this script's own APPROVAL_DIR constant names. ONLY an untracked ("??")
+# entry under `.shode-house/approval/` was dropped from the dirty set at this point in
+# the file's history -- superseded by iter3 below, which narrows this further to exactly
+# one file, not the whole directory. A TRACKED change is NEVER dropped, no matter where
+# it lives, including under `.shode-house/`; an untracked file anywhere OUTSIDE
+# `.shode-house/approval/` -- whether outside `.shode-house/` entirely (the pre-existing
+# "new unreviewed file must DENY" rule, unaffected) or elsewhere inside `.shode-house/`
+# (e.g. `.shode-house/state/`, `.shode-house/side-effects/`, or any other subpath) --
+# also still blocks. Gitignored paths still never appear in `git status --porcelain`
+# output at all (git's own default behavior, no flag needed) -- unaffected either way.
+#
+# iter3 (bd:shode-house-5cs.5 rework, per Chris 3b-review Critical -- reproduced a THIRD
+# time, narrower blast radius each round): iter2's exclusion above was STILL a SET --
+# "every untracked entry whose path starts with APPROVAL_DIR" -- so any untracked file
+# dropped directly under `.shode-house/approval/` (an arbitrary payload, a stray leftover
+# approval JSON for a DIFFERENT bd/gate, a second attacker-planted file sitting beside the
+# real one) rode through, exempted by directory MEMBERSHIP alone, not by being the one
+# file this exact `grant` invocation is about to write. Narrowing the exempted set again
+# would be the same move a third time -- instead the exemption collapses to a SINGLETON:
+# compute the one exact relative path this invocation's own `approval_file "$bd" "$gate"`
+# resolves to, and drop only a `??` line whose path equals that exact string -- never a
+# prefix/directory match. Every other untracked file anywhere under
+# `.shode-house/approval/` -- including a leftover/decoy approval JSON for a DIFFERENT
+# bd/gate, or a non-JSON file planted beside the real one -- now stays in the dirty set
+# and blocks, exactly like anywhere else in the tree. Re-granting the SAME bd/gate a
+# second time (updating an existing approval) still succeeds, because that call's own
+# target path is, by definition, the one path being exempted -- there is no set left to
+# be wrong about.
+#
 # exit codes:
-#   grant:  0 GRANTED | 64 usage/dependency error
+#   grant:  0 GRANTED | 1 DENY (production-bound gate refused -- working tree is not
+#           clean, tracked drift and/or untracked files) | 64 usage/dependency error
 #   verify: 0 ALLOW (still fresh) | 1 DENY (stale -- reason(s) printed, never a warning)
 #           | 2 NO_APPROVAL (nothing granted for this bd/gate yet) | 64 usage/dep error
 #
@@ -71,8 +141,19 @@ sha256_of() {
   else printf 'ABSENT'; fi
 }
 
+# iter4 fix (bd:shode-house-5cs.5, Quinn 3b-review Medium -- confirmed not exploitable
+# into a false ALLOW, but violated this field's own documented contract): in a git repo
+# with ZERO commits, `git rev-parse HEAD` cannot resolve a ref -- it writes its
+# best-effort partial output ("HEAD") to STDOUT, an error to stderr, and exits non-zero,
+# all at once. The old one-liner (`git ... 2>/dev/null || printf 'n/a'`) captured BOTH the
+# stray stdout AND the `|| printf 'n/a'` fallback into the same "$(...)" call site,
+# producing the corrupted two-line sentinel "HEAD\nn/a" instead of the documented clean
+# "n/a". Gating the fallback on the command's own exit status (not just piping stderr
+# away) makes a failed rev-parse NEVER leak its partial stdout to the caller.
 git_head() {
-  git -C "$ROOT" rev-parse HEAD 2>/dev/null || printf 'n/a'
+  local out
+  if out=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null); then printf '%s' "$out"
+  else printf 'n/a'; fi
 }
 
 state_version_of() {
@@ -89,10 +170,28 @@ usage() {
   cat >&2 <<'EOF'
 usage: approval.sh grant  <bd-id> <gate> <scope> <approved-by> <path> [<path>...]
        approval.sh verify <bd-id> <gate>
-exit (grant):  0 GRANTED | 64 usage/dep error
+exit (grant):  0 GRANTED | 1 DENY (production-bound gate, tree not clean) | 64 usage/dep error
 exit (verify): 0 ALLOW | 1 DENY (stale) | 2 NO_APPROVAL | 64 usage/dep error
       (0 with NO stdout at all = .shode-house/ missing entirely -- engagement guard off)
 EOF
+}
+
+# production-bound gate names -- authoritative list: output-styles/oliver.md:99
+# (pre-spec-expand, pre-implement-ui, pre-ui-check, pre-code-review, pre-merge,
+# pre-merge-ui, pre-loop-exit, pre-deploy-*, pre-data-migration, pre-destructive). Only
+# the gates that gate an irreversible/production-facing action need the clean-tree check
+# below -- pre-data-migration and pre-destructive added iter1 (bd:shode-house-5cs.5
+# rework), they are the two most irreversible gates in the registry and were missing.
+# See header comment for what this gates and why (clean-tree check, incl. untracked).
+is_production_gate() {
+  case "$1" in
+    pre-deploy*|pre-merge*|pre-data-migration*|pre-destructive*|production) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+is_git_repo() {
+  git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1
 }
 
 # =============================================================================
@@ -104,6 +203,60 @@ cmd_grant() {
   [ $# -ge 1 ] || die "grant: at least one <path> is required (artifacts the approval is bound to)"
 
   engagement_active || exit 0
+
+  # ---- production-bound gates: refuse to grant over an unclean tree -- tracked drift
+  # (staged or unstaged) OR untracked files, gitignored paths excluded (Oliver ruling,
+  # bd:shode-house-5cs.5 iter1 -- see header comment). Skipped entirely if $ROOT is not
+  # a git repo (mirrors the existing git_commit="n/a" convention below -- a non-git
+  # sandbox/repo must stay usable, this check just can't run there).
+  if is_production_gate "$gate" && is_git_repo; then
+    # ---- iter3 fix (bd:shode-house-5cs.5, Chris Critical, third round -- see header
+    # comment): no directory-prefix exclusion, not even scoped to APPROVAL_DIR. Two
+    # scoped porcelain calls, same as iter2 (still the right shape -- Chris's own
+    # review called this part "structurally sound"):
+    #   (a) everything OUTSIDE ".shode-house/" -- default porcelain, unchanged behavior.
+    #   (b) ONLY inside ".shode-house/", with `--untracked-files=all` so a wholly-new
+    #       ".shode-house/" directory is walked file-by-file instead of collapsing to a
+    #       single "?? .shode-house/" line (git's default directory-collapse behavior
+    #       for an entirely-untracked directory) -- without this, a brand-new approval
+    #       JSON this very grant is about to have already written under it in an
+    #       earlier call would be indistinguishable, by path, from the directory line
+    #       itself. `-uall` is scoped to ONLY ".shode-house/" here (bounded, this tool's
+    #       own small runtime dir), not the whole repo, so it carries none of the
+    #       whole-tree "-uall on a large repo" cost.
+    # From (b), drop ONLY the one "??" line whose path equals the EXACT file THIS
+    # invocation's own approval_file() call is about to write -- a singleton, not a
+    # directory or a filename pattern. Everything else stays in the dirty set: every
+    # tracked change ("M"/"A"/"D"/"R"/"C"/"U" in either status column) anywhere --
+    # including elsewhere under ".shode-house/" -- is kept, AND every OTHER untracked
+    # file anywhere -- whether outside ".shode-house/" entirely, or elsewhere inside it,
+    # including a leftover/decoy approval JSON for a DIFFERENT bd/gate sitting right
+    # next to this one inside APPROVAL_DIR itself -- still blocks. Only THIS invocation's
+    # own single write target is exempt from self-dirtying its own gate.
+    local approval_file_rel; approval_file_rel="$(approval_file "$bd" "$gate")"
+    approval_file_rel="${approval_file_rel#"$ROOT"/}"
+    local outside_shodehouse inside_shodehouse dirty="" line code path
+    outside_shodehouse=$(git -C "$ROOT" status --porcelain -- . ':!.shode-house' 2>/dev/null)
+    inside_shodehouse=$(git -C "$ROOT" status --porcelain --untracked-files=all -- .shode-house 2>/dev/null)
+    dirty="$outside_shodehouse"
+    while IFS= read -r line; do
+      [ -z "$line" ] && continue
+      code="${line:0:2}"
+      path="${line:3}"
+      case "$code" in
+        '??')
+          [ "$path" = "$approval_file_rel" ] && continue   # ONLY this exact call's own target file
+          ;;
+      esac
+      dirty="${dirty}${dirty:+$'\n'}${line}"
+    done <<< "$inside_shodehouse"
+    if [ -n "$dirty" ]; then
+      printf 'DENY: refusing to grant gate "%s" for bd "%s" -- working tree is not clean (git status --porcelain is non-empty -- tracked-file drift and/or untracked files; gitignored paths are excluded by git'"'"'s own default behavior); production-bound gates require a clean tree so the approved commit actually reflects what was reviewed. dirty entries:\n%s\n' \
+        "$gate" "$bd" "$dirty"
+      exit 1
+    fi
+  fi
+
   mkdir -p "$APPROVAL_DIR"
 
   local af; af=$(approval_file "$bd" "$gate")

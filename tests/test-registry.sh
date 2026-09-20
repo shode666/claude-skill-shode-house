@@ -78,13 +78,40 @@ assert_contains "$err" "unknown capability" "error should name the problem"
 rm -rf "$D"
 
 # ---------------------------------------------------------------------------
-t_start "route.sh: default capability (no 'capability' key) resolves primary=developer"
+# bd: shode-house-5cs.2 -- route.sh used to silently default absent .capability to
+# "production-code" (Dave); that hid mis-routed/malformed requests. It must now be a
+# loud error, same `die` shape as the unknown-capability check.
+t_start "route.sh: missing 'capability' key is a hard error (no more silent default to production-code)"
 D=$(sandbox)
 echo '{}' > "$D/req.json"
+err=$("$ROUTE" "$D/req.json" 2>&1); rc=$?
+assert_false "$rc" "absent capability should fail, not silently resolve"
+assert_contains "$err" "missing 'capability'" "error should name the problem"
+rm -rf "$D"
+
+t_start "route.sh: null 'capability' value is a hard error (same as absent)"
+D=$(sandbox)
+echo '{"capability":null}' > "$D/req.json"
+err=$("$ROUTE" "$D/req.json" 2>&1); rc=$?
+assert_false "$rc" "null capability should fail"
+assert_contains "$err" "missing 'capability'" "null capability should be treated as missing"
+rm -rf "$D"
+
+t_start "route.sh: empty-string 'capability' value is a hard error (same as absent)"
+D=$(sandbox)
+echo '{"capability":""}' > "$D/req.json"
+err=$("$ROUTE" "$D/req.json" 2>&1); rc=$?
+assert_false "$rc" "empty-string capability should fail"
+assert_contains "$err" "missing 'capability'" "empty-string capability should be treated as missing"
+rm -rf "$D"
+
+t_start "route.sh: explicit capability (no default needed) still resolves primary=developer"
+D=$(sandbox)
+echo '{"capability":"production-code"}' > "$D/req.json"
 out=$("$ROUTE" "$D/req.json" 2>&1); rc=$?
-assert_true "$rc" "empty request should still resolve"
+assert_true "$rc" "explicit production-code capability should resolve"
 primary=$(printf '%s' "$out" | jq -r '.primary')
-assert_eq "$primary" "developer" "default capability should be production-code -> developer"
+assert_eq "$primary" "developer" "production-code -> developer"
 required_n=$(printf '%s' "$out" | jq '.required | length')
 assert_eq "$required_n" "0" "no trigger matched -> required[] empty"
 rm -rf "$D"
@@ -92,7 +119,7 @@ rm -rf "$D"
 # ---------------------------------------------------------------------------
 t_start "route.sh: payment/kyc tags -> require fintech-expert, phases include 1b-design + 3b-review"
 D=$(sandbox)
-echo '{"tags":["payment","kyc"]}' > "$D/req.json"
+echo '{"capability":"production-code","tags":["payment","kyc"]}' > "$D/req.json"
 out=$("$ROUTE" "$D/req.json" 2>&1); rc=$?
 assert_true "$rc" "payment/kyc request should resolve"
 req=$(printf '%s' "$out" | jq -c '.required')
@@ -105,7 +132,7 @@ rm -rf "$D"
 # ---------------------------------------------------------------------------
 t_start "route.sh: pii=true -> require security-engineer, phases include 1c-security + 3b-review"
 D=$(sandbox)
-echo '{"pii":true}' > "$D/req.json"
+echo '{"capability":"production-code","pii":true}' > "$D/req.json"
 out=$("$ROUTE" "$D/req.json" 2>&1); rc=$?
 assert_true "$rc" "pii request should resolve"
 req=$(printf '%s' "$out" | jq -c '.required')
@@ -117,7 +144,7 @@ rm -rf "$D"
 # ---------------------------------------------------------------------------
 t_start "route.sh: frontend=true -> require ux-ui-designer, phases include 1b-design + 3a-ui-check"
 D=$(sandbox)
-echo '{"frontend":true}' > "$D/req.json"
+echo '{"capability":"production-code","frontend":true}' > "$D/req.json"
 out=$("$ROUTE" "$D/req.json" 2>&1); rc=$?
 assert_true "$rc" "frontend request should resolve"
 req=$(printf '%s' "$out" | jq -c '.required')
@@ -129,7 +156,7 @@ rm -rf "$D"
 # ---------------------------------------------------------------------------
 t_start "route.sh: multiple triggers at once (pii + frontend + ecommerce tag) aggregate + dedupe"
 D=$(sandbox)
-echo '{"pii":true,"frontend":true,"tags":["cart"]}' > "$D/req.json"
+echo '{"capability":"production-code","pii":true,"frontend":true,"tags":["cart"]}' > "$D/req.json"
 out=$("$ROUTE" "$D/req.json" 2>&1); rc=$?
 assert_true "$rc" "combined request should resolve"
 req_n=$(printf '%s' "$out" | jq '.required | length')
@@ -150,10 +177,628 @@ case "$req" in *fintech-expert*) t_fail "primary must not also appear in require
 rm -rf "$D"
 
 # ---------------------------------------------------------------------------
+# bd: shode-house-5cs.2 -- text matching used to be raw substring (jq contains()),
+# which false-positived on (1) fragments inside unrelated words and (2) generic
+# English words used as bare single keywords. These are the three reproductions from
+# the bug report, run through `text` with an explicit capability (route.sh no longer
+# defaults capability -- see the missing-capability tests above).
+t_start "regression: 'please fix this bug' no longer requires trading-expert (fix-inside-fix false positive)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"please fix this bug"}' > "$D/req.json"
+out=$("$ROUTE" "$D/req.json" 2>&1); rc=$?
+assert_true "$rc" "should still resolve"
+req=$(printf '%s' "$out" | jq -c '.required')
+case "$req" in *trading-expert*) t_fail "'fix' alone must not route to trading-expert any more -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression: 'update the security policy doc' no longer requires insurance-expert (bare 'policy' false positive)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"update the security policy doc"}' > "$D/req.json"
+out=$("$ROUTE" "$D/req.json" 2>&1); rc=$?
+assert_true "$rc" "should still resolve"
+req=$(printf '%s' "$out" | jq -c '.required')
+case "$req" in *insurance-expert*) t_fail "'policy' alone must not route to insurance-expert any more -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression: 'refactor the stock ticker prefix helper' no longer requires erp-expert or trading-expert (substring-fragment + bare-word false positives)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"refactor the stock ticker prefix helper"}' > "$D/req.json"
+out=$("$ROUTE" "$D/req.json" 2>&1); rc=$?
+assert_true "$rc" "should still resolve"
+req=$(printf '%s' "$out" | jq -c '.required')
+case "$req" in
+  *erp-expert*)     t_fail "'stock' alone must not route to erp-expert any more -- got $req" ;;
+  *trading-expert*) t_fail "'fix' inside 'prefix' must not route to trading-expert -- got $req" ;;
+  *)                t_ok ;;
+esac
+req_n=$(printf '%s' "$out" | jq '.required | length')
+assert_eq "$req_n" "0" "this text should not require any domain expert"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# word-boundary mechanism, isolated from the disambiguation feature above: keywords
+# that were NOT renamed (auth/trade/promo) must still refuse to match as a fragment
+# inside a longer unrelated word.
+t_start "word-boundary: 'author' does not falsely match keyword 'auth' as a substring fragment"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"update the author bio"}' > "$D/req.json"
+out=$("$ROUTE" "$D/req.json" 2>&1)
+req=$(printf '%s' "$out" | jq -c '.required')
+case "$req" in *security-engineer*) t_fail "'author' must not match keyword 'auth' -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "word-boundary: 'trader' does not falsely match keyword 'trade' as a substring fragment"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"the trader left early"}' > "$D/req.json"
+out=$("$ROUTE" "$D/req.json" 2>&1)
+req=$(printf '%s' "$out" | jq -c '.required')
+case "$req" in *trading-expert*) t_fail "'trader' must not match keyword 'trade' -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "word-boundary: 'promotion' does not falsely match keyword 'promo' as a substring fragment"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"we discussed the promotion timeline"}' > "$D/req.json"
+out=$("$ROUTE" "$D/req.json" 2>&1)
+req=$(printf '%s' "$out" | jq -c '.required')
+case "$req" in *ecommerce-expert*) t_fail "'promotion' must not match keyword 'promo' -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# true positives via `text` (not `tags`) per route id -- every route that SHOULD
+# still match, still matches, including its Thai keyword(s) where it has any. Thai
+# has no ASCII word boundary to tokenize on, so these keywords stay substring-matched
+# by design (see route.sh header + routes.json _comment) -- these fixtures prove that
+# path is exercised and green, not just theorized.
+t_start "true-positive text: domain-fintech EN keyword 'payment'"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"process the payment now"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "fintech-expert" "'payment' should still require fintech-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-fintech Thai keywords เงิน + ธนาคาร (no ASCII word boundary, substring by design)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"โอนเงินผ่านธนาคาร"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "fintech-expert" "Thai เงิน/ธนาคาร text should still require fintech-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-erp disambiguated AND-phrase 'inventory stock' (both words present -> match)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"check inventory stock levels"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "erp-expert" "'inventory stock' (both words) should require erp-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-erp Thai keyword บัญชี (substring by design)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"ปรับปรุงบัญชีลูกค้า"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "erp-expert" "Thai บัญชี text should still require erp-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-sap EN keyword 'sap'"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"upgrade our sap landscape"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "sap-expert" "'sap' should still require sap-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-trading disambiguated AND-phrase 'fix protocol' (both words present -> match)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"implement the fix protocol adapter for market data"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "'fix protocol' (both words) should require trading-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-trading disambiguated AND-phrase 'trading order' (both words present -> match)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"submit the trading order now"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "'trading order' (both words) should require trading-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-insurance disambiguated AND-phrase 'insurance policy' (both words present -> match)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"review the insurance policy terms"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "insurance-expert" "'insurance policy' (both words) should require insurance-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-insurance disambiguated AND-phrase 'insurance claim' (both words present -> match)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"process the insurance claim"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "insurance-expert" "'insurance claim' (both words) should require insurance-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-insurance Thai keyword ประกัน (substring by design)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"ซื้อประกันภัยรถยนต์"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "insurance-expert" "Thai ประกัน text should still require insurance-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-booking EN keyword 'yield'"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"manage yield strategy"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "booking-expert" "'yield' should still require booking-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-booking Thai keyword จอง (substring by design)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"ลูกค้าต้องการจองห้องพัก"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "booking-expert" "Thai จอง text should still require booking-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-ecommerce EN keyword 'cart'"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"add item to cart"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "ecommerce-expert" "'cart' should still require ecommerce-expert"
+rm -rf "$D"
+
+t_start "true-positive text: domain-ecommerce Thai keyword ร้านค้า (substring by design)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"เปิดร้านค้าออนไลน์"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "ecommerce-expert" "Thai ร้านค้า text should still require ecommerce-expert"
+rm -rf "$D"
+
+t_start "true-positive text: security-money-auth EN keyword 'auth' (unrenamed keyword, whole-token still matches)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"set up the auth flow for the api"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "security-engineer" "'auth' as a whole token should still require security-engineer"
+rm -rf "$D"
+
+t_start "true-positive text: domain-trading disambiguated AND-phrase 'trading exchange' (iter1 F4 -- bare 'exchange' narrowed)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"connect to the trading exchange feed"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "'trading exchange' (both words, adjacent) should require trading-expert"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# iter1 F1 (CRITICAL, Chris) -- hyphenated when.any keywords used to be permanently
+# unmatchable: scan("[a-z0-9]+") split "file-upload" into "file"+"upload", so the
+# literal hyphenated string could never appear in the token array, for any phrasing.
+# 3/5 security-money-auth keywords were silently dead. route.sh's tokenizer now keeps a
+# hyphen-joined run as one token -- these prove all three are reachable again.
+t_start "regression (iter1 F1): 'file-upload' as literal hyphenated text now requires security-engineer"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"add file-upload endpoint"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "security-engineer" "'file-upload' must require security-engineer -- was silently unreachable before iter1 F1"
+rm -rf "$D"
+
+t_start "regression (iter1 F1): 'ai-agent' as literal hyphenated text now requires security-engineer"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"we need to add a ai-agent feature this sprint"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "security-engineer" "'ai-agent' must require security-engineer -- was silently unreachable before iter1 F1"
+rm -rf "$D"
+
+t_start "regression (iter1 F1): 'external-integration' as literal hyphenated text now requires security-engineer"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"external-integration with vendor"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "security-engineer" "'external-integration' must require security-engineer -- was silently unreachable before iter1 F1"
+rm -rf "$D"
+
+t_start "regression (iter1 F1): all three hyphenated keywords together in one sentence (Oliver/Chris repro)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"add a new external-integration webhook for file-upload with an ai-agent callback"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "security-engineer" "combined hyphenated-keyword sentence must require security-engineer"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# iter1 F2 (HIGH, Chris/Quinn) -- exact-token matching lost the plurals the old
+# substring matcher caught for free ("order" is a substring of "orders"). Fixed with a
+# conservative trailing-s stem rule applied to a phrase's final word (route.sh
+# stem()). These reproduce the exact bug-report sentences and prove the fix without
+# reverting to substring matching.
+t_start "regression (iter1 F2): 'trading orders page' (plural) still requires trading-expert"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"trading orders page"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "'trading orders' (plural 'order') must still require trading-expert"
+rm -rf "$D"
+
+t_start "regression (iter1 F2): 'insurance claims list' (plural) still requires insurance-expert"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"insurance claims list"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "insurance-expert" "'insurance claims' (plural 'claim') must still require insurance-expert"
+rm -rf "$D"
+
+t_start "regression (iter1 F2): 'update inventory stocks report' (plural, Quinn repro) still requires erp-expert"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"update inventory stocks report"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "erp-expert" "'inventory stocks' (plural 'stock') must still require erp-expert"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# iter1 F3 (HIGH, Chris/Quinn/Bella) -- iter0's AND-phrase semantics ("both words
+# present anywhere in text") was too loose and reintroduced the exact false-positive
+# shape this bd exists to close. route.sh now requires the phrase's words to appear as
+# an ADJACENT run, in order. These two negative fixtures are Oliver's own reproductions
+# -- neither must route to trading-expert any more.
+t_start "regression (iter1 F3): 'let's fix this per our meeting protocol' does NOT require trading-expert (non-adjacent 'fix'...'protocol')"
+D=$(sandbox)
+echo "{\"capability\":\"production-code\",\"text\":\"let's fix this per our meeting protocol\"}" > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *trading-expert*) t_fail "non-adjacent 'fix'...'protocol' must not route to trading-expert -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression (iter1 F3): 'in order to speed up trading of assets' does NOT require trading-expert (non-adjacent 'order'/'trading', wrong order)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"in order to speed up trading of assets"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *trading-expert*) t_fail "non-adjacent/reordered 'order'...'trading' must not route to trading-expert -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# iter2 D1 (HIGH, Chris) -- iter1 F3's ADJACENT-run check operated on the *filtered*
+# token array, and scan() silently drops every non-alnum character including sentence-
+# terminating punctuation, so two words either side of a full stop sat at adjacent array
+# indices with nothing to tell that apart from true same-clause adjacency. One negative
+# fixture per AND-phrase (6 phrases, 3 routes) -- the words are genuinely present in the
+# text, in order, but split across a sentence/clause boundary, so none of these must
+# match.
+t_start "regression (iter2 D1): cross-sentence 'fix protocol' does NOT require trading-expert (Oliver/Chris repro)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"Please fix. Protocol docs are outdated."}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *trading-expert*) t_fail "'fix.' + 'Protocol' across a sentence boundary must not route to trading-expert -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression (iter2 D1): cross-sentence 'trading order' does NOT require trading-expert (Chris repro)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"We do a lot of trading. Order form is attached separately."}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *trading-expert*) t_fail "'trading.' + 'Order' across a sentence boundary must not route to trading-expert -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression (iter2 D1): cross-sentence 'trading exchange' does NOT require trading-expert"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"We handle a lot of trading. Exchange fees are listed separately."}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *trading-expert*) t_fail "'trading.' + 'Exchange' across a sentence boundary must not route to trading-expert -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression (iter2 D1): cross-sentence 'inventory stock' does NOT require erp-expert"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"We manage the inventory. Stock levels are tracked separately."}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *erp-expert*) t_fail "'inventory.' + 'Stock' across a sentence boundary must not route to erp-expert -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression (iter2 D1): cross-sentence 'insurance policy' does NOT require insurance-expert"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"Please check the insurance. Policy documents are attached separately."}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *insurance-expert*) t_fail "'insurance.' + 'Policy' across a sentence boundary must not route to insurance-expert -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression (iter2 D1): cross-sentence 'insurance claim' does NOT require insurance-expert (comma variant, Chris/Quinn repro shape)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"We handle the insurance, claim forms are attached separately in another paragraph."}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *insurance-expert*) t_fail "'insurance,' + 'claim' across a comma clause boundary must not route to insurance-expert -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression (iter2 D1): true-positive AND-phrases still fire when punctuation is present elsewhere in the sentence (sentinel does not over-block)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"Team, please submit the trading order now."}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "a comma elsewhere in the sentence must not block an otherwise-adjacent phrase match"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# iter2 D2 (HIGH, Quinn) -- iter1 F2's plural-stem rule stripped a trailing 's' from any
+# word of length > 3, so the real, unrelated English word "saps" (drains/exhausts)
+# stemmed down to "sap" and collided with the 3-char keyword "sap". The length floor was
+# raised to > 4; every when.any keyword in the registry was checked for the same
+# collision shape (see 18-dave-L1-implement-iter2.md) -- "sap"/"saps" is the only
+# confirmed real-word collision found ("kyc","mrp","btp","pms" are also 3-char keywords
+# but none of "kycs"/"mrps"/"btps"/"pmss" collided with a distinct real word).
+t_start "regression (iter2 D2): 'this refactor saps my energy' does NOT require sap-expert (Quinn repro -- 'saps' stemmed to 'sap')"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"this refactor saps my energy"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *sap-expert*) t_fail "'saps' must not stem-match the unrelated keyword 'sap' -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression (iter2 D2): the plural rule still works for the cases it was added for -- 'trading orders'/'insurance claims'/'inventory stocks' unaffected by the raised threshold"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"trading orders page"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "'trading orders' must still require trading-expert after the D2 threshold raise"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# iter2 D3 (HIGH, Quinn) -- iter1 F1's hyphen-preserving tokenizer fixed hyphenated
+# single keywords (file-upload, ai-agent, external-integration) but, as a side effect,
+# made a hyphenated spelling of a two-word PHRASE keyword permanently unmatchable: the
+# text "trading-order" tokenized to ONE token "trading-order" that equals neither
+# "trading" nor "order", so phrase_match could never fire. One positive fixture per
+# AND-phrase (6 phrases, 3 routes), each written with a hyphen instead of a space --
+# these are Quinn's own exact reproductions plus the delegation's named 'fix protocol'
+# case. Both the hyphen and space spellings must resolve to the same required agent.
+t_start "regression (iter2 D3): hyphenated 'FIX-protocol' text requires trading-expert (delegation repro)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"we rolled out FIX-protocol support"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "hyphenated 'FIX-protocol' must require trading-expert same as the space form"
+rm -rf "$D"
+
+t_start "regression (iter2 D3): hyphenated 'trading-order' text requires trading-expert (delegation repro)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"trading-order gateway"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "hyphenated 'trading-order' must require trading-expert same as the space form"
+rm -rf "$D"
+
+t_start "regression (iter2 D3): hyphenated 'trading-exchange' text requires trading-expert (Quinn repro)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"connect to the trading-exchange feed"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "hyphenated 'trading-exchange' must require trading-expert same as the space form"
+rm -rf "$D"
+
+t_start "regression (iter2 D3): hyphenated 'inventory-stock' text requires erp-expert (Quinn repro, delegation repro)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"check inventory-stock levels"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "erp-expert" "hyphenated 'inventory-stock' must require erp-expert same as the space form"
+rm -rf "$D"
+
+t_start "regression (iter2 D3): hyphenated 'insurance-policy' text requires insurance-expert (delegation repro)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"insurance-policy renewal"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "insurance-expert" "hyphenated 'insurance-policy' must require insurance-expert same as the space form"
+rm -rf "$D"
+
+t_start "regression (iter2 D3): hyphenated 'insurance-claim' text requires insurance-expert (Quinn repro)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"process the insurance-claim form"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "insurance-expert" "hyphenated 'insurance-claim' must require insurance-expert same as the space form"
+rm -rf "$D"
+
+t_start "regression (iter2 D3): hyphenated single KEYWORD matching is NOT regressed by the phrase-tokens split (F1 still green under D3's fix)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"add a new external-integration webhook for file-upload with an ai-agent callback"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "security-engineer" "F1's hyphenated single-keyword combined repro must still require security-engineer"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# iter3 (HIGH x2, Quinn iter2 re-review Findings C + D) -- iter2 D1's sentinel list
+# ([.!?,;\n]) both over-applied (a bare newline mid-phrase was treated as an
+# unconditional hard clause break, Finding C -- a genuine soft line-wrap false
+# negative) and under-applied (colon and em-dash were never in the list, Finding D --
+# a false positive, same class/blast-radius as the original D1 bug). Fixed by replacing
+# the blacklist with a positive rule. iter3b (bd: shode-house-5cs.2, Oliver-measured
+# regression against the user's own authoritative spec, which iter3's brief predated):
+# iter3's positive rule required EXACTLY ONE separator CHARACTER, which wrongly rejected
+# an ordinary whitespace RUN of 2+ (double space after a period, wrapped/indented text,
+# aligned columns) as if it were a multi-character punctuation break. Corrected: two
+# phrase words are adjacent iff the gap is EITHER a run of one-or-more WHITESPACE
+# characters (any length, any mix of space/tab/newline) OR exactly one ASCII hyphen with
+# no whitespace beside it (see route.sh's $items/phrase_match comment for the full
+# mechanism). These are Oliver's three reproductions plus the delegation-required
+# two-space/three-space/mixed-whitespace-run fixtures.
+t_start "regression (iter3 Finding C): mid-phrase line-wrap DOES require trading-expert (Oliver repro -- iter2 D1 wrongly treated a soft wrap as a hard sentence break)"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"process the trading\norder now"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "a mid-phrase newline (soft line-wrap) must still require trading-expert"
+rm -rf "$D"
+
+t_start "regression (iter3 Finding C): mid-phrase TAB-separated phrase DOES require trading-expert (delegation-required fixture)"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"process the trading\torder now"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "a single tab between phrase words must still require trading-expert"
+rm -rf "$D"
+
+t_start "regression (iter3 Finding D): em-dash-separated clause does NOT require trading-expert (Oliver/Quinn repro -- iter2 D1's blacklist never covered '--')"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"we are done trading -- order the coffee for the retro"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *trading-expert*) t_fail "'trading -- order' (em-dash clause break) must not route to trading-expert -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression (iter3 Finding D): colon-separated clause does NOT require trading-expert (Quinn repro shape -- iter2 D1's blacklist never covered ':')"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"Meeting notes -- trading: order of business is confirmed"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *trading-expert*) t_fail "'trading: order' (colon clause break) must not route to trading-expert -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression (iter3): single-space phrase still requires trading-expert (baseline -- the positive rule must not over-block the common case)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"trading order flow"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "a plain single-space 'trading order' must still require trading-expert"
+rm -rf "$D"
+
+t_start "regression (iter3b, corrects iter3's own regression): TWO-space separation DOES require trading-expert (Oliver repro -- iter3 wrongly rejected a plain double-space run)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"trading  order flow"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "a double-space 'trading  order' (a whitespace RUN, not a punctuation break) must require trading-expert"
+rm -rf "$D"
+
+t_start "regression (iter3b): THREE-space separation DOES require trading-expert (Oliver repro -- aligned-column / wrapped-and-indented prose)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"trading   order"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "a triple-space 'trading   order' must require trading-expert same as any other whitespace run"
+rm -rf "$D"
+
+t_start "regression (iter3b, delegation-required): MIXED space+tab whitespace run DOES require trading-expert"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"trading \torder"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "a space+tab whitespace run is still whitespace-only -- must require trading-expert"
+rm -rf "$D"
+
+t_start "regression (iter3b, delegation-required): MIXED space+newline whitespace run DOES require trading-expert"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"trading \norder"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "a space+newline whitespace run is still whitespace-only -- must require trading-expert"
+rm -rf "$D"
+
+t_start "regression (iter3b): hyphen WITH adjacent whitespace does NOT require trading-expert ('trading - order' is neither a pure whitespace run nor a bare hyphen)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"trading - order"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+case "$req" in *trading-expert*) t_fail "'trading - order' (hyphen with whitespace on both sides) must not route to trading-expert -- got $req" ;; *) t_ok ;; esac
+rm -rf "$D"
+
+t_start "regression (iter3b): bare hyphenated 'trading-order' spelling still requires trading-expert (D3 baseline not regressed by the iter3b rewrite)"
+D=$(sandbox)
+echo '{"capability":"production-code","text":"trading-order flow"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "a single ASCII hyphen with no whitespace beside it must still require trading-expert"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# iter3c (bd: shode-house-5cs.2, Chris+Quinn iter3b re-review, both axes independently) --
+# iter3b's own "whitespace" half of the positive rule was STILL an enumerated list of
+# exactly three characters ("[ \t\n]", space/tab/LF), so CR, VT, FF, and every non-ASCII
+# whitespace codepoint fell through to the single-char "." alternative and broke adjacency
+# -- same enumeration-completeness failure this bd has hit in every prior iteration (iter1
+# missing colon, iter2 missing CR/VT/FF in the D1 blacklist, iter3 "exactly one character"
+# rejecting a bare 2+ run), just relocated to a new spot each time. Fixed by matching a
+# whitespace character CLASS ("[[:space:]]", Oniguruma POSIX class) instead of a list, so a
+# whitespace character nobody has thought to name is still classified correctly by
+# construction. This is a full walk of the whitespace family Oliver's ruling put in scope
+# (POSIX/ASCII control whitespace plus the Unicode `White_Space` property) -- every member
+# below MUST join two phrase words exactly like a plain ASCII space does; this is the test
+# that stops the class from silently shrinking back to a list in a future iteration.
+t_start "iter3c whitespace-family: bare CR (\\r) joins two phrase words"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"trading\rorder"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "bare CR between two phrase words must require trading-expert -- got $req"
+rm -rf "$D"
+
+t_start "iter3c whitespace-family: CRLF (\\r\\n, Windows line ending) joins two phrase words"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"trading\r\norder"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "CRLF between two phrase words must require trading-expert -- got $req"
+rm -rf "$D"
+
+t_start "iter3c whitespace-family: CRLF blank-line paragraph break (\\r\\n\\r\\n) joins two phrase words"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"trading\r\n\r\norder"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "a CRLF blank-line break between two phrase words must require trading-expert -- got $req"
+rm -rf "$D"
+
+t_start "iter3c whitespace-family: vertical tab (\\u000b) joins two phrase words"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"tradingorder"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "vertical tab between two phrase words must require trading-expert -- got $req"
+rm -rf "$D"
+
+t_start "iter3c whitespace-family: form feed (\\u000c) joins two phrase words"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"tradingorder"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "form feed between two phrase words must require trading-expert -- got $req"
+rm -rf "$D"
+
+t_start "iter3c whitespace-family: NBSP (\\u00a0, common copy-paste-from-web artifact) joins two phrase words (Oliver ruling: Unicode whitespace counts)"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"trading order"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "NBSP between two phrase words must require trading-expert -- got $req"
+rm -rf "$D"
+
+t_start "iter3c whitespace-family: ideographic space (\\u3000, arrives with CJK text) joins two phrase words (Oliver ruling: Unicode whitespace counts)"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"trading　order"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "ideographic space between two phrase words must require trading-expert -- got $req"
+rm -rf "$D"
+
+t_start "iter3c whitespace-family: Unicode line separator U+2028 joins two phrase words"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"trading order"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "U+2028 line separator between two phrase words must require trading-expert -- got $req"
+rm -rf "$D"
+
+t_start "iter3c whitespace-family: Unicode paragraph separator U+2029 joins two phrase words"
+D=$(sandbox)
+jq -n '{capability:"production-code", text:"trading order"}' > "$D/req.json"
+req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required')
+assert_contains "$req" "trading-expert" "U+2029 paragraph separator between two phrase words must require trading-expert -- got $req"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# iter1 F5 (structural guard, Chris's suggestion) -- the test above that DOES catch F1:
+# every when.any keyword across routes.json, wrapped in a neutral carrier sentence,
+# must resolve its route's required agent. This is dynamic (reads routes.json itself),
+# so it automatically covers any future keyword too, not just the ones fixed today.
+t_start "structural: EVERY when.any keyword in routes.json has at least one true-positive fixture (would have caught iter1 F1 directly)"
+struct_fail=""
+while IFS=$'\t' read -r route_id agent item; do
+  [ -z "$item" ] && continue
+  D=$(sandbox)
+  jq -n --arg t "please handle this $item" '{capability:"production-code", text:$t}' > "$D/req.json"
+  req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required // empty')
+  case "$req" in
+    *"$agent"*) : ;;
+    *) struct_fail="${struct_fail}${struct_fail:+; }route=$route_id item='$item' agent=$agent got=$req" ;;
+  esac
+  rm -rf "$D"
+done < <(jq -r '.routes[] | .id as $id | .require[0] as $agent | .when.any[]? | [$id, $agent, .] | @tsv' "$ROUTES")
+[ -z "$struct_fail" ] && t_ok || t_fail "keyword(s) with no true-positive fixture: $struct_fail"
+
+# ---------------------------------------------------------------------------
+# iter2 D3 extension of F5 -- same dynamic sweep, but for every multi-word (space-
+# containing) when.any item, ALSO try a hyphenated spelling of that phrase (spaces
+# replaced with hyphens) in the carrier sentence and assert it still resolves to the
+# route's required agent. This is what would have caught D3 directly (single-word items
+# are skipped -- a hyphenated single keyword like "file-upload" already IS the item, no
+# separate hyphenated variant to construct), and it automatically covers any future
+# multi-word keyword too, not just today's six.
+t_start "structural: EVERY multi-word when.any phrase in routes.json ALSO matches its hyphenated spelling (would have caught iter2 D3 directly)"
+struct_fail=""
+while IFS=$'\t' read -r route_id agent item; do
+  [ -z "$item" ] && continue
+  case "$item" in *" "*) : ;; *) continue ;; esac
+  hyphenated=$(printf '%s' "$item" | tr ' ' '-')
+  D=$(sandbox)
+  jq -n --arg t "please handle this $hyphenated" '{capability:"production-code", text:$t}' > "$D/req.json"
+  req=$(printf '%s' "$("$ROUTE" "$D/req.json" 2>&1)" | jq -c '.required // empty')
+  case "$req" in
+    *"$agent"*) : ;;
+    *) struct_fail="${struct_fail}${struct_fail:+; }route=$route_id item='$item' hyphenated='$hyphenated' agent=$agent got=$req" ;;
+  esac
+  rm -rf "$D"
+done < <(jq -r '.routes[] | .id as $id | .require[0] as $agent | .when.any[]? | [$id, $agent, .] | @tsv' "$ROUTES")
+[ -z "$struct_fail" ] && t_ok || t_fail "hyphenated phrase spelling(s) with no true-positive fixture: $struct_fail"
+
+# ---------------------------------------------------------------------------
 # MUTATION (a): remove a route rule -> resolver must stop returning that agent
 t_start "MUTATION (a): deleting the frontend route from routes.json makes the resolver stop requiring ux-ui-designer"
 D=$(sandbox)
-echo '{"frontend":true}' > "$D/req.json"
+echo '{"capability":"production-code","frontend":true}' > "$D/req.json"
 before_out=$("$ROUTE" "$D/req.json" 2>&1)
 before_req=$(printf '%s' "$before_out" | jq -c '.required')
 assert_contains "$before_req" "ux-ui-designer" "sanity: baseline still requires ux-ui-designer"
