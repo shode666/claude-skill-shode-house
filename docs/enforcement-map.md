@@ -83,6 +83,18 @@ Recite Discipline Card, AskUserQuestion main-session relay, Spec axis (diff vs s
 | `evidence-forbidden-phrases` | Forbidden phrases require evidence immediately (Project Evidence Protocol) | `skills/discipline/shode-house-discipline/SKILL.md` | Forbidden phrase (ใช้ = ต้องมี evidence ตามมาทันที) |
 | `evidence-cite-before-claim` | cite-before-claim is mandatory for every agent | `skills/discipline/shode-house-discipline/SKILL.md` | cite-before-claim บังคับทุก agent |
 | `drift-m3-ready-merge` | M3: worker done/FIXED is a candidate; only Oliver says ready merge, after reviews + experts + evidence + authority | `skills/discipline/shode-house-workflow/SKILL.md` | "ready merge" = Oliver only, after applicable independent reviews |
+| `ux-evidence` | UX/visual evidence ladder | `skills/ui/ui-test/SKILL.md` | Visual evidence ladder |
+| `redact` | Redact ก่อน paste evidence | `skills/workflow/diagnose/SKILL.md` | Redact ก่อน paste (🔴 อ่านก่อนเริ่ม) |
+| `routing-sole-owner-reroute` | Routing: not the sole owner = reroute, never absorb another role's work | `skills/discipline/shode-house-routing/SKILL.md` | not the sole owner = reroute, never absorb |
+| `routing-parallel-unknown-sequential` | Parallel dispatch: one eligibility condition unknown = sequential | `skills/discipline/shode-house-routing/SKILL.md` | One condition unknown → sequential |
+| `decompose-signed-off-spec` | Decompose precondition: signed-off spec or BRD | `skills/workflow/decompose/SKILL.md` | **Spec หรือ BRD ที่ sign-off แล้ว** |
+| `decompose-record-authority` | Decompose precondition: confirmed record location and write authority | `skills/workflow/decompose/SKILL.md` | **Confirmed record location and write authority** |
+| `decompose-no-remote-tickets` | Planning does not authorize creating remote tickets | `skills/workflow/decompose/SKILL.md` | Planning does not authorize creating remote tickets |
+| `incident-mitigate-first` | Incident: mitigate first, fix later | `skills/ops/incident/SKILL.md` | **Mitigate ก่อน fix** |
+| `incident-blameless` | Incident: blameless — fault in process, not people | `skills/ops/incident/SKILL.md` | **Blameless** — fault in process, not people |
+| `incident-authority-runbook` | Incident: verify actual authority and the applicable runbook before operational changes | `skills/ops/incident/SKILL.md` | verify actual authority and the applicable runbook before operational changes |
+| `devgate-security-no-suppress` | Never ignore/suppress a security warning without Sentinel approval; secret / critical-high vuln blocks commit | `skills/workflow/dev-gate/SKILL.md` | ห้าม ignore/suppress security warning (SAST · secret scan · dependency audit) โดยไม่ Sentinel approve |
+| `drain-conflict-no-discard` | Drain conflict: abort only this run's operation, never discard user/manual edits; unsafe or unauthorized = preserve state + BLOCKED | `skills/ops/drain/SKILL.md` | abort เฉพาะ operation ที่ run นี้เริ่ม และต้องไม่ทิ้ง edit ของ user/manual |
 
 Closed in v3.17 merge (Sentinel S4 / G-C6): the canonical 8-item Phase 1c trigger list + "a 'low risk' claim does not waive 1c" + no Phase 2 before the 1c gate live in the `shode-house-workflow` root (§ Phase 1c); `harness.md`, `smart-coop.md`, `agents/orchestrator.md` and `references/registry/routes.json` cite that list.
 

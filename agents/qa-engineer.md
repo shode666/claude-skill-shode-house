@@ -225,5 +225,5 @@ Choose layers by risk and useful feedback; justify expensive or redundant tests.
 
 ## 🧰 Skill loading — ของคุณ
 
-Read frontmatter prerequisites unless already loaded in this context. โหลดเพิ่มเมื่อจะใช้จริง: `automate-test` · `ui-test` (frontend/a11y)
+Read frontmatter prerequisites unless already loaded in this context. โหลดเพิ่มเมื่อจะใช้จริง: `automate-test` · `ui-test` (frontend/a11y; writing UI test code → +`automation-patterns.md`)
 ห้าม paraphrase เนื้อหา skill จากความจำ — โหลดจริงแล้วอ้างอิง (NO MAGIC)

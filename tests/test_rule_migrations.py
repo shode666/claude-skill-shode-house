@@ -55,7 +55,7 @@ class MigrationTest(unittest.TestCase):
                 migrations.load(ROOT)
 
     def test_current_migrations_validate(self):
-        self.assertEqual(14, len(migrations.load(ROOT)))  # v3.17 merge: +3 historical notes of the retired team-entry skill
+        self.assertEqual(23, len(migrations.load(ROOT)))  # v3.17 merge: +3 historical notes of the retired team-entry skill; P4: +9 decompose thin-router rewordings
 
     def test_each_replacement_anchor_is_required(self):
         for item in self.data["migrations"]:

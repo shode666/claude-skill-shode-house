@@ -102,36 +102,7 @@ Source: [Google SRE](https://sre.google/workbook/alerting-on-slos/). Use adopted
 6. **Postmortem** within 5 business days
 
 ### Postmortem template (blameless)
-```markdown
-# Postmortem: <title> (<YYYY-MM-DD>)
-**Severity**: P0/P1/P2  **Duration**: <hh:mm>  **Impact**: <users / revenue>
-
-## Summary
-1 paragraph: what happened, customer impact, root cause
-
-## Timeline (UTC)
-- HH:MM — first alert
-- HH:MM — IC assembled
-- HH:MM — root cause hypothesis
-- HH:MM — mitigation applied
-- HH:MM — SLO restored
-
-## Root cause (5-why)
-1. Why X? → Y
-2. Why Y? → Z
-3. ... (until first principle)
-
-## What went well
-- <list>
-
-## What went poorly
-- <list>
-
-## Action items
-| # | Action | Owner | Due | bd issue |
-|---|--------|-------|-----|----------|
-| 1 | ... | Dave | 2026-06-01 | bd-99 |
-```
+Load `incident` § Postmortem template (blameless) — the single canonical template (summary · UTC timeline · 5-why root cause · went well/poorly · action items with owner + due + tracked item).
 
 ## Domain Evidence Protocol — SRE
 

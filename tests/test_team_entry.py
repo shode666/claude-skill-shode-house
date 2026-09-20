@@ -93,6 +93,126 @@ class TeamEntryTest(unittest.TestCase):
         self.assertIn("[full-investigation.md](full-investigation.md)", core)
         self.assertNotIn(old[start:end].strip(), core)
 
+    # --- v3.17 P4 thin-router: text moved out of a root must still exist verbatim somewhere loadable ---
+    @staticmethod
+    def _baseline_body_lines(path, tag="baseline-3.17"):
+        old = subprocess.check_output(["git", "show", tag + ":" + path], cwd=ROOT, text=True)
+        return [line for line in old.split("---", 2)[2].splitlines() if line.strip()]
+
+    @classmethod
+    def _skill_lines(cls, skill_dir, names=None):
+        """Stripped-line SET (not substring): a lost line that is a substring of another still fails."""
+        return {line.strip() for line in cls._skill_text(skill_dir, names).splitlines()}
+
+    @staticmethod
+    def _skill_text(skill_dir, names=None):
+        files = sorted((ROOT / skill_dir).glob("*.md")) if names is None else [ROOT / skill_dir / n for n in names]
+        return "\n".join(p.read_text() for p in files)
+
+    def test_dev_gate_router_keeps_every_baseline_line(self):
+        d = "skills/workflow/dev-gate"
+        lines = self._skill_lines(d)
+        dropped = {  # history notes (no rule) + cross-refs re-pointed at the new files + headings of relocated pointer blocks
+            "# Dev Gate (TDD + Quality Gates) — v3.0 merged",
+            "> Merged from v2 skills: `tdd` + `code-quality` — ลด context, รวม dev-time discipline",
+            "> ทุกครั้งที่ตัด (ขั้น 1) หรือใช้ทางลัด → mark ด้วย `shortcut(bd:N):` comment (ดู Gate 3) เพื่อให้ debt harvest เก็บได้",
+            "รูปร่างของ interface เองยังไม่นิ่ง (ลึกแค่ไหน seam อยู่ตรงไหน) → ดู § Gate 0 § Deep module",
+            "### Per-language tool matrix",
+            "## Pre-commit integration (when authorized)",
+            "## Hand-off",  # now "## Hand-off + completion boundary"
+        }
+        missing = [l for l in self._baseline_body_lines(d + "/SKILL.md") if l.strip() not in lines and l not in dropped]
+        self.assertEqual([], missing)
+        core = (ROOT / d / "SKILL.md").read_text()
+        for ref in ("tdd.md", "quality-gates.md"):
+            self.assertIn("[%s](%s)" % (ref, ref), core)
+        self.assertIn("`shortcut(bd:N):` comment", core)
+
+    def test_ui_test_router_keeps_every_baseline_line(self):
+        d = "skills/ui/ui-test"
+        lines = self._skill_lines(d, ["SKILL.md", "automation-patterns.md"])
+        self.assertEqual([], [l for l in self._baseline_body_lines(d + "/SKILL.md") if l.strip() not in lines])
+        self.assertIn("automation-patterns.md", (ROOT / d / "SKILL.md").read_text())
+
+    def test_drain_router_keeps_invariants_in_root_and_moved_blocks_in_execution(self):
+        d = "skills/ops/drain"
+        core, execution = (ROOT / d / "SKILL.md").read_text(), (ROOT / d / "execution.md").read_text()
+        baseline = self._baseline_body_lines(d + "/SKILL.md")
+        for anchor in ("**Worktree isolation** — 1 worktree ใหม่ต่อ agent",
+                       "independent review + integrated acceptance + closure authority"):
+            self.assertIn(anchor, core)
+            self.assertNotIn(anchor, execution)
+        self.assertIn("execution.md", core)
+        moved = (  # sample of blocks moved verbatim (tracker-neutral rewordings are covered by rule-conservation)
+            "**COMMON brief** (ฝังในทุก agent prompt — sub-agent เกิดใน context ว่าง):",
+            "4. Stop at the first conflict or failed gate; preserve prior integrations and worker branches. Do not publish or continue the remaining picks.",
+            "3. **ห้ามคิด behaviour ใหม่ระหว่าง resolve** — resolve ไม่ใช่ที่สำหรับออกแบบ",
+            "Do not reapply an integrated commit or repeat push/closure after a lost response.",
+            next(l for l in baseline if l.startswith("> Abort only the integration operation started by this run")),
+        )
+        for line in moved:
+            self.assertIn(line, baseline)
+            self.assertIn(line, execution)
+            self.assertNotIn(line, core)
+
+    def test_routing_roster_and_team_tables_live_in_ownership_reference(self):
+        d = "skills/discipline/shode-house-routing"
+        old = subprocess.check_output(["git", "show", "baseline-3.17:" + d + "/SKILL.md"], cwd=ROOT, text=True)
+        ownership = self._skill_lines(d, ["ownership.md"])
+        for start, end in (("## 👥 ทีม (19 agents", "## 💯 Universal Quality"),
+                           ("## 👥 Team Structure", "### Single-owner capability matrix")):
+            rows = [l for l in old[old.index(start):old.index(end)].splitlines() if l.startswith(("|", "- **"))]
+            self.assertGreaterEqual(len(rows), 2)
+            for row in rows:
+                self.assertIn(row.strip(), ownership)
+        core = (ROOT / d / "SKILL.md").read_text()
+        for ref in ("ownership.md", "orchestration.md"):
+            self.assertIn(ref, core)
+
+    def test_routing_router_keeps_every_post_merge_line(self):
+        # Chris C1: rule-conservation does not protect table rows (capability matrix, RACI, conflict table).
+        d = "skills/discipline/shode-house-routing"
+        lines = self._skill_lines(d, ["SKILL.md", "ownership.md", "orchestration.md"])
+        repointed = ("- **XL** = cross-service / cross-domain → ",  # "`bd` examples below" -> orchestration.md
+                     "> Interim owner = ไม่มี dedicated agent ตอนนี้ (YAGNI)")  # "ด้านบน" -> ownership.md § Add agent
+        missing = [l for l in self._baseline_body_lines(d + "/SKILL.md", "baseline-3.17-m")
+                   if l.strip() not in lines and not l.startswith(repointed)]
+        self.assertEqual([], missing)
+        core = (ROOT / d / "SKILL.md").read_text()
+        for prefix in repointed:
+            self.assertIn(prefix, core)
+
+    def test_diagnose_loop_sharpening_moved_verbatim_and_safety_stays_in_root(self):
+        d = "skills/workflow/diagnose"
+        old = subprocess.check_output(["git", "show", "baseline-3.17:" + d + "/SKILL.md"], cwd=ROOT, text=True)
+        start = old.index("**ลับ loop ให้คม**")
+        block = old[start:old.index("\n\n", start)]
+        self.assertGreaterEqual(block.count("\n"), 3)
+        core = (ROOT / d / "SKILL.md").read_text()
+        self.assertIn(block, (ROOT / d / "loop-ladder.md").read_text())
+        self.assertNotIn("**ลับ loop ให้คม**", core)
+        self.assertIn("`loop-ladder.md`", core)
+        self.assertRegex(core, r"(?m)^## .*Redact ก่อน paste")
+        self.assertIn("→ `incident` ก่อน", core)
+
+    def test_decompose_root_keeps_its_gates(self):
+        path = "skills/workflow/decompose/SKILL.md"
+        old = subprocess.check_output(["git", "show", "baseline-3.17:" + path], cwd=ROOT, text=True)
+        core = (ROOT / path).read_text()
+        for text in ("**Spec หรือ BRD ที่ sign-off แล้ว**",
+                     "**Confirmed record location and write authority**",
+                     "Planning does not authorize creating remote tickets",
+                     "**leaf 1 ใบ = outcome ที่ verify ได้จริง ผ่านเฉพาะ layer ที่เกี่ยวข้อง**",
+                     "ขาดข้อใด → list สิ่งที่ขาด แล้วหยุด ห้ามเดา"):
+            self.assertIn(text, old)
+            self.assertIn(text, core)
+        self.assertLess(len(core.encode()), len(old.encode()))
+
+    def test_incident_has_exactly_one_postmortem_template(self):
+        d = ROOT / "skills/ops/incident"
+        headers = [l for p in sorted(d.glob("*.md")) for l in p.read_text().splitlines() if l.startswith("# Postmortem:")]
+        self.assertEqual(1, len(headers))
+
     @classmethod
     def setUpClass(cls):
         cls.contents = {

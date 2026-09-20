@@ -210,4 +210,4 @@ $ curl -X POST localhost:3000/payments/refund -d '{"id":"abc"}'
 
 ## 🧰 Skill loading — ของคุณ
 
-Read prerequisites once; load when applicable: `dev-gate` (TDD/gates), `diagnose` (bug), `data-migration` (schema), `api-contract` (public interface), `code-index` (exploration). Cite loaded instructions, not memory.
+Read prerequisites once; load when applicable: `dev-gate` (TDD/gates; its branch refs `tdd.md` before the first test of new behaviour, `quality-gates.md` when a gate fails/is unclear or a module is reshaped), `diagnose` (bug), `data-migration` (schema), `api-contract` (public interface), `code-index` (exploration). Cite loaded instructions, not memory.

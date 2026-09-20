@@ -19,7 +19,7 @@
 - 5 bucket แรก → ต้องอยู่ใน `.claude-plugin/plugin.json` skills list + `README.md` index
 - `in-progress/` + `deprecated/` → **ไม่** อยู่
 - SKILL.md description = **1–2 English sentences**: capability + decision boundary (what it is for, and the nearest thing it is not for) — no trigger/keyword lists, no fixed section format
-- SKILL.md **≤ 300 บรรทัด** เกิน → แตกเป็น reference file ข้าง ๆ. Exception: `dev-gate` เท่านั้น (11 gates + per-language matrix) — **ยกเว้นจาก 300 แต่เพดาน 400 บังคับด้วย CI #1** (v3.12; v3.17 ถอด exception ของ entry skill — `ask` ≤ 300). ขนาดเป็น byte ไม่มี cap แยก: skill ที่ถูก preload คุมด้วย budget CI #16 อยู่แล้ว ที่เหลือคุมด้วย line cap (กฎ "≤ 12 KB" เดิมไม่เคยมี CI ตรวจและมี 7 ไฟล์เกินมาตลอด → ถอดออก)
+- SKILL.md **≤ 300 บรรทัด** เกิน → แตกเป็น reference file ข้าง ๆ. **ไม่มี exception** — บังคับด้วย CI #1 (v3.17 ถอด exception ของ `ask` และของ `dev-gate` หลัง thin-router: root 167 บรรทัด). ขนาดเป็น byte ไม่มี cap แยก: skill ที่ถูก preload คุมด้วย budget CI #16 อยู่แล้ว ที่เหลือคุมด้วย line cap (กฎ "≤ 12 KB" เดิมไม่เคยมี CI ตรวจและมี 7 ไฟล์เกินมาตลอด → ถอดออก)
 - Skill ผลิต deliverable ต้องมี: `## When NOT to use` + `## Required inputs — refuse without`
 
 ## Handoff (🆕 v3.8)

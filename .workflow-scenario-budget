@@ -6,15 +6,16 @@
 # budget exception #2: diagnose/ui-test/web-q/secure +~900 B จาก When-NOT/Required-inputs heading ที่ CLAUDE.md บังคับ (gate #24c)
 # budget exception #2 (3.14, 2026-09-08): REVIEW DISPATCH CARD ใน commands/review.md (+2,343 B) + pointer ใน spec-axis/security-sentinel (+290 B/scenario)
 #   เหตุผล: E2E GS1 run-1 (CLI 2.1.263) พิสูจน์ว่า /review dispatch non-deterministic — spawn แค่ Chris→Quinn→Felix, ไม่มี Bella/Sentinel ทั้งที่ trigger ครบ; CI #19 static จับไม่ได้
-consult=40944
-design-system-be=77367
-design-system-fe=134579
-implement-be=136023
-implement-ui=170545
-phase3b-base=112266
-phase3b-sensitive=157885
-review-cmd=110189
-diagnose-fast=54508
-diagnose-full=87866
-map-mode=98371
-full-fanout=491150
+# v3.17 P4 thin-router ratchet: all 12 scenarios re-measured DOWN after 7 roots became routers (full-fanout 491,150 -> 480,376 B)
+consult=39347
+design-system-be=72201
+design-system-fe=129551
+implement-be=131359
+implement-ui=166294
+phase3b-base=108929
+phase3b-sensitive=154731
+review-cmd=104536
+diagnose-fast=49236
+diagnose-full=86999
+map-mode=93874
+full-fanout=480376

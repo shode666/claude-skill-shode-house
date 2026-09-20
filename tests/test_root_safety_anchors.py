@@ -24,6 +24,12 @@ REQUIRED = {
     # v3.17 Sentinel merge gate F1/F2/F4: lines born in (or moved by) the merge are invisible to the old baseline
     "threat-model-no-waive-root", "drift-m3-ready-merge", "evidence-forbidden-phrases", "evidence-cite-before-claim",
     "safety-r0r1r2", "no-magic", "handoff-contract", "close-on-done", "scope-drift", "verify-before-done",
+    # v3.17 P4 thin-router: invariants each slimmed root must keep even when no reference loads
+    "routing-sole-owner-reroute", "routing-parallel-unknown-sequential",
+    "decompose-signed-off-spec", "decompose-record-authority", "decompose-no-remote-tickets",
+    "incident-mitigate-first", "incident-blameless", "incident-authority-runbook", "redact", "ux-evidence",
+    # Sentinel P4 wave gate X1/X2: authority rules restored to the root tier
+    "devgate-security-no-suppress", "drain-conflict-no-discard",
 }
 # Sentinel G-C2 / N5b: the R0 destructive list is split on the middle dot, so rule-conservation skips
 # its short items. Each item is pinned here instead; all 8 must stay in the discipline ROOT.
@@ -54,6 +60,25 @@ class RootSafetyAnchorTest(unittest.TestCase):
                 text = (ROOT / src).read_text()
                 self.assertIsNone(re.search(r"^LOAD:", text, re.M), f"{src} is a lazy reference")
                 self.assertIn(anchor, text)
+
+    def test_heading_anchors_have_their_body_in_the_same_root(self):
+        # Sentinel X3: an anchor on a HEADING only pins the heading; the body could move to a lazy
+        # reference with every other gate green. Pin the body lines of each heading-type anchor.
+        body = {
+            "skills/workflow/dev-gate/SKILL.md": (
+                "Trust-boundary validation", "Data-loss handling", "Security control",
+                "Accessibility (WCAG", "Regulation/compliance"),
+            "skills/workflow/diagnose/SKILL.md": ("`<REDACTED>` แทน secret/token/auth header/PII",),
+            DISCIPLINE_ROOT: (
+                '"usually"', '"by default"', '"typically"', '"standard practice"', '"best practice"',
+                '"should support"', '"น่าจะรองรับ"', '"ปกติแล้ว"', '"in most cases"', '"โดยทั่วไป"'),
+            "agents/orchestrator.md": ("| Pre-deploy-prod |", "| Pre-data-migration |", "| Pre-destructive |"),
+        }
+        for src, needles in body.items():
+            lines = (ROOT / src).read_text().splitlines()
+            for needle in needles:
+                with self.subTest(root=src, body=needle):
+                    self.assertTrue(any(needle in l and not l.startswith("#") for l in lines))
 
     def test_r0_destructive_list_complete_in_discipline_root(self):
         text = (ROOT / DISCIPLINE_ROOT).read_text()

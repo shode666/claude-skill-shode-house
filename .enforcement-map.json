@@ -143,6 +143,7 @@
       "owner": "ux-ui-designer, qa-engineer, code-reviewer",
       "trigger": "frontend touched",
       "preload": false,
+      "root_only": true,
       "source_of_truth": "skills/ui/ui-test/SKILL.md",
       "verification": "frontend fixture",
       "anchor": "Visual evidence ladder"
@@ -204,9 +205,10 @@
       "owner": "ทุก agent ที่ paste output",
       "trigger": "ทุก evidence",
       "preload": false,
+      "root_only": true,
       "source_of_truth": "skills/workflow/diagnose/SKILL.md",
       "verification": "fixture",
-      "anchor": "Redact ก่อน paste",
+      "anchor": "Redact ก่อน paste (🔴 อ่านก่อนเริ่ม)",
       "note": "อยู่ใน diagnose skill ซึ่งเป็น lazy-load — ไม่มี agent ไหน preload"
     },
     {
@@ -591,6 +593,116 @@
       "source_of_truth": "skills/discipline/shode-house-workflow/SKILL.md",
       "verification": "ci:21 + test_root_safety_anchors",
       "anchor": "\"ready merge\" = Oliver only, after applicable independent reviews"
+    },
+    {
+      "id": "routing-sole-owner-reroute",
+      "rule": "Routing: not the sole owner = reroute, never absorb another role's work",
+      "owner": "ทุก agent",
+      "trigger": "work outside own ownership",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-routing/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "not the sole owner = reroute, never absorb"
+    },
+    {
+      "id": "routing-parallel-unknown-sequential",
+      "rule": "Parallel dispatch: one eligibility condition unknown = sequential",
+      "owner": "orchestrator",
+      "trigger": "parallel / fan-out decision",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-routing/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "One condition unknown → sequential"
+    },
+    {
+      "id": "decompose-signed-off-spec",
+      "rule": "Decompose precondition: signed-off spec or BRD",
+      "owner": "orchestrator + product-manager",
+      "trigger": "before decomposing",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/workflow/decompose/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "**Spec หรือ BRD ที่ sign-off แล้ว**"
+    },
+    {
+      "id": "decompose-record-authority",
+      "rule": "Decompose precondition: confirmed record location and write authority",
+      "owner": "orchestrator + product-manager",
+      "trigger": "before writing tickets",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/workflow/decompose/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "**Confirmed record location and write authority**"
+    },
+    {
+      "id": "decompose-no-remote-tickets",
+      "rule": "Planning does not authorize creating remote tickets",
+      "owner": "orchestrator + product-manager",
+      "trigger": "ticket creation",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/workflow/decompose/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Planning does not authorize creating remote tickets"
+    },
+    {
+      "id": "incident-mitigate-first",
+      "rule": "Incident: mitigate first, fix later",
+      "owner": "sre-engineer",
+      "trigger": "active production impact",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/ops/incident/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "**Mitigate ก่อน fix**"
+    },
+    {
+      "id": "incident-blameless",
+      "rule": "Incident: blameless — fault in process, not people",
+      "owner": "sre-engineer",
+      "trigger": "incident / postmortem",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/ops/incident/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "**Blameless** — fault in process, not people"
+    },
+    {
+      "id": "incident-authority-runbook",
+      "rule": "Incident: verify actual authority and the applicable runbook before operational changes",
+      "owner": "sre-engineer",
+      "trigger": "operational change during incident",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/ops/incident/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "verify actual authority and the applicable runbook before operational changes"
+    },
+    {
+      "id": "devgate-security-no-suppress",
+      "rule": "Never ignore/suppress a security warning without Sentinel approval; secret / critical-high vuln blocks commit",
+      "owner": "developer + code-reviewer",
+      "trigger": "security warning / suppression considered",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/workflow/dev-gate/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม ignore/suppress security warning (SAST · secret scan · dependency audit) โดยไม่ Sentinel approve"
+    },
+    {
+      "id": "drain-conflict-no-discard",
+      "rule": "Drain conflict: abort only this run's operation, never discard user/manual edits; unsafe or unauthorized = preserve state + BLOCKED",
+      "owner": "orchestrator",
+      "trigger": "drain integration conflict",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/ops/drain/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "abort เฉพาะ operation ที่ run นี้เริ่ม และต้องไม่ทิ้ง edit ของ user/manual"
     }
   ]
 }

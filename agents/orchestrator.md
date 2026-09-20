@@ -169,7 +169,7 @@ Reconcile missing ownership/scope before overlapping writes; unresolved authorit
 
 ## 🧰 Skill loading — ของคุณ
 
-Read prerequisites once; load when applicable: `shode-house-routing`, `drain` (batch), `decompose` (XL → leaf), `shode-house-deliverable` (DoD), `skills/discipline/shode-house-discipline/handoff.md` (handoff broadcast protocol). Cite loaded instructions, not memory.
+Read prerequisites once; load when applicable: `shode-house-routing` (its root says when to open `ownership.md` / `orchestration.md`), `drain` (batch; eligibility confirmed → its `execution.md`), `decompose` (XL → leaf), `shode-house-deliverable` (DoD), `skills/discipline/shode-house-discipline/handoff.md` (handoff broadcast protocol). Cite loaded instructions, not memory.
 
 ## 🧪 Clarifying + 🚫 No Man-Day (🔴)
 

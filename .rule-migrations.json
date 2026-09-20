@@ -145,6 +145,87 @@
         "orientation summaries only — each detail stays with its owner skill"
       ],
       "reason": "Historical caveat about the v3.1 line-count claim; no runtime rule and no claim remains to caveat after the v3.17 merge into ask."
+    },
+    {
+      "source": "skills/workflow/decompose/SKILL.md",
+      "old_fragment": "horizontal slicing เป็น anti-pattern เดียวกับที่ `dev-gate` ห้ามในระดับ test — ที่นี่คือระดับ backlog: **ล็อคโครงสร้างก่อนเข้าใจงาน แล้วรู้ตัวตอนใบสุดท้าย**",
+      "replacement": "skills/workflow/decompose/SKILL.md",
+      "requires": [
+        "**leaf 1 ใบ = outcome ที่ verify ได้จริง ผ่านเฉพาะ layer ที่เกี่ยวข้อง**"
+      ],
+      "reason": "Commentary comparing horizontal slicing to dev-gate's test-level rule; the criterion itself and the vertical/horizontal good-bad example stay in the Tracer bullet section."
+    },
+    {
+      "source": "skills/workflow/decompose/SKILL.md",
+      "old_fragment": "INVEST ของ Bella มี \"Small\" แต่ไม่มีตัวเลข — ที่นี่ให้เกณฑ์ที่ตรวจได้:",
+      "replacement": "skills/workflow/decompose/SKILL.md",
+      "requires": [
+        "**AC ≤ ~5 ข้อ**"
+      ],
+      "reason": "History/intro sentence for the small-enough checklist; the checklist items are unchanged."
+    },
+    {
+      "source": "skills/workflow/decompose/SKILL.md",
+      "old_fragment": "This illustrative sequence is tracker-neutral, not shell syntax:",
+      "replacement": "skills/workflow/decompose/SKILL.md",
+      "requires": [
+        "**Create then wire** when the tracker needs existing IDs"
+      ],
+      "reason": "Lead-in to the removed illustrative create/wire sequence, which restated the create-then-wire, declare-blockers and read-back rules that remain."
+    },
+    {
+      "source": "skills/workflow/decompose/SKILL.md",
+      "old_fragment": "leaf ชื่อเป็น layer (`\"ทำ API\"`, `\"ต่อ DB\"`)",
+      "replacement": "skills/workflow/decompose/SKILL.md",
+      "requires": [
+        "a layer name alone does not explain its acceptance or value"
+      ],
+      "reason": "Anti-pattern table row restated the small-enough checklist item and the horizontal example."
+    },
+    {
+      "source": "skills/workflow/decompose/SKILL.md",
+      "old_fragment": "lacks a stated outcome or consumer",
+      "replacement": "skills/workflow/decompose/SKILL.md",
+      "requires": [
+        "a layer name alone does not explain its acceptance or value"
+      ],
+      "reason": "Anti-pattern table cell restated the same checklist item."
+    },
+    {
+      "source": "skills/workflow/decompose/SKILL.md",
+      "old_fragment": "wayfinding (fog) → design-system (spec) → ค่อยแตก",
+      "replacement": "skills/workflow/decompose/SKILL.md",
+      "requires": [
+        "ยังไม่มี spec → `/design-system`"
+      ],
+      "reason": "Anti-pattern table cell restated When NOT to use (fog → wayfinding) and the signed-off-spec required input; the design-system route is kept under Required inputs."
+    },
+    {
+      "source": "skills/workflow/decompose/SKILL.md",
+      "old_fragment": "ส่วนใหญ่เป็น priority ไม่ใช่ dep → drain ทำขนานไม่ได้",
+      "replacement": "skills/workflow/decompose/SKILL.md",
+      "requires": [
+        "Ordering preferences belong in tracker priority, not dependency edges"
+      ],
+      "reason": "Anti-pattern table cell restated the Edge criteria rule (priority is not a dependency; false edges prevent parallel work)."
+    },
+    {
+      "source": "skills/workflow/decompose/SKILL.md",
+      "old_fragment": "Map + decision ticket ก่อน (decompose ต้องการ spec ที่นิ่ง)",
+      "replacement": "skills/workflow/decompose/SKILL.md",
+      "requires": [
+        "ยังตอบไม่ได้ว่า \"เสร็จ\" หน้าตายังไง"
+      ],
+      "reason": "Composition table cell restated the first When NOT to use bullet (fog → wayfinding Map mode first)."
+    },
+    {
+      "source": "skills/workflow/decompose/SKILL.md",
+      "old_fragment": "contract คือสิ่งที่ทำให้ chunk ขนานได้",
+      "replacement": "skills/workflow/decompose/SKILL.md",
+      "requires": [
+        "An agreed contract can unblock independent coding against a test double"
+      ],
+      "reason": "Composition table cell restated the Chunk rule; the api-contract route moved to the Interface contract required input."
     }
   ]
 }

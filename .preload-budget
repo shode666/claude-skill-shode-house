@@ -8,6 +8,7 @@
 #   ยังอยู่ใน grace (+558 < 600) จึงคง baseline เดิม; แลกกับ agent body ที่ตัดรวม ~6.9KB
 # v3.17 merge 24->20: evidence protocol folded into the discipline root, drift detection into the workflow root;
 #   every agent preload went DOWN (-153 B; Oliver -1,155 B). Keys lowered only where measured < old baseline.
+# v3.17 P4 thin-router: shode-house-workflow root slimmed (examples/economy -> harness.md); Oliver 25,251 -> 23,422 B measured.
 booking-expert=14273
 business-analyst=14549
 code-reviewer=16160
@@ -17,7 +18,7 @@ ecommerce-expert=14273
 erp-expert=14273
 fintech-expert=14273
 insurance-expert=14273
-orchestrator=25251
+orchestrator=23422
 product-manager=14549
 qa-engineer=16160
 sap-expert=14273
