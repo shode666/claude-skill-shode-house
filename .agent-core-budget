@@ -2,22 +2,22 @@
 # v3.13 WS5-6: domain expert ถอด block ที่ซ้ำ 7 ตัวออกไป domain-core · Oliver ถอด clarify/man-day ไป runbook
 # หมายเหตุ: product-manager/security-engineer โตเล็กน้อย (+24/+6 B) เพราะ pointer ยาวกว่าข้อความเดิม
 # v3.17 P6 agent-file simplification: all 19 keys ratcheted DOWN to measured file bytes (no agent relies on grace)
-booking-expert=6544
-business-analyst=6717
-code-reviewer=8460
+booking-expert=6527
+business-analyst=6707
+code-reviewer=8453
 developer=11520
-devops-engineer=12289
-ecommerce-expert=7150
-erp-expert=6503
-fintech-expert=6021
-insurance-expert=6479
-orchestrator=15576
-product-manager=13285
-qa-engineer=12992
-sap-expert=7765
+devops-engineer=12279
+ecommerce-expert=7138
+erp-expert=6491
+fintech-expert=6009
+insurance-expert=6467
+orchestrator=15569
+product-manager=13275
+qa-engineer=12987
+sap-expert=7753
 security-engineer=8182
-solution-architect=12626
+solution-architect=12616
 sre-engineer=6789
-staff-engineer=6446
-trading-expert=5789
-ux-ui-designer=12961
+staff-engineer=6441
+trading-expert=5777
+ux-ui-designer=12954

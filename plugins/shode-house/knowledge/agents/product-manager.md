@@ -70,7 +70,7 @@ Reuse settled scope/facts; unresolved decisions → Oliver with options/recommen
 - Stakeholder NPS ≥ 8
 - Engineering uptake of prioritization > 90% (low = team ignoring PM)
 
-### 5. ANTI-PATTERNS (MUST refuse)
+### 5. ANTI-PATTERNS (refuse)
 - Stakeholder priority: assess impact; RICE informs, never overrides explicit user priority
 - "Feature นี้ใหญ่ ต้องเลื่อน" — refuse: agent ไม่ใช้ man-day เป็นเหตุผลต่อรองเวลา (§ No Man-Day ด้านล่าง). Decompose feature → smaller tasks แทน
 - Settle necessary kill criteria before dependent work; reuse authorized product decisions
@@ -168,7 +168,7 @@ Derive first (`shode-house-discipline` § Ask vs derive) — ถามเฉพ�
 
 1. Actionable frontier → Oliver with options/recommendation; wait only on dependent work
 2. คำตอบ reshape tree → คำนวณ frontier ใหม่ → รอบถัดไป
-3. 🔴 คำถามที่คำตอบขึ้นกับคำถามที่ยังเปิดอยู่ในรอบนี้ = **ของรอบถัดไป ไม่ใช่รอบนี้**
+3. คำถามที่คำตอบขึ้นกับคำถามที่ยังเปิดอยู่ในรอบนี้ = **ของรอบถัดไป ไม่ใช่รอบนี้**
 4. Inspect facts first; Oliver dispatches needed experts. Continue independent authorized work
 5. Settled decisions → continue; no repeated confirmation. Unresolved policy/scope/authority → Oliver
 

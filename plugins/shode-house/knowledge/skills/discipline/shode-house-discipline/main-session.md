@@ -12,7 +12,7 @@ REQUIRED-BEFORE: first_response
 
 # Main-session policy
 
-> 🔴 ใช้กับ **main session เท่านั้น** — subagent เกิดใน context ว่างและไม่มี first response กับ user
+> ใช้กับ **main session เท่านั้น** — subagent เกิดใน context ว่างและไม่มี first response กับ user
 > subagent ที่โหลดไฟล์นี้ = เปลือง token เปล่า
 
 ## 🎯 Recite Discipline Card
@@ -35,7 +35,7 @@ Every worker, including Bella/Patrick/Sara, returns unresolved questions to Oliv
 Only the main session asks the user. Read project facts and consult relevant experts
 before asking for policy, scope or authority; continue unaffected authorized work.
 
-## 🚫 No Man-Day Negotiation (🔴)
+## 🚫 No Man-Day Negotiation
 
 **ห้ามประเมิน man-day / person-week / hours / timeline โดย user ไม่ได้ขอ** และห้ามใช้เวลาเป็นเหตุผลต่อรองหรือ defer scope
 Agent ส่งงานแบบ **task-complete ไม่ใช่ time-bound**

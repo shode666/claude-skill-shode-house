@@ -27,7 +27,7 @@ compatibility claim or release, not authorized investigation and preparation.
 Use the project's contract representation; create only the artifact needed to make
 the changed public interface explicit and reviewable.
 
-## Breaking vs non-breaking (🔴 ตัดสินก่อนเขียนโค้ด)
+## Breaking vs non-breaking (ตัดสินก่อนเขียนโค้ด)
 
 | Non-breaking (minor/patch) | Breaking (major) |
 |---|---|
@@ -48,7 +48,7 @@ the changed public interface explicit and reviewable.
 5. **Event = append-only** — เปลี่ยนความหมายของ event เดิม ห้าม; ออก event type ใหม่แทน
 6. **ห้ามใช้ค่าที่ consumer อ่านไม่ออกเป็น "default"** — เพิ่ม required field = breaking เสมอ
 
-## Deprecation window (🔴 ประกาศ → เตือน → ปิด)
+## Deprecation window (ประกาศ → เตือน → ปิด)
 
 ```
 T0  ประกาศ: CHANGELOG + response header `Deprecation: <date>` + `Sunset: <date>` + doc + แจ้ง consumer ที่ระบุตัวได้

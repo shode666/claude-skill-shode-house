@@ -90,7 +90,7 @@ File >500/function >50/cyclomatic >10/cognitive >15; magic number/string; duplic
 Check adopted coverage targets, edge cases and error paths, clear behavior naming,
 AAA structure and isolation (no shared state). A percentage alone is not quality. Techniques → § Test Quality.
 
-**Test doubles** (🔴): Dummy / Stub / Spy / Mock / Fake — pick by intent
+**Test doubles**: Dummy / Stub / Spy / Mock / Fake — pick by intent
 - Mock boundary (external), not internals
 - Frameworks: pytest / Vitest+Jest / testing+testify / JUnit+Mockito
 

@@ -55,7 +55,7 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 
 ## 5 Steps
 
-### 1. สร้าง feedback loop ที่ **tight** และ **red-capable** (🔴 นี่คือหัวใจ ที่เหลือ mechanical)
+### 1. สร้าง feedback loop ที่ **tight** และ **red-capable** (นี่คือหัวใจ ที่เหลือ mechanical)
 
 มี loop ที่แดงกับ bug ตัวนี้ = เจอสาเหตุแน่
 ไม่มี loop = จ้อง code ให้ตายก็ไม่เจอ → **ทุ่มเวลาตรงนี้มากเป็นพิเศษ ก้าวร้าว สร้างสรรค์ ห้ามยอมแพ้**
@@ -71,7 +71,7 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 - [ ] **เร็ว** — หน่วยวินาที ไม่ใช่นาที
 - [ ] **agent รันเองได้** — ไม่ต้องมีคนกดกลางทาง
 
-🔴 **ห้ามกระโดดไปสรุปสาเหตุก่อนมีคำสั่งนี้** — นั่นคือ failure mode ที่ skill นี้มีไว้กัน
+**ห้ามกระโดดไปสรุปสาเหตุก่อนมีคำสั่งนี้** — นั่นคือ failure mode ที่ skill นี้มีไว้กัน
 ✅ **อ่าน code ได้เต็มที่เพื่อ *สร้าง* loop** (หา route/entry point, test setup, fixture, วิธี boot ระบบ, ชื่อ config) — หลายระบบสร้าง harness ไม่ได้เลยถ้าไม่อ่านก่อน
 เส้นแบ่ง: อ่านเพื่อ **"จะ trigger มันยังไง"** = ส่วนหนึ่งของขั้นนี้ · อ่านเพื่อ **"มันน่าจะพังเพราะ..."** = ข้ามขั้นตอน
 
@@ -87,7 +87,7 @@ promote to Full and load this reference if the first fix fails or another sympto
 
 เขียน regression test **ก่อน** fix — แต่เฉพาะเมื่อมี **seam ที่ถูกต้อง** คือ seam ที่ test ได้เจอ bug pattern จริงอย่างที่มันเกิดที่ call site
 
-🔴 **ไม่มี seam ที่ถูกต้อง = นั่นแหละคือ finding** — ถ้า seam ที่มีตื้นเกินไป (unit test ที่ replicate chain ที่ trigger bug ไม่ได้ / test caller เดียวทั้งที่ bug ต้องมีหลาย caller) การเขียน test ตรงนั้นให้ **false confidence**. บันทึกว่า **architecture กันไม่ให้ล็อค bug ตัวนี้ได้** แล้ว route ต่อ (Sara/Stan) — อย่าฝืนเขียน
+**ไม่มี seam ที่ถูกต้อง = นั่นแหละคือ finding** — ถ้า seam ที่มีตื้นเกินไป (unit test ที่ replicate chain ที่ trigger bug ไม่ได้ / test caller เดียวทั้งที่ bug ต้องมีหลาย caller) การเขียน test ตรงนั้นให้ **false confidence**. บันทึกว่า **architecture กันไม่ให้ล็อค bug ตัวนี้ได้** แล้ว route ต่อ (Sara/Stan) — อย่าฝืนเขียน
 
 มี seam ที่ถูก:
 1. เปลี่ยน repro ที่ minimise แล้วเป็น failing test ที่ seam นั้น

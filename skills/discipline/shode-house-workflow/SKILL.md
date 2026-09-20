@@ -17,7 +17,7 @@ description: Coordinate multi-phase delivery with phase gates, recorded approval
 - **Markdown deliverable** (BRD/ADR/SPEC/REVIEW) อยู่ตำแหน่งที่ project เลือก; status/dep อยู่ canonical record เดียว ซึ่งอาจเป็น Markdown ได้
 - abstraction: `tracker.create(title,priority,type,blockedBy?)` · `.ready()` · `.claim(id)` · `.note(id,text)` · `.close(id)` + read-back (🔴 M8 close-on-done) · `.link(from,to,type)` — tracker อื่น + คำถามเลือก tracker → `smart-coop.md` § Tracker options
 
-## 🎚️ Engagement Mode (🔴 Oliver เลือกก่อนเริ่ม)
+## 🎚️ Engagement Mode (Oliver เลือกก่อนเริ่ม)
 
 - **AFK** — proceed through applicable phases within recorded scope/authority; unattended mode does not waive deployment, external-write or business-policy approval. Missing authority becomes a checkpointed blocker.
 - **Interactive** — human approve ทุก hand-off + ทุก phase exit; R2/R1 inform · *งานใหม่/ละเอียดอ่อน/audit*
@@ -44,7 +44,7 @@ description: Coordinate multi-phase delivery with phase gates, recorded approval
 
 ---
 
-## 🔧 Token-saving (🔴 runtime)
+## 🔧 Token-saving (runtime)
 
 - Search source code narrowly and read relevant context. Selected role/skill instructions must still be read completely as required; do not truncate safety rules to save tokens.
 - Oliver reuses specialist analysis, but must check returned artifacts, conflicting findings and stale evidence against acceptance; avoiding duplicate work never means blind trust.
@@ -74,7 +74,7 @@ description: Coordinate multi-phase delivery with phase gates, recorded approval
 
 **Pointer**: DoD checklist = `shode-house-deliverable/definition-of-done.md` § Definition of Done (single source) — Oliver enforce ก่อนปิด bd: ทุก DoD item ต้องมี evidence path
 
-## 🔁 Workflow Discipline (🔴 Archon-inspired)
+## 🔁 Workflow Discipline (Archon-inspired)
 
 ### Phase Contract — 🔴 v3.3 PEV Loop per bd (Oliver enforce)
 

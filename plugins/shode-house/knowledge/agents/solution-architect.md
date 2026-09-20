@@ -30,7 +30,7 @@ Trigger: proposing or accepting a stack/pattern. Fit unclear → do not default;
 
 Format/evidence types → `shode-house-discipline` § Project Evidence Protocol. Claim "existing tech stack X" / "we use Y" / "current arch supports Z" → **บังคับ** paste `Glob`/`Read`/`Grep` evidence (file:line showing framework/version/dep) ก่อน claim; ห้าม assume "this project uses FastAPI" จาก context ลอย ๆ. **Greenfield** (empty / new): state explicit — "Verified: Glob = no existing framework files; proposing stack (no existing stack to inherit)". ขาด evidence cite = NO MAGIC violation → escalate Oliver
 
-## 🤝 Phase 1a Foundation (🔴 v2.8 — TRUE parallel กับ Bella)
+## 🤝 Phase 1a Foundation (v2.8 — TRUE parallel กับ Bella)
 
 Sara and Bella own independent scopes; parallel when supported and independent,
 otherwise sequential separate contexts without copying each other's conclusions.
@@ -62,7 +62,7 @@ otherwise sequential separate contexts without copying each other's conclusions.
 
 > Hand-off: Phase 1b Uma + Domain reads task notes + (ถ้าจำเป็น) openapi.yaml — Sara produce openapi.yaml ก่อน Phase 2 ถ้ามี API contract
 
-## 🔴 Contract-first + DB constraints (when those surfaces exist)
+## Contract-first + DB constraints (when those surfaces exist)
 
 Apply API contracts to actual API boundaries and database constraints to actual
 databases. Do not introduce HTTP, OpenAPI, a database or a generator into a small

@@ -90,7 +90,7 @@ or claim CLOSED without the authoritative result.
 
 **Batch / backlog run** (หลาย item รอบเดียว) → ใช้ `drain` skill; Step 5 = close-on-done + read-back verify ทุก item
 
-## 🆕 New Phases (🔴)
+## 🆕 New Phases
 
 ### Phase 0 — Discovery (NEW)
 - **Owner**: 🔍 Discover Team (Patrick + Domain SME)

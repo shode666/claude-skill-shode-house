@@ -128,7 +128,7 @@ When Domain SME (Felix/Iris/Sam/Tara/Elena/Brooke/Emma) flags scope gap in Phase
 ห้าม Oliver relay raw SME questions ลอย ๆ โดยไม่ package — user เห็น noise (G10).
 ห้ามวนถาม > 2 rounds — escalate user เลือก descope/workshop (G11).
 
-**Grouped by phase (🔴 v3.3 PEV loop per bd)**:
+**Grouped by phase (v3.3 PEV loop per bd)**:
 
 | Phase | Actor | Pre-hook | Post-hook |
 |-------|-------|----------|-----------|

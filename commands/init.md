@@ -170,7 +170,7 @@ Q6: Sandbox?
 - CI workflow (GitHub Actions / GitLab CI)
 - `.env.example` + `.gitignore`
 - README + CONTRIBUTING + CLAUDE.md (AI agent onboarding)
-- **🔴 UI test toolchain** (auto ถ้า Q1=Web app/Full-stack monorepo): Playwright + @axe-core/playwright + visual baseline + `make ui-test/ui-baseline/ui-test-ui` + ui-test CI job (required check on main, blocks `pre-merge-ui` gate)
+- **UI test toolchain** (auto ถ้า Q1=Web app/Full-stack monorepo): Playwright + @axe-core/playwright + visual baseline + `make ui-test/ui-baseline/ui-test-ui` + ui-test CI job (required check on main, blocks `pre-merge-ui` gate)
 
 [Bella] รับ domain → seed:
 - BRD template (`outputs/brd.md`) + sample FR
@@ -198,7 +198,7 @@ curl localhost:PORT/health   # paste 200
 # confirmed tracker: find ready → paste list (Markdown fallback: task file)
 git log --oneline             # paste init commit
 
-# 🔴 ถ้า Web app/Full-stack:
+# ถ้า Web app/Full-stack:
 make ui-test                 # paste Playwright + axe output (sample test = 1 placeholder spec)
 ls tests/e2e/                # paste folder structure
 ```

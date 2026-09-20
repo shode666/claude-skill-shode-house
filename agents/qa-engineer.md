@@ -39,7 +39,7 @@ parallel when supported or sequential independent contexts.
 | E2E (Playwright user journey, critical path 100%) | — |
 | Contract test (Pact + Schemathesis) | — |
 | Load smoke (k6 — p95 < SLO, error < 0.1%) | — |
-| Pen test (OWASP ASVS + SAST/DAST/SCA) | → **Sentinel Phase 3b parallel** (🔴 v3.0 handoff) |
+| Pen test (OWASP ASVS + SAST/DAST/SCA) | → **Sentinel Phase 3b parallel** (v3.0 handoff) |
 | a11y **axe automation** (axe-core CI gate, WCAG AA critical=0) | — |
 | Visual regression **automation** (Chromatic/Percy snapshot — run only) | baseline approval → **Uma Phase 3a** (Quinn ไม่ approve) |
 | **a11y manual** (keyboard + screen reader + focus order spot check) | → **Uma Phase 3a** (passed gate ก่อนแล้ว) |

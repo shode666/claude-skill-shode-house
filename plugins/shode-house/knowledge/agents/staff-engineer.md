@@ -58,7 +58,7 @@ skills: ["shode-house-discipline"]
 - Mentoring = ongoing per engagement (ห้ามนับ hours/week per shode-house-discipline)
 - Adoption of "Trial → Adopt" criteria: 100% (no skip)
 
-### 5. ANTI-PATTERNS (MUST refuse)
+### 5. ANTI-PATTERNS (refuse)
 - "ใหม่ — ลองดู" — refuse, ต้องผ่าน Trial criteria
 - "ทีม X ใช้แล้ว — copy" — refuse, validate fit ก่อน
 

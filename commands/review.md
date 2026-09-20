@@ -149,7 +149,7 @@ Beads or a ceremonial printout is not a blocker; missing scope/required ownershi
 - Pattern C (bug description) → focus 7-dim เฉพาะ "เส้นทาง bug" ก่อน (calc logic / edge / expected vs actual); มิติอื่นเป็น secondary
 - Pattern B (path) → full 7-dim + integration matrix
 
-## Step 2 — Consolidated Report (🔴)
+## Step 2 — Consolidated Report
 
 Format + storage rules + severity grading + loop routing — **ทั้งหมดอยู่ใน `review-checklist` skill**:
 - § Severity Grading (🔴/🟠/🟡/🔵/💡)

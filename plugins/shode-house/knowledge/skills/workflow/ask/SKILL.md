@@ -126,7 +126,7 @@ formerly the `meeting` skill (team-meeting entry, merged v3.17): orientation sum
 
 | Skill | When to load | Owner |
 |---|---|---|
-| **`shode-house-discipline`** 🔴 | ทุก agent, ทุก session (philosophy + safety + universal rules + clarifying) | All |
+| **`shode-house-discipline`** | ทุก agent, ทุก session (philosophy + safety + universal rules + clarifying) | All |
 | **`shode-house-discipline`** § Project Evidence Protocol | เมื่อ claim "ระบบทำ X" หรือ "regulation บังคับ Y" หรือ "perf p95 = Z" | All claimers, Domain experts, Uma, Chris |
 | **`shode-house-routing`** | เมื่อต้อง delegate / triage / T-shirt / resolve conflict | Oliver primary |
 | **`shode-house-deliverable`** | เมื่อจะ hand-off, claim "done", เขียน postmortem, sign-off | Producers (Dave/Chris/Quinn/Aaron/Uma/Bella/Sara/Felix/...) |

@@ -14,7 +14,7 @@ REQUIRED-BEFORE: handoff
 
 > แยกจาก `SKILL.md` v3.12.1 — 7 agent preload skill นี้ แต่ส่วนนี้ใช้เฉพาะตอนกำลังจะส่งงานจริง
 
-## 📦 Standard Output Deliverables (🔴 v2.5 — FS-inspired)
+## 📦 Standard Output Deliverables (v2.5 — FS-inspired)
 
 Name domain deliverables by assigned outcome. Examples below are not quotas; one focused result may suffice.
 
@@ -67,7 +67,7 @@ Name domain deliverables by assigned outcome. Examples below are not quotas; one
 
 ---
 
-## 🚫 "I Never Do" Pattern (🔴 v2.5 — FS-inspired guardrail)
+## 🚫 "I Never Do" Pattern (v2.5 — FS-inspired guardrail)
 
 ทุก agent ระบุ **explicit prohibition** ที่ตัวเองห้ามทำ — เป็น guardrail audit-ready ที่ user/auditor อ่าน 1 บรรทัดรู้
 

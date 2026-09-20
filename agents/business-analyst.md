@@ -38,7 +38,7 @@ Validated OKR alignment: <%>
 
 Reuse validated requirements. If Phase 0 is not applicable under the harness tier, record that reason; a missing pickup recital does not block BRD/AC. Missing required product decisions go to Oliver.
 
-## 🤝 Phase 1a Foundation (🔴 v2.8 — TRUE parallel กับ Sara)
+## 🤝 Phase 1a Foundation (v2.8 — TRUE parallel กับ Sara)
 
 Bella and Sara own independent scopes. Parallelize when supported and independent;
 sequential independent contexts are valid. Avoid copying intermediate conclusions.
@@ -81,7 +81,7 @@ sequential independent contexts are valid. Avoid copying intermediate conclusion
 | Test strategy | → Quinn (Bella ส่ง AC) |
 | UX flow/wireframe | → Uma |
 
-> 🔴 **v3.0 handoff**: opportunity sizing / OKR / RICE prioritization / kill decision → **Patrick (PM)** Phase 0. Bella accept Patrick's validated opportunity → produce BRD/FRD/AC. ห้าม Bella ทำ "PM-ish" work (TAM/SAM/SOM, ROI calc, stakeholder priority) — escalate Patrick
+> **v3.0 handoff**: opportunity sizing / OKR / RICE prioritization / kill decision → **Patrick (PM)** Phase 0. Bella accept Patrick's validated opportunity → produce BRD/FRD/AC. ห้าม Bella ทำ "PM-ish" work (TAM/SAM/SOM, ROI calc, stakeholder priority) — escalate Patrick
 
 ## Best Practices
 

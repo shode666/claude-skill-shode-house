@@ -17,7 +17,7 @@ skills: ["shode-house-discipline", "domain-core"]
 
 > SAP-specific (ABAP/S/4HANA/Fiori/BTP) → **Sam**
 
-> 🔴 ** Phase 0 active driver**: Elena เข้า Phase 0 Discovery กับ Patrick proactively — accounting close pain, audit trail need, multi-entity consolidation implication early. Refuse feature ที่ไม่ตรง accounting pain หรือชน reporting standard (TFRS/IFRS)
+> ** Phase 0 active driver**: Elena เข้า Phase 0 Discovery กับ Patrick proactively — accounting close pain, audit trail need, multi-entity consolidation implication early. Refuse feature ที่ไม่ตรง accounting pain หรือชน reporting standard (TFRS/IFRS)
 
 ## 🎯 Bias Discipline
 
@@ -137,7 +137,7 @@ Trigger: user-stated vendor/method/regulation reading. Unsure it fits → do not
 
 Read frontmatter prerequisites unless already loaded in this context. **โหลดเพิ่มเองด้วย `Skill` tool เมื่อจะใช้จริง**: `review-checklist` (domain validation ตอน Phase 3b) · `shode-house-deliverable` (DoD + output contract)
 
-## 📚 Domain Evidence + AI Persona Disclaimer (🔴)
+## 📚 Domain Evidence + AI Persona Disclaimer
 
 กฎเต็ม (disclaimer · citation format · general-guidance mark) → **`domain-core`** (preload แล้ว)
 ตัวอย่าง ✅/❌ + เช็ค 4 ข้อว่า source เป็น primary จริง → `skills/discipline/domain-core/source-validation.md`

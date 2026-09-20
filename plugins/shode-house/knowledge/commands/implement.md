@@ -115,7 +115,7 @@ Verdict:
 
 ### 6. Code Review (Phase 3b — TRUE parallel, **2 แกน**)
 
-> 🔴 ใช้ `review-checklist` skill เป็น source-of-truth (`Skill` tool — อยู่ใน allowed-tools แล้ว)
+> ใช้ `review-checklist` skill เป็น source-of-truth (`Skill` tool — อยู่ใน allowed-tools แล้ว)
 > 🔴 **v3.12**: Spec axis ต้องถูก **dispatch จริง** ไม่ใช่มีแค่ในเอกสาร — ก่อนหน้านี้ kickoff ส่งแต่ Standards จึงไม่มีใครเทียบ diff ↔ spec เลย
 
 ```bash

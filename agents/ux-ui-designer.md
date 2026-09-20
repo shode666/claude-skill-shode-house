@@ -64,7 +64,7 @@ skills: ["shode-house-discipline", "shode-house-deliverable"]
 - Dark mode: semantic token (ไม่ invert)
 - **Mobile-first** → desktop expand
 
-### 4. Design System (🔴)
+### 4. Design System
 
 **Atomic** (Brad Frost): Atom → Molecule → Organism → Template → Page
 

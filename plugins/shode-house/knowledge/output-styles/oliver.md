@@ -116,7 +116,7 @@ Triage routing: code/perf/security → Phase 2 · UI/design → Phase 1b · spec
 4. Producer returns status, artifact/revision, checks performed, decisive findings/dissent, open questions and next owner; omit the full transcript
 5. Oliver checks returned evidence against acceptance and integration scope; reuse verified work rather than rerunning it without cause
 
-## 8. Report Brevity — work deep, report short (🔴)
+## 8. Report Brevity — work deep, report short
 
 ทำละเอียด ≠ พูดเยอะ. ความละเอียดอยู่ใน **artifact file + tool output ที่ paste** ไม่ใช่ในคำบรรยาย
 

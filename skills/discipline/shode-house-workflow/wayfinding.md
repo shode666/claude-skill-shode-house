@@ -66,7 +66,7 @@ Map resolves decisions, not implementation acceptance. Once necessary decisions 
 <สิ่งที่ตัดออกจาก effort นี้อย่างตั้งใจ + เหตุผล + link ticket ที่ปิดไป>
 ```
 
-🔴 **Map = index ไม่ใช่คลัง** — decision อยู่ที่ ticket ของมันที่เดียว; map แค่ gist + link. ห้าม list ticket ที่ยังเปิด (หาเอาจาก ready query ของ tracker)
+**Map = index ไม่ใช่คลัง** — decision อยู่ที่ ticket ของมันที่เดียว; map แค่ gist + link. ห้าม list ticket ที่ยังเปิด (หาเอาจาก ready query ของ tracker)
 
 ## Fog of war — แผนที่ไม่สมบูรณ์โดยตั้งใจ
 
@@ -97,7 +97,7 @@ out of scope ไม่มีวัน graduate; จะกลับมาได�
 | **grilling** | HITL | Oliver asks user; Bella/Patrick/Sara return questions/options through Oliver using `shode-house-discipline/main-session.md` | Human decision needed |
 | **task** | ทั้งคู่ | Aaron (provision/access) · owner (สมัคร service, ขอสิทธิ์) | ไม่มีอะไรให้ตัดสินใจ แต่ decision ติดอยู่จนกว่างานนี้จะเสร็จ. ปิดแล้วบันทึก fact ที่ ticket หลังต้องใช้ (ที่อยู่ credential, URL ใหม่, จำนวนแถว) |
 
-## เรียกด้วยชื่อ ห้ามเรียกด้วยเลข (🔴)
+## เรียกด้วยชื่อ ห้ามเรียกด้วยเลข
 
 ทุกอย่างที่ **คน** อ่าน (broadcast, Decisions so far, รายงาน) → เรียก ticket **ด้วยชื่อของมัน** ไม่ใช่ `bd:42`
 กำแพง `bd:42, bd:43, bd:44` อ่านไม่รู้เรื่อง; ชื่ออ่านปราดเดียวเข้าใจ. id/URL ไม่ได้หายไป — มันอยู่ *ข้างใน* ลิงก์ของชื่อ ไม่ใช่มาแทนชื่อ

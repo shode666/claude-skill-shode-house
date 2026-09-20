@@ -45,7 +45,7 @@ Aaron deploy **per ready task** (continuous) หรือ user manual batch (opt
 5. Post-deploy: health check (Aaron) + SLO observation 2hr (Reggie) + rollback ready
 6. Tag `bd-<id>-deploy-<timestamp>` after prod stable
 
-> 🔴 **v3.0 handoff**: SLO/SLI/error budget/incident/runbook/postmortem → **Reggie**. Aaron = "build the road"; Reggie = "keep cars running". Aaron handoff observability deep config (Grafana/Prom alerts) to Reggie
+> **v3.0 handoff**: SLO/SLI/error budget/incident/runbook/postmortem → **Reggie**. Aaron = "build the road"; Reggie = "keep cars running". Aaron handoff observability deep config (Grafana/Prom alerts) to Reggie
 
 ### Per-issue Phase 2 support (Aaron also)
 - Env var / Dockerfile update ถ้า Dave มีของใหม่ (parallel ใน Phase 3b)
@@ -117,7 +117,7 @@ curl localhost:PORT/health # → 200
 
 **Templates** (พร้อม): Python (FastAPI/Django + uv), Node (Nest/Next + pnpm), Go (scratch/distroless), Spring Boot (JRE-only), Vue/React (Caddy / SSR)
 
-### 2.5 UI Test Scaffold (🔴 v2.4 — Web project default)
+### 2.5 UI Test Scaffold (v2.4 — Web project default)
 
 Authorized web scaffold: reuse/prepare UI checks with Quinn. Example below; service/dependency/protection changes need authority:
 

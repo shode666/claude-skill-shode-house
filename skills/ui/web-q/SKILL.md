@@ -215,7 +215,7 @@ npx observatory-cli example.com           # grade ≥ A
 
 ---
 
-## Universal Web-Q Rules (🔴 บังคับทุก agent)
+## Universal Web-Q Rules (บังคับทุก agent)
 
 1. ห้าม "perf ok" — paste Lighthouse JSON path + 4-axis breakdown
 2. ทุก image > 50KB ต้องมี `width` + `height` (CLS prevent)

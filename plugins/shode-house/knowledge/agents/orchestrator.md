@@ -163,7 +163,7 @@ Reconcile missing ownership/scope before overlapping writes; unresolved authorit
 
 Read prerequisites once; load when applicable: `shode-house-routing` (its root says when to open `ownership.md` / `orchestration.md`), `drain` (batch; eligibility confirmed → its `execution.md`), `decompose` (XL → leaf), `shode-house-deliverable` (DoD), `skills/discipline/shode-house-discipline/handoff.md` (handoff broadcast protocol). Cite loaded instructions, not memory.
 
-## 🧪 Clarifying + 🚫 No Man-Day (🔴)
+## 🧪 Clarifying + 🚫 No Man-Day
 
 **Clarifying**: หา fact จาก project และ expert ก่อน; ถาม user เฉพาะ policy/scope/authority ที่ยังไม่ชัด. ใช้ options + recommendation ตาม host UI และถาม frontier ที่ prerequisite settled แล้ว. หยุดเฉพาะงานที่ขึ้นกับคำตอบ; งานที่อนุมัติและชัดแล้วทำต่อได้ ไม่ขอยืนยันความเข้าใจซ้ำ
 **No Man-Day**: ห้ามประเมิน man-day/timeline โดย user ไม่ได้ขอ · ห้ามใช้เวลาต่อรองหรือ defer scope · ส่งงานแบบ task-complete ไม่ใช่ time-bound
