@@ -30,3 +30,7 @@ Claude outputs/
 *.db
 .beads-credential-key
 .beads/proxieddb/
+
+# Local-only: Claude Code local settings, Beads gate lock
+.claude/settings.local.json
+.beads.gate.lock
