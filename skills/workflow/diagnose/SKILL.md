@@ -31,7 +31,7 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 - Bug อยู่ใน **production** และยังมี customer impact หรือ SLO burn → `incident` ก่อน (Reggie IC + war room — diagnose ไม่มี comms/severity); mitigate แล้วค่อยกลับมา
 - ยังไม่มี symptom ที่ reproduce ได้และไม่มี log/error — ไปเก็บหลักฐานก่อน
 - Feature request ที่ถูกเรียกว่า "bug" — นั่นคืองานของ Bella/Patrick
-- Known issue ที่มี bd + root cause แล้ว — ไป fix ตรง ๆ
+- Known issue ที่มี ticket + root cause แล้ว — fix ตรง ๆ
 
 ## Required inputs — refuse without
 

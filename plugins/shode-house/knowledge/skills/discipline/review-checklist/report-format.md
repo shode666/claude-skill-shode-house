@@ -34,7 +34,7 @@ Loop route: code → Phase 2
 Full template per finding (file:line · why it matters · evidence path · suggested change)
 
 ### Output budget (🔴 §5.13 — bd:shode-roadmap/C-G1)
-inline (bd note / return message) ≤ **10 findings** เรียง severity — เกิน → นับรวมต่อ severity + full list ใน artifact/md แล้ว link path
+inline (task note / return message) ≤ **10 findings** เรียง severity — เกิน → นับรวมต่อ severity + full list ใน artifact/md แล้ว link path
 return ต่อ orchestrator = status + artifact/revision + checks performed + decisive findings/dissent + questions/next owner ตาม harness; compact summary ต้องเก็บ evidence และ blockers ห้ามจำกัดเหลือ verdict/path จนตรวจ acceptance ไม่ได้
 
 ### Storage rule (🔴 ห้ามเขียนซ้ำ 2 ที่)

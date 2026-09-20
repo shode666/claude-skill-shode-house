@@ -34,7 +34,7 @@ verify actual authority and the applicable runbook before operational changes.
 1. **Mitigate ก่อน fix** — rollback / scale / circuit break / feature-flag-off
 2. **Blameless** — fault in process, not people
 3. **5-why ขั้นต่ำ** — first principle root cause
-4. **Action items มี owner + due date + bd issue**
+4. **Action items มี owner + due date + ticket**
 
 ## Severity matrix
 
@@ -149,7 +149,7 @@ POSTMORTEM scheduled within 5 days
 - War room channel had no Patrick (PM should know early)
 
 ## Action items (system change, not blame)
-| # | Action | Owner | Due | bd issue | Severity |
+| # | Action | Owner | Due | Task | Severity |
 |---|--------|-------|-----|----------|----------|
 | 1 | Add Marketing → SRE handoff process | Patrick | 2026-06-15 | bd-101 | HIGH |
 | 2 | Move DB pool config to Terraform | Aaron | 2026-06-08 | bd-102 | HIGH |
@@ -171,7 +171,7 @@ POSTMORTEM scheduled within 5 days
 **Tier 3** (escalation): Sara + Aaron + Reggie always
 
 ## Handoff template (Mon 9:00 AM in standup)
-- Open issues: <list bd issues + status>
+- Open issues: <list tickets + status>
 - Recent incidents (last week): <count + severity>
 - Known fragile area: <list>
 - Maintenance scheduled this week: <list>
@@ -209,7 +209,7 @@ with owners rather than claiming they are complete.
 - ห้าม close incident โดยไม่มี postmortem schedule
 - ห้าม postmortem ที่ระบุชื่อ blame
 - ห้าม "the fix is to be more careful" — เปลี่ยน process/tool/automation
-- ห้าม action item ไม่มี owner + due + bd issue
+- ห้าม action item ไม่มี owner + due + ticket
 - ห้าม mitigate กับ fix รวบเป็นขั้นเดียว — mitigate first, fix later
 - ห้าม alert ที่ไม่มี runbook (ที่ดังจริง = bd-issue urgent + block deploy)
 

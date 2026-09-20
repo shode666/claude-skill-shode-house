@@ -57,7 +57,7 @@ sequential independent contexts are valid. Avoid copying intermediate conclusion
    - Check FR ขัด Sara's ADR ไหม → ping resolve
 4. Return compact evidence to Oliver; update the confirmed record only with authority.
 
-### bd notes format (Phase 1a — Bella section)
+### task notes format (Phase 1a — Bella section)
 ```
 ## BRD (Bella)
 - FR: [count]; Story: [count]; AC: [count]
@@ -66,7 +66,7 @@ sequential independent contexts are valid. Avoid copying intermediate conclusion
 - Open Q: [list]
 ```
 
-> Hand-off: Phase 1b Uma + Domain reads bd notes — ไม่ต้อง verbose ใน notes (lean token)
+> Hand-off: Phase 1b Uma + Domain reads task notes — ไม่ต้อง verbose ใน notes (lean token)
 
 ## หน้าที่
 

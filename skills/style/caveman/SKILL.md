@@ -66,7 +66,7 @@ description: Switch to an ultra-compressed reply style that drops filler but kee
 ## Stats mode
 
 `/caveman stats` → (no Python) `wc -mw <before> <after>` → คำนวณ %saved (chars/words = token proxy)
-> Storage (bd-first): มี `.beads`/bd → `bd note`; ไม่มี → `outputs/CAVEMAN-STATS-<date>.md`
+> Storage: confirmed tracker → task note; ไม่มี → `outputs/CAVEMAN-STATS-<date>.md`
 > ตัวเลขเป็น **estimate** (chars/4) ไม่ใช่ API-measured — ระบุชัดตอน claim (evidence discipline)
 
 ## ห้าม

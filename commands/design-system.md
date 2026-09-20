@@ -33,7 +33,7 @@ ARGS=$(echo "$ARGUMENTS" | sed -E 's/--stop|--estimate//g' | xargs)
 
 ## Step 0 — Triage (Oliver)
 
-- Pick bd issue (`bd show <id>` ถ้ามี argument) หรือสร้างใหม่ (`bd create -t feature -p1 "..."`)
+- Pick task in the confirmed tracker (read `<id>` ถ้ามี argument) หรือ create ใหม่ (feature, high priority) — harness contract; Markdown fallback
 - Trigger detection:
   - **frontend trigger**? (touch UI/component/page/view/email/dashboard) → Uma เข้า Phase 1b
   - **business-rule trigger**? (money/policy/matching/booking/inventory/regulation) → Domain Expert เข้า Phase 1b
@@ -73,9 +73,9 @@ Oliver kickoff broadcast:
 - Sara check: ADR support FR ครบไหม → ping resolve
 - (1 pass สั้น ๆ, ไม่ใช่ multi-round Coop)
 
-### Sign-off + bd notes (compact)
-```bash
-bd update <id> --notes "$(cat <<EOF
+### Sign-off + task note (compact)
+Post as a task note in the confirmed tracker:
+```
 ## Phase 1a — Foundation (Bella + Sara)
 
 ### BRD (Bella)
@@ -92,8 +92,6 @@ bd update <id> --notes "$(cat <<EOF
 ### Cross-validation
 - FR-N ↔ ADR-M: aligned ✅
 - (any unresolved → mark and escalate)
-EOF
-)"
 ```
 
 ⏸️ **Gate: pre-spec-expand** — Bella+Sara sign-off + no unresolved conflict → unlock Phase 1b
@@ -101,7 +99,7 @@ EOF
 ## Step 2 — Phase 1b Conditional Expand (Sequential — read 1a baseline)
 
 ### Uma (ถ้า frontend trigger)
-Uma reads `bd show <id>` (Phase 1a notes) → produces:
+Uma reads the task (Phase 1a notes) → produces:
 - Persona + JTBD + journey map (ถ้า new domain) — link Bella research
 - IA + user flow (happy + edge + error) — Mermaid
 - Wireframe low-fi → mid-fi (Figma frame link + frame ID)
@@ -113,7 +111,7 @@ Uma reads `bd show <id>` (Phase 1a notes) → produces:
 - Hand-off bundle to Dave
 
 ### Domain Expert (ถ้า business-rule trigger)
-Domain reads `bd show <id>` (Phase 1a notes) → produces:
+Domain reads the task (Phase 1a notes) → produces:
 - Schema + ER diagram (ถ้า data change)
 - State machine / lifecycle (ถ้า workflow change)
 - Business rule + edge case
@@ -152,8 +150,8 @@ T-shirt size (XS/S/M/L/XL) ต่อ module:
 - Integration
 - QA
 
-```bash
-bd update <id> --notes "
+Task note:
+```
 ## Estimation
 | Module | T-shirt | Confidence | Note |
 |---|---|---|---|
@@ -162,7 +160,6 @@ bd update <id> --notes "
 | QA pyramid | M | high | unit + integration + E2E |
 | Integration | S | high | 2 external API |
 **Total**: XL · **Confidence**: medium · **Risk drivers**: <top 3>
-"
 ```
 
 → `outputs/04-estimation.md`
@@ -177,7 +174,7 @@ bd update <id> --notes "
 
 ```
 โหลด `decompose` skill → แตกจาก AC (ไม่ใช่จาก layer) → เช็คขนาด → wire blocking edge (create-then-wire 2 pass)
-→ bd ready --json verify (ต้องได้ ≥ 1 ใบ) → paste output
+→ find ready tasks — verify (ต้องได้ ≥ 1 ใบ) → paste output
 ```
 Output: ชุด bd ที่มี edge + `parent-child` กลับไปหา bd เดิม (เป็น epic) — **แทนที่จะออกไปใบเดียว**
 

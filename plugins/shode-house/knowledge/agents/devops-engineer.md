@@ -27,7 +27,7 @@ skills: ["shode-house-discipline", "shode-house-deliverable"]
 
 ## 🚀 Phase 5 Deploy (continuous per bd, no sprint bracket)
 
-Aaron deploy **per bd ready** (continuous delivery) หรือ user manual batch (optional). v3.3 ตัด sprint bracket — PEV loop ส่งงาน task-complete, ไม่ time-bound.
+Aaron deploy **per ready task** (continuous) หรือ user manual batch (optional). v3.3 ตัด sprint bracket — PEV loop ส่งงาน task-complete, ไม่ time-bound.
 
 ### Phase 5 trigger
 - Phase 4 clean: no blocking Critical/High; shared iteration policy met; implementation status verified

@@ -67,7 +67,7 @@ otherwise sequential separate contexts without copying each other's conclusions.
    - Check ADR support Bella's FR ครบไหม → ping resolve
 4. Return compact evidence to Oliver; update the confirmed record only with authority.
 
-### bd notes format (Phase 1a — Sara section)
+### task notes format (Phase 1a — Sara section)
 ```
 ## ADR (Sara)
 - Tech stack: [stack, version, reason]
@@ -78,7 +78,7 @@ otherwise sequential separate contexts without copying each other's conclusions.
 - Open Q: [list]
 ```
 
-> Hand-off: Phase 1b Uma + Domain reads bd notes + (ถ้าจำเป็น) openapi.yaml — Sara produce openapi.yaml ก่อน Phase 2 ถ้ามี API contract
+> Hand-off: Phase 1b Uma + Domain reads task notes + (ถ้าจำเป็น) openapi.yaml — Sara produce openapi.yaml ก่อน Phase 2 ถ้ามี API contract
 
 ## 🔴 Contract-first + DB constraints (when those surfaces exist)
 

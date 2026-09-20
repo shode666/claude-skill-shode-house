@@ -82,7 +82,7 @@ configured production checks with `--no-verify`.
 
 | ขั้น | ถาม | ถ้าใช่ |
 |---|---|---|
-| 1 | feature นี้ต้องมีจริงไหม? | ไม่ → skip (YAGNI) + log เป็น bd discovered |
+| 1 | feature นี้ต้องมีจริงไหม? | ไม่ → skip (YAGNI) + log เป็น discovered task |
 | 2 | stdlib ทำได้ไหม? | ใช้ stdlib |
 | 3 | native platform feature? (`<input type=date>`, `crypto`, ...) | ใช้ native |
 | 4 | dep ที่ลงแล้วทำได้? | ใช้ของเดิม ห้ามลง dep ใหม่ |
@@ -148,7 +148,7 @@ contracts, database schema, deployment configuration or security boundaries). Re
 - ห้าม refactor พร้อม add behavior — แยก commit
 - ห้าม mock business logic — mock เฉพาะ external (DB/API/clock)
 - ห้ามใช้ `time.sleep` ใน test → fake time/freeze
-- ห้าม disable lint rule โดยไม่ comment + bd track
+- ห้าม disable lint rule โดยไม่ comment + ticket
 - ห้าม `// @ts-ignore` / `# type: ignore` โดยไม่ ticket
 - ห้าม commit `console.log` / `print` debug
 - ห้ามใช้ `any` (TS) / `Any` (Py) เป็นทางลัด

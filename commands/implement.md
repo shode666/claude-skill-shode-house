@@ -26,7 +26,7 @@ echo "$DAVE_PLANNED_FILES" | grep -qE "\.(vue|tsx|jsx|svelte|html|css|scss|sass|
 ```
 
 - ถ้า `FRONTEND_TRIGGER=1`:
-  - bd issue มี SPEC-<bd-id>.md ที่ Phase 1b ส่งมาไหม?
+  - task มี SPEC-<bd-id>.md ที่ Phase 1b ส่งมาไหม?
   - มี Uma artifact (Figma + tokens + a11y + baseline + Uma's AC) ครบไหม?
   - ไม่มี = **STOP**, route to `/design-system` Phase 1b
   - **🔴 บังคับ invoke Uma POST (Phase 3a) ก่อน Chris+Quinn** — ห้าม Oliver "decide skip เพราะ minor change"; auto-detected = auto-required
@@ -47,7 +47,7 @@ this task using its recorded scope; do not count unrelated user edits as Dave's 
 
 ### 1. Context (Dave)
 
-- `bd show <id>` + read `outputs/SPEC-<bd-id>.md`
+- Read the task in the confirmed tracker + `outputs/SPEC-<bd-id>.md`
 - Identify section relevant (BRD section + ADR section + Uma's AC + Domain rule)
 - Read convention code existing (`Glob` + `Grep` similar pattern)
 - ปรึกษา Sara/Bella/Domain ถ้า spec ไม่ชัด — กลับ Phase 1a/1b
@@ -82,7 +82,7 @@ this task using its recorded scope; do not count unrelated user edits as Dave's 
   ls -lh tests/visual/<feature>-*.png    # paste paths
   ```
   ห้าม hand-off Uma POST ถ้าไม่ paste screenshot path — Uma มี baseline แล้ว ต้องการ "after" เพื่อ diff
-- `bd update <id> --notes "Phase 2 done: smoke ok, files: [...], screenshot: [paths ถ้า frontend]"`
+- Task note: "Phase 2 done: smoke ok, files: [...], screenshot: [paths ถ้า frontend]"
 
 ⏸️ **Gate: pre-ui-check** — lint clean + unit green + smoke pass + screenshot evidence (ถ้า frontend) → unlock Phase 3a
 
@@ -91,7 +91,7 @@ this task using its recorded scope; do not count unrelated user edits as Dave's 
 **🔴 Auto-trigger** (จาก Step 0 detection): ถ้า frontend changed (git diff match `.vue/.tsx/.jsx/.svelte/.html/.css/.scss` หรือ `frontend/components/pages/views/`) = **MANDATORY**. ห้าม Oliver/Uma "skip เพราะ minor"
 
 Uma เข้า Phase 3a ทำตาม **mandatory Bash invocation pattern** ใน `agents/ux-ui-designer.md` Phase 3a Process (11 steps):
-1. Read context (bd show + SPEC-id)
+1. Read context (task + SPEC-id)
 2. Spin up app (docker compose / make dev + curl /health)
 3. Capture current screenshot (Playwright Bash)
 4. Visual diff (Chromatic / pixel diff Bash)
@@ -106,8 +106,8 @@ Uma เข้า Phase 3a ทำตาม **mandatory Bash invocation pattern** 
 **🔴 Anti-Puppet UX/UI (บังคับ — `shode-house-deliverable` § Anti-Puppet Rule)**: ห้าม claim PASS โดยไม่ paste tool output. Verdict format ดู `agents/ux-ui-designer.md`
 
 Verdict:
-- **PASS** → `bd update <id> --notes "Phase 3a Uma POST PASS — evidence: [Chromatic build/N, axe report path, AC bullets]"` → unlock Phase 3b
-- **FAIL** → `bd update <id> --notes "Phase 3a FAIL — [specific issues + paths]"` → Triage routing:
+- **PASS** → task note "Phase 3a Uma POST PASS — evidence: [Chromatic build/N, axe report path, AC bullets]" → unlock Phase 3b
+- **FAIL** → task note "Phase 3a FAIL — [specific issues + paths]" → Triage routing:
   - Implementation gap (Dave ทำผิด wireframe) → loop Phase 2
   - Design baseline ผิด (Uma's own AC ไม่ถูก) → loop Phase 1b
 
@@ -139,14 +139,14 @@ Verdict:
 - Loop routing recommendation — see `review-checklist/report-format.md` § Loop Routing
 - Anti-Puppet gate (paste tool output, no "should be fine") — see `review-checklist` § Gate ที่ทุกแกนต้องผ่าน
 
-Output: bd notes OR `outputs/REVIEW-<bd-id>.md` (consolidated)
+Output: task notes OR `outputs/REVIEW-<bd-id>.md` (consolidated)
 
 ### 7. Triage (Oliver — Phase 4)
 
 ```bash
 # Oliver decide loop routing:
 if any critical/major:
-  bd create -t bug --discovered-from=<id> "..."
+  create bug task linked discovered-from <id>   # confirmed tracker; Markdown fallback
   # Route loop:
   if finding_type in [code, perf, security_impl, test_coverage]:
     → Phase 2 (Dave fix)
@@ -155,13 +155,13 @@ if any critical/major:
   elif finding_type in [spec, ac, regulation, business_rule]:
     → Phase 1a (Bella ∥ Sara revise)
 elif any minor:
-  bd create -p4 "..." (defer P4 backlog)
-  → bd close <id> --reason "minor deferred <source_revision_and_diff_evidence> <test_result>" # when closure authorized
+  create low-priority task (defer P4 backlog)
+  → close <id>, reason "minor deferred <source_revision_and_diff_evidence> <test_result>" # when closure authorized
 else: # clean
-  bd close <id> --reason "clean <source_revision_and_diff_evidence> <test_result>" # when closure authorized
+  close <id>, reason "clean <source_revision_and_diff_evidence> <test_result>" # when closure authorized
 
-# 🔴 M8 Close-on-Done Guard (บังคับหลังทุก bd close):
-bd show <id>   # ต้องอ่านได้ว่า CLOSED แล้ว paste output — ห้าม claim "ปิดแล้ว" ลอย ๆ
+# 🔴 M8 Close-on-Done Guard (บังคับหลังทุก close):
+read back <id>   # ต้องอ่านได้ว่า CLOSED แล้ว paste output — ห้าม claim "ปิดแล้ว" ลอย ๆ
 
 if iter > 3:
   STOP — broadcast "[Oliver] bd-<id> exceeded iter 3 — escalating user"
@@ -176,11 +176,11 @@ if iter > 3:
 2. 🔴 **Phase 3a Uma POST = sequential gate** ก่อน Phase 3b. Chris+Quinn ห้าม start ถ้า Uma ยังไม่ approve
 3. **Phase 3b Chris/Quinn คนละ reviewer context** — parallel เมื่อทำได้; sequential ได้แต่ห้ามใช้ self-review แทน independent verdict
 4. 🔴 **Phase 4 Triage routing precise** (code→2, UI→1b, spec→1a) — ห้าม "ผ่านครึ่ง ๆ" ข้าม deploy
-5. 🔴 Loop iter ≤ 3 ต่อ bd issue; > 3 → escalate user
+5. 🔴 Loop iter ≤ 3 ต่อ task; > 3 → escalate user
 6. Chris เขียน unit test + mutation (Dave smoke แล้วเสร็จ)
 7. Quinn integration/E2E + contract + load + a11y axe สำหรับ critical path
 8. Domain Expert validation บังคับสำหรับ sensitive (parallel ใน Phase 3b)
 9. ห้าม merge จน Phase 3a + 3b ผ่าน + Phase 4 clean (pre-loop-exit gate)
-10. 🔴 **Close-on-Done (M8)**: เมื่อ closure อยู่ใน authority ให้บันทึก verdict + source revision/diff evidence + test result แล้ว read back สถานะจริง (`bd show` เมื่อใช้ Beads). Commit/merge เป็นเงื่อนไขเฉพาะเมื่อ acceptance ต้องการและได้รับ authorization; ห้ามสร้าง commit เพื่อให้ template ครบ
+10. 🔴 **Close-on-Done (M8)**: เมื่อ closure อยู่ใน authority ให้บันทึก verdict + source revision/diff evidence + test result แล้ว read back สถานะจริง. Commit/merge เป็นเงื่อนไขเฉพาะเมื่อ acceptance ต้องการและได้รับ authorization; ห้ามสร้าง commit เพื่อให้ template ครบ
 11. Batch หลาย bd อิสระในรอบเดียว → ใช้ `drain` skill (worktree fan-out + serial cherry-pick + close-on-done) ไม่ใช่ /implement ซ้ำ ๆ
 12. ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim

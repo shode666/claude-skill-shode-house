@@ -29,7 +29,7 @@ unperformed check and do not claim PASS for missing evidence.
 
 1. **Read context**:
    ```bash
-   bd show <id>                                       # bd issue context
+   # read the task in the confirmed tracker           # task context
    cat outputs/SPEC-<bd-id>.md                        # Phase 1b artifacts (Uma own AC + baseline path)
    ```
 

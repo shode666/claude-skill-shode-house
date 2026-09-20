@@ -19,7 +19,7 @@ REQUIRED-BEFORE: claim_done
 - "code build pass" (โดยไม่ paste compile log)
 - "UI ทำงาน" (โดยไม่ screenshot/video)
 - "deploy แล้ว" (โดยไม่ paste health check response)
-- "ปิด bd แล้ว" / "เคลียร์ backlog แล้ว" (โดยไม่ paste `bd show` ที่แสดง CLOSED)
+- "ปิด bd แล้ว" / "เคลียร์ backlog แล้ว" (โดยไม่ paste tracker read-back ที่แสดง CLOSED)
 
 ## ✅ Real work
 
@@ -27,7 +27,7 @@ REQUIRED-BEFORE: claim_done
 - "Hit endpoint → response: [paste JSON]"
 - "Open browser → screenshot: [link/path]"
 - "Docker up → `docker compose ps`: [paste status]"
-- "[`bd show bd-42`] status=CLOSED reason='FIXED a1b2c3d 214 passed'"
+- "[tracker read-back bd-42] status=CLOSED reason='FIXED a1b2c3d 214 passed'"
 
 ## 🔴 Anti-Real-World-Guess (extension)
 

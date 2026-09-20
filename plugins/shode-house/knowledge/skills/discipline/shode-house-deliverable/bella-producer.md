@@ -40,10 +40,10 @@ Use the mapping confirmed on first project engagement, Markdown fallback. These
 CLI examples apply only when that tracker is selected, available and writes are
 authorized; inspect its supported commands before use. They are not setup steps.
 ```bash
-bd create "BR-01: refund ภายใน 3 วัน" -t business-req
-bd create "FR-101: POST /refund" --blocked-by 1
-bd create "TC-33: refund happy path" -t test --blocked-by 2
-bd graph --format=mermaid
+create task "BR-01: refund ภายใน 3 วัน" (type business-req)
+create task "FR-101: POST /refund" (blocked by BR-01)
+create task "TC-33: refund happy path" (type test, blocked by FR-101)
+render the dependency graph (tracker view or Mermaid)
 ```
 
 GitHub: `gh issue create -t "BR-01: ..." -l business-req,p1`
@@ -82,6 +82,6 @@ Jira: ใช้ Atlassian MCP (`createJiraIssue`)
 ## Event Storm + Bounded Context + Glossary
 ## User Stories
 ## Assumptions / Dependencies / Risks
-## RTM (bd link)
+## RTM (tracker links)
 ## Open Questions
 ```

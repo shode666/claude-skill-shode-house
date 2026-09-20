@@ -21,13 +21,13 @@ limitation, not permission to install a toolchain or invent a passing result.
 
 ## 🎨 Phase 1b PRE-Design (🔴 v2.8 — sequential after Bella+Sara)
 
-Uma เข้า **after** Phase 1a sign-off (อ่าน bd notes ของ Bella+Sara). Sequential ไม่ใช่ parallel — Uma ต้องมี spec context ก่อน design
+Uma เข้า **after** Phase 1a sign-off (อ่าน task notes ของ Bella+Sara). Sequential ไม่ใช่ parallel — Uma ต้องมี spec context ก่อน design
 
 ### Trigger
 Frontend trigger detected (touch UI/component/page/view/email/dashboard) → Uma ตาม harness; explicit user/project/host scope takes precedence over plugin defaults, and omitted checks are recorded rather than claimed passed
 
 ### Process (Phase 1b)
-1. `bd show <id>` + read Phase 1a notes (BRD + ADR compact)
+1. Read the task + Phase 1a notes (BRD + ADR compact)
 2. Cross-check spec:
    - User story step count → wireframe matches?
    - ADR tech stack → component lib feasible?
@@ -63,7 +63,7 @@ Frontend trigger detected (touch UI/component/page/view/email/dashboard) → Uma
       ```bash
       python3 "$ROOT/scripts/check_contrast.py" --design-system-json /tmp/ds-<bd-id>.json \
         --border-decorative "<ขอบไหน ใช้ที่ไหน ทำไมไม่ใช่ control boundary>"
-      bd update <id> --notes "a11y: <บรรทัด ACK ที่ได้>"
+      task note: "a11y: <บรรทัด ACK ที่ได้>"
       ```
       exit≠0 → **ห้ามเขียน tokens.json** (paste output ที่ ALL PASS เป็น evidence)
    e. query เฉพาะจุดตามต้องการ: `search.py "<outcome>" --domain ux` (semantic outcome ก่อน) แล้วค่อย `--stack <stack>` สำหรับวิธี implement
@@ -94,13 +94,13 @@ Frontend trigger detected (touch UI/component/page/view/email/dashboard) → Uma
    AC-4: GIVEN screen reader WHEN announce "submit button" THEN aria-label = "ยืนยันคำสั่งซื้อ"
    ...
    ```
-6. Sign-off → save to `outputs/SPEC-<bd-id>.md` (section UX/UI) + post `bd update <id> --notes "Phase 1b done: baseline=[path], AC=[count]"`
+6. Sign-off → save to `outputs/SPEC-<bd-id>.md` (section UX/UI) + post task note "Phase 1b done: baseline=[path], AC=[count]"
 
 ### ⏸️ Pre-implement-ui Gate (Uma)
 Sign-off bundle complete:
 - ✅ Figma frame link + frame ID
 - ✅ `design-system/<slug>/MASTER.md` มีอยู่ + ถูกอ่านแล้ว (+ `pages/<page>.md` ถ้าหน้านี้ override) — v3.11
-- ✅ `check_contrast.py` **ALL PASS** (paste output จริง) — v3.11 ห้ามข้าม · ถ้าใช้ `--border-decorative` ต้องมีบรรทัด **ACK อยู่ใน bd notes** ด้วย (ตัดสินแล้วต้องบันทึก)
+- ✅ `check_contrast.py` **ALL PASS** (paste output จริง) — v3.11 ห้ามข้าม · ถ้าใช้ `--border-decorative` ต้องมีบรรทัด **ACK อยู่ใน task notes** ด้วย (ตัดสินแล้วต้องบันทึก)
 - ✅ tokens.json (with real values — no placeholder, ค่าตรงกับ MASTER/override)
 - ✅ a11y checklist (with manual verify status per item)
 - ✅ Baseline screenshot path (real Playwright output paste — ไม่ใช่ "TBD")

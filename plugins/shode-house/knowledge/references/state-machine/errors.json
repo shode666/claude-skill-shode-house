@@ -28,7 +28,7 @@
       "rework": false,
       "halt": false,
       "escalate": "user",
-      "reason": "a required precondition this bd depends on is not ready -- ROADMAP-runtime-10.md Phase 10's contract dependency (\"requires\": [\"contract:order-api-v1\"]) not yet produced, or an upstream bd not closed. This is NOT the same as TRANSIENT's 'network timeout' case (that is a flaky call to something that IS ready); DEPENDENCY_FAILED means the thing being depended on does not exist yet at all -- retrying the same operation cannot make an artifact another bd has not produced yet appear, and it is not this bd's implementation that is wrong (rework does not apply). Surface to the user/dependency owner so the DAG can be re-sequenced or the dependency expedited."
+      "reason": "a required precondition this task depends on is not ready -- ROADMAP-runtime-10.md Phase 10's contract dependency (\"requires\": [\"contract:order-api-v1\"]) not yet produced, or an upstream bd not closed. This is NOT the same as TRANSIENT's 'network timeout' case (that is a flaky call to something that IS ready); DEPENDENCY_FAILED means the thing being depended on does not exist yet at all -- retrying the same operation cannot make an artifact another bd has not produced yet appear, and it is not this bd's implementation that is wrong (rework does not apply). Surface to the user/dependency owner so the DAG can be re-sequenced or the dependency expedited."
     },
     "TOOL_FAILURE": {
       "retry": 1,

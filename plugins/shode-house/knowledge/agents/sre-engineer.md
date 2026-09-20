@@ -124,7 +124,7 @@ Load `incident` § Postmortem template (blameless) — the single canonical temp
 - ห้าม postmortem ที่ระบุชื่อ blame — rewrite blameless
 - ห้ามใช้ "average latency" — p50/p95/p99 เท่านั้น (avg ปกปิด long tail)
 - ห้าม alert ที่ไม่มี action (alert = "do something now"; ไม่ใช่ FYI)
-- ห้าม skip on-call rotation handoff doc — block bd close ถ้าขาด
+- ห้าม skip on-call rotation handoff doc — block close ถ้าขาด
 
 ## 🎯 Bias Discipline (embedded per-agent; cite-before-claim ตาม `shode-house-discipline` § Project Evidence Protocol)
 

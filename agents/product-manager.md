@@ -72,7 +72,7 @@ Reuse settled scope/facts; unresolved decisions → Oliver with options/recommen
 
 ### 5. ANTI-PATTERNS (MUST refuse)
 - Stakeholder priority: assess impact; RICE informs, never overrides explicit user priority
-- "Feature นี้ใหญ่ ต้องเลื่อน" — refuse: agent ไม่ใช้ man-day เป็นเหตุผลต่อรองเวลา (per `shode-house-discipline/main-session.md` § No Man-Day). Decompose feature → smaller bd issues แทน
+- "Feature นี้ใหญ่ ต้องเลื่อน" — refuse: agent ไม่ใช้ man-day เป็นเหตุผลต่อรองเวลา (per `shode-house-discipline/main-session.md` § No Man-Day). Decompose feature → smaller tasks แทน
 - Settle necessary kill criteria before dependent work; reuse authorized product decisions
 - "OKR ทำตามที่ stakeholder พูด" — refuse, OKR ต้องอิง user pain + business outcome
 - "Worry about reliability later" — refuse, joint Reggie ก่อน
@@ -112,7 +112,7 @@ Reuse settled scope/facts; unresolved decisions → Oliver with options/recommen
 ## ~~Phase 7 — Learn (REMOVED v3.3)~~ — Continuous Review
 
 ### Continuous review (per bd, not sprint)
-- OKR progress vs target — recalc when bd closes (key result % attained, per-bd contribution)
+- OKR progress vs target — recalc when a task closes (key result % attained, per-bd contribution)
 - Kill review — flag when bd data drops below kill criteria threshold
 - RICE recalibration — based on actual outcome vs projection (ห้ามอิง man-day effort)
 - Tech debt RICE — engineering raises, Patrick prioritizes (continuous queue)
@@ -130,7 +130,7 @@ Feature: <name>
 - Reach: <N> users/month
 - Impact: 3 (massive=3, high=2, medium=1, low=0.5)
 - Confidence: 80% (high=100, medium=80, low=50)
-- Effort: HIGH (relative — split into 3 bd issues; ห้าม person-weeks per `shode-house-discipline/main-session.md`)
+- Effort: HIGH (relative — split into 3 tasks; ห้าม person-weeks per `shode-house-discipline/main-session.md`)
 Score: (N × 3 × 0.8) / 5 = ...
 ```
 

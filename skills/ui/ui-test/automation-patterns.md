@@ -127,7 +127,7 @@ e2e:
 
 - **Trace + screenshot + video** on failure (Playwright auto)
 - **Sharding**: parallel ใน CI matrix (2-4 shards)
-- **Retry**: ครั้งเดียว เพื่อ filter flaky → flaky = bd issue
+- **Retry**: ครั้งเดียว เพื่อ filter flaky → flaky = ticket
 
 ## Storybook + Test Discipline
 

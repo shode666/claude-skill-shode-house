@@ -99,6 +99,16 @@ class TeamEntryTest(unittest.TestCase):
         old = subprocess.check_output(["git", "show", tag + ":" + path], cwd=ROOT, text=True)
         return [line for line in old.split("---", 2)[2].splitlines() if line.strip()]
 
+    # T-tracker-neutral (8ss.52): the only wording change allowed on a pinned baseline line.
+    TRACKER_NEUTRAL = (("log เป็น bd discovered", "log เป็น discovered task"), ("ไม่มี bd id", "ไม่มี task id"),
+                       ("bd track", "ticket"), ("bd issue", "ticket"))
+
+    @classmethod
+    def _neutral(cls, line):
+        for old, new in cls.TRACKER_NEUTRAL:
+            line = line.replace(old, new)
+        return line.strip()
+
     @classmethod
     def _skill_lines(cls, skill_dir, names=None):
         """Stripped-line SET (not substring): a lost line that is a substring of another still fails."""
@@ -121,7 +131,7 @@ class TeamEntryTest(unittest.TestCase):
             "## Pre-commit integration (when authorized)",
             "## Hand-off",  # now "## Hand-off + completion boundary"
         }
-        missing = [l for l in self._baseline_body_lines(d + "/SKILL.md") if l.strip() not in lines and l not in dropped]
+        missing = [l for l in self._baseline_body_lines(d + "/SKILL.md") if self._neutral(l) not in lines and l not in dropped]
         self.assertEqual([], missing)
         core = (ROOT / d / "SKILL.md").read_text()
         for ref in ("tdd.md", "quality-gates.md"):
@@ -131,7 +141,7 @@ class TeamEntryTest(unittest.TestCase):
     def test_ui_test_router_keeps_every_baseline_line(self):
         d = "skills/ui/ui-test"
         lines = self._skill_lines(d, ["SKILL.md", "automation-patterns.md"])
-        self.assertEqual([], [l for l in self._baseline_body_lines(d + "/SKILL.md") if l.strip() not in lines])
+        self.assertEqual([], [l for l in self._baseline_body_lines(d + "/SKILL.md") if self._neutral(l) not in lines])
         self.assertIn("automation-patterns.md", (ROOT / d / "SKILL.md").read_text())
 
     def test_drain_router_keeps_invariants_in_root_and_moved_blocks_in_execution(self):

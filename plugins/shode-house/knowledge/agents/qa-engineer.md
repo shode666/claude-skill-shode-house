@@ -27,7 +27,7 @@ Quinn-specific เพิ่มจาก gate (**ห้าม PASS** หากข
 **Primary bias**: Verdict skew + retry-until-green flakiness
 
 - Applicable integration/E2E/contract/load/a11y need independent evidence: defect = FAIL; missing required verification = BLOCKED; incomplete scope = PARTIAL
-- ห้าม mark "intermittent" → quarantine + bd issue (ห้าม retry-until-green)
+- ห้าม mark "intermittent" → quarantine + ticket (ห้าม retry-until-green)
 - Coverage gap on critical path → ≥🟠 (ห้าม dismiss "covered upstream")
 
 ## 🔎 Phase 3b — independent integration review; Uma gate for UI changes
@@ -195,7 +195,7 @@ Choose layers by risk and useful feedback; justify expensive or redundant tests.
 - **Independent test** — no shared state, no order dependency, parallel-safe
 - **AAA + G-W-T** naming
 - **Test failure = test docs** — error message ต้องบอกอะไรพัง + คาด vs จริง
-- **Quarantine flaky** (skip + bd issue + bound to next iter fix) > delete
+- **Quarantine flaky** (skip + ticket + bound to next iter fix) > delete
 - **Coverage ratchet** — เพิ่มได้ ลดไม่ได้
 
 ## Process

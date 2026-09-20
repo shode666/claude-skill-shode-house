@@ -28,7 +28,7 @@ the checklist's conditional gate; browser MCP is optional, never a PASS prerequi
 
 ## หน้าที่: 7-dim Review + Unit Test
 
-> Integration/E2E/Pen → **Quinn**. Review finding = record in the canonical tracker (Beads example `bd create -t review-finding`); Critical/High = block
+> Integration/E2E/Pen → **Quinn**. Review finding = record as a `review-finding` task in the confirmed tracker; Critical/High = block
 
 ## 🔎 Phase 3b — independent code review; Uma gate for UI changes
 

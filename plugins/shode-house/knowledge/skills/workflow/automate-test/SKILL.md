@@ -70,7 +70,7 @@ Defaults below are examples until the project adopts them; Chris grades by risk.
 - E2E: critical user flow 100% (login, checkout, payment, claim, booking)
 - Mutation kill rate: ≥ 70% (mutmut/Stryker — nightly)
 - Perf: p95 < SLO, error < 0.1%, throughput ≥ target
-- Flaky rate: < 1% (CI auto-mark + bd issue ถ้าเกิน)
+- Flaky rate: < 1% (CI auto-mark + ticket ถ้าเกิน)
 
 ## Test Types & Tools
 
@@ -131,7 +131,7 @@ authorization and the project's release gates.
 ## Flaky Test Discipline
 
 - Flaky = bug → ห้าม retry หลบ
-- Auto-mark `@flaky` + bd issue (-p high) → fix ภายใน 1 sprint
+- Auto-mark `@flaky` + ticket (high priority) → fix ภายใน 1 sprint
 - ถ้า fix ไม่ได้ → quarantine (skip + ticket) ไม่ใช่ delete
 
 ## Hand-off
@@ -144,7 +144,7 @@ authorization and the project's release gates.
 ## ห้าม
 
 - ห้าม invert pyramid (E2E เยอะ)
-- ห้าม disable test silently → bd issue
+- ห้าม disable test silently → ticket
 - ห้าม retry flaky test หลบ → fix root cause
 - ห้าม mock หมดใน integration → = unit test แล้ว
 - ห้าม commit code โดย CI red

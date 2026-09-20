@@ -33,7 +33,7 @@ REQUIRED-BEFORE: report_to_user
 [Uma|state:adhoc|bd:none]
 Dave ▸ Chris : payment service implement เสร็จ พร้อม review (bd:42)
 ```
-ไม่มี bd → `bd:none` · ไม่มี phase → `state:adhoc`
+ไม่มี task → `bd:none` · ไม่มี phase → `state:adhoc`
 
 ## ⚠️ Risk Template
 
@@ -85,7 +85,7 @@ Worker results identify their owner; these examples are not a required prefix fo
 
 **Standard keys**:
 - `state` — plan/impl/review/test/deploy/block/done
-- `task` — bd issue id (bd-N) หรือ tracker external id
+- `task` — task id (bd-N) หรือ tracker external id
 - `engagement` — E-N (Oliver track)
 - `file` — file path ที่กำลังแก้
 - `finding` — severity:count (Chris/Quinn)

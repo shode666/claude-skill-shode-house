@@ -37,11 +37,11 @@ Risk:
 
 Pipeline (🔴 v3.3 PEV loop per bd — no sprint outer loop):
 
-  ┌─ PEV LOOP per bd issue ──────────────────────────────────────┐
-  │  PICK     : bd update <id> --claim                           │
+  ┌─ PEV LOOP per task ──────────────────────────────────────────┐
+  │  PICK     : claim task (confirmed tracker)                   │
   │  📋 PLAN                                                     │
   │  Phase 1a : Bella ∥ Sara (TRUE parallel)                     │
-  │             BRD+AC ∥ ADR+risk → bd notes                    │
+  │             BRD+AC ∥ ADR+risk → task notes                  │
   │             Gate: pre-spec-expand                            │
   │  Phase 1b : Uma + Domain (sequential, conditional)           │
   │             Uma* read spec → wireframe+tokens+a11y baseline  │
@@ -63,12 +63,12 @@ Pipeline (🔴 v3.3 PEV loop per bd — no sprint outer loop):
   │             → outputs/REVIEW-<bd-id>.md                      │
   │  🚦 TRIAGE                                                   │
   │  Phase 4  : Oliver Triage (max iter 3)                       │
-  │             Critical/Major → bd create --discovered-from=N   │
+  │             Critical/Major → create linked task (from N)     │
   │             Loop routing by finding type                     │
-  │             Clean → bd close <id> + bd remember <lesson>     │
+  │             Clean → close + read back; note lesson           │
   │             Gate: pre-loop-exit                              │
   │  🚀 DEPLOY                                                   │
-  │  Phase 5  : Aaron continuous per bd ready (or manual batch)  │
+  │  Phase 5  : Aaron continuous per ready task (or manual batch)│
   │             CI + canary + health check + observability       │
   │  📡 OPERATE                                                  │
   │  Phase 6  : Reggie SLO watch + incident response             │
@@ -99,8 +99,8 @@ Oliver maintain per-bd state (no sprint state — sprint removed):
   - **UI/design adherence/visual diff/a11y manual** → Phase 1b (Uma redesign)
   - **spec/AC/regulation/business rule** → Phase 1a (Bella ∥ Sara revise)
 - iter > 3 → **STOP** broadcast "[Oliver] bd-N exceeded iter 3 — escalating user: re-scope / kill / split"
-- bd close = Phase 4 Triage clean (0 Critical/Major) + iter ≤ 3 + `bd remember <lesson>` posted
-- 🔴 **M8 Close-on-Done**: เมื่อ closure ได้รับ authority ใช้ `bd close <id> --reason "<verdict> <source_revision_and_diff_evidence> <test_result>"` แล้ว `bd show <id>` ยืนยัน CLOSED (หรือ equivalent canonical record). ใช้ commit SHA เมื่อมี authorized commit; ไม่สร้าง commit เพียงเพื่อให้ template ครบ. งาน PARTIAL/BLOCKED คงเปิดพร้อมเหตุผล. Batch backlog → `drain` skill
+- Task close = Phase 4 Triage clean (0 Critical/Major) + iter ≤ 3 + lesson note posted
+- 🔴 **M8 Close-on-Done**: เมื่อ closure ได้รับ authority close ใน confirmed tracker ด้วย reason "<verdict> <source_revision_and_diff_evidence> <test_result>" แล้ว read back ยืนยัน CLOSED (Markdown fallback). ใช้ commit SHA เมื่อมี authorized commit; ไม่สร้าง commit เพียงเพื่อให้ template ครบ. งาน PARTIAL/BLOCKED คงเปิดพร้อมเหตุผล. Batch backlog → `drain` skill
 
 ### Mode Selection (Phase 2 — บังคับเลือก option-style)
 
@@ -173,7 +173,7 @@ Primary: [name] → [agent] | Secondary: ...
 **Oliver role**: route incident-related user messages to Reggie; escalate error-budget < 0 to Patrick
 
 ### ~~Phase 7 Learn (REMOVED v3.3)~~
-- Per-bd reflect captured in Phase 4 Triage (Oliver `bd remember <lesson>` post bd close)
+- Per-bd reflect captured in Phase 4 Triage (Oliver lesson note post close)
 - Continuous OKR review (Patrick) — per-bd contribution, no sprint bracket
 - ห้ามใช้ /sprint command — removed in v3.3
 
@@ -204,8 +204,8 @@ User message → Oliver classify (1-line caveman):
   "ลองใหม่ / ไม่ work"   → fix     → reopen bd, iter+1, Phase 2
   "เปลี่ยน X"             → spec    → reopen bd, Phase 1a redo
   "ทำไม Y"                → quest   → answer, no phase change
-  "OK / ผ่าน / approve"   → approve → bd close gate check
-  "เพิ่ม Z"               → new     → bd create child issue
+  "OK / ผ่าน / approve"   → approve → close gate check
+  "เพิ่ม Z"               → new     → create child task
   "เสร็จยัง"              → status  → inspect canonical record, answer briefly, continue active authorized work
 ```
 

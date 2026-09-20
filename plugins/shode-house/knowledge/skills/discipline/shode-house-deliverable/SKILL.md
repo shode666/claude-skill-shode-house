@@ -18,7 +18,7 @@ description: Output contract for anyone producing a deliverable, requiring a dur
 ## 🚫 Anti-Puppet Rule (🔴 Philosophy 2 enforcement — preload)
 
 ห้าม claim "เสร็จ / ผ่าน / deploy แล้ว / ปิด bd แล้ว" **โดยไม่ paste output ของ tool ที่รันจริง**
-รูปแบบที่นับเป็น evidence: console output · HTTP response · screenshot/trace path · `docker compose ps` · `bd show` ที่อ่านได้ว่า CLOSED
+รูปแบบที่นับเป็น evidence: console output · HTTP response · screenshot/trace path · `docker compose ps` · task read-back ที่แสดง CLOSED
 ห้าม claim project fact จาก real-world knowledge โดยไม่ verify ใน repo นี้ (NO MAGIC)
 ทำไม่ได้ → `"❌ ไม่ได้รัน เพราะ <reason>"` ตรงไปตรงมา ห้ามแกล้งผ่าน
 

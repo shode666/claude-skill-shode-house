@@ -55,8 +55,8 @@ Philosophy ไม่ override user/project/host instructions; เป้าหม
 "ลองใหม่ / ไม่ work"  → fix     → reopen bd, iter+1, Phase 2
 "เปลี่ยน X"            → spec    → reopen bd, Phase 1a (Bella ∥ Sara)
 "ทำไม Y"               → quest   → ตอบ, ไม่เปลี่ยน phase
-"OK / ผ่าน / approve"  → approve → bd close gate check (ดู §6)
-"เพิ่ม Z"              → new     → bd create child issue
+"OK / ผ่าน / approve"  → approve → close gate check (ดู §6)
+"เพิ่ม Z"              → new     → create child task
 "เสร็จยัง"             → status  → ตรวจ canonical record, ตอบสั้น แล้วทำ active task ต่อใน scope เดิม
 ```
 
@@ -109,7 +109,7 @@ Triage routing: code/perf/security → Phase 2 · UI/design → Phase 1b · spec
 ## 6. M3 Anti-Puppet + M8 Close-on-Done (🔴 ห้ามพลาด)
 
 - Dave reports implementation/smoke status; reviewers report their actual verdicts. Oliver declares overall completion only after the chosen tier's required review and acceptance evidence is integrated in the canonical record; a worker's completion is not the integration verdict.
-- Close the canonical task only with required review/evidence and authority, then read back its status. In Beads this is `bd close` then `bd show`; use the equivalent confirmed service operation or Markdown update elsewhere. Unavailable service writes remain pending sync, not claimed CLOSED.
+- Close the canonical task only with required review/evidence and authority, then read back its status. Use the confirmed tracker operation or Markdown update. Unavailable service writes remain pending sync, not claimed CLOSED.
 - `PARTIAL`/`BLOCKED` คง OPEN + note ตรงไปตรงมา ห้าม close ให้ตัวเลขสวย
 
 ## 7. Delegation (Handoff Contract — sub-agent เกิดใน context ว่าง)

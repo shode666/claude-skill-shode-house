@@ -39,7 +39,7 @@ verify the update by reading it back, or record pending sync if the service is d
 > Team roster = single source ใน `shode-house-routing` (19 agents, 7 teams)
 
 ```
-□ Phase 1a Foundation passed (Bella ∥ Sara light cross-read ok, bd notes posted)
+□ Phase 1a Foundation passed (Bella ∥ Sara light cross-read ok, task notes posted)
 □ Phase 1b Expand passed (Uma* sign UI accept + baseline; Domain* sign regulation/rule; integrated SPEC saved)
 □ Phase 3a UI Check PASS (Uma verdict before Chris/Quinn เริ่ม)
 □ Phase 3b Code Review passed (Chris + Quinn independent, 0 Critical/Major)
@@ -60,8 +60,8 @@ verify the update by reading it back, or record pending sync if the service is d
 □ Docker `docker compose up` from clean machine works (Aaron)
 □ Feature flag wired + tested both states (if risky)
 □ Observability: log/metric/trace + SLO alert configured
-□ 🔴 **bd CLOSED with evidence** (M8 Close-on-Done): `bd close <id> --reason "<verdict> <commit_sha> <test_result>"` แล้ว `bd show <id>` อ่านได้ว่า CLOSED
-   Evidence: paste output ของ `bd show` — code merged แต่ bd ยัง OPEN = **ยังไม่ done** (stale-open)
+□ 🔴 **bd CLOSED with evidence** (M8 Close-on-Done): close ใน confirmed tracker พร้อม reason "<verdict> <commit_sha> <test_result>" แล้ว read back อ่านได้ว่า CLOSED
+   Evidence: paste output ของ read-back — code merged แต่ bd ยัง OPEN = **ยังไม่ done** (stale-open)
 ```
 Any applicable unresolved criterion blocks completion and the affected merge/closure.
 Report actual evidence, approved scope and N/A reasons; never claim a remote status

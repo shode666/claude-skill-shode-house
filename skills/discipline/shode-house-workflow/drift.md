@@ -94,7 +94,7 @@ or claim CLOSED without the authoritative result.
 
 ### Phase 0 — Discovery (NEW)
 - **Owner**: 🔍 Discover Team (Patrick + Domain SME)
-- **Trigger**: New initiative, no bd issue yet (continuous — not sprint-bound)
+- **Trigger**: New initiative, no task yet (continuous — not sprint-bound)
 - **Output**: OKR + opportunity sizing + RICE/WSJF priority + Domain pain validation
 - **Gate**: `pre-spec` — sign-off ก่อน Phase 1a Foundation
 - **Why**: validate the opportunity before speculative specification work

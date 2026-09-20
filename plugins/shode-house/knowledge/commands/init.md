@@ -174,7 +174,7 @@ Q6: Sandbox?
 
 [Bella] รับ domain → seed:
 - BRD template (`outputs/brd.md`) + sample FR
-- Tracker init (`bd init` หรือ equivalent)
+- Tracker: reuse the confirmed tracker (harness contract; Markdown fallback) — no install/migrate
 - Sample BR/FR/Story tracker entry
 - Glossary template (ubiquitous language)
 
@@ -195,7 +195,7 @@ if the project explicitly adopted the script runtime, its config may be:
 make dev                     # ต้อง up healthy
 docker compose ps             # paste output
 curl localhost:PORT/health   # paste 200
-bd ready --json              # paste empty list (just init)
+# confirmed tracker: find ready → paste list (Markdown fallback: task file)
 git log --oneline             # paste init commit
 
 # 🔴 ถ้า Web app/Full-stack:
@@ -242,7 +242,7 @@ asks the user, using the host's available question channel.
 - `.gitignore` + `.editorconfig` + `.dockerignore`
 - Makefile (`make dev/test/build/lint`)
 - Pre-commit hooks
-- **`bd init`** — beads issue tracker (commit `.beads/`)
+- **Tracker** — the project's confirmed tracker (harness contract); Markdown fallback under `outputs/`
 - `README.md` quickstart + `CLAUDE.md` (agent onboarding)
 
 ### 3. Dockerize

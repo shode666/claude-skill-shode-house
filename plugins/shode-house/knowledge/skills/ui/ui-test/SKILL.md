@@ -126,4 +126,4 @@ plugin **ไม่ได้จัดหา** browser MCP (`.mcp.json` มีแ�
 - ห้าม skip a11y check on critical page
 - ห้าม baseline visual diff โดย Uma ไม่ได้ review
 - ห้าม commit failing snapshot (ใช้ `--update-snapshots` มี ticket review)
-- ห้าม disable test silently → bd issue + retry plan
+- ห้าม disable test silently → ticket + retry plan

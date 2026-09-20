@@ -68,17 +68,17 @@ Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
 - Unused **local variable** → ลบ (F841)
 - Unused **function parameter** → ลบ หรือ prefix `_` ถ้าจำเป็นต้องเก็บ signature
 - Unused **function/class export** → ลบหรือ mark internal (ts-unused-exports / vulture)
-- ห้าม `# noqa` / `// eslint-disable` โดยไม่ comment "why" + bd track
+- ห้าม `# noqa` / `// eslint-disable` โดยไม่ comment "why" + ticket
 
 **Deferred-shortcut convention** (จาก ponytail — ทางลัดที่ YAGNI ladder ตัดไว้):
 - รูปแบบบังคับ: `shortcut(bd:<id>): <reason>; upgrade → <path>`
 - ตัวอย่าง: `# shortcut(bd:42): in-memory dict; upgrade → Redis เมื่อ >10k key`
 - `grep -rn 'shortcut(bd' .` / `/review --debt` รวบเป็น ledger → "later" ไม่กลาย "never"
-- ห้าม shortcut โดยไม่มี bd id (ต้อง track ได้)
+- ห้าม shortcut โดยไม่มี task id (ต้อง track ได้)
 
 ### Gate 4: Lint (strict — diagnose)
 - Run adopted project lint rules; consult the tool matrix only when selecting missing tooling. Do not enable every rule without assessing project compatibility.
-- Lint warning = bd issue (track หรือ fix); ห้าม ignore
+- Lint warning = ticket (track หรือ fix); ห้าม ignore
 
 ### Gate 5: Type Check (🔴 strict)
 Use the project's adopted type checker and strictness. The language commands below
@@ -107,7 +107,7 @@ are examples, not authority to replace a verified checker or install another one
 - Unit coverage per adopted target (example ≥ 80% business logic; Chris's responsibility; Dave smoke ก่อน hand-off)
 - AAA pattern + G-W-T naming
 - Edge case + error path
-- ห้าม skipped/disabled test ไม่มี bd track
+- ห้าม skipped/disabled test ไม่มี ticket
 
 ### Gate 9: Security Lint
 - SAST per language (ดู matrix Gate 9 column)
