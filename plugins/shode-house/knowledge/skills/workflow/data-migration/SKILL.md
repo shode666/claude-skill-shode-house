@@ -9,16 +9,16 @@ description: |
 # Data Migration (expand-contract + backfill + rollback drill)
 
 > **Owner**: Dave (เขียน) + Aaron (รัน + rollback) + Sara (ตัดสิน schema + ADR). Money/regulated data → Domain expert sign
-> Migration = **R0 (irreversible)** by default — ต้องผ่าน approval gate `pre-data-migration` เสมอ
+> Classify the actual migration operation by environment, impact and reversibility. Production execution requires `pre-data-migration` evidence and authorization; preparing a migration does not itself authorize execution.
 
 ## When NOT to use
 
 - **Dev/local DB ที่ทิ้งได้** — `docker compose down -v` แล้ว seed ใหม่ ไม่ต้องทำ ceremony
 - **แก้ข้อมูลแถวเดียวใน prod แบบ manual** — นั่นคือ incident/hotfix → `incident` + change ticket ห้ามเรียกว่า migration
-- **Schema ยังไม่นิ่ง (Phase 1a ยังไม่ sign-off)** — กลับไป `design-system` ก่อน อย่า migrate ตาม spec ที่ยังเปลี่ยน
+- **Schema ยังไม่นิ่ง (Phase 1a ยังไม่ sign-off)** — ส่ง schema decision ให้ Sara ก่อน อย่า execute ตาม spec ที่ยังเปลี่ยน
 - **Data warehouse / analytics rebuild** — คนละ risk model (rebuild ได้) ใช้ pipeline discipline แทน
 
-## Required inputs — refuse without
+## Required inputs — before production execution
 
 - [ ] **Migration tool + version ของ project** (Flyway / Liquibase / Alembic / Prisma / goose / Rails) — cite จาก repo จริง ห้ามเดา
 - [ ] **Row count + table size จริงของ prod** (`SELECT count(*)`, table bytes) — ตัดสิน online vs offline ไม่ได้ถ้าไม่รู้
@@ -26,7 +26,9 @@ description: |
 - [ ] **Rollback path** — down migration หรือ restore plan + RTO/RPO ที่ยอมรับได้
 - [ ] **Data classification** — มี money / PII / regulated field ไหม (ถ้ามี → Domain expert + Sentinel เข้า)
 
-ขาดข้อใด → list สิ่งที่ขาด ส่งกลับ ห้ามเขียน migration
+Discover accessible inputs first. Missing production facts block execution and
+safety claims, not authorized design, implementation or local rehearsal. Record
+unknowns and obtain consequential policy decisions through Oliver.
 
 ## Expand → Migrate → Contract (🔴 default สำหรับทุก breaking schema change)
 
@@ -100,7 +102,7 @@ C) CONTRACT  หยุด dual-write → drop คอลัมน์/ตารา
 - ห้าม migration ที่ไม่มี timeout
 - ห้าม `UPDATE` ยอดใน ledger — ใช้ correcting entry
 - ห้าม deploy migration โดยไม่ซ้อม rollback
-- ห้ามให้ agent รัน migration บน prod เอง — Aaron เตรียม, มนุษย์กด (R0)
+- ห้ามรัน migration บน prod โดยไม่มี authorization และ gate evidence — Aaron owns execution preparation; follow the actual project/host approval mechanism and preserve any explicit human-execution requirement.
 
 ## Skill composition
 
@@ -110,4 +112,4 @@ C) CONTRACT  หยุด dual-write → drop คอลัมน์/ตารา
 | verify หลัง migrate | → `review-checklist` (Chris data-integrity) · `automate-test` (regression) |
 | แตะ PII / auth | → `secure` (Sentinel) |
 | migration ทำ prod พัง | → `incident` (mitigate ก่อน) แล้ว `diagnose` |
-| schema decision ยังไม่นิ่ง | → `design-system` (Sara ADR) |
+| schema decision ยังไม่นิ่ง | → Sara (`agents/solution-architect.md`, ADR when applicable) |

@@ -12,15 +12,16 @@ description: |
 
 ## ⚠️ AI Persona Disclaimer (🔴 บังคับทุก domain expert)
 
-Domain expert คือ **AI persona based on model training** (cutoff = ของ model ปัจจุบัน) — domain knowledge อาจ outdated หรือ incorrect
+Domain experts are AI personas; knowledge may be wrong/stale (current model cutoff).
 
 **เริ่มทุก engagement ด้วย disclaimer 1 บรรทัด**:
 > ⚠️ AI persona, training-cutoff knowledge — validate critical claims with [domain expert / official source]
 
-ทุก decision ที่กระทบ **money / regulation / safety / compliance** ต้อง validate กับ certified professional (CPA, actuary, compliance officer, SAP consultant) · official source ตรง version ปัจจุบัน · หรือ internal SME ของ user organization
+Validate money/regulation/safety/compliance decisions with a certified professional
+(CPA, actuary, compliance officer, SAP consultant), current official source or user organization's SME.
 
-**Agent ให้ได้**: structured thinking · framework · checklist · draft for review
-**Agent ให้ไม่ได้**: professional advice · legal opinion · audit sign-off · prescriptive regulation interpretation
+**Provides**: structured thinking/framework/checklist/draft for review.
+**Cannot provide**: professional advice/legal opinion/audit sign-off/prescriptive regulation interpretation.
 
 ## 📚 Citation contract (🔴 extension ของ Project Evidence)
 
@@ -35,7 +36,7 @@ Format: <Standard Name> <Version> <Clause/Section> [<Date>] — <Claim>
 **cite ไม่ได้ → บังคับ mark ตรง ๆ ห้ามพูดลอย**:
 > ⚠️ **General guidance from training memory** (not source-verified) — must validate กับ official document version ปัจจุบันก่อน implement
 
-🔴 ห้าม reuse ถ้อยคำตัวอย่างเป็น requirement จริง — ต้องเปิด primary source ของ clause นั้นทุกครั้ง
+🔴 ห้าม reuse ถ้อยคำตัวอย่างเป็น requirement จริง — verify primary clause/version/jurisdiction/effective date; reuse only current, applicable sources already verified in context.
 
 🔴 ตัวเลข/threshold/วันที่ใน role file ของทุก domain expert (เช่น CAR, RBC, PCI version) เป็นตัวอย่าง ณ วันเขียน — ก่อนใช้ใน deliverable ต้องตรวจกับ primary source ฉบับปัจจุบันแล้ว cite ตาม format ข้างบน
 

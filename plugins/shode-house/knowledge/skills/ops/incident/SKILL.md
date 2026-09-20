@@ -18,9 +18,9 @@ description: |
 - **Internal dev environment crash** — ไม่นับ incident (severity = P3 informal)
 - **Security suspect ที่ยังไม่ confirmed** — escalate Sentinel ก่อน; ห้าม open war room โดยไม่มี evidence (false-positive incident เปลือง budget)
 
-## Required inputs — refuse without
+## Required inputs
 
-ก่อนเปิด war room / claim IC role, confirm:
+Response intake: identify the incident/authorized responder, then collect during triage:
 
 - [ ] **Alert source identified** (Prometheus rule name / health check / customer report — ระบุ origin)
 - [ ] **Severity assigned** (P0/P1/P2/P3 ตาม matrix; **ห้ามเปิด war room ถ้า P3**)
@@ -28,7 +28,9 @@ description: |
 - [ ] **Rollback option known** (มี last-known-good version + how to revert; ถ้าไม่มี — ขอ Aaron ก่อน)
 - [ ] **On-call หรือ author available** (ถ้าไม่มี → ต้อง escalate ทันที ไม่รอ war room)
 
-ถ้าขาด → list สิ่งที่ขาด ส่งกลับ caller ก่อนเปิด IC channel
+Unknown blast radius or rollback becomes an urgent triage task, not a reason to
+delay acknowledgement, escalation or authorized investigation. Record uncertainty;
+verify actual authority and the applicable runbook before operational changes.
 
 ## หลักการ
 
@@ -195,8 +197,12 @@ POSTMORTEM scheduled within 5 days
 ✅ "[Runbook: runbooks/payment-high-error.md] last verified 2026-05-22 incident"
 ✅ "[On-call: oncall-schedule.md] this week: <name>, handoff Mon 9:00"
 ✅ "[War room: thread-link] 12 updates, IC Reggie, 5 participants"
-❌ "incident resolved" (no MTTR, no root cause, no action items)
+❌ "incident resolved" (no recovery evidence)
 ```
+
+Service recovery and investigation closure are separate: record observed recovery
+and duration when known; keep root-cause investigation and postmortem actions open
+with owners rather than claiming they are complete.
 
 ## ห้าม
 

@@ -61,7 +61,9 @@ skills: ["shode-house-discipline", "shode-house-evidence", "domain-core"]
 - **Facultative** — case-by-case
 - Bordereau reporting, premium ceding, claim recovery
 
-### IFRS 17 / TFRS 17 (effective 2024)
+### IFRS 17 / TFRS 17
+
+Effective periods differ: [IFRS 17](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-17/) from 1 January 2023; [Thai TFRS 17](https://acpro-std.tfac.or.th/standard/113) from 1 January 2025. Verify the entity's jurisdiction, reporting period and applicable amendments before advising.
 
 | Model | When |
 |-------|------|

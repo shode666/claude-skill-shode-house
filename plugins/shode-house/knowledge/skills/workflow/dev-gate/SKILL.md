@@ -22,16 +22,16 @@ description: |
 
 ก่อน hand-off Phase 2 → 3, confirm ทุก checklist. ถ้าขาด **list สิ่งที่ขาด แล้วหยุด** — ห้าม claim "done":
 
-- [ ] **Spec ครบ** จาก Phase 1 (BRD + AC G-W-T + ADR ที่กระทบ)
+- [ ] Approved acceptance + affected design decisions, linked from the task record; bounded work needs no new BRD/ADR ceremony.
 - [ ] **Test runs locally** (red phase): ทุก new behavior มี failing test ก่อน implement
-- [ ] **Test pass** (green): ทุก unit/integration test green; ไม่ skip/disable
+- [ ] Required acceptance tests pass; tracked quarantine does not satisfy a missing required test or authorize skipping it.
 - [ ] **Quality gate ผ่านครบ 11** (Gate 0-10, ดู Part 2): YAGNI · format · lint · type · complexity ≤10 · naming · test · coverage ≥ threshold · doc/comment "why" · security · observability
 - [ ] **Evidence paste**: command + output ใน hand-off (ห้าม "should work")
 
 ## หลักการ (🔴)
 
 1. **No production code without failing test first** (TDD core)
-2. **Quality at dev time, not after** — fix early ถูกกว่า 100x
+2. **Quality at dev time, not after** — catch defects before hand-off; no universal cost multiplier.
 3. **Best code = code you never wrote** — ผ่าน YAGNI ladder (Step 0) ก่อนทุกครั้ง
 
 ### Lazy ≠ Negligent — ห้ามตัด (carve-out)
@@ -71,7 +71,7 @@ YAGNI/compression ตัดได้เฉพาะ "ความซับซ้
 
 🔴 **เขียน test ไม่ได้จนกว่าจะ list seam ที่จะ test แล้ว confirm** (กับ user หรือกับ AC ใน spec). ห้ามมี test ตัวไหนเขียนที่ seam ที่ยังไม่ confirm
 > เหตุผล: test ทุกอย่างไม่ได้ — ตกลง seam ล่วงหน้าคือวิธีให้แรงเทสต์ลงที่ critical path + logic ซับซ้อน แทนที่จะกระจายไปทุก edge case
-> `coverage ≥ 80%` (Gate 8) บอกว่า test **เยอะพอ** — ไม่ได้บอกว่า test **ถูกที่**. Seam list คือสิ่งที่ตอบข้อหลัง
+> Coverage follows the adopted target (Gate 8); a percentage alone proves neither sufficient tests nor the right seams.
 
 ถามตรง ๆ ก่อนเริ่ม: *"public interface คืออะไร แล้วจะ test ที่ seam ไหนบ้าง?"*
 รูปร่างของ interface เองยังไม่นิ่ง (ลึกแค่ไหน seam อยู่ตรงไหน) → ดู § Gate 0 § Deep module
@@ -135,22 +135,22 @@ def test_calculate_total_with_vat_includes_7_percent():
 
 > Tool ตรวจ Gate 1-10 ได้ครบ แต่ **SOLID/cohesion/readable ต้องคนตัดสิน**. Dave self-check ก่อน hand-off ลด round-trip กับ Chris
 
-**SOLID (5 ข้อ — ตอบ "yes" ทุกข้อก่อน hand-off)**:
-- [ ] **SRP** — class/function ทำสิ่งเดียว. "และ" ใน description = แตก
-- [ ] **OCP** — extend ได้ผ่าน interface/composition โดยไม่ต้องแก้ class เดิม
+**SOLID — apply to actual responsibilities, not an abstraction quota**:
+- [ ] **SRP** — group behavior with one reason to change; the word "and" alone does not require splitting.
+- [ ] **OCP** — isolate demonstrated variation; do not add interfaces for hypothetical extension.
 - [ ] **LSP** — subclass แทน parent ได้ทุก context (ไม่ throw, ไม่ break invariant)
 - [ ] **ISP** — interface เล็ก. ห้าม "fat interface" ที่ implementor ต้อง stub method ที่ไม่ใช้
 - [ ] **DIP** — depend on abstraction (interface/protocol) ไม่ใช่ concrete class. business logic ห้าม import framework โดยตรง
 
 **Cohesion + Coupling**:
-- [ ] **High cohesion** — code ในไฟล์เดียวกันแก้ปัญหาเดียว. ถ้า "และ" ปะปน → แตก module
+- [ ] **High cohesion** — related behavior belongs together; split only for distinct responsibilities.
 - [ ] **Low coupling** — module A ไม่ควรรู้ internal ของ module B. ผ่าน interface/event/DTO
 - [ ] **Stable dependency** — depend ไปทาง stable (lower layer). ห้าม domain → infra direct
 
 **Deep module — abstraction นี้ควรมีอยู่ไหม (🆕 v3.12, คู่กับ YAGNI ladder)**:
 - [ ] **Deep ไม่ใช่ shallow** — behaviour เยอะหลัง interface เล็ก. shallow = interface ซับซ้อนพอ ๆ กับ implementation (ตัวส่งผ่าน). ถาม: ลด method ได้ไหม? ลด parameter ได้ไหม? ซ่อนความซับซ้อนเพิ่มได้ไหม?
 - [ ] **The deletion test** — ลอง "ลบ module นี้ทิ้ง": ความซับซ้อนหายไป = มันเป็น pass-through (ลบจริง); ความซับซ้อนโผล่ที่ caller N ที่ = มันคุ้มค่าตัว
-- [ ] **1 adapter = seam สมมติ · 2 adapters = seam จริง** — ห้ามสร้าง seam ถ้ายังไม่มีอะไรแปรผันข้ามมันจริง (= Speculative Generality)
+- [ ] **Justified seam** — present variation, testability, security or isolation can justify a boundary even with one implementation; speculative future adapters alone cannot.
 - [ ] **interface คือ test surface** — caller กับ test ข้าม seam เดียวกัน. ถ้าอยากเทสต์ *เลย* interface เข้าไป = module รูปร่างผิด ไม่ใช่ test เขียนยาก
 
 **Human readability (ก่อน push อ่าน diff ตัวเอง 1 รอบ)**:
@@ -172,20 +172,12 @@ Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
 
 > ถ้า self-check fail → refactor ก่อน hand-off ห้าม "Chris จะ review ให้". Chris จะ reject + bd revision รอบใหม่
 
-### Per-language tool matrix (🔴 บังคับ use ตาม stack)
+### Per-language tool matrix
 
-| Stack | 1 Format | 2 Imports | 3 Unused | 4 Lint | 5 Type | 6 Complexity | 9 Security |
-|---|---|---|---|---|---|---|---|
-| **Python** | `ruff format` / black | `ruff --fix I` / isort | `ruff --fix F401,F841` | `ruff E,F,B,N,UP,S,A,C90,SIM,RET` | `mypy --strict` | `radon cc -nb` | `bandit` / semgrep |
-| **TypeScript/JS** | `biome format` / prettier | `biome check --apply` / `eslint-plugin-import/order` | `eslint --fix no-unused-vars,no-unused-imports` / ts-unused-exports | `biome check` / `eslint @typescript-eslint/strict` | `tsc --strict --noUncheckedIndexedAccess` | `eslint complexity` | `npm audit` / semgrep |
-| **Go** | `gofmt` / `goimports` | `goimports` (built-in) | `golangci-lint unused` | `golangci-lint` (`govet,staticcheck,ineffassign,unused,gosec`) | (compile = check) | `gocyclo -over 10` | `gosec` (in golangci) |
-| **Java** | `google-java-format` / spotless | spotless (importOrder) | `error-prone UnusedVariable` | spotbugs + checkstyle | `@Nullable`/`@NonNull` strict | `pmd CyclomaticComplexity` | spotbugs (FindSecBugs) |
-| **Kotlin** | `ktfmt` / ktlint | ktlint (import-ordering) | `detekt UnusedImports` | `detekt` | (compile + `-Werror`) | detekt complexity rules | detekt (`detekt-formatting`) |
-| **Rust** | `cargo fmt` (rustfmt) | rustfmt (built-in) | `cargo +nightly udeps` | `cargo clippy -- -D warnings` | (compile = check) | clippy `cognitive_complexity` | `cargo audit` |
-| **Vue/Nuxt** | prettier + biome | biome | eslint-plugin-vue + ts-unused-exports | eslint-plugin-vue + biome | tsc + `vue-tsc` | eslint complexity | npm audit |
-| **PHP** | php-cs-fixer / pint | php-cs-fixer (ordered_imports) | rector dead-code | phpstan / psalm | phpstan strict | phpmd | `composer audit` |
-
-> **Rule**: ใช้ all-in-one tool (Ruff / Biome / golangci-lint) ดีกว่า stitch หลาย tool — boundary error น้อย, config เดียว
+Dave/Chris: reuse the project's verified gate commands. When a gate lacks a known
+command or tooling is being configured, read [tool-matrix.md](tool-matrix.md) before
+selecting tools; use only the relevant stack row. Missing required checks remain
+BLOCKED. The reference is guidance, not permission to install dependencies.
 
 ### Gate 1: Format
 - Auto-format on save (IDE) + pre-commit hook + CI gate (3 จุด)
@@ -211,10 +203,12 @@ Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
 - ห้าม shortcut โดยไม่มี bd id (ต้อง track ได้)
 
 ### Gate 4: Lint (strict — diagnose)
-- ดู per-language matrix; เปิด strict rule set ทั้งหมด ไม่ใช่ default ที่อ่อน
+- Run adopted project lint rules; consult the tool matrix only when selecting missing tooling. Do not enable every rule without assessing project compatibility.
 - Lint warning = bd issue (track หรือ fix); ห้าม ignore
 
 ### Gate 5: Type Check (🔴 strict)
+Use the project's adopted type checker and strictness. The language commands below
+are examples, not authority to replace a verified checker or install another one.
 - Py: `mypy --strict` — ห้าม `Any` เลี่ยงได้
 - TS: `tsc --strict --noUncheckedIndexedAccess` — ห้าม `any`, ใช้ `unknown` + narrow
 - Java: explicit null annotation (`@Nullable`/`@NonNull`)
@@ -254,9 +248,11 @@ Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
 
 ---
 
-## Pre-commit hook (🔴 บังคับทุก repo)
+## Pre-commit integration (when authorized)
 
-ติดตั้ง [`pre-commit`](https://pre-commit.com) + `.pre-commit-config.yaml` ให้ครอบ Gate 1-5 + 9 → ทุก `git commit` ถูก block ถ้า gate ใด fail. **ห้าม `--no-verify`** ใน production code
+Use the project's existing gate mechanism. Installing pre-commit or changing hooks
+requires setup authority; missing required checks still block hand-off. Do not bypass
+configured production checks with `--no-verify`.
 ตัวอย่าง config เต็ม (Python / TS) + setup steps → **`pre-commit-config.md`** (ไฟล์ข้าง SKILL.md นี้)
 
 ## Quality Smells (🚫 reject)
@@ -317,7 +313,7 @@ Chris ▸ Quinn   : 7-dim + unit quality vs adopted targets
 ## ห้าม
 
 - ห้ามเขียน code ก่อน test (TDD core)
-- ห้าม commit test ที่ยัง fail (ใช้ skip/xfail + bd issue)
+- Do not hide failing acceptance with skip/xfail. Quarantine needs an owner, tracked reason and applicable authority; unresolved required coverage remains BLOCKED.
 - ห้าม refactor พร้อม add behavior — แยก commit
 - ห้าม mock business logic — mock เฉพาะ external (DB/API/clock)
 - ห้ามใช้ `time.sleep` ใน test → fake time/freeze

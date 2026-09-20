@@ -14,6 +14,11 @@ REQUIRED-BEFORE: phase_3a_verdict
 
 > แยกจาก agent prompt v3.12.1 — consultation สั้น ๆ ไม่ต้องแบก runbook ของทุก phase
 
+Use the harness's actual host tools and confirmed evidence home. Bash/Playwright/
+Chromatic examples below describe checks, not mandatory tool names or install
+authority. Preserve the UX criteria with equivalent available tools; record any
+unperformed check and do not claim PASS for missing evidence.
+
 ## 🔎 Phase 3a POST-Check (🔴 v2.8 — sequential gate BEFORE Chris+Quinn)
 
 หลัง Dave implement (Phase 2 done) → Uma ตรวจ **ก่อน** Chris+Quinn เริ่ม (gate)
@@ -120,9 +125,11 @@ REQUIRED-BEFORE: phase_3a_verdict
 
 ### Verdict format (🔴 v2.8.2 — bd-native primary, markdown fallback)
 
-**bd active** → paste ครบใน `bd update <id> --notes` (anti-puppet) — **ONLY** ห้ามเขียน markdown ซ้ำ
-**No bd** → save `outputs/REVIEW-<feature>.md` (markdown fallback) ตาม template เดียวกัน
-Full evidence (Chromatic URL, axe report json, screenshot, Playwright trace) ที่ **path** — bd notes refs path เท่านั้น (compact ≤ 500 chars)
+Store the complete verdict and per-AC evidence in one canonical report in the
+confirmed evidence home. If that home is Beads, use its authorized notes operation;
+otherwise use the confirmed service or Markdown fallback. Task notes may link to
+the report and full evidence (Chromatic URL, axe JSON, screenshots, trace). Keep
+summaries concise without a character cap that removes findings, dissent or checks.
 ```
 [Uma|state:phase-3a|bd:42|iter:1] POST verdict
 - Visual diff: [Chromatic build/12346] 0.05% vs baseline (build/12345) ✅

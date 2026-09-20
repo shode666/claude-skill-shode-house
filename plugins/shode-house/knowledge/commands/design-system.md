@@ -38,7 +38,7 @@ ARGS=$(echo "$ARGUMENTS" | sed -E 's/--stop|--estimate//g' | xargs)
   - **frontend trigger**? (touch UI/component/page/view/email/dashboard) → Uma เข้า Phase 1b
   - **business-rule trigger**? (money/policy/matching/booking/inventory/regulation) → Domain Expert เข้า Phase 1b
   - Pure infra/CLI/library? → skip 1b ทั้งคู่
-- Present roster + estimated effort → user approve
+- Present relevant roster; reuse existing scope authorization. Ask only for unresolved scope/authority; report effort only when requested.
 
 ## Step 1 — Phase 1a Foundation (Bella ∥ Sara — TRUE parallel)
 
@@ -200,7 +200,7 @@ Generate `outputs/00-proposal-summary.md`:
 ✅ outputs/04-estimation.md (ถ้า --estimate)
 
 ห้าม auto-suggest /implement (proposal mode).
-ถ้า user สั่ง proceed → user ต้องเรียก /implement bd-<id> เอง
+ถ้า user สั่ง proceed/implement ภายหลัง → Oliver ดำเนินต่อใน scope ที่อนุญาต ไม่ต้องให้ user พิมพ์ command เอง
 ```
 
 ### If no `--stop` (normal flow)
@@ -216,7 +216,7 @@ Generate `outputs/00-proposal-summary.md`:
 
 ### 🔄 Conversation-flow auto-handoff (Oliver M2 classifier)
 
-หลัง spec done, Oliver suggest /implement และ **classify user response** ตาม drift M2:
+หลัง spec done ตรวจ authority ก่อน: ถ้าคำขอเดิมอนุญาต implementation แล้วให้ดำเนินต่อใน scope เดิม ตัวอย่างด้านล่างใช้กับ design-only engagement ที่ยังขาด implementation authority; Oliver suggest /implement และ **classify user response** ตาม drift M2:
 
 ```
 Oliver: "spec ready (bd-<id>). พร้อม implement, รัน /implement bd-<id> ต่อ?"
@@ -236,8 +236,8 @@ User responses → M2 classify:
 
   "skip Uma" / "ไม่ต้อง Phase 3a"
     → M2 = approve + scope-modify
-    → ❌ Oliver REJECT: pre-implement-ui gate mandatory if frontend trigger (per implement.md Step 0)
-    → Re-explain + wait for valid response
+    → Apply explicit user scope/authority over plugin conventions; record the omitted review and its acceptance implications
+    → Keep any host/project requirement that still applies; do not claim omitted UX checks passed
 ```
 
 **Why this pattern**:
@@ -247,7 +247,7 @@ User responses → M2 classify:
 - Oliver M2 ตัวเดิม (drift skill — ไม่ขยาย agent prompt)
 
 **Anti-pattern (ห้าม)**:
-- ❌ Oliver auto-invoke `/implement` โดยไม่รอ user response → bypass approval gate
+- ❌ Oliver invoke `/implement` โดยไม่มี authorization ครอบ implementation; reuse authorization ที่มีอยู่แล้ว ไม่ถามซ้ำ
 - ❌ ตีความ silence = approve → ต้องมี explicit affirmative message
 - ❌ Add `--continue` flag → ขัด 3-flag rule
 

@@ -56,8 +56,8 @@ pattern: **บันทึก intent ก่อนลงมือ → บัน�
 
 ### 5. HITL durability — approval เป็น event ไม่ใช่ข้อความ
 เก็บ **artifact ที่ผู้อนุมัติเห็นจริง** พร้อม: ใครอนุมัติ · เมื่อไหร่ · เห็นอะไร · **hash ของ artifact นั้น**
-🔴 recovery **ห้ามสันนิษฐานว่า approval เก่ายังใช้กับ artifact ที่แก้ไปแล้วได้** — hash ไม่ตรง = ขออนุมัติใหม่
-approval ที่อยู่ในแชท/หน่วยความจำ session = ไม่นับ (process ตาย = หลักฐานหาย)
+🔴 recovery ตรวจ approval scope กับ artifact revision: hash เปลี่ยนเป็นสัญญาณให้ตรวจ ไม่ใช่ยกเลิก authority ทุกอย่างอัตโนมัติ ขออนุมัติใหม่เฉพาะส่วนที่ scope/content เปลี่ยนจนไม่อยู่ใน authority เดิม
+User approval ในแชทเป็น authority ได้; runner ต้องบันทึกข้อความ/แหล่งที่มาและ scope ลง durable record ก่อน side effect เพื่อให้ recovery ตรวจได้ ถ้ากู้หลักฐานไม่ได้ให้ hold เฉพาะ action ที่ขาด authority
 
 ### 6. Observability ที่มีขอบเขต
 trace ต้องตอบ "เกิดอะไรขึ้น" ได้ **โดยไม่กลายเป็น memory system ตัวที่สองที่ไม่มีใครคุม**
@@ -76,7 +76,7 @@ trace ต้องตอบ "เกิดอะไรขึ้น" ได้ **�
 - [ ] ระหว่าง version rotation (deploy prompt/model ใหม่ขณะมี run ค้าง)
 - [ ] ระหว่าง retry ที่ค้างครึ่งทาง
 
-ผลที่ต้องได้: resume แล้ว side-effect เกิดครั้งเดียว · approval ที่ artifact เปลี่ยนถูก reject · ไม่มี step ไหนหาย
+ผลที่ต้องได้: resume แล้ว side-effect เกิดครั้งเดียว · action ที่อยู่นอก approval scope ที่กู้ได้ถูก reject · ไม่มี step ไหนหาย; artifact เปลี่ยนต้องตรวจขอบเขต ไม่ยกเลิก authority ส่วนที่ยังใช้ได้
 
 ---
 
@@ -99,7 +99,7 @@ trace ต้องตอบ "เกิดอะไรขึ้น" ได้ **�
 | contract ข้างบน | shode-house ระดับ plugin | ระดับ target project |
 |---|---|---|
 | journal | `bd` notes + `outputs/<bd-id>/` artifact + commit sha (= audit trail, replay ไม่ได้) | Aaron generate |
-| replay / idempotency | ❌ ไม่มี — resume ทำด้วย `state.json` + ตรวจ artifact จริง (ดู § Run Durability) | Aaron generate |
+| replay / idempotency | ❌ ไม่มี runtime guarantee — resume จาก canonical checkpoint + artifact จริง และ reconcile uncertain effects ตาม harness | Aaron generate เมื่อ project ขอ |
 | version stamp | ✅ run stamp ใน bd | ต่อยอดเป็น journal field |
 | HITL durability | ✅ approval + artifact sha ใน bd | ต่อยอดเป็น approval event |
 | redaction | ✅ กฎใน `diagnose` + evidence protocol | ใส่ใน trace pipeline |

@@ -1,7 +1,7 @@
 ---
 name: decompose
 description: |
-  [WHAT] แตกงานก้อนใหญ่ที่ **spec นิ่งแล้ว** เป็น leaf task ที่ลงมือได้ — tracer bullet (ตัดทะลุทุก layer) + blocking edge ประกาศตอนสร้าง + create-then-wire 2 pass + เกณฑ์ "เล็กพอหรือยัง".
+  [WHAT] Split agreed scope into verifiable outcome slices with owners, acceptance criteria and explicit dependencies in the confirmed project tracker.
   [WHEN] หลัง spec/BRD นิ่ง (Phase 1a sign-off).
   [TRIGGER] /shode-house:decompose, "แตกงาน", "แตก epic", "split", "ซอยงาน", "epic".
 ---

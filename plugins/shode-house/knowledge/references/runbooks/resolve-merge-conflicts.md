@@ -13,7 +13,8 @@ REQUIRED-BEFORE: git_continue_or_commit
 # Resolving merge / rebase conflicts
 
 Adapted from mattpocock/skills `resolving-merge-conflicts`; ownership stays with Dave
-(code) and Aaron (CI/infra files). Never `--abort` to make a conflict disappear.
+(code) and Aaron (CI/infra files). Do not abort merely to hide a conflict; honor an
+explicit cancellation/abort request after inspecting the operation and user changes.
 
 1. **See the state** — `git status`, which operation is in progress, every conflicted file.
 2. **Find the primary source of each side** — commit messages, the task/PR/issue each change
@@ -23,6 +24,8 @@ Adapted from mattpocock/skills `resolving-merge-conflicts`; ownership stays with
    Do not invent new behaviour inside a conflict resolution.
 4. **Run the project's checks** — typecheck/lint, then tests, then format. Fix what the
    merge broke; anything you cannot fix becomes a finding for the task owner, not a skip.
-5. **Finish the operation** — stage, commit (or `rebase --continue` until done). Paste the
+5. **Finish the authorized operation** — stage, commit or continue the rebase when
+the task's authority covers that action; otherwise leave the resolved changes for
+the owner and report the exact remaining command. Paste the
    final `git status` and test result as evidence. Generated trees (e.g. `plugins/shode-house`)
    are regenerated from source after the merge, never hand-merged.

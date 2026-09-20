@@ -23,13 +23,13 @@ argument-hint: "[question or topic]"
 | Code quality, SOLID, unit test | Chris |
 | Integration/E2E/pen test | Quinn |
 | Docker, CI/CD, deploy, obs | Aaron |
-| 2+ agents / ไม่ชัด | Oliver |
+| 2+ agents / ไม่ชัด | Oliver ใน main session วิเคราะห์และเลือก specialist ที่เกี่ยวข้อง |
 
 ## Process
 
 1. วิเคราะห์ intent
 2. บอก user → agent ไหน + เหตุผลสั้น
-3. เรียก agent (Task tool)
+3. Oliver เรียก specialist ผ่าน delegation tool ที่ host มีจริง; ไม่ delegate กลับไป Oliver อีก context ถ้า host ไม่มี delegation ให้รายงานข้อจำกัดตาม harness
 4. Present คำตอบ
 
 ## ⚠️ Rules

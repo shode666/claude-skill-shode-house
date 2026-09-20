@@ -118,7 +118,7 @@ Lead    ▸ Ops    : ship it
 ```
 
 ### กติกา 4 ข้อ
-1. **1 บรรทัด** เท่านั้น (รายละเอียดที่ bd notes)
+1. **1 บรรทัด** สำหรับ summary; รายละเอียดที่ confirmed evidence home ของ project รวม Markdown โดย link กับ canonical task ID
 2. Canonical task ID is required for inner-loop handoffs; a Beads ID is only one example.
 3. **Arrow** = `▸` (ใช้ consistent ทั้ง project)
 4. **State explicit** สั้น: `impl / CR / test / sec / fix / retest / clean / deploy / ✓`

@@ -22,7 +22,7 @@ need to recite a card; evidence of compliance belongs in the actual work and ret
 
 ## 🧪 Clarifying — option-style (🔴 ห้ามเดา → ห้ามทำ)
 
-กำกวม → **ห้ามเดา ห้ามทำต่อ**. ตอบเองได้จาก code/file → อ่านเอง อย่าถาม
+กำกวม → อ่าน code/records เพื่อหา fact ก่อน; ถ้ายังขาด decision ให้พักเฉพาะงานที่ขึ้นต่อคำตอบและถามผ่าน Oliver ทำงานอิสระใน scope ที่อนุญาตต่อได้ ไม่เดา policy หรือ authority
 
 ต้องถาม user จริง:
 - **option-style** 2-4 option + "อื่นๆ" · recommend ตัวแรกพร้อมเหตุผล

@@ -33,7 +33,7 @@ Oliver ตัดสินประเภท input แล้ว route:
 3. Parse description หา branch/PR URL/file path
 4. มี PR → `gh pr diff` / `gh pr view --json files` ได้ changed files
 5. ไม่มี PR → `git log --all --grep="$KEY" --oneline` หา commit
-6. ยืนยัน: "พบ PR #123 แก้ไฟล์ X, Y, Z — review ไฟล์เหล่านี้?"
+6. ระบุ PR และ files ที่ resolve ได้แล้วดำเนิน read-only review ใน scope ที่ขอ; ถ้ายังมีหลาย target ที่เลือกไม่ได้จึงถาม
 
 ### Pattern B — File/Directory path (มี `/` หรือ `.` และตรงกับไฟล์จริง)
 
@@ -62,13 +62,13 @@ Review ตาม path ตรงๆ
    glob "**/invoice/**/*.{ts,vue,py}"
    ```
 
-4. **Present candidate files** ให้ user ยืนยัน:
+4. **Present candidate files** และตรวจหลักฐานเพื่อยืนยันเส้นทาง bug:
    ```
    จาก description + screenshot ผมสงสัยไฟล์:
    - src/services/invoice/calculator.ts (logic หลัก)
    - src/pages/invoice/summary.vue (render)
    - src/utils/money.ts (format)
-   confirm review 3 ไฟล์นี้? (y/n / เพิ่มไฟล์)
+   เริ่มตรวจ 3 ไฟล์นี้ตามเส้นทาง bug; ถ้าหลักฐานยังแยก target ไม่ได้จึงถาม user
    ```
 
 5. Link findings to the confirmed canonical task. Creating a new tracker issue
@@ -94,7 +94,7 @@ pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง comma
       4. ทุกทางไม่ได้ผลและงานเป็นชนิดที่ต้องมี diff จริง ๆ → ค่อยถาม
       ref ที่ user ระบุมาแล้วพัง หรือ diff ว่างทั้งที่ควรมี → **fail ตรงนี้** ไม่ใช่ไปตายใน sub-agent
 
-ผลลัพธ์ที่ต้องได้ก่อนไป Step 1: **diff command 1 บรรทัดที่รันแล้วไม่ว่าง** + ประโยคเดียวบอกขอบเขตที่จะเขียนใน report
+ผลลัพธ์ก่อนไป Step 1: verified diff command สำหรับ diff review หรือ accessible file/snippet scope สำหรับ full-content review + ประโยคเดียวบอกขอบเขตใน report ไม่บังคับ diff ในกรณีที่ไม่มี git
 
 ## Step 1 — Invoke review-checklist skill
 
@@ -106,17 +106,20 @@ Beads or a ceremonial printout is not a blocker; missing scope/required ownershi
 ```
 [REVIEW DISPATCH CARD] task:<canonical-id-or-path>
 - Chris    (7-dim)          : DISPATCH
-- Quinn    (test/SAST axis) : DISPATCH
-- Bella    (spec axis)      : DISPATCH | SKIP("no spec available — Pattern C, no Jira/bd/SPEC-*.md")
+- Quinn    (test/SAST axis) : DISPATCH | SKIP(recorded bounded tier; no affected boundary)
+- Bella    (spec axis)      : DISPATCH | SKIP("no spec available") | SKIP(recorded bounded tier; acceptance unchanged)
 - Sentinel (security depth) : DISPATCH(trigger:<keywords>) | SKIP("no trigger keyword")
 - Domain   (<expert>)       : DISPATCH(trigger:<keywords>) | SKIP("no trigger keyword")
 → dispatch separate reviewers; parallel only when supported and independent
 ```
 
 กติกา (เขียนติดกับ template — บังคับทั้ง 5 ข้อ):
-1. Chris + Quinn = unconditional DISPATCH — ไม่มี SKIP branch ให้เลือก
-2. Bella SKIP ได้ **เหตุผลเดียว**: "no spec available" หลังไล่ spec source ครบลำดับ
-   (Jira/bd description → user path → outputs/SPEC-*.md → ถาม user) — ต้อง cite ว่าเช็คอะไรแล้ว
+1. An explicitly requested full review requires Chris + Quinn. Routine delivery
+   uses the harness risk tier: Chris remains required; Quinn joins for affected
+   process/network/storage boundaries or project requirements. Record any omission.
+2. Full review includes Bella when spec exists; otherwise report "no spec available"
+   with the sources checked. Routine bounded work follows the harness; changed
+   acceptance always returns to Bella. Do not downgrade an explicit full-review request.
 3. Sentinel SKIP ได้ **เหตุผลเดียว**: "no trigger keyword" — ต้อง scan keyword list ตาม
    `review-checklist/security-sentinel.md` บรรทัด `WHEN: diff_touches in {auth,money,PII,crypto,
    secrets} OR secure_skill_triggered=true` (lazy-load-contract block — canonical, ห้าม fork list
@@ -142,7 +145,7 @@ Beads or a ceremonial printout is not a blocker; missing scope/required ownershi
 🔴 aggregate แยกหัวข้อ `## Standards` / `## Spec` — **ห้าม merge/rerank ข้ามแกน**
 
 **Context-aware focus**:
-- Pattern A (Jira) → cross-check code vs AC ใน description; bd link `bd create -t review-finding --links=$BUG_ID`
+- Pattern A (Jira) → cross-check code vs AC ใน description; link findings through the confirmed record home with existing update authority, otherwise return proposed updates
 - Pattern C (bug description) → focus 7-dim เฉพาะ "เส้นทาง bug" ก่อน (calc logic / edge / expected vs actual); มิติอื่นเป็น secondary
 - Pattern B (path) → full 7-dim + integration matrix
 

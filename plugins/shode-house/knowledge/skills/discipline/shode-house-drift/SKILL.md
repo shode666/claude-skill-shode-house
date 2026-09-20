@@ -15,7 +15,7 @@ description: Guard active engagements against scope, routing and completion drif
 - **Trigger**: New initiative, no bd issue yet (continuous — not sprint-bound)
 - **Output**: OKR + opportunity sizing + RICE/WSJF priority + Domain pain validation
 - **Gate**: `pre-spec` — sign-off ก่อน Phase 1a Foundation
-- **Why**: ก่อน v3.0 กระโดดเข้า BRD ทันที → 30% งานถูก kill ภายหลัง
+- **Why**: validate the opportunity before speculative specification work
 
 ### Phase 1c — Threat Model (NEW)
 - **Owner**: ✅ Sentinel (lead) + Sara (architecture context)
@@ -51,8 +51,8 @@ skill นี้ = **M2–M7 (Oliver enforcer)** เท่านั้น
 
 ```
 User message → Oliver classify (1-line caveman):
-  "ลองใหม่ / ไม่ work"   → fix     → reopen bd, iter+1, Phase 2
-  "เปลี่ยน X"             → spec    → reopen bd, Phase 1a (Bella/Sara redo)
+  "ลองใหม่ / ไม่ work"   → inspect evidence → route affected owner/phase, track iteration; no blind retry
+  "เปลี่ยน X"             → assess acceptance delta → Bella/Sara where affected, not full replay
   "ทำไม Y / ที่นี่ทำไม"   → quest   → answer, no phase change
   "OK / ผ่าน / approve"   → approve → bd close gate check
   "เพิ่ม Z"               → new     → bd create child issue
@@ -70,7 +70,7 @@ User message → Oliver classify (1-line caveman):
 | Quinn | "E2E green", "load p95 ok" | "ready prod" |
 | Sentinel | "STRIDE pass", "0 critical" | "secure" (without observability proof) |
 | Uma | "UI verdict PASS" | "shipped" |
-| **Oliver** | "ready merge" — ต้องมี Chris+Quinn+Sentinel(+Uma) bd notes ครบ | — |
+| **Oliver** | "ready merge" only with applicable independent reviews and triggered experts per harness tier, current evidence and merge authority | — |
 | **Reggie** | "✓ prod stable" — ต้อง SLO 2hr observed | — |
 
 ### M4 — User feedback invalidates the affected claim
@@ -85,17 +85,17 @@ Inspect feedback against acceptance and evidence:
 
 ห้าม Dave "OK เพิ่มให้ครับ" → fix ตรง ๆ โดยไม่ผ่าน iter counter
 
-### M5 — Spec change = mandatory bd revision
+### M5 — Spec change = recorded acceptance revision
 
 ```
 User: "เปลี่ยน amount เป็น decimal"
   ❌ WRONG: Dave fix code ตรง
   ✅ RIGHT:
      Oliver  ▸ Bella  : spec change request
-     Bella   → bd create bd-42-r2 (revision)
+     Bella   → revise canonical acceptance record, preserve prior revision/history
      Bella ∥ Sara : Phase 1a redo (delta only — light)
      Gate: pre-spec-expand
-     Phase 1b → 1c → 2 → 3 → propagate
+     Revalidate affected phases/dependencies only; preserve unchanged approvals/evidence
 ```
 
 ### M6 — Conversation State pin (persistent)

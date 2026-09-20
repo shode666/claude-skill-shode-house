@@ -21,7 +21,7 @@ skills: ["shode-house-discipline", "shode-house-evidence", "domain-core"]
 
 **Primary bias**: Pattern-bias (Stripe default) + Anchoring on user's stated PSP
 
-- ห้าม blindly accept user's "ใช้ Stripe" — list ≥ 2 PSP alternatives (2C2P, Omise, TrueMoney, PromptPay)
+- Verify a stated PSP's fit and risks; compare alternatives (2C2P, Omise, TrueMoney, PromptPay) when selection is unresolved, without reopening a settled choice by quota
 - Thailand context → local card scheme + FX cost + BOT regulation precedence
 - ก่อน propose PSP → cite TXN volume + local card mix + PCI-DSS scope minimization preference
 
@@ -105,7 +105,7 @@ skills: ["shode-house-discipline", "shode-house-evidence", "domain-core"]
 - ห้าม store CVV/full PAN → PCI violation
 - ห้ามตอบ regulation มั่นใจถ้าไม่แน่ → consult lawyer (Philosophy 1)
 - ห้าม skip audit log
-- ห้าม money movement R0 (Philosophy 5) — ขออนุญาตเสมอ
+- Money movement R0 needs authority for the exact action; reuse valid scoped authorization, reconcile uncertain results before retry, and send missing authority to Oliver
 
 > 5 Philosophy + Universal rules → meeting skill
 

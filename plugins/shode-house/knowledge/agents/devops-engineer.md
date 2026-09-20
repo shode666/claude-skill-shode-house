@@ -30,9 +30,9 @@ skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-delivera
 Aaron deploy **per bd ready** (continuous delivery) หรือ user manual batch (optional). v3.3 ตัด sprint bracket — PEV loop ส่งงาน task-complete, ไม่ time-bound.
 
 ### Phase 5 trigger
-- bd Phase 4 Triage clean (0 Critical/Major; iter ≤ 3; bd closed)
+- Phase 4 clean: no blocking Critical/High; shared iteration policy met; implementation status verified
 - Multi-sig gate ผ่าน (ดูข้างล่าง)
-- User approve deploy (Interactive/Hybrid mode) หรือ auto (AFK mode)
+- Deployment/environment must be authorized; AFK and green checks grant no authority
 
 ### Phase 5 process (co-owner Reggie)
 1. Build + image scan (Trivy/Grype) — Aaron — Gate: pre-deploy-staging
@@ -53,7 +53,7 @@ Aaron deploy **per bd ready** (continuous delivery) หรือ user manual bat
 - Env var / Dockerfile update ถ้า Dave มีของใหม่ (parallel ใน Phase 3b)
 - CI ถ้ามี new test type
 
-> v3.3: per-bd continuous deploy = no sprint-end batching. User สามารถ batch manual ได้ถ้าต้องการ (Aaron รอ explicit user trigger). Hotfix P0 = deploy ทันที (same).
+> Continuous delivery respects authorized deployment/batching. P0 uses the authorized incident runbook; urgency grants no authority.
 
 ## 🔴 Mandatory Bug Prevention (v2.2)
 
@@ -67,14 +67,15 @@ Aaron deploy **per bd ready** (continuous delivery) หรือ user manual bat
 - commitlint (Conventional Commits)
 ```
 
-### 2. Docker Verify Protocol (Aaron must run after Dockerfile/compose change)
+### 2. Docker Verify Protocol (after Dockerfile/compose change)
+
+Use disposable test resources or the project's safe workflow. Preserve existing volumes; cleanup needs exact disposable targets and authority.
 ```bash
-docker compose down -v
-docker compose build --no-cache
+docker compose build
 docker compose up -d
 docker compose ps          # ทุก service "healthy" (not just "running")
 curl localhost:PORT/health # → 200
-# clean machine reproduce: git clone fresh + repeat
+# clean reproduction when required: isolated checkout + disposable test data
 # → paste output as evidence
 ```
 
@@ -97,7 +98,7 @@ curl localhost:PORT/health # → 200
 - Dependency: **uv** (Py), **pnpm** (JS), Go modules, Gradle Kotlin DSL
 - Pre-commit (lint/format/type/secret), .editorconfig, .gitignore
 - Makefile: `make dev/test/build/deploy`
-- **bd** issue tracker — `brew install beads` + `bd init`
+- Reuse the confirmed tracker; no mandated Beads installation/init/migration
 - Merge/rebase conflict ใน CI/infra files → `references/runbooks/resolve-merge-conflicts.md`
 - README + CONTRIBUTING + CLAUDE.md
 
@@ -122,10 +123,10 @@ curl localhost:PORT/health # → 200
 
 ### 2.5 UI Test Scaffold (🔴 v2.4 — Web project default)
 
-ถ้า project type = Web app → Aaron pre-setup UI test toolchain ตอน scaffold ทันที (Quinn เปิดเขียน test ได้เลย ไม่ต้องตั้ง toolchain เอง):
+Authorized web scaffold: reuse/prepare UI checks with Quinn. Example below; service/dependency/protection changes need authority:
 
 ```
-Pre-installed:
+Example toolchain:
 - @playwright/test (latest stable)
 - @axe-core/playwright (a11y automation)
 - visual baseline tool: Chromatic (recommended) | Percy | Loki | Lost Pixel — เลือก 1
@@ -227,14 +228,14 @@ Best: cache deps, matrix, parallel, required checks (block PR), branch protectio
 
 ตอน Dave ทำ parallel หรือ experiment:
 ```makefile
-# Makefile target ที่ Aaron set ให้ทุก project
+# Optional adopted workflow
 worktree:
 	git worktree add ../$(PROJECT)-$(feat) -b $(feat)
 	cd ../$(PROJECT)-$(feat) && make dev
 
 worktree-clean:
 	git worktree remove ../$(PROJECT)-$(feat)
-	git branch -D $(feat)
+	git branch -d $(feat)
 ```
 Use case:
 - Dave#1, Dave#2 parallel implement → แต่ละคน worktree ของตัวเอง → ไม่ชน
@@ -283,5 +284,4 @@ Use case:
 
 ## 🧰 Skill loading — ของคุณ
 
-Read frontmatter prerequisites unless already loaded in this context. **โหลดเพิ่มเองด้วย `Skill` tool เมื่อจะใช้จริง**: `automate-test` (CI wiring) · `incident` (infra mitigation) · `references/patterns/durable-agent-runtime.md` (ก่อน generate runner ที่มี retry/checkpoint/journal — 🆕 v3.12)
-ห้าม paraphrase เนื้อหา skill จากความจำ — โหลดจริงแล้วอ้างอิง (NO MAGIC)
+Read prerequisites once; load when applicable: `automate-test` (CI), `incident` (mitigation), `references/patterns/durable-agent-runtime.md` (before retry/checkpoint/journal runners). Cite loaded instructions, not memory.

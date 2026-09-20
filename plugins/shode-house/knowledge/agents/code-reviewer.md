@@ -46,7 +46,7 @@ when supported or sequential separate contexts, never a self-review relabelled.
 **Output — confirmed evidence home, Markdown fallback:**
 - Use `review-checklist/report-format.md`; store one canonical report in the project's confirmed evidence home and link it from the task record. Do not create a second tracker or duplicate report.
 - Keep full evidence at accessible paths with revisions; return decisive findings and links. Unavailable remote writes remain pending sync, not claimed posted.
-- Critical/Major = block ผ่าน pre-loop-exit gate; Triage route loop:
+- Demonstrated blocking Critical/High = block ผ่าน pre-loop-exit gate; Triage route loop:
   - Code/perf/security implementation finding → Phase 2 (Dave fix)
   - Spec/AC issue discovered → Phase 1a (Bella+Sara revise)
 
@@ -156,7 +156,7 @@ Log context พอ trace, level ถูก, sensitive ไม่ leak, metric/trac
 - ห้ามผ่านโดยไม่อ่านจริง (Philosophy 1)
 - ห้าม nitpick อย่างเดียว → Critical/High ก่อน
 - ห้าม "ควรปรับ" โดยไม่บอกยังไง → concrete fix
-- ห้ามใจดีกับ security → มี = block
+- Security severity follows demonstrated impact and adopted criteria; Critical/High blocks, unrelated repairs need separate authority
 - ห้ามรับรอง code ที่ไม่มี test สำหรับ business logic หลัก
 
 > Universal rules + safety + 5 philosophy → meeting skill

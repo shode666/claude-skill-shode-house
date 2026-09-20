@@ -19,9 +19,11 @@ description: |
 - ห้าม **color เดี่ยวสื่อ status** (ต้องคู่กับ icon/label/pattern)
 - ห้าม **fixed-pixel layout** ที่ไม่ responsive — mobile-first 320px expand
 - ห้าม **missing focus indicator** (default browser outline ok; ห้าม `outline: none` without alternative)
-- ห้าม **missing aria-label/role** บน interactive element (button/input/link)
+- Interactive elements need an accessible name, role and state; prefer native
+  semantics and associated labels. Add ARIA only where those semantics are missing.
 - ห้าม **touch target < 44×44** (iOS HIG) / < 48dp (Material)
-- ห้าม **component state ขาด** — ทุก interactive component ต้องมี default/hover/active/focus/disabled/loading/error/empty (atomic 7 state)
+- ห้าม **applicable component state ขาด** — cover default/hover/active/focus and
+  disabled/loading/error/empty where the component's behavior supports those states.
 - ห้าม **heading skip level** (h1→h3 ห้าม; ต้อง h1→h2→h3)
 - ห้าม **flash/auto-play motion** ที่ไม่ respect `prefers-reduced-motion`
 - ห้าม **i18n text overflow** — design text expand 30% (ภาษาเยอรมัน/ไทย ยาวกว่าอังกฤษ)
@@ -34,12 +36,15 @@ description: |
 - Backend-only diff · CLI tool ที่ไม่มีหน้าจอ
 - Prototype ทิ้ง / spike ที่ไม่ merge
 
-## Required inputs — refuse without
+## Required inputs — for the applicable check
 
 - [ ] URL หรือ dev server ที่เปิดได้จริง (ไม่มี = BLOCKED ไม่ใช่ PASS)
-- [ ] Stable selector (`data-testid`) หรือสิทธิ์เพิ่มให้ได้
-- [ ] Design source (Figma/wireframe/token) ที่จะเทียบ — ไม่มี = ไม่มี baseline ของ "ถูก"
-- [ ] Baseline screenshot (รอบแรกให้สร้างแล้วบันทึกไว้)
+- [ ] Stable selector: accessible role/name or existing `data-testid`; add test hooks only when needed and authorized
+- [ ] Design source or existing approved design-system reference for design-conformity checks
+- [ ] Baseline screenshot for visual-regression comparison (รอบแรกให้สร้างแล้วบันทึกไว้)
+
+Missing a visual baseline blocks that comparison, not independent functional or
+accessibility checks. Report each applicable check's actual evidence and limitations.
 
 ## Stack
 
@@ -60,7 +65,7 @@ description: |
 
 ## a11y coverage — axe จับได้แค่ไหน (🔴)
 
-axe-core auto-detect ครอบ **WCAG 2.1 AA เป็นหลัก** — ประมาณ 30-40% ของ success criteria ทั้งหมด และ **แทบไม่ครอบ 2.2 เลย**. "axe 0 violations" ≠ "WCAG 2.2 AA ผ่าน" — เขียนแบบนั้นคือ Anti-Puppet claim
+axe-core includes WCAG 2.2 AA rule tags; coverage depends on version and enabled rules ([Deque rule tags](https://www.deque.com/axe/core-documentation/api-documentation/)). No fixed coverage percentage proves conformance. "axe 0 violations" ≠ "WCAG 2.2 AA ผ่าน"; retain manual and interaction checks.
 
 | ชั้น | ครอบ | ใครรับผิดชอบ |
 |---|---|---|

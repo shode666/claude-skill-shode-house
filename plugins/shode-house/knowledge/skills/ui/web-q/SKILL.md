@@ -17,11 +17,17 @@ description: |
 - Backend-only หรือ API-only service
 - Prototype ที่ยังไม่ deploy
 
-## Required inputs — refuse without
+## Required inputs — for the measurement being claimed
 
-- [ ] URL ที่ deploy แล้ว (staging/prod) — Lighthouse บน localhost ไม่ใช่ตัวแทน field data
+- [ ] Reachable URL for lab checks (local/staging/prod); production telemetry for field claims. A deployed lab run is not itself field data.
 - [ ] Threshold ที่ตกลงกันแล้ว (LCP/INP/CLS budget) — ไม่มี = ไม่มีเส้นแบ่ง pass/fail
 - [ ] Device/network profile ที่จะวัด (mobile 4G เป็น default)
+
+Continue authorized local checks before deployment. Missing field telemetry blocks
+field/p75 attainment claims, not lab verification or implementation preparation.
+Apply SEO, structured data and security-header rollout gates to the actual page,
+hosting environment and project requirements; examples do not authorize deployment
+or require unrelated infrastructure changes.
 
 ## 🎯 4 Axes (ผ่านทั้งหมด ก่อน prod)
 
@@ -111,9 +117,7 @@ onLCP(m => sendBeacon('/metrics/lcp', m.value))
     {"resourceType": "total", "budget": 1500}
   ],
   "timings": [
-    {"metric": "largest-contentful-paint", "budget": 2500},
-    {"metric": "interaction-to-next-paint", "budget": 200},
-    {"metric": "cumulative-layout-shift", "budget": 100}
+    {"metric": "largest-contentful-paint", "budget": 2500}
   ]
 }]
 ```
@@ -125,6 +129,8 @@ Aaron CI (`.lighthouserc.json`):
   "assert": {"preset": "lighthouse:recommended"}
 }}
 ```
+
+Validate budget keys against the installed Lighthouse version. Track INP from real interactions/field data and CLS as a unitless value (target 0.1), not a 100ms timing budget. A navigation lab run does not establish field p75 INP.
 
 ---
 
@@ -167,8 +173,8 @@ Aaron CI (`.lighthouserc.json`):
 ## 4. Security Headers (Sentinel + Aaron)
 
 ```nginx
-# CSP — start report-only แล้ว flip enforce
-add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'nonce-$REQUEST_ID'; style-src 'self' 'nonce-$REQUEST_ID'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; require-trusted-types-for 'script'; trusted-types default" always;
+# Example for self-hosted external scripts/styles; adapt and test report-only first
+add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; require-trusted-types-for 'script'; trusted-types default" always;
 
 # HSTS preload-ready
 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
@@ -182,13 +188,17 @@ add_header Permissions-Policy "camera=(), microphone=(), geolocation=(self)" alw
 # ❌ ห้าม X-XSS-Protection (deprecated, มี vuln เอง)
 ```
 
+Inline scripts/styles need hashes or a fresh cryptographic nonce shared by the response header and authorized HTML elements; a request-ID variable alone is not nonce integration. Inline event handlers require refactoring. HSTS subdomain/preload rollout requires authority and verified HTTPS coverage. See [OWASP CSP](https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html).
+
 ### Trusted Types (DOM XSS — Baseline 2026)
 ```javascript
 const escape = trustedTypes.createPolicy('default', {
-  createHTML: (s) => DOMPurify.sanitize(s, {RETURN_TRUSTED_TYPE: true})
+  createHTML: (s) => DOMPurify.sanitize(s, {RETURN_TRUSTED_TYPE: false})
 })
 element.innerHTML = escape.createHTML(userInput)  // ✅
 ```
+The policy callback returns a sanitized string; the browser policy produces
+TrustedHTML ([DOMPurify guidance](https://github.com/cure53/DOMPurify#what-about-dompurify-and-trusted-types)). Verify the installed sanitizer and CSP policy allowlist together before enforcing.
 
 Rollout: `Content-Security-Policy-Report-Only` ก่อน → flip enforce
 

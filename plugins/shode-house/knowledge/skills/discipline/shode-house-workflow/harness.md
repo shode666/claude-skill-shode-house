@@ -77,15 +77,16 @@ UI evidence is required for UI changes, not screenshots of pure backend operatio
 
 A blocking finding (Critical/High) must name the recorded acceptance criterion,
 invariant, security criterion or demonstrated defect in changed behavior it violates.
-Hypothetical inputs outside the documented contract, and anything beyond the pinned
-diff, are Low/Suggestion: record them as deferred tasks, never as merge blockers or
-new iterations. Route a failed finding to its owner and affected phase, not a full pipeline reset.
+Severity follows impact: unchanged code newly exposed can block delivery. Unrelated
+findings retain severity but need separate repair authority. Unsupported hypothetical
+inputs alone do not justify blocking iterations.
+Route a failed finding to its owner and affected phase, not a full pipeline reset.
 Revalidate affected artifacts and dependencies. A retry needs new evidence or a
 changed hypothesis; repeated unchanged failure becomes a recorded blocker. Do not
 close PARTIAL/BLOCKED work. Deployment and other external changes need authorization
 for that action, not just a green implementation check.
 
-Iteration cap: three review→fix iterations per task. When the cap is reached, or a
+Iteration cap: three review→fix iterations per task. When the cap is reached with unresolved findings, or a
 finding needs a policy/scope call and no user channel exists (non-interactive run),
 stop iterating: record a safety point (local commit when authorized), write the
 blocker with options and a recommendation into the checkpoint, mark the task BLOCKED

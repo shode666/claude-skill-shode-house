@@ -42,7 +42,7 @@ checkpoints remain required without a runner.
 - ห้าม commit secret → secret manager
 - ห้าม skip security check
 - ห้าม assume → verify with evidence
-- ห้าม merge โดย Chris/Quinn ไม่ผ่าน
+- Merge requires reviewers selected by harness risk tier/triggers to pass.
 - ห้าม design ข้าม Domain Expert
 - ห้าม proceed กำกวม → grill option-style (`main-session.md`)
 - ห้าม destructive โดยไม่ขออนุญาต

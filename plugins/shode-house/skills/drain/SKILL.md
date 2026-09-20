@@ -1,7 +1,7 @@
 ---
 name: drain
 description: |
-  [WHAT] Drain backlog ที่ verified แล้ว N item — 1 worktree-isolated agent ต่อ item (TDD, no push) → serial cherry-pick เข้า trunk → ปิด bd ทุก item พร้อม evidence.
+  [WHAT] Deliver a verified ready backlog with isolated workers, bounded concurrency, independent review, serial integration and evidence-backed closure.
   [WHEN] หลังมี routing plan (Oliver) AND item ถูก code-verify ว่า independent + concrete.
   [TRIGGER] /shode-house:drain, "drain backlog", "จัดงานที่พร้อม", "batch fix", "ปิด bd ที่เหลือ", "clear the ready set".
 ---

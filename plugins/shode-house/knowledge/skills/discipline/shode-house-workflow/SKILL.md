@@ -25,7 +25,7 @@ bd close <id> --reason "<sha> <test>"  &&  bd show <id>   # 🔴 M8 close-on-don
 
 ## 🎚️ Engagement Mode (🔴 Oliver เลือกก่อนเริ่ม)
 
-- **AFK** — Oliver delegate ทุก phase + automated gate; user approve เฉพาะ R0 · *งานชัด scope trusted*
+- **AFK** — proceed through applicable phases within recorded scope/authority; unattended mode does not waive deployment, external-write or business-policy approval. Missing authority becomes a checkpointed blocker.
 - **Interactive** — human approve ทุก hand-off + ทุก phase exit; R2/R1 inform · *งานใหม่/ละเอียดอ่อน/audit*
 - **Hybrid** (default แนะนำ) — AFK จนถึง pre-deploy → Interactive ตั้งแต่ deploy ขึ้นไป
 
@@ -43,12 +43,10 @@ bd close <id> --reason "<sha> <test>"  &&  bd show <id>   # 🔴 M8 close-on-don
 
 ## 🔧 Token-saving (🔴 runtime)
 
-- `Grep`/`Glob` (targeted) > `Read` ทั้งไฟล์
-- `Read` with `offset`/`limit` > full
-- `mcp__context7__get-library-docs` > `WebFetch`
-- `WebSearch` > `WebFetch` (link first)
-- Reference ด้วย ID/ชื่อมาตรฐาน + reuse artifact path — ไม่ paste content
-- Oliver: ห้าม re-analyze สิ่งที่ agent อื่นทำแล้ว
+- Search source code narrowly and read relevant context. Selected role/skill instructions must still be read completely as required; do not truncate safety rules to save tokens.
+- Use available documentation tools and primary sources; tool names are host-specific. A search snippet or link alone is not verified evidence.
+- Reuse accessible artifact paths and matching revisions; provide necessary excerpts when the receiver cannot access them.
+- Oliver reuses specialist analysis, but must check returned artifacts, conflicting findings and stale evidence against acceptance; avoiding duplicate work never means blind trust.
 - **Lazy load reference**: `references/languages/<lang>.md`, `references/patterns/general.md`, `references/modern-stack.md`
 
 ---
@@ -88,7 +86,7 @@ bd update <id> --notes "approved: gate=<gate> by=<who> at=<ISO8601> artifact=<pa
 
 **Single loop: PEV (Plan → Execute → Verify → Triage) per bd** (sprint outer loop removed)
 
-> ก่อน v3.3 มี outer sprint loop + inner per-issue loop. v3.3 = **single PEV loop per bd** — agent ส่งงาน task-complete, ไม่ time-bound. ห้าม man-day negotiation (per shode-house-discipline). Deploy = continuous per bd ready, ไม่ batched sprint-end.
+> Task-complete, not time-bound; ห้าม man-day negotiation. Deploy only when ready and authorized, not batched by sprint.
 
 ```
 PICK bd claim → PLAN 0 Discover* / 1a Bella∥Sara / 1b Uma*+Domain* / 1c Sentinel*
@@ -96,15 +94,13 @@ PICK bd claim → PLAN 0 Discover* / 1a Bella∥Sara / 1b Uma*+Domain* / 1c Sent
   → DEPLOY 5 Aaron (continuous per bd) → OPERATE 6 Reggie          (* = conditional)
 
 Triage routing: code/perf/security→2 · UI/design→1b · spec/AC/regulation→1a
-Clean → bd close + bd show verify (M8) + bd remember · iter > 3 → STOP escalate user
+Clean + closure authority → tracker close + read-back (M8); unresolved at third review/fix iteration → STOP, checkpoint and escalate
 ```
 > รายละเอียด pre/post hook ต่อ phase = ตาราง § Lifecycle Hooks ใน `smart-coop.md` (single source)
 
 **Key rules**: ❌ ไม่มี outer sprint loop · ✅ Patrick OKR + Deploy = continuous per-bd · ✅ per-bd reflect ใน Phase 4 Triage
 
-> **Why 1a + 1b แทน 4-way parallel**: Uma + Domain ต้องอ่าน spec ก่อน design/validate → 4-way + cross-read = ~40% redundant token. 1a (Bella ∥ Sara) + 1b (read 1 spec baseline) = quality สูง token ต่ำ
-> **Why 3a before 3b**: UI bug ตรวจที่ Uma ก่อน — Chris/Quinn ไม่เสีย effort review code ที่ design ผิด
-> **Phase routing precision**: Triage แยก code/UI/spec → loop กลับ phase ที่เหมาะ (1a vs 1b vs 2)
+> Uma/Domain consume one approved baseline. UI gates precede downstream review; failures return to the affected phase. Measure token savings, never assume a fixed percentage.
 
 ---
 

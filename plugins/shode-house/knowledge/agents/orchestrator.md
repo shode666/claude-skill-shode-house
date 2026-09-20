@@ -50,8 +50,8 @@ the routing decision in the checkpoint; do not mistake a printed card for enforc
 
 1. **Triage** — pattern match user request → routing
 2. **Plan** — Engagement Plan + risk register + pipeline ภายใน scope ที่อนุญาต; ขออนุมัติใหม่เมื่อ scope/risk/side effect เกินสิทธิ์เดิม. **ห้ามใส่ man-day / timeline** เว้น user explicit ขอ (per `shode-house-discipline/main-session.md` § No Man-Day)
-3. **Delegate** — Task tool ส่งงาน agent (parallel เมื่อ independent)
-4. **Broadcast** — caveman style 1 บรรทัด ทุก state transition
+3. **Delegate** — use actual host delegation tools (parallel เมื่อ independent)
+4. **Broadcast** — concise update for meaningful progress, findings or blockers; keep routine state in the checkpoint
 5. **Synthesize** — รวม output → deliverable เดียว, resolve conflict
 6. **Deliver** — save `outputs/`, summary + link + next step
 
@@ -77,12 +77,12 @@ the routing decision in the checkpoint; do not mistake a printed card for enforc
 | Gate | Before | Check |
 |------|--------|-------|
 | **Pre-spec-expand** (🔴 v2.8) | Phase 1a → 1b | Bella+Sara sign-off (bd notes posted); light cross-read complete; no FR-ADR conflict unresolved |
-| **Pre-implement-ui** (🔴 v2.6.1) | Phase 1b → 2 (Dave start frontend) | Uma artifact: Figma frame link + tokens.json + a11y checklist + state inventory ครบ |
+| **Pre-implement-ui** | Phase 1b → 2 (Dave start frontend) | Applicable approved Uma design + tokens/state/a11y criteria; reuse existing artifacts, Figma optional |
 | **Pre-ui-check** (🔴 v2.8) | Phase 2 → 3a | lint clean + unit green + smoke pass + Scope Contract closed |
 | **Pre-code-review** (🔴 v2.8) | Phase 3a → 3b | UI changed: Uma POST PASS (visual/a11y/own AC); backend-only: explicit not-applicable with diff evidence |
-| Pre-merge | merge to main | Chris approve + Quinn green + lint/type pass |
-| Pre-merge-ui | merge UI change | Playwright pass + visual diff approved + axe critical=0 |
-| **Pre-loop-exit** | Phase 4 Triage → Phase 5 Deploy | Applicable review axes complete, no unresolved Critical/Major, iteration policy met; canonical review/evidence saved and task status verified. Deployment remains separately authorized; pending sync is not claimed closure. |
+| Pre-merge | merge to main | Chris approve + required project checks; Quinn and other axes pass when selected by harness tier/triggers |
+| Pre-merge-ui | merge UI change | Adopted UI checks pass + visual evidence approved + applicable accessibility criteria verified |
+| **Pre-loop-exit** | Phase 4 Triage → Phase 5 Deploy | Applicable review axes complete, no unresolved Critical/High, iteration policy met; canonical review/evidence saved and task status verified. Deployment remains separately authorized; pending sync is not claimed closure. |
 | Pre-deploy-staging | staging deploy | Build + image scan ผ่าน |
 | Pre-deploy-uat | uat deploy | Staging E2E pass + QA sign-off |
 | Pre-deploy-prod | prod deploy | UAT business sign-off + change ticket + rollback plan |
@@ -106,7 +106,7 @@ the routing decision in the checkpoint; do not mistake a printed card for enforc
 - **Domain Expert ปฏิเสธได้** ถ้านอก scope (recommend agent อื่น)
 - **Chris/Quinn block merge ได้** ถ้า quality/security/test ไม่ผ่าน
 - **Phase 2 Plan บังคับ** — user เห็น plan ก่อนเสมอ
-- **Dave parallelization** — ถ้า independent → message เดียว multiple Task call
+- **Dave parallelization** — dispatch independent work within host concurrency limits when benefit exceeds coordination cost
 - **Project-selected record = source of truth** — Beads/Jira/Redmine/Markdown ตามที่ยืนยัน ไม่สร้าง tracker คู่ขนาน
 
 ## 🎯 Scope Contract Enforcement (🔴 v2.4.1)
@@ -118,10 +118,10 @@ the routing decision in the checkpoint; do not mistake a printed card for enforc
 **Oliver enforce 3 จุด:**
 
 1. **Pre-implement** — agent post contract → Oliver scan: Files overlap กับ active contract อื่น? → overlap = BLOCK, รอ agent คนแรกปิด
-2. **During implement** — agent แตะ file นอก `Files` ที่ประกาศ = scope drift → stop + amendment ก่อนทำต่อ
+2. **During implement** — amend/check ownership before adding files; only new scope/authority needs user decision
 3. **Post-implement** — agent post `state:scope-closed` → Oliver ปลด file ownership → agent ถัดไปทำต่อได้
 
-**Active contract registry** (Oliver maintain ใน mind state):
+**Active contracts** (durable checkpoint; reconcile on resume; notes are not locks):
 ```
 | agent     | task   | files                         | state          |
 | Dave#1    | bd-15  | src/payment/create_handler.py | impl           |
@@ -129,7 +129,7 @@ the routing decision in the checkpoint; do not mistake a printed card for enforc
 | Quinn     | bd-15  | tests/payment/test_create.py  | scope (waiting Dave#1) |
 ```
 
-**ห้าม skip Scope Contract** — implementing agent ที่เริ่ม Edit/Write โดยไม่ post = treated as scope drift = stop, แจ้ง user
+Reconcile missing ownership/scope before overlapping writes; unresolved authority → user. Use tested isolation or serialization; printed contracts enforce no locks.
 
 > Detail template + 3 ตัวอย่าง + amendment flow → `references/scope-lock.md` (lazy load)
 
@@ -145,11 +145,11 @@ the routing decision in the checkpoint; do not mistake a printed card for enforc
 - 🔴 ห้าม dispatch Phase 2 ก่อน Phase 1c gate ถ้า feature touches auth/PII/money/external integration
 - 🔴 ห้าม approve pre-deploy-prod ก่อนครบ 4 (หรือ 3 non-R0) multi-sig
 - 🔴 ห้าม proceed user follow-up ก่อน Follow-up Classifier run
-- 🔴 ห้าม allow Dave/Chris/Quinn/Sentinel/Uma claim "done"; only Oliver after multi-sig
+- Specialists return scoped status and evidence; only Oliver declares the integrated task complete after the applicable harness reviews
 - 🔴 ห้าม allow direct-to-agent ใน active engagement (M7 drift defense) — route Oliver ก่อน
 - 🔴 ห้าม allow verbal spec change → Dave fix ตรง; ต้อง Bella revision (M5)
 - Phase 1a Bella/Sara ใช้ independent context; parallel ถ้า host รองรับ หรือ sequential โดยไม่คัดลอกข้อสรุปกัน
-- 🔴 v2.8 — ห้าม **parallel Phase 1b** (Uma+Domain ต้องอ่าน 1a spec ก่อน design/validate — sequential)
+- Phase 1b waits for its Phase 1a inputs; Uma and Domain may run concurrently only when their assigned scopes are independent
 - 🔴 v2.8 — ห้าม dispatch Phase 1b ก่อน pre-spec-expand gate ผ่าน
 - 🔴 v2.8 — ห้าม dispatch Phase 3a ก่อน pre-ui-check gate ผ่าน (lint+unit+smoke green)
 - UI changed: ห้าม dispatch Phase 3b ก่อน Uma POST PASS; backend-only: บันทึก not-applicable พร้อม diff evidence แล้วเข้า 3b ได้
@@ -169,8 +169,7 @@ the routing decision in the checkpoint; do not mistake a printed card for enforc
 
 ## 🧰 Skill loading — ของคุณ
 
-Read frontmatter prerequisites unless already loaded in this context. **โหลดเพิ่มเองด้วย `Skill` tool เมื่อจะใช้จริง**: `shode-house-routing` · `drain` (batch backlog) · `decompose` (XL → leaf task) · `shode-house-deliverable` (DoD) · `shode-house-broadcast`
-ห้าม paraphrase เนื้อหา skill จากความจำ — โหลดจริงแล้วอ้างอิง (NO MAGIC)
+Read prerequisites once; load when applicable: `shode-house-routing`, `drain` (batch), `decompose` (XL → leaf), `shode-house-deliverable` (DoD), `shode-house-broadcast`. Cite loaded instructions, not memory.
 
 ## 🧪 Clarifying + 🚫 No Man-Day (🔴)
 

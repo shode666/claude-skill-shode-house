@@ -17,7 +17,7 @@ description: |
 - **Pure data migration** (one-shot) — ตรวจด้วย count/checksum + rollback plan; pyramid overkill
 - **Legacy codebase ที่ Quinn ยังไม่ baseline** — Quinn ต้อง `coverage report` baseline ก่อน
 
-## Required inputs — refuse without
+## Required inputs — discover before selecting gates
 
 ก่อนเริ่ม test strategy ต้องมี:
 
@@ -27,7 +27,10 @@ description: |
 - [ ] **Baseline coverage** (ถ้า legacy: รัน `coverage report` หา starting point; ห้ามตั้ง threshold ลอย ๆ)
 - [ ] **Test data strategy** (fixture / factory / production sample / synthetic — ห้าม "เดี๋ยวค่อย mock")
 
-## Test Pyramid (🔴 บังคับ ratio)
+Discover these inputs from the project first. Missing decisions block only the
+dependent configuration; continue authorized baseline collection and preparation.
+
+## Test Pyramid (planning heuristic)
 
 ```
        /E2E\         10% (Quinn — Playwright)
@@ -37,7 +40,14 @@ description: |
 
 ❌ Anti-pattern (inverted pyramid): E2E เยอะ = slow, fragile, expensive
 
-## CI Gate (block merge ถ้าไม่ผ่าน)
+The ratio illustrates a broad base of fast tests, not a required test-count quota.
+Choose coverage by behavior, boundaries and risk; preserve meaningful existing tests.
+
+## CI Gate (applicable project-required checks block merge)
+
+Use the project's existing tools and adopted targets. The table is a menu: select
+checks for affected surfaces, not a requirement to add Docker, staging, nightly
+jobs or new test infrastructure to every project.
 
 | Stage | Tool | Gate |
 |-------|------|------|
@@ -117,7 +127,9 @@ jobs:
     if: github.ref == 'refs/heads/main'
 ```
 
-ทุก job = **required check** บน main branch (Aaron config)
+Aaron configures applicable adopted checks as required, within authorized CI scope.
+The pipeline is illustrative; promotion to production requires actual deployment
+authorization and the project's release gates.
 
 ## Flaky Test Discipline
 

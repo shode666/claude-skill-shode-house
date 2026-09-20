@@ -16,7 +16,7 @@ REQUIRED-BEFORE: handoff
 
 ## 📦 Standard Output Deliverables (🔴 v2.5 — FS-inspired)
 
-ทุก domain agent ต้องระบุชัดเจนว่า engagement produce **3-4 named deliverables** (ไม่ใช่แค่ "analyze and report"). ทำให้ downstream automation parse ได้ + user เห็น scope ชัด
+Name domain deliverables by assigned outcome. Examples below are not quotas; one focused result may suffice.
 
 **Template** (วาง section ท้าย agent file):
 ```markdown

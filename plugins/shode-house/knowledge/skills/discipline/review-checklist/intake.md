@@ -14,11 +14,11 @@ REQUIRED-BEFORE: review_start
 
 ## Required inputs — refuse without
 
-- [ ] **ขอบเขต diff ถูก pin มาแล้ว** — caller (Oliver/`/review`) ต้องส่ง **fixed point + diff command ที่รันได้จริง** มาให้ ไม่ใช่ให้ reviewer เดาเอง
-      วิธี resolve (fallback ladder สำหรับ path/snippet/non-git) = `commands/review.md` § Scope resolution · reviewer ตรวจแค่ว่า diff ไม่ว่างและ ref resolve ได้
-- [ ] **Spec source ระบุได้** — หาตามลำดับ: bd-id/issue ref ใน commit message → path ที่ user ส่ง → `outputs/SPEC-<bd-id>.md` / `outputs/<bd-id>/` → ถามผู้ใช้
+- [ ] **Review scope verified** — caller (Oliver/`/review`) ส่ง fixed point + working diff command สำหรับ diff review หรือ accessible full-file/snippet scope สำหรับ non-git review ไม่ให้ reviewer เดาเอง
+      วิธี resolve = `commands/review.md` § Scope resolution; ตรวจ ref/diff เมื่อใช้ diff และตรวจ completeness ของ supplied content เมื่อเป็น full-content review
+- [ ] **Spec source ระบุได้** — หาตามลำดับ: bd-id/issue ref ใน commit message → path ที่ user ส่ง → `outputs/SPEC-<bd-id>.md` / `outputs/<bd-id>/` → ส่งคำถามที่ยังจำเป็นให้ Oliver ถามผู้ใช้
       ไม่มี spec จริง ๆ → Spec axis รายงาน **"no spec available"** ห้าม pass เงียบ
-- [ ] **Static analysis tool พร้อม** (lint/SAST configured — Chris ใช้ Bash จริง ไม่ใช่ "ดู visually")
+- [ ] **Required checks identified** — use actual configured tools; missing tooling is a reported verification limit, not permission to install it. Continue supported review, holding only acceptance that requires the missing check.
 - [ ] **Canonical task/evidence home available** — project-selected tracker or Markdown fallback; findings must survive the chat.
 - [ ] **Severity scale agreed** (project ใช้ 🔴/🟠/🟡/🔵/💡 default — ห้าม "minor/major" loose)
 - [ ] Record `[REVIEW DISPATCH CARD]` in the checkpoint or report before dispatch;

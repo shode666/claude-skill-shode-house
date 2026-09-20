@@ -14,6 +14,11 @@ REQUIRED-BEFORE: first_commit
 
 > แยกจาก `SKILL.md` เป็น config ที่ copy ไปใช้ตอน setup project ครั้งเดียว ไม่ใช่สิ่งที่ต้องอ่านทุกครั้งที่เขียน code
 
+Use these examples only when the requested project setup includes adopting this
+tooling. Reuse existing hooks and checks; do not install or replace them merely to
+satisfy the plugin. Verify installed versions and actual command syntax before use.
+The setup steps below require that scope and do not grant commit authority.
+
 ติดตั้ง `pre-commit` ([pre-commit.com](https://pre-commit.com)) + `.pre-commit-config.yaml`:
 
 ```yaml

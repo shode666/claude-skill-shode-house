@@ -6,6 +6,11 @@ argument-hint: "[bd-id]"
 
 Implement: **$ARGUMENTS** (bd-id หรือ feature description)
 
+Use the harness's confirmed record homes, available tools and verification tier.
+The full pipeline below applies when that tier requires it; retain triggered experts
+and their knowledge. Reuse approved design and implementation authority. Beads,
+shell and UI-tool examples are not prerequisites or permission to commit/deploy.
+
 ## Pipeline (Phase 2 → 3a → 3b → 4)
 
 ### 0. UI Precondition Check (Oliver — 🔴 auto-trigger)
@@ -29,11 +34,14 @@ echo "$DAVE_PLANNED_FILES" | grep -qE "\.(vue|tsx|jsx|svelte|html|css|scss|sass|
 
 **Detection หลังจาก Dave Phase 2 done** (re-check ก่อน Step 5):
 ```bash
-# git diff ของ Dave's commit → frontend triggered ไหม
-git diff --name-only HEAD~1 HEAD | grep -qE "\.(vue|tsx|jsx|svelte|html|css|scss|sass|less)$|/(frontend|components|pages|views|app)/" \
-  && echo "FRONTEND CHANGED — Phase 3a Uma POST MANDATORY" \
-  || echo "no frontend — skip Phase 3a"
+# TASK_BASE = verified revision recorded before this task; include current task edits
+git diff --name-only "$TASK_BASE" --
 ```
+
+Inspect the successful output for the frontend patterns above. A missing base or
+failed diff is unresolved detection, never evidence that frontend was unchanged.
+Also inspect task-owned untracked files. In a dirty checkout, attribute changes to
+this task using its recorded scope; do not count unrelated user edits as Dave's work.
 
 ถ้า frontend detected แต่ Phase 1b ไม่มี Uma artifact = Dave touch UI โดยไม่ผ่าน design = scope drift = STOP + escalate
 
@@ -60,7 +68,7 @@ git diff --name-only HEAD~1 HEAD | grep -qE "\.(vue|tsx|jsx|svelte|html|css|scss
 - Feature flag (ถ้า risky)
 - Observability: log + metric (RED) + trace
 - Parallel Dave#1/#2 ถ้า truly independent files (Scope Contract enforce no overlap)
-- Commit: Conventional Commits + bd ref (`feat(...): ... [bd:42]`)
+- Commit only when authorized; if committing, use Conventional Commits + task ref (`feat(...): ... [bd:42]`). Otherwise record the source revision and uncommitted diff/artifact evidence.
 
 ### 4. Smoke Test (Dave) — 🔴 screenshot mandatory ถ้า frontend
 
@@ -148,9 +156,9 @@ if any critical/major:
     → Phase 1a (Bella ∥ Sara revise)
 elif any minor:
   bd create -p4 "..." (defer P4 backlog)
-  → bd close <id> --reason "minor deferred <sha> <test_result>"
+  → bd close <id> --reason "minor deferred <source_revision_and_diff_evidence> <test_result>" # when closure authorized
 else: # clean
-  bd close <id> --reason "clean <commit_sha> <test_result>"
+  bd close <id> --reason "clean <source_revision_and_diff_evidence> <test_result>" # when closure authorized
 
 # 🔴 M8 Close-on-Done Guard (บังคับหลังทุก bd close):
 bd show <id>   # ต้องอ่านได้ว่า CLOSED แล้ว paste output — ห้าม claim "ปิดแล้ว" ลอย ๆ
@@ -173,6 +181,6 @@ if iter > 3:
 7. Quinn integration/E2E + contract + load + a11y axe สำหรับ critical path
 8. Domain Expert validation บังคับสำหรับ sensitive (parallel ใน Phase 3b)
 9. ห้าม merge จน Phase 3a + 3b ผ่าน + Phase 4 clean (pre-loop-exit gate)
-10. 🔴 **Close-on-Done (M8)**: ทุก `bd close` ต้องมี `--reason` = verdict + commit sha + test result แล้ว `bd show <id>` paste ยืนยัน CLOSED. code merged แต่ bd ยัง OPEN = ยังไม่ done
+10. 🔴 **Close-on-Done (M8)**: เมื่อ closure อยู่ใน authority ให้บันทึก verdict + source revision/diff evidence + test result แล้ว read back สถานะจริง (`bd show` เมื่อใช้ Beads). Commit/merge เป็นเงื่อนไขเฉพาะเมื่อ acceptance ต้องการและได้รับ authorization; ห้ามสร้าง commit เพื่อให้ template ครบ
 11. Batch หลาย bd อิสระในรอบเดียว → ใช้ `drain` skill (worktree fan-out + serial cherry-pick + close-on-done) ไม่ใช่ /implement ซ้ำ ๆ
 12. ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim

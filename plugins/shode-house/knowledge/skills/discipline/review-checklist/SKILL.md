@@ -9,7 +9,8 @@ description: Coordinate independent code, integration, spec, security and domain
 
 ## When NOT to use
 
-Spike/throwaway · generated code · pure doc change · P0 hot-fix (รันเฉพาะ 🔴 Critical แล้ว track ที่เหลือ) → รายละเอียด `intake.md`
+See `intake.md` for content/generated/spike review. Agent instructions and permissions
+are not mere docs; urgency alone never waives required review or security gates.
 
 ## Required inputs — refuse without
 
@@ -40,11 +41,11 @@ diff scope ที่ pin แล้ว · spec source (ไม่มี = รา�
 
 ## 🔴 Gate ที่ทุกแกนต้องผ่าน
 
-1. **Adversary stance** — verdict default = **FAIL จนกว่าพิสูจน์ PASS ด้วย evidence ที่รันเอง**; "should be fine" ของ Dave counter ด้วย own-run evidence เท่านั้น (→ `shode-house-routing`)
-2. **Anti-Puppet** — ห้าม claim PASS โดยไม่ paste tool output (axe / coverage / Semgrep / Pact) · ห้าม "looks good" ต้อง cite `file:line` · ห้าม skip แกนเพราะ "minor change"
+1. **Adversary stance** — verify independently: demonstrated defect = FAIL; missing required evidence = BLOCKED/PARTIAL, never PASS. Counter "should be fine" with actual evidence, not assumed failure (→ `shode-house-routing`).
+2. **Anti-Puppet** — ห้าม claim PASS โดยไม่ paste tool output (axe / coverage / Semgrep / Pact) · ห้าม "looks good" ต้อง cite `file:line` · ห้าม skip แกนที่ harness tier/trigger กำหนดเพียงเพราะงานเล็ก
 3. **Visual verify** — UI changes require actual screenshot/interaction, console and network evidence per `ui-test`. Backend-only API/CLI/library work uses response, behavior and relevant integration evidence, not screenshots. Missing applicable evidence = **BLOCKED**; browser MCP is not required.
 4. **Finding ทุกข้อ** ระบุ `file:line` + severity + วิธีแก้ และ track ใน tracker ไม่ใช่ค้างในแชท (`report-format.md`)
-5. **ขอบเขต = diff จาก fixed point ที่ pin ไว้** — นอกขอบเขต = 💡 ไม่ใช่ block; 🔴/🟠 ต้องระบุ AC/invariant/security criterion ที่ละเมิด หรือ defect ที่ demo ได้ใน changed behavior — input สมมติที่อยู่นอก contract ที่บันทึกไว้ = 🔵/💡 deferred ไม่เปิด iteration ใหม่
+5. **Scope is pinned; severity follows impact.** Blockers need violated AC/invariant/security criteria or a demonstrated defect, including unchanged code newly exposed by this change. Unrelated findings retain severity but require separate repair authority. Hypothetical unsupported inputs alone do not justify new iterations.
 6. **money/PII/auth** → Domain Expert + Sentinel ลงชื่อก่อน merge
 
 ## 🛑 Stop condition (🔴 objective-based — ไม่ใช่ turn cap)

@@ -57,11 +57,11 @@ Philosophy ไม่ override user/project/host instructions; เป้าหม
 "ทำไม Y"               → quest   → ตอบ, ไม่เปลี่ยน phase
 "OK / ผ่าน / approve"  → approve → bd close gate check (ดู §6)
 "เพิ่ม Z"              → new     → bd create child issue
-"เสร็จยัง"             → status  → bd show, ไม่ทำอะไรต่อ
+"เสร็จยัง"             → status  → ตรวจ canonical record, ตอบสั้น แล้วทำ active task ต่อใน scope เดิม
 ```
 
 **M4** Inspect user feedback against the claim and evidence. A reported defect reopens the affected criterion; a question is not automatically FAIL. Record findings and do not close unresolved work.
-**M5** spec change = **บังคับ bd revision** (Bella สร้าง `bd-<id>-r2`) ห้าม Dave fix ตรง
+**M5** spec change → Bella revise the confirmed requirement record and re-check affected acceptance; retain its canonical ID and history, not a mandatory new Beads issue
 **M7** user ping agent ตรง = ดึงกลับมา classify ที่ Oliver ก่อน
 
 ## 4. Routing (19 agents / 7 teams)
@@ -93,6 +93,9 @@ Philosophy ไม่ override user/project/host instructions; เป้าหม
 
 ## 5. Phase Contract — PEV loop ต่อ 1 bd
 
+The diagram is the full tier. Select the applicable tier and required reviewers
+using the harness; retain all triggered roles and explicitly requested reviews.
+
 ```
 PICK (bd claim) → PLAN 0 Discover* / 1a Bella∥Sara / 1b Uma*+Domain* / 1c Sentinel*
   → EXECUTE 2 Dave  → VERIFY 3a Uma* → 3b Chris∥Quinn  → TRIAGE 4 Oliver
@@ -105,7 +108,7 @@ Triage routing: code/perf/security → Phase 2 · UI/design → Phase 1b · spec
 
 ## 6. M3 Anti-Puppet + M8 Close-on-Done (🔴 ห้ามพลาด)
 
-- Dave พูดได้แค่ "code edited / smoke ✓" · Chris "7-dim clean" · Quinn "E2E green" · Uma "UI verdict PASS" — **ห้ามใครพูด "เสร็จแล้ว / ready merge" นอกจาก Oliver** และ Oliver พูดได้ต่อเมื่อมี bd notes ของ Chris+Quinn(+Uma/Sentinel) ครบ
+- Dave reports implementation/smoke status; reviewers report their actual verdicts. Oliver declares overall completion only after the chosen tier's required review and acceptance evidence is integrated in the canonical record; a worker's completion is not the integration verdict.
 - Close the canonical task only with required review/evidence and authority, then read back its status. In Beads this is `bd close` then `bd show`; use the equivalent confirmed service operation or Markdown update elsewhere. Unavailable service writes remain pending sync, not claimed CLOSED.
 - `PARTIAL`/`BLOCKED` คง OPEN + note ตรงไปตรงมา ห้าม close ให้ตัวเลขสวย
 
@@ -113,9 +116,9 @@ Triage routing: code/perf/security → Phase 2 · UI/design → Phase 1b · spec
 
 1. Producer เขียน artifact ลงไฟล์ก่อน → `outputs/<bd-id>/<NN>-<agent>-<phase>.md`
 2. Delegation ส่ง **canonical task ID/record + accessible paths/revisions + phase/iter + scope/acceptance**; ไม่มี shared filesystem ใช้ source-marked excerpt ตาม harness ไม่บังคับ bd-id
-3. Consumer `Read` ไฟล์เอง — ห้ามพึ่งสรุปใน prompt
-4. Producer return = verdict + path + open questions เท่านั้น (ห้าม dump transcript กลับ)
-5. ห้าม Oliver re-analyze สิ่งที่ agent อื่นทำแล้ว
+3. Consumer reads accessible source artifacts; when files are not shared, use the necessary source-marked excerpts under the harness
+4. Producer returns status, artifact/revision, checks performed, decisive findings/dissent, open questions and next owner; omit the full transcript
+5. Oliver checks returned evidence against acceptance and integration scope; reuse verified work rather than rerunning it without cause
 
 ## 8. Report Brevity — work deep, report short (🔴)
 

@@ -127,7 +127,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{N}' 'stri
 ### Trusted Types — DOM XSS defense (Baseline 2026)
 - รถบรรทุก escape ทุก sink (innerHTML, eval, srcdoc)
 - Rollout: `Content-Security-Policy-Report-Only` 2 สัปดาห์ → flip enforce
-- Angular: built-in support; React 19+: produces TrustedHTML
+- Verify framework/browser support for the deployed versions. React does not sanitize raw HTML for you: pass trusted, sanitized content and a policy-created TrustedHTML value where required ([React documentation](https://react.dev/reference/react-dom/components/common)).
 
 ### Secrets management
 | Where | What | Tool |
@@ -146,7 +146,9 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{N}' 'stri
 - trivy fs (filesystem scan)
 ```
 
-## OWASP ASVS L2 minimum (pen test target)
+## OWASP ASVS review mapping
+
+The chapter labels below follow ASVS 4.x and are illustrative checks, not a complete L2 certification checklist. Record the adopted version and applicable requirement IDs from [OWASP ASVS](https://owasp.org/projects/asvs); ASVS 5 renumbers chapters. Select controls from threat/risk requirements, not example technology names.
 
 - V1 Architecture: documented + trust boundary mapped
 - V2 Authentication: MFA available + session timeout

@@ -35,7 +35,7 @@ Full template per finding (file:line · why it matters · evidence path · sugge
 
 ### Output budget (🔴 §5.13 — bd:shode-roadmap/C-G1)
 inline (bd note / return message) ≤ **10 findings** เรียง severity — เกิน → นับรวมต่อ severity + full list ใน artifact/md แล้ว link path
-return ต่อ orchestrator = verdict + ตัวเลขสรุป + path เท่านั้น — **ห้ามตัด**: evidence line · security finding · ตัวเลข · dissent (ตาม discipline)
+return ต่อ orchestrator = status + artifact/revision + checks performed + decisive findings/dissent + questions/next owner ตาม harness; compact summary ต้องเก็บ evidence และ blockers ห้ามจำกัดเหลือ verdict/path จนตรวจ acceptance ไม่ได้
 
 ### Storage rule (🔴 ห้ามเขียนซ้ำ 2 ที่)
 
@@ -60,10 +60,10 @@ Chris/Quinn/Sentinel **must recommend** loop route ใน report:
 | Finding type | Route → |
 |---|---|
 | Code logic / SOLID / perf | Phase 2 (Dave fix) |
-| UI / visual / a11y manual | Phase 1b (Uma redesign) |
+| UI / visual / a11y manual | implementation ไม่ตรง approved design → Phase 2; baseline/design ผิด → Phase 1b (Uma) |
 | Spec / AC / regulation gap | Phase 1a (Bella ∥ Sara revise) |
 | Test gap | Phase 2 (Dave) + invoke `automate-test` skill (Quinn) |
-| Security finding | Phase 1c (Sentinel threat model update) → Phase 2 |
+| Security finding | implementation gap → Phase 2; threat model/security acceptance gap → Phase 1c ก่อนแก้ affected implementation |
 | Multi-route | Oliver triage (don't recommend; defer) |
 
 ---
