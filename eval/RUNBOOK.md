@@ -254,7 +254,8 @@ claude                                                        # session ให�
 # หลังจบ:
 cd ~/workspace/shode-house
 S=$(ls -t ~/.claude/projects/-Users-<you>-workspace-<fixture>/*.jsonl | head -1)
-python3 scripts/eval-scorer.py "$S" --scenario GSn-... --project <fixture project> --bd-id <id> --out eval/baseline/e2e-golden/run-N
+python3 scripts/eval-scorer.py "$S" --scenario GSn-... --project <fixture project> --bd-id <id> --out eval/baseline/e2e-golden/run-N \
+  --behaviour-checks G1,G3      # GS2–GS5: enforce read-record-before-spawn + delegation-prompt contract (report-only without the flag)
 ```
 exit 0 PASS · 1 FAIL · 2 UNSCORABLE (input หาย — ไม่ใช่ PASS)
 

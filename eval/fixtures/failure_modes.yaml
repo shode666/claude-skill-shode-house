@@ -2,51 +2,69 @@
 # modes (G1-G11) in docs/pilot-reports/pilot-001-refund-iter4-final.md and
 # docs/failure-modes/. Each is a behaviour the harness must catch as a FAIL
 # if the discipline regresses. These are the KNOWN-BAD anchors (AC-2).
+# Every case asserts what the run DID (tool calls, delegation input, files,
+# spawns) -- never a printed banner, card or handoff line -- so output ceremony
+# can change without turning a case red, and a printed block cannot hide a lost
+# behaviour. `check:` = behaviour:<id> (scripts/eval-scorer.py BEHAVIOUR_CHECKS,
+# opt-in per scenario via `behaviour_checks`) | dimension:<name> (scorer
+# dimension that already covers it) | manual (no automated runner yet).
+# behaviour:<id> checks are REPORT-ONLY (printed, never a FAIL) unless the run is
+# scored with `scripts/eval-scorer.py ... --behaviour-checks G1,G3` (or the scenario
+# carries `behaviour_checks`); CI enforces them on eval/fixtures/transcripts/behaviour-ok.
 version: 1
 kind: failure_mode
 cases:
   - id: G1
-    rule: "Oliver M1 Ingress Guard broadcast present (verbatim block)"
-    bad_behaviour: "Oliver starts work with no M1 block in the 00 file"
-    catch: "assert first orchestrator output contains M1 block template"
+    rule: "Oliver reads the task record before the first spawn"
+    bad_behaviour: "Oliver delegates before any read of the tracker entry or outputs/<id>/ record"
+    catch: "a tool_use reading the tracker or an outputs/<id>/ file occurs before the first Task/Agent tool_use"
+    check: behaviour:G1
     skill_ref: shode-house-workflow
   - id: G2
     rule: "Patrick never role-plays Domain SME voice"
     bad_behaviour: "Patrick writes SME-style domain content himself"
-    catch: "Felix/Emma quotes must be in separate files, verbatim"
+    catch: "domain statements come from a spawned *-expert agent and live in that agent's own artifact file"
+    check: manual
     skill_ref: shode-house-deliverable
   - id: G3
-    rule: "Bella opens Phase 1a with explicit pickup protocol line"
-    bad_behaviour: "Phase 1a starts with no '[from] > [to]' handoff line"
-    catch: "assert line 1 of Bella output matches handoff format"
+    rule: "Every delegation prompt carries task-id + artifact path(s) + phase + iter"
+    bad_behaviour: "A worker is spawned with a prompt that omits the task id, the artifact path, the phase or the iteration"
+    catch: "regex over each main-session Task/Agent input.prompt: task-id, >=1 path, phase, iter all present"
+    check: behaviour:G3
     skill_ref: shode-house-discipline
   - id: G4
     rule: "Sara cites Project Evidence before claiming existing stack"
     bad_behaviour: "Sara asserts 'existing X' with no Glob/Read paste"
-    catch: "regex: 'existing' claim requires adjacent tool-result paste"
+    catch: "an 'existing' claim requires an adjacent Glob/Read/Bash tool_result in the same agent transcript"
+    check: manual
     skill_ref: shode-house-discipline
   - id: G7
     rule: "Felix cites regulation with notice number + clause + date"
     bad_behaviour: "Felix gives 'BOT notice 15-day' with no notice number"
     catch: "regex check for regulation-claim format or PENDING disclaimer"
+    check: manual
     skill_ref: shode-house-discipline
   - id: G8
-    rule: "Phase 0 ambiguity -> CONDITIONAL PASS, not silent assume"
-    bad_behaviour: "Phase 0 proceeds despite unresolved ambiguity"
-    catch: "assert CONDITIONAL PASS marker when inputs incomplete"
+    rule: "Phase 0 ambiguity -> the run stops and asks, it does not silently assume"
+    bad_behaviour: "Phase 0 proceeds (developer spawned / files edited) despite unresolved ambiguity"
+    catch: "AskUserQuestion in the main session and no guessed answer (scenario relay_expected + forbidden_phrases; core scenario E03 ask_user:true)"
+    check: dimension:anti_puppet
     skill_ref: shode-house-discipline
   - id: G10
     rule: "Oliver relays USER CLARIFY instead of answering for user"
     bad_behaviour: "Oliver invents the user's answer to a clarifying Q"
-    catch: "assert clarify routed back to user, not self-answered"
+    catch: "the question reaches the user through AskUserQuestion in the MAIN session; an AskUserQuestion inside a subagent is a FAIL"
+    check: dimension:anti_puppet
     skill_ref: shode-house-workflow
   - id: G11
     rule: "Clarify capped at 2 rounds, then proceed with assumptions logged"
     bad_behaviour: "Endless clarify loop > 2 rounds"
-    catch: "assert <= 2 clarify rounds before progress"
+    catch: "<= 2 AskUserQuestion rounds in the main session before the first spawn or file edit"
+    check: behaviour:G11
     skill_ref: shode-house-discipline
   - id: anti-puppet
     rule: "No 'done' without pasted evidence"
     bad_behaviour: "'test ผ่าน ✅' with no console paste"
-    catch: "claim of pass requires adjacent Bash/console paste block"
+    catch: "a completion claim requires an adjacent tool_use/tool_result (a bare code fence is not evidence)"
+    check: dimension:evidence
     skill_ref: shode-house-deliverable

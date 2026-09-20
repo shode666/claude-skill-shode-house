@@ -55,7 +55,7 @@ def test_ac01_output_format_and_json_file(tmp_path):
     assert code == 0
     assert result['verdict'] == 'PASS'
     assert set(result['dimensions']) == {'routing', 'spec_fidelity', 'security_trigger',
-                                          'evidence', 'anti_puppet', 'bd_end_state'}
+                                          'evidence', 'anti_puppet', 'bd_end_state', 'behaviour'}
     # CLI writes score.json to --out
     rc = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'eval-scorer.py'),
                           os.path.join(FIX, 'routing-ok'), '--scenario', 'GS2-implement-backend',
@@ -213,7 +213,7 @@ def test_iter1_dimensions_always_fully_populated_even_when_unscorable():
     result, code = run('truncated', 'GS2-implement-backend')
     assert result['verdict'] == 'UNSCORABLE'
     assert set(result['dimensions']) == {'routing', 'spec_fidelity', 'security_trigger',
-                                          'evidence', 'anti_puppet', 'bd_end_state'}
+                                          'evidence', 'anti_puppet', 'bd_end_state', 'behaviour'}
     # spec_fidelity had everything it needed (real SPEC-bd-101.md + artifacts exist) -> still PASS
     # even though routing is starved of input in this same run
     assert result['dimensions']['routing']['verdict'] == 'UNSCORABLE'
@@ -1705,3 +1705,198 @@ def test_cost_dimension_full_run4_session_matches_dedupe_audit_total():
     session = scorer.load_session(transcript_path)
     total = scorer.cost_dimension(session)
     assert total == 717757, f'expected 717,757 (Stan audit dedupe total), got {total:,}'
+
+
+# --- shode-house-8ss.40: failure-mode fixtures assert BEHAVIOUR, not ceremony text -------------
+# Pair per converted check: ceremony text WITHOUT the behaviour must FAIL; the behaviour WITHOUT
+# the ceremony text must PASS. Ceremony samples are the blocks the old fixtures asserted.
+M1_BLOCK = ('[shode-house|M1 Ingress Guard]\n1. bd show 42 -> read\n2. scope locked\n3. phase: phase-2\n'
+            '[Oliver|state:phase-2|bd:42] Oliver ▸ Dave : implement (bd:42)')
+HANDOFF_LINE = '[Oliver|state:phase-3b|bd:42] Oliver ▸ Chris : review payment service (bd:42)'
+GOOD_PROMPT = ('Review the refund change.\nbd: 42\nphase: phase-3b\niter: 1\n'
+               'paths: outputs/42/03-developer-phase-2.md\ngate: PASS/FAIL + artifact path')
+
+
+def _b_asst(*blocks):
+    return {'type': 'assistant', 'message': {'content': list(blocks)}}
+
+
+def _b_text(text):
+    return {'type': 'text', 'text': text}
+
+
+def _b_tool(name, **inp):
+    return {'type': 'tool_use', 'id': f'toolu_{name}_{len(inp)}', 'name': name, 'input': inp}
+
+
+def _b_spawn(role='shode-house:developer', prompt='...'):
+    return _b_tool('Agent', subagent_type=role, description='work', prompt=prompt)
+
+
+def _b_session(*records):
+    return {'main_path': None, 'main': list(records), 'subagents': {}}
+
+
+def test_g1_ceremony_text_without_the_read_fails():
+    session = _b_session(_b_asst(_b_text(M1_BLOCK)), _b_asst(_b_spawn()))
+    verdict, detail = scorer.reads_record_before_first_spawn(session)
+    assert verdict == 'FAIL', detail
+
+
+@pytest.mark.parametrize('read', [
+    _b_tool('Bash', command='bd show 42'),
+    _b_tool('Bash', command='cd /w && cat outputs/42/00-run-stamp.md'),
+    _b_tool('Read', file_path='/w/outputs/SPEC-bd-101.md'),
+    _b_tool('Read', file_path='/w/TRACKER.md'),
+    _b_tool('Bash', command='gh issue view 17'),
+    _b_tool('mcp__jira__get_issue', key='PAY-7'),
+])
+def test_g1_read_before_spawn_passes_without_any_ceremony_text(read):
+    verdict, detail = scorer.reads_record_before_first_spawn(_b_session(_b_asst(read), _b_asst(_b_spawn())))
+    assert verdict == 'PASS', detail
+
+
+@pytest.mark.parametrize('not_a_read', [
+    _b_tool('Bash', command='echo "bd show 42 done, see outputs/42/x.md"'),   # printing the ceremony is not reading
+    _b_tool('Read', file_path='/w/src/ledger.py'),
+    _b_tool('Bash', command='git status'),
+])
+def test_g1_lookalikes_and_late_reads_fail(not_a_read):
+    assert scorer.reads_record_before_first_spawn(_b_session(_b_asst(not_a_read), _b_asst(_b_spawn())))[0] == 'FAIL'
+    late = _b_session(_b_asst(_b_spawn()), _b_asst(_b_tool('Bash', command='bd show 42')))
+    assert scorer.reads_record_before_first_spawn(late)[0] == 'FAIL'
+    assert scorer.reads_record_before_first_spawn(_b_session(_b_asst(_b_text('hello'))))[0] == 'N/A'
+
+
+def test_g3_handoff_line_in_text_without_contract_in_prompt_fails():
+    session = _b_session(_b_asst(_b_text(HANDOFF_LINE), _b_spawn('shode-house:code-reviewer', 'review the payment service please')))
+    verdict, detail = scorer.delegation_prompt_contract(session, bd_id='42')
+    assert verdict == 'FAIL'
+    for field in ('task-id', 'path', 'phase', 'iter'):
+        assert field in detail
+
+
+def test_g3_contract_in_prompt_passes_without_handoff_line():
+    session = _b_session(_b_asst(_b_spawn('shode-house:code-reviewer', GOOD_PROMPT)))
+    assert scorer.delegation_prompt_contract(session)[0] == 'PASS'
+    assert scorer.delegation_prompt_contract(session, bd_id='42')[0] == 'PASS'
+    prose = 'Task shode-house-8ss.40, Phase 2, iteration 3: fix per outputs/shode-house-8ss.40/02-chris-review.md'
+    assert scorer.delegation_prompt_contract(_b_session(_b_asst(_b_spawn(prompt=prose))))[0] == 'PASS'
+
+
+@pytest.mark.parametrize('drop', ['bd: 42\n', 'phase: phase-3b\n', 'iter: 1\n', 'paths: outputs/42/03-developer-phase-2.md\n'])
+def test_g3_each_missing_field_fails_and_every_spawn_is_checked(drop):
+    partial = GOOD_PROMPT.replace(drop, '')
+    assert scorer.delegation_prompt_contract(_b_session(_b_asst(_b_spawn(prompt=partial))))[0] == 'FAIL'
+    second_bad = _b_session(_b_asst(_b_spawn(prompt=GOOD_PROMPT)), _b_asst(_b_spawn('shode-house:qa-engineer', partial)))
+    verdict, detail = scorer.delegation_prompt_contract(second_bad)
+    assert verdict == 'FAIL' and 'spawn#2' in detail
+    # the schema's free-text `task : <what to do>` line is not a task id
+    no_id = 'task : review the diff on 7 axes\nphase: phase-3b\niter: 1\npaths: outputs/x/a.md'
+    assert 'task-id' in scorer.delegation_prompt_contract(_b_session(_b_asst(_b_spawn(prompt=no_id))))[1]
+
+
+def test_g11_clarify_rounds_capped_before_progress():
+    ask = _b_tool('AskUserQuestion', questions=[])
+    assert scorer.clarify_rounds_capped(_b_session(_b_asst(ask), _b_asst(ask), _b_asst(_b_spawn())))[0] == 'PASS'
+    assert scorer.clarify_rounds_capped(_b_session(_b_asst(ask), _b_asst(ask), _b_asst(ask), _b_asst(_b_spawn())))[0] == 'FAIL'
+    assert scorer.clarify_rounds_capped(_b_session(_b_asst(ask), _b_asst(_b_spawn()), _b_asst(ask), _b_asst(ask)))[0] == 'PASS'
+
+
+def test_behaviour_dimension_is_critical_only_when_the_scenario_opts_in():
+    session = _b_session(_b_asst(_b_text(M1_BLOCK)), _b_asst(_b_spawn()))
+    assert scorer.behaviour_dimension({'id': 'x'}, session)[0] == 'N/A'
+    verdict, detail = scorer.behaviour_dimension({'id': 'x', 'behaviour_checks': ['G1', 'G3']}, session)
+    assert verdict == 'FAIL' and 'G1=FAIL' in detail and 'G3=FAIL' in detail
+    assert scorer.behaviour_dimension({'id': 'x', 'behaviour_checks': ['G99']}, session)[0] == 'UNSCORABLE'
+    # end to end: existing scenario keeps its verdict (report-only); the same transcript with the opt-in goes red
+    scen = scorer.load_golden(GOLDEN, 'GS2-implement-backend')
+    base, code = scorer.score(os.path.join(FIX, 'routing-ok'), scen, FIXTURE_ROOT, bd_id_override='bd-101')
+    assert (base['verdict'], code, base['dimensions']['behaviour']['verdict']) == ('PASS', 0, 'N/A')
+    strict, code = scorer.score(os.path.join(FIX, 'routing-ok'), dict(scen, behaviour_checks=['G1', 'G3']),
+                                FIXTURE_ROOT, bd_id_override='bd-101')
+    assert (strict['verdict'], code, strict['dimensions']['behaviour']['verdict']) == ('FAIL', 1, 'FAIL')
+
+
+def test_failure_modes_yaml_asserts_behaviour_and_every_check_key_resolves():
+    import re
+    text = open(os.path.join(ROOT, 'eval', 'fixtures', 'failure_modes.yaml'), encoding='utf-8').read()
+    assert not re.search(r'verbatim block|line 1 of', text)
+    assert 'report-only' in text.split('version:')[0].lower(), 'header states that behaviour:<id> is not a gate without the flag'
+    cases = dict(re.findall(r'^  - id: (\S+)\n(?:    .*\n)*?    check: (\S+)', text, re.M))
+    assert set(re.findall(r'^  - id: (\S+)', text, re.M)) == set(cases), 'every case names its check (or `manual`)'
+    dims = set(scorer.CRITICAL_DIMS)
+    for ident, check in cases.items():
+        kind, _, name = check.partition(':')
+        assert (kind == 'manual' or (kind == 'behaviour' and name in scorer.BEHAVIOUR_CHECKS and name == ident)
+                or (kind == 'dimension' and name in dims)), f'{ident}: {check}'
+    assert {cases['G1'], cases['G3']} == {'behaviour:G1', 'behaviour:G3'}
+
+# --- .40 validation (Chris, 15-validate-T-and-C.md §B): evasions that used to PASS ---------------
+@pytest.mark.parametrize('evasion', [
+    _b_tool('Read', file_path='/w/outputs/OTHER-999/notes.md'),                 # another task's record
+    _b_tool('Bash', command='cat outputs/OTHER-999/notes.md'),
+    _b_tool('Bash', command='ls outputs/'),                                     # listings are never a read
+    _b_tool('Bash', command='find outputs/42 -name "*.md"'),
+    _b_tool('Glob', pattern='outputs/**/*.png'),
+    _b_tool('Glob', pattern='outputs/42/*.md'),
+    _b_tool('Grep', pattern='tasks.md', path='src'),                            # what was searched for is not where
+    _b_tool('Grep', pattern='outputs/42', path='src'),
+    _b_tool('Bash', command="cat > outputs/42/x.md <<EOF\nhello\nEOF"),         # a write
+    _b_tool('Bash', command='cat notes.txt >> outputs/42/00-run-stamp.md'),
+    _b_tool('Write', file_path='outputs/42/00-run-stamp.md', content='x'),
+    _b_tool('mcp__jira__create_issue', title='x'),
+])
+def test_g1_evasions_fail_when_the_task_id_is_known(evasion):
+    session = _b_session(_b_asst(evasion), _b_asst(_b_spawn()))
+    verdict, detail = scorer.reads_record_before_first_spawn(session, bd_id='42')
+    assert verdict == 'FAIL', detail
+
+
+@pytest.mark.parametrize('read', [
+    _b_tool('Read', file_path='/w/outputs/42/00-run-stamp.md'),
+    _b_tool('Bash', command='cd /w && cat outputs/42/00-run-stamp.md 2>/dev/null'),
+    _b_tool('Grep', pattern='AC-', path='outputs/42'),
+    _b_tool('Read', file_path='/w/TRACKER.md'),                                 # tracker file/query: id not required
+    _b_tool('Bash', command='cd /w && bd show 42 --json'),
+    _b_tool('Bash', command='bd ready'),
+])
+def test_g1_real_reads_pass_when_the_task_id_is_known(read):
+    session = _b_session(_b_asst(read), _b_asst(_b_spawn()))
+    assert scorer.reads_record_before_first_spawn(session, bd_id='42')[0] == 'PASS'
+
+
+def test_g1_listings_and_grep_pattern_never_count_even_without_a_known_id():
+    for tool in (_b_tool('Bash', command='ls outputs/'), _b_tool('Glob', pattern='outputs/**/*.md'),
+                 _b_tool('Grep', pattern='tasks.md', path='src'), _b_tool('Bash', command='cat > outputs/42/x.md <<EOF')):
+        assert scorer.reads_record_before_first_spawn(_b_session(_b_asst(tool), _b_asst(_b_spawn())))[0] == 'FAIL', tool
+    # without an id any record file under outputs/ still counts (unchanged behaviour)
+    other = _b_tool('Read', file_path='/w/outputs/OTHER-999/notes.md')
+    assert scorer.reads_record_before_first_spawn(_b_session(_b_asst(other), _b_asst(_b_spawn())))[0] == 'PASS'
+
+
+@pytest.mark.parametrize('prompt,bd_id,missing', [
+    ('Fix it.\nphase: phase-2\niter: 1\npaths: outputs/bd-42/03-dev.md', None, 'task-id'),    # id only inside a path
+    ('Fix it.\nphase: phase-2\niter: 1\npaths: outputs/bd-42/03-dev.md', '42', 'task-id'),    # literal id only inside a path
+    ('bd: 42\nphase: phase-2\npaths: outputs/42/iter-1-notes.md', None, 'iter'),              # iter only inside a filename
+    ('bd: 42\niter: 1\npaths: outputs/42/03-developer-phase-2.md', None, 'phase'),            # phase only inside a filename
+])
+def test_g3_fields_inside_a_path_do_not_count(prompt, bd_id, missing):
+    verdict, detail = scorer.delegation_prompt_contract(_b_session(_b_asst(_b_spawn(prompt=prompt))), bd_id=bd_id)
+    assert verdict == 'FAIL' and f"['{missing}']" in detail, detail
+
+
+def test_behaviour_checks_cli_flag_makes_the_checks_critical(capsys):
+    base = ['--scenario', 'GS2-implement-backend', '--project', FIXTURE_ROOT, '--bd-id', 'bd-101']
+    good, red = os.path.join(FIX, 'behaviour-ok'), os.path.join(FIX, 'routing-ok')
+
+    def code(argv):
+        try:
+            return scorer.main(argv) or 0
+        except SystemExit as exc:
+            return exc.code or 0
+    assert code([good] + base + ['--behaviour-checks', 'G1,G3']) == 0
+    assert code([red] + base + ['--behaviour-checks', 'G1,G3']) == 1
+    assert code([red] + base) == 0, 'without the flag the checks are report-only'
+    assert 'report-only' in capsys.readouterr().out
+

@@ -800,6 +800,135 @@ def anti_puppet_dimension(scenario, session):
     return 'PASS', '0 violation'
 
 
+# ---------- Behaviour checks (eval/fixtures/failure_modes.yaml `check:` keys) ----------
+# These assert what the run DID (tool calls, delegation input), never what it printed: a banner,
+# card or handoff line in the text proves nothing here, and removing one cannot turn a check red.
+# Opt-in per scenario via `behaviour_checks: ["G1", "G3", ...]` (then critical); otherwise the
+# observations are reported as N/A detail only, so existing scenarios keep their verdict.
+
+RECORD_PATH_RE = re.compile(r'(?:^|[\s"\'=(:/])(?:outputs/|\.beads/)')
+TRACKER_FILE_RE = re.compile(r'(?i)\b(?:tracker|tasks?|todo|backlog)\.md\b')
+# matched at the START of a shell segment (`echo "bd show 42"` is not a read). Another tracker CLI = one more alternative here.
+TRACKER_READ_RE = re.compile(r'\s*(?:bd\s+(?:show|list|ready|search|comments|dep)\b|gh\s+issue\s+(?:view|list)\b)')
+SHELL_READERS = ('cat', 'head', 'tail', 'less', 'sed', 'nl', 'grep', 'rg', 'awk')   # ls/find list a directory: never a read
+MCP_RECORD_READ_RE = re.compile(r'(?i)^mcp__.*(?:(?:get|read|view|show|list|search).*(?:issue|ticket|task)'
+                                r'|(?:issue|ticket|task).*(?:get|read|view|show|list|search))')
+EDIT_NAMES = {'Edit', 'Write', 'MultiEdit', 'NotebookEdit'}
+HANDOFF_PATH_RE = re.compile(r'(?<![\w/])(?:[\w.~{}<>-]+/)+[\w.{}<>-]+\.[A-Za-z0-9]{1,5}\b')
+HANDOFF_FIELDS = (   # tested on the prompt with every path blanked out: an id/phase/iter inside a filename is not a field
+    ('task-id', re.compile(r'(?i)\b(?:bd|task(?:[ _-]?id)?|ticket|issue)\b\s*[:#=-]?\s*[\w./-]*\d')),
+    ('phase', re.compile(r'(?i)\bphase\b\s*[:=-]?\s*[\w.-]*\d')),
+    ('iter', re.compile(r'(?i)\biter(?:ation)?\b\s*[:=#-]?\s*\d')),
+)
+
+
+def _main_tool_uses(session):
+    """-> [(name, input)] of every main-session tool_use, in transcript order."""
+    return [(b.get('name'), b.get('input') if isinstance(b.get('input'), dict) else {})
+            for rec in session['main'] if rec.get('type') == 'assistant'
+            for b in ((rec.get('message') or {}).get('content') or [])
+            if isinstance(b, dict) and b.get('type') == 'tool_use']
+
+
+def _is_record_target(target, bd_id):
+    """A tracker file always counts; a path under outputs/ or .beads/ counts, and with a known
+    task id only when it names that id (reading another task's folder is not reading this record)."""
+    if TRACKER_FILE_RE.search(target):
+        return True
+    return bool(RECORD_PATH_RE.search(target)) and (not bd_id or str(bd_id) in target)
+
+
+def _reads_task_record(name, inp, bd_id=None):
+    if name == 'Read':
+        return _is_record_target(str(inp.get('file_path') or ''), bd_id)
+    if name == 'Grep':   # where it searched, never what it searched for
+        return _is_record_target(' '.join(str(inp.get(k) or '') for k in ('path', 'glob')), bd_id)
+    if name == 'Bash':
+        for seg in re.split(r'&&|\|\||[;|\n]', str(inp.get('command') or '')):
+            if TRACKER_READ_RE.match(seg):
+                return True
+            words = seg.split()
+            if (words and words[0] in SHELL_READERS and not re.search(r'>>?\s*\S*(?:outputs/|\.beads/|\.md\b)', seg)
+                    and _is_record_target(seg, bd_id)):   # `cat > outputs/x.md` writes; `echo outputs/x` reads nothing
+                return True
+        return False
+    return bool(MCP_RECORD_READ_RE.match(str(name or '')))   # Glob / ls / find: a listing is never a read
+
+
+def reads_record_before_first_spawn(session, bd_id=None):
+    """G1: a tool_use that reads the task record (tracker query, tracker file, or a file under
+    outputs/ -- naming the task id when it is known) occurs in the main session before its first
+    Agent/Task tool_use. Known limits, accepted (need a deliberately adversarial transcript): the
+    shell split is not quote-aware, so a separator inside a quoted string (`echo "a; bd show 42"`,
+    `printf "x | bd list"`) counts as a read; a read done through an interpreter
+    (`python3 -c "open('outputs/42/00.md')"`) is not recognised (conservative FAIL)."""
+    read_seen = None
+    for name, inp in _main_tool_uses(session):
+        if name in SPAWN_NAMES:
+            if read_seen:
+                return 'PASS', f'task record read before the first spawn ({read_seen})'
+            return 'FAIL', (f'first spawn ({inp.get("subagent_type")}) happened before any read of the task record '
+                            f'(tracker query or outputs/<id>/ file); printed text is not a read')
+        if read_seen is None and _reads_task_record(name, inp, bd_id):
+            read_seen = name
+    return 'N/A', 'no Agent/Task spawn in the main session'
+
+
+def delegation_prompt_contract(session, bd_id=None):
+    """G3: every main-session Agent/Task `input.prompt` carries task-id + artifact path(s) + phase +
+    iter. With a known task id the literal id must appear; otherwise a labelled id (bd/task/ticket/issue).
+    task-id / phase / iter are looked for OUTSIDE path tokens."""
+    spawns = [(inp.get('subagent_type'), str(inp.get('prompt') or ''))
+              for name, inp in _main_tool_uses(session) if name in SPAWN_NAMES]
+    if not spawns:
+        return 'N/A', 'no Agent/Task spawn in the main session'
+    bad = []
+    for n, (role, prompt) in enumerate(spawns, 1):
+        stripped = HANDOFF_PATH_RE.sub(' ', prompt)
+        missing = [label for label, rx in HANDOFF_FIELDS
+                   if not (str(bd_id) in stripped if bd_id and label == 'task-id' else rx.search(stripped))]
+        if not HANDOFF_PATH_RE.search(prompt):
+            missing.insert(1 if 'task-id' in missing else 0, 'path')
+        if missing:
+            bad.append(f'spawn#{n} {role}: prompt lacks {missing}')
+    if bad:
+        return 'FAIL', '; '.join(bad[:6])
+    return 'PASS', f'{len(spawns)} delegation prompt(s) carry task-id + path + phase + iter'
+
+
+def clarify_rounds_capped(session, bd_id=None):
+    """G11: at most 2 AskUserQuestion rounds in the main session before the run makes progress
+    (first spawn or first file edit)."""
+    rounds = 0
+    for name, _ in _main_tool_uses(session):
+        if name in SPAWN_NAMES or name in EDIT_NAMES:
+            break
+        rounds += name == 'AskUserQuestion'
+    return ('PASS' if rounds <= 2 else 'FAIL'), f'{rounds} clarify round(s) before progress (cap 2)'
+
+
+BEHAVIOUR_CHECKS = {
+    'G1': reads_record_before_first_spawn,
+    'G3': delegation_prompt_contract,
+    'G11': clarify_rounds_capped,
+}
+
+
+def behaviour_dimension(scenario, session, bd_id=None):
+    """-> (verdict, detail). FAIL/PASS only for ids the scenario lists in `behaviour_checks`;
+    without that key every check is still observed and reported, verdict N/A."""
+    required = scenario.get('behaviour_checks') or []
+    unknown = [i for i in required if i not in BEHAVIOUR_CHECKS]
+    if unknown:
+        return 'UNSCORABLE', f'unknown behaviour_checks id(s): {unknown} (known: {sorted(BEHAVIOUR_CHECKS)})'
+    seen = {ident: fn(session, bd_id) for ident, fn in BEHAVIOUR_CHECKS.items()}
+    if not required:
+        return 'N/A', 'report-only (no behaviour_checks / --behaviour-checks): ' + '; '.join(f'{i}={v}' for i, (v, _) in seen.items())
+    detail = '; '.join(f'{i}={v} ({d})' for i, (v, d) in seen.items() if i in required)
+    failed = [i for i in required if seen[i][0] == 'FAIL']
+    return ('FAIL' if failed else 'PASS'), detail
+
+
 # ---------- Cost (report only, AC-7 is usage-report.py's job) ----------
 
 def cost_dimension(session):
@@ -989,9 +1118,12 @@ def score(session_path, scenario, fixture_root, bd_id_override=None, outputs_dir
         dims['evidence'] = evidence_dimension(session)
         dims['anti_puppet'] = anti_puppet_dimension(scenario, session)
     dims['bd_end_state'] = bd_end_state(scenario, bd_id_override, cwd=outputs_dir)
+    no_main = 'main session has 0 records — cannot observe behaviour'
+    dims['behaviour'] = behaviour_dimension(scenario, session, bd_id) if session['main'] else ('UNSCORABLE', no_main)
     cost_tok = cost_dimension(session)
 
-    crit_verdicts = [dims[k][0] for k in CRITICAL_DIMS]
+    critical = CRITICAL_DIMS + (['behaviour'] if scenario.get('behaviour_checks') else [])
+    crit_verdicts = [dims[k][0] for k in critical]
     if 'FAIL' in crit_verdicts:
         verdict, code = 'FAIL', 1
     elif 'UNSCORABLE' in crit_verdicts:
@@ -999,7 +1131,7 @@ def score(session_path, scenario, fixture_root, bd_id_override=None, outputs_dir
     else:
         verdict, code = 'PASS', 0
 
-    unscorable_reasons = [f'{k}: {dims[k][1]}' for k in CRITICAL_DIMS if dims[k][0] == 'UNSCORABLE']
+    unscorable_reasons = [f'{k}: {dims[k][1]}' for k in critical if dims[k][0] == 'UNSCORABLE']
 
     dims_out = {k: {'verdict': v[0], 'detail': v[1]} for k, v in dims.items()}
     dims_out['routing']['steps'] = dims['routing'][2] if len(dims['routing']) > 2 else []
@@ -1022,7 +1154,8 @@ def print_report(result):
         print('  WARNING: this session looks trimmed (every text block <=81 chars) — '
               'Evidence/Anti-puppet are NOT trim-safe (Quinn, 06-quinn-3b.md); score real transcripts for those two.')
     label = [('routing', 'Routing'), ('spec_fidelity', 'Spec fidelity'), ('security_trigger', 'Security trig'),
-             ('evidence', 'Evidence'), ('anti_puppet', 'Anti-puppet'), ('bd_end_state', 'bd end_state')]
+             ('evidence', 'Evidence'), ('anti_puppet', 'Anti-puppet'), ('behaviour', 'Behaviour'),
+             ('bd_end_state', 'bd end_state')]
     for key, name in label:
         d = result['dimensions'][key]
         print(f"  {name:<15} {d['verdict']:<11} ({d['detail']})")
@@ -1082,6 +1215,7 @@ def main(argv=None):
                      help='DEPRECATED alias for --project (iter10) — kept for backward '
                           'compatibility only; prefer --project.')
     ap.add_argument('--out', default=None)
+    ap.add_argument('--behaviour-checks', default='', help='comma list of failure_modes.yaml behaviour ids to enforce, e.g. G1,G3')
     ap.add_argument('--bd-id', default=None,
                      help='override/supply bd id for end_state check when golden.json\'s scenario '
                           'has no bd_id (e.g. a real project where the id is assigned at run time)')
@@ -1089,6 +1223,8 @@ def main(argv=None):
 
     project_root = resolve_project_root(args.project, args.outputs_dir)
     scenario = load_golden(args.golden, args.scenario)
+    if args.behaviour_checks:   # opt-in without touching the (frozen) scenario file: these checks become critical
+        scenario = dict(scenario, behaviour_checks=[i for i in args.behaviour_checks.split(',') if i])
     result, code = score(args.session, scenario, project_root, args.bd_id, project_root)
     print_report(result)
 
