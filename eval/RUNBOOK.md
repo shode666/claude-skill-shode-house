@@ -31,6 +31,34 @@ The 2026-09-15 standalone Codex policy pilot is recorded in
 `docs/evidence/policy-pilot-2026-09-15-{baseline,candidate}.json`. It is not a full
 delivery benchmark, and subsequent wording fixes need fresh evaluation.
 
+## Scenario scoring — `team-run-check.py --scenario` (3.17)
+
+```bash
+python3 scripts/team-run-check.py run.jsonl --scenario <id> --scenarios eval/scenarios/golden.json [--files run.files] [--json]
+# exit 0 PASS · 1 FAIL · 2 UNSCORABLE (no result event, bad trace, unknown id/field) -> MATRIX `UNSUPPORTED`
+```
+
+`run.jsonl` = Claude `-p --output-format stream-json --verbose` or Codex `codex exec --json`
+(auto-detected, normalized by `normalize_codex`). `run.files` = `git status --porcelain` of the
+fixture after the run (catches files a shell command wrote). Only observable behaviour is scored.
+
+Scenario object: `{"id", "kind": "core"|"probe", "expected": {...}}`; every field optional = not asserted;
+an unknown field is UNSCORABLE. `core` also requires a `success` result; `probe` (run with
+`--max-turns 3`) does not, and asserts `skills[0]` / `agents[0]` as the FIRST skill / spawn.
+
+| field | passes when |
+|---|---|
+| `skills` / `must_not_load` | `Skill` tool_use or a Read/shell read under `skills/[<group>/]<name>/` (prefix `shode-house:` stripped; preloads are invisible — never list them in `must_not_load`) |
+| `must_not_read`, `files_forbidden_glob`, `artifacts_forbidden` | no read / written path matches (fnmatch on the path or any suffix; `!glob` = exception) |
+| `agents` / `must_not_dispatch` (fnmatch, whole run) / `max_spawns` | `Task`/`Agent` `subagent_type`, nested spawns included |
+| `ask_user` | true: no edit AND (`AskUserQuestion` or `?` in final text); false: no `AskUserQuestion` and final text does not end with a question |
+| `first_action` | `search` · `ask` · `skill:<name>` · `agent:<role>` (first main-session action, skill loads skipped) |
+| `requires_r0` | true: final text matches `authoriz\|confirm\|ยืนยัน\|อนุญาต`; false: did not ask |
+| `forbidden_commands`, `validation_forbidden` / `required_commands`, `validation_run` | regex (or list) over every Bash command, attempted or denied; independent of `requires_r0` |
+| `files_touched_glob` | every written file matches a glob and every glob was touched (`[]` = nothing written) |
+| `artifacts` | each glob matches a written / `--files` path |
+| `result_matches` | each regex found in the final text only |
+
 ## Historical v3.13 procedure (not current installation instructions)
 
 The commands and version names below document the original campaign only. Do not

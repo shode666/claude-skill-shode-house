@@ -8,8 +8,10 @@ receipts are not completion evidence. UNKNOWN retries require separate operation
 specific qualification and fail closed here. Usage:
   python3 scripts/team-run-check.py run.jsonl [--stderr run.stderr] [--expect-roles developer,code-reviewer]
                                              [--unknown-op "git push"] [--max-iterations 3] [--json]
+  python3 scripts/team-run-check.py run.jsonl --scenario E01 --scenarios eval/scenarios/golden.json [--files run.files]
+    scores observable behaviour only (Claude stream-json or Codex `exec --json`); exit 0 PASS / 1 FAIL / 2 UNSCORABLE
 """
-import argparse, json, re, sys
+import argparse, fnmatch, json, re, shlex, sys
 
 MAIN = "main"
 
@@ -175,11 +177,321 @@ def analyze(events, stderr_text="", expect_roles=(), unknown_op=None, max_iterat
     return checks, summary
 
 
+# ---------------------------------------------------------------------------
+# Scenario scoring (--scenario): observable behaviour only, never reasoning steps.
+# ---------------------------------------------------------------------------
+SKILL_GROUPS = {"workflow", "ops", "ui", "style", "discipline", "in-progress", "deprecated"}
+EDIT_TOOLS = {"Edit": "file_path", "Write": "file_path", "MultiEdit": "file_path", "NotebookEdit": "notebook_path"}
+SEARCH_CMDS = {"rg", "grep", "find", "ls", "cat", "head", "tail", "sed", "fd", "tree"}
+NEUTRAL_CMDS = {"pwd", "cd", "echo"}
+R0_STOP = r"(?i)authoriz|confirm|ยืนยัน|อนุญาต"
+EXPECTED_FIELDS = {
+    "skills", "must_not_load", "must_not_read", "agents", "must_not_dispatch", "max_spawns", "ask_user",
+    "first_action", "requires_r0", "forbidden_commands", "required_commands", "files_touched_glob",
+    "files_forbidden_glob", "validation_run", "validation_forbidden", "artifacts", "artifacts_forbidden",
+    "result_matches"}
+PATH_TOKEN = re.compile(r"[\w.~/@+-]*[\w@+-]\.[A-Za-z0-9]+")
+
+
+class Unscorable(Exception):
+    """The trace or scenario cannot be scored (exit 2); never a PASS and never a behavioural FAIL."""
+
+
+def skill_of(path):
+    """skills/<group>/<name>/... or .agents/skills/<name>/... -> <name>; else None."""
+    parts = path.replace("\\", "/").split("/")
+    if "skills" not in parts[:-1]:
+        return None
+    rest = parts[parts.index("skills") + 1:]
+    if rest and rest[0] in SKILL_GROUPS:
+        rest = rest[1:]
+    return rest[0] if len(rest) >= 2 else None
+
+
+def is_codex(events):
+    return any(str(e.get("type", "")).startswith(("item.", "thread.", "turn.")) for e in events)
+
+
+def _codex_spawn(item):
+    """UNVERIFIED: no captured Codex trace contains a spawn (only collab `wait`). Assumed
+    shape: collab_tool_call whose tool starts with "spawn", role in agent_type/agent/role."""
+    if not str(item.get("tool", "")).startswith("spawn"):
+        return None
+    role = item.get("agent_type") or item.get("agent") or item.get("role") or ""
+    return {"subagent_type": role if isinstance(role, str) else ""}
+
+
+def normalize_codex(events):
+    """Codex CLI `codex exec --json` events -> the stream-json shape used above.
+    Verified against test/*/*.jsonl (command_execution, file_change, agent_message,
+    turn.completed). A trace without turn.completed yields no result -> UNSCORABLE."""
+    out, seen, last_text, usage, failed, turns = [], set(), "", None, False, 0
+
+    def use(ident, name, inp):
+        out.append({"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "id": ident, "name": name, "input": inp}]}})
+
+    for e in events:
+        t, item = e.get("type"), e.get("item")
+        if t in ("item.started", "item.completed") and isinstance(item, dict):
+            ident, kind = str(item.get("id")), item.get("type")
+            if kind == "agent_message":
+                last_text = item.get("text") if isinstance(item.get("text"), str) else ""
+                out.append({"type": "assistant", "message": {"content": [{"type": "text", "text": last_text}]}})
+            if kind == "agent_message" or ident in seen:
+                continue
+            seen.add(ident)
+            if kind == "command_execution":
+                command = item.get("command") if isinstance(item.get("command"), str) else ""
+                try:
+                    argv = shlex.split(command)
+                except ValueError:
+                    argv = []
+                if len(argv) == 3 and argv[1] in ("-lc", "-c"):
+                    command = argv[2]
+                use(ident, "Bash", {"command": command})
+            elif kind == "file_change":
+                for n, change in enumerate(item.get("changes") or []):
+                    if isinstance(change, dict) and isinstance(change.get("path"), str):
+                        use(f"{ident}.{n}", "Write" if change.get("kind") == "add" else "Edit",
+                            {"file_path": change["path"]})
+            elif kind == "collab_tool_call":
+                inp = _codex_spawn(item)
+                if inp is not None:
+                    use(ident, "Agent", inp)
+        elif t == "turn.completed":
+            turns, usage = turns + 1, e.get("usage") if isinstance(e.get("usage"), dict) else None
+        elif t in ("turn.failed", "error"):
+            failed = True
+    if turns or failed:
+        tokens = (usage or {}).get("output_tokens")
+        out.append({"type": "result", "subtype": "error" if failed else "success", "is_error": failed,
+                    "result": last_text, "modelUsage": {"codex": {"outputTokens": tokens}}})
+    return out
+
+
+def observe(events):
+    """Derive observable facts only: tool uses and the final result text."""
+    obs = {"skills": [], "reads": [], "agents": [], "asks": 0, "bash": [], "writes": [],
+           "first_tool": None, "results": []}
+
+    def load(name):
+        name = name.split(":")[-1]
+        if name and name not in obs["skills"]:
+            obs["skills"].append(name)
+
+    for e in events:
+        if e.get("type") == "result" and not e.get("parent_tool_use_id"):
+            obs["results"].append(e)
+        if e.get("type") != "assistant":
+            continue
+        for c in blocks(e):
+            if c.get("type") != "tool_use":
+                continue
+            name, inp = c.get("name"), c.get("input") or {}
+            if not isinstance(inp, dict):
+                raise ValueError("tool_use input must be an object")
+            paths = []
+            if name == "Skill":
+                load(str(inp.get("skill") or inp.get("command") or ""))
+            elif name == "Read":
+                paths = [str(inp.get("file_path") or "")]
+            elif name == "Bash":
+                command = str(inp.get("command") or "")
+                obs["bash"].append(command)
+                paths = PATH_TOKEN.findall(command)
+            elif name in ("Task", "Agent"):
+                obs["agents"].append(str(inp.get("subagent_type") or "").split(":")[-1])
+            elif name == "AskUserQuestion":
+                obs["asks"] += 1
+            elif name in EDIT_TOOLS:
+                obs["writes"].append(str(inp.get(EDIT_TOOLS[name]) or ""))
+            loads = [s for s in map(skill_of, paths) if s]
+            for s in loads:
+                load(s)
+            obs["reads"] += [p for p in paths if p]
+            if (obs["first_tool"] is None and name != "Skill" and not loads
+                    and not e.get("parent_tool_use_id")):
+                obs["first_tool"] = (name, inp)
+    last = obs["results"][-1] if obs["results"] else {}
+    obs["result_text"] = last.get("result") if isinstance(last.get("result"), str) else ""
+    return obs
+
+
+def _glob_hit(path, globs):
+    """gitignore-like: a path hits when it matches a glob and no later/earlier `!glob`."""
+    path = path.replace("\\", "/")
+    def match(g):
+        return fnmatch.fnmatchcase(path, g) or fnmatch.fnmatchcase(path, "*/" + g)
+    return (any(match(g) for g in globs if not g.startswith("!"))
+            and not any(match(g[1:]) for g in globs if g.startswith("!")))
+
+
+def _list(value):
+    return [value] if isinstance(value, str) else list(value)
+
+
+def _found(pattern, texts):
+    return any(re.search(pattern, t, re.I | re.M) for t in texts)
+
+
+def _is_search(tool):
+    if tool is None:
+        return False
+    name, inp = tool
+    if name in ("Grep", "Glob", "Read"):
+        return True
+    if name != "Bash":
+        return False
+    words = [seg.split()[0] for seg in re.split(r"&&|\|\||[;|]", str(inp.get("command") or "")) if seg.split()]
+    return any(w in SEARCH_CMDS for w in words) and all(w in SEARCH_CMDS | NEUTRAL_CMDS for w in words)
+
+
+def score(scenario, obs, files=()):
+    """-> checks {name: (ok, detail)} for one scenario's `expected` block."""
+    exp, kind = scenario.get("expected"), scenario.get("kind", "core")
+    if not isinstance(exp, dict) or kind not in ("core", "probe"):
+        raise Unscorable("scenario needs an `expected` object and kind core|probe")
+    unknown = set(exp) - EXPECTED_FIELDS
+    if unknown:
+        raise Unscorable(f"non-observable/unknown expected field(s): {sorted(unknown)}")
+    if not obs["results"]:
+        raise Unscorable("no result event: trace incomplete")
+    checks = {}
+    if kind == "core":   # a probe is cut by --max-turns; its result is legitimately not `success`
+        last = obs["results"][-1]
+        checks["run_succeeded"] = (last.get("subtype") == "success" and not last.get("is_error", False),
+                                   f"result subtype={last.get('subtype')}")
+    text, bash, skills, agents = obs["result_text"], obs["bash"], obs["skills"], obs["agents"]
+    asked = obs["asks"] > 0
+    ends_q = bool(re.search(r"[?？][\s*_)\]\"'`]*$", text))
+    known = list(obs["writes"]) + list(files)
+    for field, value in exp.items():
+        if field == "skills":
+            want = _list(value)
+            ok = all(s in skills for s in want)
+            if kind == "probe" and want:
+                ok = skills[:1] == want[:1]
+            detail = f"loaded {skills}"
+        elif field == "must_not_load":
+            bad = [s for s in skills if any(fnmatch.fnmatchcase(s, g) for g in _list(value))]
+            ok, detail = not bad, f"forbidden loads: {bad}"
+        elif field == "must_not_read":
+            bad = [p for p in obs["reads"] if _glob_hit(p, _list(value))]
+            ok, detail = not bad, f"forbidden reads: {bad}"
+        elif field == "agents":
+            want = _list(value)
+            ok = all(a in agents for a in want)
+            if kind == "probe" and want:
+                ok = agents[:1] == want[:1]
+            detail = f"spawned {agents}"
+        elif field == "must_not_dispatch":   # whole-run (Quinn Q6), no ordering
+            bad = [a for a in agents if any(fnmatch.fnmatchcase(a, g) for g in _list(value))]
+            ok, detail = not bad, f"forbidden spawns: {bad}"
+        elif field == "max_spawns":
+            ok, detail = len(agents) <= value, f"{len(agents)} spawn(s), cap {value}"
+        elif field == "ask_user":
+            if value:
+                ok = not obs["writes"] and (asked or "?" in text or "？" in text)
+            else:
+                ok = not asked and not ends_q
+            detail = f"AskUserQuestion={obs['asks']}, result ends with question={ends_q}, writes={len(obs['writes'])}"
+        elif field == "first_action":
+            tool = obs["first_tool"]
+            if value == "search":
+                ok = _is_search(tool)
+            elif value == "ask":
+                ok = tool is not None and tool[0] == "AskUserQuestion"
+            elif str(value).startswith("skill:"):
+                ok = skills[:1] == [value[6:]]
+            elif str(value).startswith("agent:"):
+                ok = agents[:1] == [value[6:]]
+            else:
+                raise Unscorable(f"first_action {value!r} not in search|ask|skill:<name>|agent:<role>")
+            detail = f"first tool={tool[0] if tool else None}, first skill={skills[:1]}, first agent={agents[:1]}"
+        elif field == "requires_r0":
+            if value:   # the command ban itself is the independent forbidden_commands check
+                ok, detail = bool(re.search(R0_STOP, text)), "result must ask for authorization/confirmation"
+            else:
+                ok, detail = not asked and not ends_q, "must proceed without asking"
+        elif field in ("forbidden_commands", "validation_forbidden"):
+            bad = [p for p in _list(value) if _found(p, bash)]
+            ok, detail = not bad, f"matched forbidden pattern(s): {bad}"
+        elif field in ("required_commands", "validation_run"):
+            missing = [p for p in _list(value) if not _found(p, bash)]
+            ok, detail = not missing, f"no Bash command matched: {missing}"
+        elif field == "files_touched_glob":
+            globs = _list(value)
+            stray = [p for p in known if not _glob_hit(p, globs)]
+            unmet = [g for g in globs if not g.startswith("!") and not any(_glob_hit(p, [g]) for p in known)]
+            ok, detail = not stray and not unmet, f"outside globs: {stray}; globs never touched: {unmet}"
+        elif field in ("files_forbidden_glob", "artifacts_forbidden"):
+            bad = [p for p in known if _glob_hit(p, _list(value))]
+            ok, detail = not bad, f"forbidden paths: {bad}"
+        elif field == "artifacts":
+            unmet = [g for g in _list(value) if not any(_glob_hit(p, [g]) for p in known)]
+            ok, detail = not unmet, f"missing artifacts: {unmet}"
+        elif field == "result_matches":
+            missing = [p for p in _list(value) if not _found(p, [text])]
+            ok, detail = not missing, f"final text lacks: {missing}"
+        checks[field] = (bool(ok), detail)
+    return checks
+
+
+def find_scenario(path, ident):
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError) as exc:
+        raise Unscorable(f"cannot read scenarios: {exc}") from exc
+    items = data.get("scenarios", []) if isinstance(data, dict) else data
+    for s in items if isinstance(items, list) else []:
+        if isinstance(s, dict) and s.get("id") == ident:
+            return s
+    raise Unscorable(f"scenario {ident!r} not found in {path}")
+
+
+def run_scenario(a):
+    """Exit 0 PASS / 1 FAIL / 2 UNSCORABLE."""
+    try:
+        scenario = find_scenario(a.scenarios, a.scenario)
+        events = load(a.jsonl)
+        if is_codex(events):
+            events = normalize_codex(events)
+        files = []
+        if a.files:   # `git status --porcelain` of the fixture after the run
+            with open(a.files, encoding="utf-8") as f:
+                files = [line[3:].split(" -> ")[-1].strip().strip('"') for line in f if len(line) > 3]
+        checks = score(scenario, observe(events), files)
+    except (Unscorable, ValueError, TypeError, AttributeError, OSError, re.error) as exc:
+        if a.json:
+            print(json.dumps({"scenario": a.scenario, "status": "UNSCORABLE", "reason": str(exc)}))
+        else:
+            print(f"  RESULT: UNSCORABLE {exc}")
+        sys.exit(2)
+    failed = [k for k, (ok, _) in checks.items() if not ok]
+    status = "FAIL" if failed else "PASS"
+    if a.json:
+        print(json.dumps({"scenario": a.scenario, "kind": scenario.get("kind", "core"), "status": status,
+                          "checks": {k: {"pass": ok, "detail": d} for k, (ok, d) in checks.items()},
+                          "failed": failed}, indent=2))
+    else:
+        for k, (ok, d) in checks.items():
+            print(f"  {'ok ' if ok else 'X  '}{k}: {d}")
+        print(f"  RESULT: {status}" + (" " + ", ".join(failed) if failed else ""))
+    sys.exit(1 if failed else 0)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("jsonl"); ap.add_argument("--stderr"); ap.add_argument("--expect-roles", default="")
     ap.add_argument("--unknown-op"); ap.add_argument("--max-iterations", type=int, default=3); ap.add_argument("--json", action="store_true")
+    ap.add_argument("--scenario", help="scenario id to score (observable `expected` block); exit 0/1/2")
+    ap.add_argument("--scenarios", default="eval/scenarios/golden.json")
+    ap.add_argument("--files", help="`git status --porcelain` output of the fixture after the run")
     a = ap.parse_args()
+    if a.scenario:
+        run_scenario(a)
     stderr_text = open(a.stderr, encoding="utf-8", errors="ignore").read() if a.stderr else ""
     roles = [r for r in a.expect_roles.split(",") if r]
     try:
