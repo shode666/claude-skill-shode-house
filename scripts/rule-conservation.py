@@ -85,6 +85,17 @@ def load_migrations(root):
     return mod.load(root)
 
 
+def bad_migration(root):
+    """Best-effort: name the entry whose replacement target is gone (the loader's message does not)."""
+    try:
+        items = json.loads((root / '.rule-migrations.json').read_text())['migrations']
+        bad = [i for i in items if not (root / str(i.get('replacement', ''))).is_file()]
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return ''
+    return ''.join(f"\n    entry source={i.get('source')!r} replacement={i.get('replacement')!r} (file not found): "
+                   f"{str(i.get('old_fragment'))[:60]}" for i in bad)
+
+
 def root_only_anchors(root, extra):
     """anchors of enforcement-map rules flagged root_only (ticket .6 owns the list; absent = none)."""
     anchors = [norm(a) for a in extra]
@@ -148,7 +159,11 @@ def main(argv=None):
     if not changed:
         print(f"  ok no skill/agent file changed vs {args.base}"); return 0
 
-    migrations = load_migrations(root)
+    try:
+        migrations = load_migrations(root)
+    except (ValueError, KeyError, TypeError) as e:  # loader fails closed; say which entry, no traceback
+        print(f"  X rule conservation: .rule-migrations.json invalid -- {e!r}{bad_migration(root)}")
+        return 2
     anchors = root_only_anchors(root, args.root_only)
     everything, root_tier = build_corpora(root)
 

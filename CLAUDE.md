@@ -18,7 +18,7 @@
   - `in-progress/` + `deprecated/` — **ไม่ ship**
 - 5 bucket แรก → ต้องอยู่ใน `.claude-plugin/plugin.json` skills list + `README.md` index
 - `in-progress/` + `deprecated/` → **ไม่** อยู่
-- SKILL.md description = **4-section format**: `[WHAT] · [AUDIENCE] · [WHEN] · [TRIGGER]`
+- SKILL.md description = **1–2 English sentences**: capability + decision boundary (what it is for, and the nearest thing it is not for) — no trigger/keyword lists, no fixed section format
 - SKILL.md **≤ 300 บรรทัด** เกิน → แตกเป็น reference file ข้าง ๆ. Exception: `meeting` (thin entry-point) + `dev-gate` (11 gates + per-language matrix) — **ยกเว้นจาก 300 แต่เพดาน 400 บังคับด้วย CI #1** (v3.12). ขนาดเป็น byte ไม่มี cap แยก: skill ที่ถูก preload คุมด้วย budget CI #16 อยู่แล้ว ที่เหลือคุมด้วย line cap (กฎ "≤ 12 KB" เดิมไม่เคยมี CI ตรวจและมี 7 ไฟล์เกินมาตลอด → ถอดออก)
 - Skill ผลิต deliverable ต้องมี: `## When NOT to use` + `## Required inputs — refuse without`
 
@@ -141,7 +141,7 @@
 
 ## Bias Discipline (🆕 v3.3 — replaces v3.2 Evan agent)
 
-- **Embed in agent prompts**: 19 agents มี `## Bias Discipline` (Chris/Quinn = verdict default FAIL; Felix/Tara = "ห้าม blindly accept vendor"; Sentinel = hold on "low risk" ถ้า trigger)
+- **Embed in agent prompts**: 19 agents มี `## Bias Discipline` (Chris/Quinn: no PASS without required evidence — defect = FAIL, missing evidence = BLOCKED/PARTIAL (`agents/code-reviewer.md`, `agents/qa-engineer.md`, `review-checklist` §Adversary stance); Felix/Tara = "ห้าม blindly accept vendor"; Sentinel = hold on "low risk" ถ้า trigger)
 - **No separate eval agent**: v3.2 Evan = over-engineer → reverted; methodology kept in `skills/in-progress/eval-harness/` (reference only, maintainer offline)
 - **In-progress harness**: `skills/in-progress/eval-harness/{SKILL.md,fixtures/}` — agent-orchestrated (Task tool, no script; run_eval.py ลบ v3.6); future major-release regression; ไม่ ship
 - **Anti-bias source-of-truth**: agent prompt + `output-styles/oliver.md` §1 Recite Card

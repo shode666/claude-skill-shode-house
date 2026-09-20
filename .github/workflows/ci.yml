@@ -489,6 +489,15 @@ jobs:
           git rev-parse -q --verify "$rc_base^{commit}" >/dev/null 2>&1 || rc_base=HEAD~1
           [ -n "${GITHUB_ACTIONS:-}" ] && [ "$(git rev-parse "$rc_base")" = "$(git rev-parse HEAD)" ] && rc_base=HEAD~1
           python3 scripts/rule-conservation.py --base "$rc_base" || fail=1
+          # pinned cycle baseline (G-C3): the event base forgets a loss once it is on main; .rule-baseline does not.
+          rc_pin="$(grep -v '^#' .rule-baseline 2>/dev/null | tr -d '[:space:]')"
+          if ! printf '%s' "$rc_pin" | grep -Eq '^[0-9a-f]{40}$'; then
+            err ".rule-baseline: missing or not a full 40-hex commit sha"
+          elif ! git cat-file -e "$rc_pin^{commit}" 2>/dev/null; then
+            err ".rule-baseline: pinned sha $rc_pin is unknown to this clone (need fetch-depth: 0 and the commit reachable on the remote)"
+          else
+            python3 scripts/rule-conservation.py --base "$rc_pin" || fail=1
+          fi
           python3 tests/test_rule_migrations.py || fail=1
           python3 -m unittest tests/test_rule_conservation.py || fail=1
 
@@ -496,6 +505,11 @@ jobs:
 
           sec "25. full-team preservation and discovery adapters (structural, not live acceptance)"
           python3 scripts/pack-team.py --check plugins/shode-house || fail=1
+          # 25b. skill adapters are thin entry points: no unconditional read-in-full (SPEC 12/95, ADR-4); agent adapters exempt
+          if grep -rIniE '\bin full\b|read (this|the) (skill|full)' plugins/shode-house/skills/*/SKILL.md plugins/shode-house/commands/ask.md; then
+            err "skill adapter forces a full read -- edit scripts/pack-team.py and regenerate"
+          fi
+          [ "$(ls plugins/shode-house/skills/*/SKILL.md | wc -l)" -ge 20 ] || err "no skill adapters scanned"
           python3 tests/test_team_entry.py || fail=1
           python3 tests/test_team_candidate.py || fail=1
           python3 tests/test_team_run_check.py || fail=1

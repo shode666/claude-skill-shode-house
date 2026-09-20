@@ -218,6 +218,18 @@ class RuleConservationTest(unittest.TestCase):
     def test_inexact_migration_does_not_exempt(self):
         self.assert_lost(self.migration_repo(RULE[:-1]).run(), "deliverable")
 
+    def test_broken_migration_target_exits_2_with_message(self):
+        repo = self.migration_repo(RULE)
+        entry = json.loads((repo.root / ".rule-migrations.json").read_text())
+        entry["migrations"][0]["replacement"] = "skills/workflow/gone/SKILL.md"
+        repo.write({".rule-migrations.json": json.dumps(entry)})
+        rc, out = repo.run()
+        self.assertEqual(2, rc, out)
+        self.assertNotIn("Traceback", out)
+        self.assertIn(".rule-migrations.json invalid", out)
+        self.assertIn("skills/workflow/gone/SKILL.md", out)
+        self.assertIn(SKILL, out)
+
     def test_migration_never_waives_root_tier(self):
         repo = self.migration_repo(RULE)
         self.assert_lost(repo.run("--root-only", ANCHOR), "root tier")
