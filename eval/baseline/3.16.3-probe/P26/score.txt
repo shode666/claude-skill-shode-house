@@ -1,0 +1,3 @@
+  X  agents: spawned []
+  RESULT: FAIL agents
+exit=1

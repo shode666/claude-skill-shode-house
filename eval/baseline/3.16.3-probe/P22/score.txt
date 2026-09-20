@@ -1,0 +1,4 @@
+  ok must_not_load: forbidden loads: []
+  ok max_spawns: 0 spawn(s), cap 0
+  RESULT: PASS
+exit=0

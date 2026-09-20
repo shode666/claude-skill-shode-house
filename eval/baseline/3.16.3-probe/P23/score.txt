@@ -1,0 +1,3 @@
+  ok agents: spawned ['trading-expert']
+  RESULT: PASS
+exit=0

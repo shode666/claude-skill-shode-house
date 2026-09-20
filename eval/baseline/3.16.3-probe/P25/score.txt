@@ -1,0 +1,3 @@
+  ok agents: spawned ['ux-ui-designer']
+  RESULT: PASS
+exit=0

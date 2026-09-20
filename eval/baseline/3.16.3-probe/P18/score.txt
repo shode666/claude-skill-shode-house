@@ -1,0 +1,4 @@
+  ok must_not_load: forbidden loads: []
+  ok must_not_dispatch: forbidden spawns: []
+  RESULT: PASS
+exit=0

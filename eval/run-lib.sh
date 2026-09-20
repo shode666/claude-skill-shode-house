@@ -77,7 +77,7 @@ run_one() {
   prompt_rel="$(scenario_field "$id" prompt)" || return 3
   [ -f "$REPO/$prompt_rel" ] || { echo "!! $id: prompt file missing: $prompt_rel" >&2; return 3; }
   if [ "$kind" = probe ]; then
-    turns="$(scenario_field "$id" max_turns 3)"; budget="${MAX_BUDGET_USD:-1}"; timeout_s="${RUN_TIMEOUT_S:-600}"
+    turns="$(scenario_field "$id" max_turns 6)"; budget="${MAX_BUDGET_USD:-1}"; timeout_s="${RUN_TIMEOUT_S:-600}"
   else
     turns="$(scenario_field "$id" max_turns 30)"; budget="${MAX_BUDGET_USD:-5}"; timeout_s="${RUN_TIMEOUT_S:-1800}"
   fi
@@ -133,7 +133,7 @@ JSON
   python3 - "$out" <<'PY'
 import json, os, platform, sys
 out, env = sys.argv[1], os.environ
-model_id, first_skill, first_agent, cost = None, "", "", None
+model_id, first_skill, first_agent, route, cost = None, "", "", "", None
 try:
     for line in open(out + "/run.jsonl", encoding="utf-8"):
         try:
@@ -151,8 +151,10 @@ try:
                 inp = c.get("input") if isinstance(c.get("input"), dict) else {}
                 if c.get("name") == "Skill" and not first_skill:
                     first_skill = str(inp.get("skill") or inp.get("command") or "?")
+                    route = route or "skill:" + first_skill.split(":")[-1]
                 if c.get("name") in ("Task", "Agent") and not first_agent:
                     first_agent = str(inp.get("subagent_type") or "?")
+                    route = route or "agent:" + first_agent.split(":")[-1]
 except OSError:
     pass
 meta = {
@@ -161,19 +163,21 @@ meta = {
     "model": env["M_MODEL"], "model_id": model_id, "plugin_sha": env["M_SHA"], "plugin_ref": env["M_REF"],
     "plugin_dirty": env["M_DIRTY"] == "true", "harness_sha": env["M_HARNESS"], "flags": env["M_FLAGS"],
     "claude_exit": int(env["M_RC"]), "score_exit": int(env["M_SCORE"]), "cost_usd": cost,
-    "first_skill": first_skill, "first_agent": first_agent, "fixture": env["M_FIX"],
+    "route": route, "first_skill": first_skill, "first_agent": first_agent, "fixture": env["M_FIX"],
     "machine": platform.platform(),
 }
 json.dump(meta, open(out + "/meta.json", "x", encoding="utf-8"), indent=1, ensure_ascii=False)
 PY
   FIRST_SKILL="$(python3 -c 'import json,sys;m=json.load(open(sys.argv[1]));print(m["first_skill"] or "-")' "$out/meta.json" 2>/dev/null || echo '?')"
+  FIRST_ROUTE="$(python3 -c 'import json,sys;m=json.load(open(sys.argv[1]));print(m["route"] or "-")' "$out/meta.json" 2>/dev/null || echo '?')"
   FIRST_AGENT="$(python3 -c 'import json,sys;m=json.load(open(sys.argv[1]));print(m["first_agent"] or "-")' "$out/meta.json" 2>/dev/null || echo '?')"
   local verdict; case "$score_rc" in 0) verdict=PASS ;; 1) verdict=FAIL ;; 2) verdict=UNSCORABLE ;; *) verdict="ERR$score_rc" ;; esac
   echo "== $end $id $verdict (score exit=$score_rc, claude exit=$rc, ${SECONDS_TAKEN}s, first skill=$FIRST_SKILL, first agent=$FIRST_AGENT)"
   return "$score_rc"
 }
 
-# tools_seen <run.jsonl>: settles the UNVERIFIED trace shape (Skill / Task tool_use) from a real run
+# tools_seen <run.jsonl>: tool names + first Skill/Task/Agent input. Live 2026-09-20 (CLI 2.1.269):
+# Skill input = {"skill","args"}; the spawn tool is `Agent` {"description","subagent_type","prompt"}.
 tools_seen() {
   python3 - "$1" <<'PY'
 import collections, json, sys

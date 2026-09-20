@@ -34,3 +34,9 @@ Claude outputs/
 # Local-only: Claude Code local settings, Beads gate lock
 .claude/settings.local.json
 .beads.gate.lock
+
+# Live eval evidence: only summaries/scores are tracked (public repo). Raw traces and
+# machine-describing files stay local (size, session ids, local paths, host info).
+/eval/baseline/*-probe*/*/*
+!/eval/baseline/*-probe*/*/score.txt
+!/eval/baseline/*-probe*/*/prompt.txt

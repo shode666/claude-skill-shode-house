@@ -48,10 +48,12 @@ class RunnerWiringTest(unittest.TestCase):
         done = self.run_script("run-probes.sh", "sonnet", str(out), PROBE_IDS="P02 P03")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)   # P03 FAILs (stub loads diagnose): data
         rows = [r.split("\t") for r in (out / "SUMMARY.tsv").read_text().splitlines()]
-        self.assertEqual(rows[0], ["id", "exit", "first_skill", "first_agent", "seconds"])
-        self.assertEqual([(r[0], r[1], r[2]) for r in rows[1:]],
-                         [("P02", "0", "shode-house:diagnose"), ("P03", "1", "shode-house:diagnose")])
-        self.assertIn("max-turns=3", json.loads((out / "P02/meta.json").read_text())["flags"])
+        self.assertEqual(rows[0], ["id", "exit", "route", "first_skill", "first_agent", "seconds"])
+        self.assertEqual([(r[0], r[1], r[2], r[3]) for r in rows[1:]],
+                         [("P02", "0", "skill:diagnose", "shode-house:diagnose"),
+                          ("P03", "1", "skill:diagnose", "shode-house:diagnose")])
+        self.assertTrue((out / "P02").is_dir() and not (out / "P01").exists(), "subset runs only the ids asked for")
+        self.assertIn("max-turns=6", json.loads((out / "P02/meta.json").read_text())["flags"])
         broken = self.run_script("run-probes.sh", "sonnet", str(self.tmp / "p2"), PROBE_IDS="P02", FAKE_MODE="noresult")
         self.assertEqual(broken.returncode, 2)
 
@@ -71,7 +73,10 @@ class ScenarioDataTest(unittest.TestCase):
             self.assertIn("## Prompt", (ROOT / s["prompt"]).read_text(encoding="utf-8"), s["id"])
             for name in s["expected"].get("skills", []) + s["expected"].get("must_not_load", []):
                 self.assertIn(name, skills, f'{s["id"]}: unknown skill {name}')
-            for name in s["expected"].get("agents", []):
+            routes = s["expected"].get("route_any", [])
+            for name in [r[6:] for r in routes if r.startswith("skill:")]:
+                self.assertIn(name, skills, f'{s["id"]}: unknown skill {name}')
+            for name in s["expected"].get("agents", []) + [r[6:] for r in routes if r.startswith("agent:")]:
                 self.assertIn(name, agents, f'{s["id"]}: unknown agent {name}')
             for glob in s["expected"].get("must_not_dispatch", []):
                 self.assertTrue(any(__import__("fnmatch").fnmatchcase(a, glob) for a in agents), f'{s["id"]}: {glob}')

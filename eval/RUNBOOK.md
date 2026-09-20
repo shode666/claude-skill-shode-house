@@ -44,7 +44,7 @@ fixture after the run (catches files a shell command wrote). Only observable beh
 
 Scenario object: `{"id", "kind": "core"|"probe", "expected": {...}}`; every field optional = not asserted;
 an unknown field is UNSCORABLE. `core` also requires a `success` result; `probe` (run with
-`--max-turns 3`) does not, and asserts `skills[0]` / `agents[0]` as the FIRST skill / spawn.
+`--max-turns 6`; a scenario with `not_applicable` is skipped by `PROBE_IDS=all`) does not, and asserts `skills[0]` / `agents[0]` as the FIRST skill / spawn.
 
 | field | passes when |
 |---|---|
@@ -58,6 +58,7 @@ an unknown field is UNSCORABLE. `core` also requires a `success` result; `probe`
 | `files_touched_glob` | every written file matches a glob and every glob was touched (`[]` = nothing written) |
 | `artifacts` | each glob matches a written / `--files` path |
 | `result_matches` | each regex found in the final text only |
+| `route_any` | any listed `skill:<name>` was loaded OR any listed `agent:<role>` was dispatched, anywhere in the run (routing probes: a skill or one of its owning agents; a route named only in text does not count) |
 
 ## v3.17 core matrix — live runs (maintainer's Mac; the team cannot run `claude`)
 
@@ -72,7 +73,9 @@ cd ~/workspace/shode-house
 bash eval/run-e01.sh sonnet
 # 2. routing-probe baseline (FR-P0-4): plugin = baseline tag, harness = this checkout
 PLUGIN_REF=baseline-3.17 PROBE_IDS=all bash eval/run-probes.sh sonnet eval/baseline/3.16.3-probe
-#    default ids = P01..P15 · PROBE_IDS="P02 P15" = subset · PROBE_IDS=all = P01..P27
+#    default ids = P01..P15 · PROBE_IDS=all = P01..P27 minus not_applicable (P21)
+#    subset rerun -> always a NEW directory, original evidence untouched:
+#    PLUGIN_REF=baseline-3.17 PROBE_IDS="P01 P02" bash eval/run-probes.sh sonnet eval/baseline/3.16.3-probe-r2
 #    (P16-P20 negatives, P21-P27 = remaining eval/fixtures/{triggers,routing}.yaml cases)
 ```
 
@@ -89,18 +92,19 @@ Per-run files: `run.jsonl` · `run.stderr` · `run.files` (`git status --porcela
 `host` · `cli_version` · `date` · `model` · `model_id` (from the init event) · `plugin_sha` · `plugin_ref` ·
 `plugin_dirty` · `harness_sha` · `scenario` · `start`/`end`/`seconds` · `flags` · `claude_exit` · `score_exit` ·
 `cost_usd` · `first_skill` · `first_agent` · `fixture`. Probes add `<out>/SUMMARY.tsv`
-(`id exit first_skill first_agent seconds`).
+(`id exit route first_skill first_agent seconds`; `route` = first skill-or-agent).
 
 Exit: scorer exit 0 PASS · 1 FAIL · 2 UNSCORABLE · 3 refused before start. For the gate, 0 or 1 both prove the
 run path; 2 means the trace is not what the scorer parses — open `tools-seen.txt` first: it lists the distinct
 tool names, the first `Skill` / `Task` / `Agent` tool_use input and whether the init event lists the plugin.
-**The shape of a real `Skill` tool_use is UNVERIFIED until the first E01 run**; the stub in
-`tests/fake_claude.py` proves wiring only.
+Trace shape verified live 2026-09-20 (CLI 2.1.269, Sonnet): `Skill` input = `{"skill": "shode-house:<name>", "args"}`;
+the spawn tool is named `Agent` (`subagent_type`), and the probe deny hook leaves that tool_use in the trace.
+The stub in `tests/fake_claude.py` proves wiring only. Codex spawn shape remains unverified.
 
 Order: run step 1 alone, send the result back, run step 2 only after the trace shape is confirmed (a wrong
-assumption would make all probe runs uninformative). Estimate, not a measurement (no 3.17 live run exists yet):
-E01 a few minutes and well under USD 1 on Sonnet; one probe is capped at 3 turns / USD 1 / 10 min, expected
-well under a minute and a few cents each, so 27 probes ≈ 15–30 min. Actual `cost_usd` per run is in `meta.json`.
+assumption would make all probe runs uninformative). Measured 2026-09-20 (Sonnet): E01 32 s; 27 probes at
+3 turns = 6–76 s each, USD 4.31 total (~USD 0.16/probe). Probes are now capped at 6 turns / USD 1 / 10 min, so
+expect somewhat more per probe; actual `cost_usd` per run is in `meta.json`.
 
 Send back: the whole run directory (`outputs/eval-3.17/E01/<run>/`, `eval/baseline/3.16.3-probe/`) or at least
 `meta.json`, `score.txt`, `tools-seen.txt`, `run.stderr` and `SUMMARY.tsv`. Check `run.jsonl` for secrets before

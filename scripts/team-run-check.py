@@ -189,7 +189,7 @@ EXPECTED_FIELDS = {
     "skills", "must_not_load", "must_not_read", "agents", "must_not_dispatch", "max_spawns", "ask_user",
     "first_action", "requires_r0", "forbidden_commands", "required_commands", "files_touched_glob",
     "files_forbidden_glob", "validation_run", "validation_forbidden", "artifacts", "artifacts_forbidden",
-    "result_matches"}
+    "result_matches", "route_any"}
 PATH_TOKEN = re.compile(r"[\w.~/@+-]*[\w@+-]\.[A-Za-z0-9]+")
 
 
@@ -293,6 +293,8 @@ def observe(events):
                 raise ValueError("tool_use input must be an object")
             paths = []
             if name == "Skill":
+                # verified live 2026-09-20 (CLI 2.1.269): {"skill": "shode-house:<name>", "args": ...};
+                # `command` is a tolerated fallback only; it was never observed in a live trace.
                 load(str(inp.get("skill") or inp.get("command") or ""))
             elif name == "Read":
                 paths = [str(inp.get("file_path") or "")]
@@ -385,6 +387,12 @@ def score(scenario, obs, files=()):
             if kind == "probe" and want:
                 ok = agents[:1] == want[:1]
             detail = f"spawned {agents}"
+        elif field == "route_any":   # routed to the skill OR to an owning agent, anywhere in the run
+            want = _list(value)
+            if not want or any(not isinstance(w, str) or not re.fullmatch(r"(skill|agent):[\w.-]+", w) for w in want):
+                raise Unscorable(f"route_any needs a non-empty list of skill:<name> | agent:<role>, got {value!r}")
+            hit = [w for w in want if w.split(":", 1)[1] in (skills if w.startswith("skill:") else agents)]
+            ok, detail = bool(hit), f"matched {hit}; loaded {skills}, spawned {agents}"
         elif field == "must_not_dispatch":   # whole-run (Quinn Q6), no ordering
             bad = [a for a in agents if any(fnmatch.fnmatchcase(a, g) for g in _list(value))]
             ok, detail = not bad, f"forbidden spawns: {bad}"

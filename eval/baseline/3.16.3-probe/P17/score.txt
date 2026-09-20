@@ -1,0 +1,3 @@
+  ok must_not_load: forbidden loads: []
+  RESULT: PASS
+exit=0

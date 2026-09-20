@@ -1,0 +1,1 @@
+ช่วยทำ STRIDE threat model ให้ feature payment

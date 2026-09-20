@@ -1,0 +1,1 @@
+project ใหม่ยังไม่มี test เลย ช่วยวางโครง test pyramid + coverage gate ใน CI ให้หน่อย

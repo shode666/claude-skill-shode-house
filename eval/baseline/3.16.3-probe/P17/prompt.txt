@@ -1,0 +1,1 @@
+ใน src/report.py แยก loop ของ export_sales ออกเป็น private function `_filter_rows` — ไม่มีใครนอกไฟล์นี้เรียก พฤติกรรมเดิมทุกอย่าง

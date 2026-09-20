@@ -1,0 +1,4 @@
+  X  skills: loaded []
+  ok must_not_load: forbidden loads: []
+  RESULT: FAIL skills
+exit=1

@@ -212,6 +212,21 @@ class ScenarioScoreTest(unittest.TestCase):
                                      [read("/r/skills/ops/diagnose/SKILL.md"), final()]))
         self.assertTrue(self.verdict({"skills": ["ask"]}, [bash("cat .agents/skills/ask/SKILL.md"), final()]))
 
+    def test_route_any(self):   # skill OR owning agent, anywhere in the run (live 2026-09-20: spawn tool = Agent)
+        exp = {"route_any": ["skill:secure", "agent:security-engineer"]}
+        self.pair(exp, [skill("shode-house:secure"), final()], [skill("slo"), final()], kind="probe")
+        agent = lambda role: tool("Agent", {"subagent_type": role, "description": "d", "prompt": "p"})
+        self.pair(exp, [bash("ls"), read("/r/README.md"), agent("shode-house:security-engineer"), final()],
+                  [agent("shode-house:developer"), final()], kind="probe")
+        self.assertFalse(self.verdict(exp, [final("route: Sentinel (security-engineer)")], kind="probe"),
+                         "a route announced only in text is not a dispatch")
+        self.assertFalse(self.verdict({"route_any": ["agent:secure"]}, [skill("secure"), final()], kind="probe"),
+                         "skill: and agent: namespaces must not cross-match")
+        for bad in ([], ["secure"], ["tool:secure"], [7]):
+            with self.assertRaises(trc.Unscorable):
+                trc.score({"id": "t", "kind": "probe", "expected": {"route_any": bad}},
+                          trc.observe([skill("secure"), final()]))
+
     def test_must_not_load(self):
         self.pair({"must_not_load": ["ui-test", "web-*"]}, [skill("dev-gate"), final()],
                   [bash("sed -n 1,40p skills/ui/web-q/SKILL.md"), final()])
@@ -323,7 +338,7 @@ class ScenarioScoreTest(unittest.TestCase):
             trc.score({"id": "GS1"}, trc.observe([final()]))
 
     def test_fields_match_the_whitelist(self):
-        self.assertEqual(18, len(trc.EXPECTED_FIELDS))
+        self.assertEqual(19, len(trc.EXPECTED_FIELDS))   # 18 + route_any (3.17 probe redesign)
 
 
 class CodexNormalizeTest(unittest.TestCase):

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Offline stand-in for the `claude` CLI, used ONLY to prove the eval runner wiring
 (eval/run-e01.sh, eval/run-probes.sh) without calling a model. It emits a minimal stream-json
-trace in the shape scripts/team-run-check.py parses. It proves nothing about what a real
-`claude -p` trace looks like (Skill tool_use shape stays UNVERIFIED until a live run).
+trace in the shape scripts/team-run-check.py parses. The Skill input shape mirrors the live
+trace of 2026-09-20 (CLI 2.1.269): {"skill": "shode-house:<name>", "args": ...}.
 Behaviour: prompt containing "typo" -> fix src/validators.py in cwd + targeted test + success;
 anything else -> one Skill load (env FAKE_SKILL, default diagnose) then error_max_turns.
 FAKE_MODE=noresult -> trace without a result event (UNSCORABLE path)."""

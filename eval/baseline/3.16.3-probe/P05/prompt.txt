@@ -1,0 +1,1 @@
+จะเปลี่ยน field `amount` ใน response ของ GET /v1/refunds จาก number เป็น string — มี mobile app กับ partner 3 รายเรียกอยู่ ต้องทำยังไงไม่ให้ฝั่งเขาพัง

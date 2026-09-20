@@ -1,0 +1,3 @@
+  ok agents: spawned ['fintech-expert']
+  RESULT: PASS
+exit=0

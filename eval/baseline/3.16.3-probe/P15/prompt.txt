@@ -1,0 +1,1 @@
+ออกแบบ double-entry ledger สำหรับ e-wallet รองรับ PromptPay

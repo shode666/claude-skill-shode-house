@@ -1,0 +1,3 @@
+  ok agents: spawned ['insurance-expert']
+  RESULT: PASS
+exit=0

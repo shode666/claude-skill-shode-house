@@ -1,0 +1,1 @@
+refactor src/notification.py: แยก retry loop ออกเป็นฟังก์ชันย่อย พฤติกรรมเดิมทุกอย่าง ไม่แตะ interface
