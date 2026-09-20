@@ -117,14 +117,17 @@ POSTMORTEM scheduled within 5 days
 ## Summary
 1 paragraph: what happened, customer impact, root cause, mitigation
 
-## Timeline (UTC)
-| Time | Event |
+## Timeline (UTC) — detection → response → mitigation → resolution
+| Time | Event (source: log/alert/user report) |
 |------|-------|
 | HH:MM | First alert (burn rate 14x, P1 page) |
 | HH:MM | Reggie ack, war room opened |
 | HH:MM | Hypothesis: DB connection pool exhaustion |
 | HH:MM | Mitigation: scale pool 50 → 200 |
 | HH:MM | SLO restored |
+
+## Impact
+- User: [count, %, region] · Revenue: [฿] · Data: [loss/integrity/none] · SLO: error budget burned [%]
 
 ## Root cause (5-why)
 1. Why did API error rate spike? → DB connection pool exhausted
@@ -133,7 +136,7 @@ POSTMORTEM scheduled within 5 days
 4. Why no warning? → No load forecast pre-launch
 5. Why no forecast? → No process for marketing → SRE handoff
 
-**Root cause**: Process gap between Marketing campaign launch and SRE capacity planning
+**Root cause** (structural cause, not "human mistake"): Process gap between Marketing campaign launch and SRE capacity planning
 
 ## What went well
 - Burn rate alert fired correctly (1h window, 14x)
@@ -145,7 +148,7 @@ POSTMORTEM scheduled within 5 days
 - DB pool size hardcoded (not Terraform-managed)
 - War room channel had no Patrick (PM should know early)
 
-## Action items
+## Action items (system change, not blame)
 | # | Action | Owner | Due | bd issue | Severity |
 |---|--------|-------|-----|----------|----------|
 | 1 | Add Marketing → SRE handoff process | Patrick | 2026-06-15 | bd-101 | HIGH |
@@ -219,42 +222,3 @@ with owners rather than claiming they are complete.
 | Root cause = security breach | → `secure` | Sentinel STRIDE + abuse case + threat model update |
 | Root cause = test gap ทำให้หลุด CI | → `automate-test` | Pyramid + regression coverage + CI gate (close the hole) |
 | Action item ต้อง deploy hot-fix | → `dev-gate` (followed by hot-fix release) | TDD applies even to hot-fix (no exception)
-
-## 📋 Postmortem Template (Oliver — ทุก incident, blameless)
-
-```markdown
-# Postmortem: [incident title] — [date]
-
-## Summary
-[1-2 บรรทัด: อะไรพัง, นานเท่าไหร่, กระทบใคร]
-
-## Timeline (UTC+7)
-- HH:MM — [event] (source: log/alert/user report)
-- HH:MM — [detection]
-- HH:MM — [response action]
-- HH:MM — [mitigation]
-- HH:MM — [resolution]
-
-## Impact
-- User: [count, %, region]
-- Revenue: [฿]
-- Data: [loss/integrity/none]
-- SLO: error budget burned [%]
-
-## Root Cause (5 Whys)
-1. Why X? → ...
-2. Why...? → ...
-5. Root: [structural cause, not "human mistake"]
-
-## What Went Well
-- [detection time, response, communication]
-
-## What Went Wrong
-- [delay, missing alert, no runbook]
-
-## Action Items (system change, not blame)
-| # | Action | Owner | Due | bd # |
-| 1 | Add alert for X | Aaron | YYYY-MM-DD | bd:N |
-| 2 | Test for regression | Quinn | YYYY-MM-DD | bd:N |
-| 3 | Update runbook | Aaron | YYYY-MM-DD | bd:N |
-```
