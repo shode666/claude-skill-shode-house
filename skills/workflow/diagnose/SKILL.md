@@ -9,9 +9,14 @@ description: Investigate an unresolved failure, regression or performance proble
 
 > **Owner**: Chris (review) + Quinn (test) + Dave (implement) — เปิด skill นี้เมื่อมี bug/perf
 
-## หลักการ
+**Goal**: identify the cause of an unresolved failure and verify the smallest justified fix.
 
-**No fix without a loop that goes red** — ก่อนตั้งสมมติฐานใด ๆ ต้องมี **คำสั่งเดียว** ที่รันแล้วเห็น bug จริง. "ลองเปลี่ยนดู" = anti-pattern
+## หลักการ (always)
+
+- objective evidence ของ failure ก่อน · inspect ก่อนเดา · symptom ≠ root cause · หลัง fix validate พฤติกรรมที่กระทบ
+- **No fix without a loop that goes red** — fix ได้หลังมี loop ที่แดงเท่านั้น (ไม่มี loop = ยังไม่ถึงขั้นเสนอ fix): ก่อนตั้งสมมติฐานใด ๆ ต้องมี **คำสั่งเดียว** ที่รันแล้วเห็น bug จริง. "ลองเปลี่ยนดู" = anti-pattern
+- **ทุกการเปลี่ยน code ต้องมี hypothesis ที่เขียน prediction ได้** อยู่เบื้องหลัง
+- **revert ก็ต้องเข้าใจก่อน** ว่ามันย้อนอะไรกลับบ้าง — revert คือการเปลี่ยน code ชนิดหนึ่ง กฎข้างบนใช้เหมือนกัน
 
 ## 🔒 Redact ก่อน paste (🔴 อ่านก่อนเริ่ม)
 
@@ -23,6 +28,7 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 
 ## When NOT to use
 
+- Bug อยู่ใน **production** และยังมี customer impact หรือ SLO burn → `incident` ก่อน (Reggie IC + war room — diagnose ไม่มี comms/severity); mitigate แล้วค่อยกลับมา
 - ยังไม่มี symptom ที่ reproduce ได้และไม่มี log/error — ไปเก็บหลักฐานก่อน
 - Feature request ที่ถูกเรียกว่า "bug" — นั่นคืองานของ Bella/Patrick
 - Known issue ที่มี bd + root cause แล้ว — ไป fix ตรง ๆ
@@ -52,15 +58,7 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 
 **วิธีสร้าง — 3 อันแรกครอบเกือบทุกเคส**
 1. **Failing test** ที่ seam ซึ่งเข้าถึง bug · 2. **curl / HTTP script** ยิงใส่ dev server · 3. **CLI + fixture** diff stdout กับ snapshot ที่รู้ว่าถูก
-ทั้งสามไม่ได้ผล → เปิด **`loop-ladder.md`** (ไฟล์ข้าง SKILL.md นี้): headless browser · replay captured trace · throwaway harness · property/fuzz · bisect harness · differential loop · HITL script
-
-**ลับ loop ให้คม** (treat the loop as a product) — ได้ loop แล้วยังไม่พอ:
-- เร็วขึ้นได้ไหม (cache setup, ข้าม init ที่ไม่เกี่ยว, แคบ scope ของ test)
-- signal คมขึ้นได้ไหม (assert **อาการที่ user บอก** ไม่ใช่ "ไม่ crash")
-- deterministic ขึ้นได้ไหม (pin เวลา, seed RNG, isolate filesystem, freeze network)
-> loop 30 วินาทีที่ flaky แทบไม่ต่างจากไม่มี loop; loop 2 วินาทีที่ deterministic = superpower
-
-**Bug ที่ไม่ deterministic**: เป้าหมายไม่ใช่ repro สะอาด แต่คือ **ดัน reproduction rate ให้สูงพอจะ debug** — ยิง trigger 100× · parallelise · stress · แคบ timing window · แทรก sleep. flake 50% debug ได้, 1% ไม่ได้
+ทั้งสามไม่ได้ผล **หรือ** loop ที่ได้ยังช้า / flaky / bug ไม่ deterministic → เปิด **`loop-ladder.md`** (ไฟล์ข้าง SKILL.md นี้) ก่อนไป Step 2 (วิธีที่ 4–10 + วิธีลับ loop)
 
 **✅ เงื่อนไขจบ Step 1 (ห้ามข้ามไป Step 2 ก่อนครบ)**
 ระบุได้ว่า **คำสั่งเดียว** คืออะไร (path ของ script / test invocation / curl) และ **รันไปแล้วอย่างน้อย 1 ครั้ง** พร้อม paste invocation + output (redacted):
@@ -77,10 +75,9 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 
 ### 2–3. Full investigation (Full path only)
 
-Owner: Dave/Chris/Quinn handling diagnosis. Before minimising the reproduction or
-ranking/instrumenting hypotheses on the Full path, read [full-investigation.md](full-investigation.md)
-in full. It preserves Steps 2–3. Fast path skips these steps; promote to Full and
-load this reference if the first fix fails or another symptom appears.
+Before minimising the reproduction or ranking/instrumenting hypotheses on the Full path,
+read [full-investigation.md](full-investigation.md) in full (Steps 2–3). Fast path skips these steps;
+promote to Full and load this reference if the first fix fails or another symptom appears.
 
 ### 4. Fix + Regression test
 
@@ -98,38 +95,21 @@ load this reference if the first fix fails or another symptom appears.
 ### 5. Cleanup + Prevent (บังคับก่อนบอกว่าเสร็จ)
 
 - [ ] repro เดิมไม่ repro แล้ว (รัน loop จาก Step 1 ซ้ำ + paste output)
-- [ ] regression test ผ่าน (หรือบันทึกไว้ว่าไม่มี seam ที่ถูกต้อง)
+- [ ] ship fix พร้อม regression test ที่ผ่าน (หรือบันทึกไว้ว่าไม่มี seam ที่ถูกต้อง)
 - [ ] instrumentation `[DEBUG-...]` ถูกลบครบ (`grep` prefix ยืนยัน + paste ว่าไม่เจอ)
 - [ ] throwaway harness/prototype ถูกลบ หรือย้ายไปที่ที่ mark ชัดว่าเป็นของ debug
 - [ ] **เขียน hypothesis ที่ถูกลงใน commit / PR message** — คนที่ debug คนต่อไปจะได้เรียนรู้
 - [ ] pattern เดียวกันอาจมีที่อื่น → `grep` แล้วแก้ให้หมด
 - [ ] doc ที่ทำให้เข้าใจผิด → แก้
-- [ ] production incident → postmortem (`incident` skill)
+- [ ] production incident → postmortem แบบ blameless: โทษระบบ ไม่โทษคน (`incident` skill)
 
-## Hand-off pattern
+## Hand-off / next skill
 
-```
-Diagnose finished →
-  - Chris: review fix + write regression unit test
-  - Quinn: integration test เผื่อ pattern อื่น
-  - Aaron: monitoring/alert ถ้าเป็น infra
-  - Domain Expert: ถ้า business rule ผิด
-```
-
-## กฎที่ต้องทำ (positive form — v3.12)
-
-- **fix ได้หลังมี loop ที่แดงเท่านั้น** — ไม่มี loop = ยังไม่ถึงขั้นเสนอ fix
-- **ทุกการเปลี่ยน code ต้องมี hypothesis ที่เขียน prediction ได้** อยู่เบื้องหลัง
-- **ship fix พร้อม regression test** (หรือพร้อมบันทึกว่าไม่มี seam ที่ถูกต้อง)
-- **revert ก็ต้องเข้าใจก่อน** ว่ามันย้อนอะไรกลับบ้าง — revert คือการเปลี่ยน code ชนิดหนึ่ง กฎข้างบนใช้เหมือนกัน
-- **postmortem โทษระบบ ไม่โทษคน** (blameless — `incident` skill)
-
-## Skill composition (where to go next)
+Diagnose finished → Chris: review fix + regression unit test · Quinn: integration test เผื่อ pattern อื่น · Aaron: monitoring/alert ถ้าเป็น infra · Domain Expert: ถ้า business rule ผิด
 
 | Situation | Next skill | Reason |
 |---|---|---|
-| Bug อยู่ใน **production**, มี customer impact หรือ SLO burn | → `incident` | Reggie IC + war room + blameless postmortem (diagnose ไม่มี comms/severity) |
-| Diagnosis เสร็จ → จะเขียน fix code | → `dev-gate` | TDD red-green-refactor + 7-gate (diagnose ไม่บังคับ TDD) |
+| Diagnosis เสร็จ → จะเขียน fix code | → `dev-gate` | TDD + 11-gate (diagnose ไม่บังคับ TDD) |
 | Bug เกิดเพราะ test gap | → `automate-test` | เพิ่ม regression coverage + CI gate (close the hole) |
 | Bug ใน frontend (visual/a11y) | → `ui-test` | Playwright + axe + visual diff (diagnose ไม่มี UI tooling) |
 | Bug เกี่ยวกับ security vuln | → `secure` | Sentinel STRIDE + abuse case (diagnose ไม่ classify threat)
