@@ -387,6 +387,160 @@
       "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
       "verification": "fixture",
       "anchor": "Redact secret/token/auth header/PII"
+    },
+    {
+      "id": "approval-void-on-change",
+      "rule": "Approval is void when the artifact changes after approval (sha mismatch)",
+      "owner": "orchestrator",
+      "trigger": "every approval gate",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-workflow/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "approval เป็นโมฆะ ต้องขอใหม่"
+    },
+    {
+      "id": "approval-rehash-before-gate",
+      "rule": "Re-hash the artifact against the recorded sha before passing any gate",
+      "owner": "orchestrator",
+      "trigger": "every approval gate",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-workflow/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "re-hash artifact แล้วเทียบกับ sha ที่บันทึกไว้"
+    },
+    {
+      "id": "approval-chat-not-counted",
+      "rule": "Approval that exists only in conversation does not count",
+      "owner": "orchestrator",
+      "trigger": "every approval gate",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-workflow/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "approval ที่อยู่แค่ในบทสนทนา = ไม่นับ"
+    },
+    {
+      "id": "threat-model-no-waive",
+      "rule": "A 'low risk' claim does not waive Phase 1c when a trigger fired",
+      "owner": "orchestrator",
+      "trigger": "Phase 1c trigger fired",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/orchestrator.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม skip Phase 1c (Threat Model) ถ้า trigger fired"
+    },
+    {
+      "id": "threat-model-pre-phase2",
+      "rule": "No Phase 2 dispatch before the Phase 1c gate when a trigger fired",
+      "owner": "orchestrator",
+      "trigger": "Phase 1c trigger fired",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/orchestrator.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม dispatch Phase 2 ก่อน Phase 1c gate"
+    },
+    {
+      "id": "no-commit-secret",
+      "rule": "Never commit a secret",
+      "owner": "ทุก agent",
+      "trigger": "ทุกงาน",
+      "preload": true,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม commit secret"
+    },
+    {
+      "id": "no-skip-security",
+      "rule": "Never skip a security check",
+      "owner": "ทุก agent",
+      "trigger": "ทุกงาน",
+      "preload": true,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม skip security check"
+    },
+    {
+      "id": "money-precision",
+      "rule": "No float for money (Decimal / integer subunit)",
+      "owner": "ทุก agent",
+      "trigger": "money code",
+      "preload": true,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม float กับ money"
+    },
+    {
+      "id": "reviewer-risk-tier",
+      "rule": "Merge requires the reviewers selected by harness risk tier/triggers",
+      "owner": "ทุก agent",
+      "trigger": "merge",
+      "preload": true,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Merge requires reviewers selected by harness risk tier/triggers"
+    },
+    {
+      "id": "r0-confirm-protocol",
+      "rule": "R0 confirm protocol: action + impact + rollback, confirm, then execute",
+      "owner": "ทุก agent",
+      "trigger": "R0 action",
+      "preload": true,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-discipline/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ระบุ action + impact + rollback"
+    },
+    {
+      "id": "drift-m2-classifier",
+      "rule": "M2 follow-up classifier: inspect evidence, route, no blind retry",
+      "owner": "orchestrator",
+      "trigger": "every follow-up message",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-drift/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "inspect evidence → route affected owner/phase, track iteration; no blind retry"
+    },
+    {
+      "id": "drift-m4-feedback",
+      "rule": "M4 user feedback invalidates the affected claim; fixes go through the iteration counter",
+      "owner": "orchestrator",
+      "trigger": "user feedback",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-drift/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "fix ตรง ๆ โดยไม่ผ่าน iter counter"
+    },
+    {
+      "id": "drift-m5-spec-change",
+      "rule": "M5 spec change = recorded acceptance revision",
+      "owner": "orchestrator",
+      "trigger": "spec change",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-drift/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "revise canonical acceptance record, preserve prior revision/history"
+    },
+    {
+      "id": "drift-m7-direct-block",
+      "rule": "M7 direct-to-agent block: non-Oliver agents send direct user pings back to Oliver",
+      "owner": "ทุก agent",
+      "trigger": "direct user ping in active engagement",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-drift/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ทุก agent ที่ไม่ใช่ Oliver ห้าม accept direct-from-user ใน active engagement"
     }
   ]
 }

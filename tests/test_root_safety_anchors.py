@@ -16,7 +16,19 @@ REQUIRED = {
     "lazy-negligent-carveout", "drain-isolation", "drain-independent-review", "a11y-root",
     "secure-data-classification-stop", "review-fixed-point", "reviewer-independence",
     "authority-precedence", "input-trust", "drift-detection", "redact-principle",
+    # v3.17 Sentinel G-C1 (anchor-first, before the 24->20 merge touches any root)
+    "approval-void-on-change", "approval-rehash-before-gate", "approval-chat-not-counted",
+    "threat-model-no-waive", "threat-model-pre-phase2",
+    "no-commit-secret", "no-skip-security", "money-precision", "reviewer-risk-tier", "r0-confirm-protocol",
+    "drift-m2-classifier", "drift-m4-feedback", "drift-m5-spec-change", "drift-m7-direct-block",
 }
+# Sentinel G-C2 / N5b: the R0 destructive list is split on the middle dot, so rule-conservation skips
+# its short items. Each item is pinned here instead; all 8 must stay in the discipline ROOT.
+DISCIPLINE_ROOT = "skills/discipline/shode-house-discipline/SKILL.md"
+R0_DESTRUCTIVE = (
+    "git push --force", "git reset --hard", "DROP TABLE", "DELETE without WHERE", "rm -rf",
+    "delete prod resource", "edit migration ที่ apply prod", "modify auth/IAM",
+)
 
 
 class RootSafetyAnchorTest(unittest.TestCase):
@@ -38,6 +50,13 @@ class RootSafetyAnchorTest(unittest.TestCase):
                 text = (ROOT / src).read_text()
                 self.assertIsNone(re.search(r"^LOAD:", text, re.M), f"{src} is a lazy reference")
                 self.assertIn(anchor, text)
+
+    def test_r0_destructive_list_complete_in_discipline_root(self):
+        text = (ROOT / DISCIPLINE_ROOT).read_text()
+        r0_line = next((l for l in text.splitlines() if l.startswith("**Destructive R0**")), "")
+        for item in R0_DESTRUCTIVE:
+            with self.subTest(item=item):
+                self.assertIn(item, r0_line, "R0 destructive item missing from the discipline root list")
 
 
 if __name__ == "__main__":
