@@ -442,10 +442,17 @@ jobs:
           python3 tests/test_team_entry.py || fail=1
           python3 tests/test_team_candidate.py || fail=1
           python3 tests/test_team_run_check.py || fail=1
+          python3 tests/test_context_budget.py || fail=1
 
           echo
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi
           exit $fail
+
+      - name: Per-run usage comparator regression tests
+        run: python3 -m unittest discover -s tests -p 'test_usage_report.py'
+
+      - name: Optional drain template contract (mock host, not live qualification)
+        run: node --test tests/test_drain_template.mjs
 
       - name: Eval scorer smoke test (committed recorded transcripts, no live agent run)
         # bd:B3 -- eval-scorer.py itself is stdlib-only (see its own docstring), so this needs no
@@ -521,6 +528,19 @@ jobs:
         # zip/unzip only, no new dependency (shellcheck/zipinfo checks self-skip loudly
         # if absent from the runner instead of failing the build).
         run: bash tests/test-hooks.sh
+
+      - name: Lock primitive test suite (bd:shode-house-vz8)
+        # scripts/lib/lock.sh -- the single shared mkdir-lock implementation extracted
+        # from scripts/side-effect.sh, scripts/workflow-state.sh, scripts/scope-check.sh
+        # (each had carried a byte-near-identical copy, and each had independently
+        # measured the SAME bootstrap race). Generic contract (exactly-one-holder,
+        # non-holder-cannot-release, no-auto-reap, explicit-audited-recover,
+        # recover-cannot-delete-a-newer-holder) -- the per-file reproduced-then-fixed
+        # concurrency shapes live in the reliability/scope-check suites above, which
+        # exercise this same library through its three real consumers. bash + jq +
+        # zip/unzip/zipinfo only (the packaging check self-skips if any are absent),
+        # no new dependency.
+        run: bash tests/test-lock.sh
 
       - name: Build .plugin artifact
         run: make pack

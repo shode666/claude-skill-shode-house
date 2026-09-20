@@ -39,7 +39,7 @@ pack build:
 	  output-styles hooks \
 	  references docs \
 	  scripts/workflow-state.sh scripts/route.sh scripts/policy-check.sh scripts/scope-check.sh \
-	  scripts/permission-check.sh scripts/side-effect.sh scripts/approval.sh \
+	  scripts/permission-check.sh scripts/side-effect.sh scripts/approval.sh scripts/lib/lock.sh \
 	  README.md CHANGELOG.md CLAUDE.md .pre-commit-config.yaml \
 	  -x '*.DS_Store' -x '*__pycache__*' -x '*/.git/*' -x '*.fuse_hidden*') && \
 	 mv "$$d/$(PLUGIN)" ./ ; rc=$$?; rm -rf "$$d"; exit $$rc
