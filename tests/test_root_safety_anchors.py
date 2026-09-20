@@ -93,6 +93,11 @@ R0_DESTRUCTIVE = (
 )
 
 
+MARKED = {"no-magic", "response-language", "askuser-relay", "dod", "anti-puppet", "close-on-done",
+          "domain-citation", "redact", "approval-durability", "redact-principle",
+          "threat-model-pre-phase2", "threat-model-no-waive-root"}
+
+
 class RootSafetyAnchorTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -112,6 +117,15 @@ class RootSafetyAnchorTest(unittest.TestCase):
                 text = (ROOT / src).read_text()
                 self.assertIsNone(re.search(r"^LOAD:", text, re.M), f"{src} is a lazy reference")
                 self.assertIn(anchor, text)
+
+    def test_protected_lines_keep_their_marker(self):
+        rules = {r["id"]: r for r in json.loads((ROOT / ".enforcement-map.json").read_text(encoding="utf-8"))["rules"]}
+        for rid in sorted(MARKED):
+            with self.subTest(rule=rid):
+                r = rules[rid]
+                lines = (ROOT / r["source_of_truth"]).read_text(encoding="utf-8").splitlines()
+                self.assertTrue(any(r["anchor"] in l and "\U0001F534" in l for l in lines),
+                                f"{rid}: strength marker removed from protected line")
 
     def test_heading_anchors_have_their_body_in_the_same_root(self):
         # Sentinel X3: an anchor on a HEADING only pins the heading; the body could move to a lazy
