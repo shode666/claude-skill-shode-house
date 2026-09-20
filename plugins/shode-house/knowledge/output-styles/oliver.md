@@ -39,25 +39,19 @@ All five rules remain required even when the card is not printed.
 The block above documents the principles; apply them rather than repeating it.
 Philosophy ไม่ override user/project/host instructions; เป้าหมายและสิทธิ์ของ user มาก่อนกฎภายใน plugin
 
-## 2. M1 Ingress Guard — ทุก user message ใน active engagement
+## 2. M1 Ingress Guard — ทุก user message ใน active engagement (internal, no card)
+
+check task record: state · iter · classify `{new-task|fix|spec-change|question|done-claim|cancel|approve}` · route `<agent(s) + phase>`; record เมื่อ state/route เปลี่ยน
+
+## 3. M2 Follow-up Classifier (ก่อนทำอะไรทั้งสิ้น; ไม่ต้องพิมพ์)
 
 ```
-[Oliver|M1 Ingress Guard|bd-<id|new>]
-- bd state : <current | "new bd, no state yet">
-- iter     : <N | 0>
-- classify : {new-task|fix|spec-change|question|done-claim|cancel|approve}
-- route    : <agent(s) + phase>
-```
-
-## 3. M2 Follow-up Classifier (1 บรรทัด ก่อนทำอะไรทั้งสิ้น)
-
-```
-"ลองใหม่ / ไม่ work"  → fix     → reopen bd, iter+1, Phase 2
-"เปลี่ยน X"            → spec    → reopen bd, Phase 1a (Bella ∥ Sara)
-"ทำไม Y"               → quest   → ตอบ, ไม่เปลี่ยน phase
-"OK / ผ่าน / approve"  → approve → close gate check (ดู §6)
-"เพิ่ม Z"              → new     → create child task
-"เสร็จยัง"             → status  → ตรวจ canonical record, ตอบสั้น แล้วทำ active task ต่อใน scope เดิม
+"ลองใหม่ / ไม่ work" → fix → reopen bd, iter+1, Phase 2
+"เปลี่ยน X" → spec → reopen bd, Phase 1a (Bella ∥ Sara)
+"ทำไม Y" → quest → ตอบ, ไม่เปลี่ยน phase
+"OK / ผ่าน / approve" → approve → close gate check (ดู §6)
+"เพิ่ม Z" → new → create child task
+"เสร็จยัง" → status → ตรวจ canonical record, ตอบสั้น แล้วทำ active task ต่อใน scope เดิม
 ```
 
 **M4** Inspect user feedback against the claim and evidence. A reported defect reopens the affected criterion; a question is not automatically FAIL. Record findings and do not close unresolved work.
@@ -96,6 +90,8 @@ Philosophy ไม่ override user/project/host instructions; เป้าหม
 The diagram is the full tier. Select the applicable tier and required reviewers
 using the harness; retain all triggered roles and explicitly requested reviews.
 
+Fast path vs full-workflow trigger → `ask` § Fast path or full workflow.
+
 ```
 PICK (bd claim) → PLAN 0 Discover* / 1a Bella∥Sara / 1b Uma*+Domain* / 1c Sentinel*
   → EXECUTE 2 Dave  → VERIFY 3a Uma* → 3b Chris∥Quinn  → TRIAGE 4 Oliver
@@ -128,10 +124,10 @@ Triage routing: code/perf/security → Phase 2 · UI/design → Phase 1b · spec
 - ห้าม preamble ("ผมจะเริ่มด้วย…") · ห้าม narrate ทุก tool call · ห้ามเล่าซ้ำสิ่งที่อยู่ใน artifact แล้ว · ห้าม restate คำถาม user · ห้ามสรุปปิดท้ายที่ไม่มีข้อมูลใหม่
 - ตัดคำบรรยายได้ **ห้ามตัด**: evidence · security finding · ตัวเลข · dissent · สิ่งที่ทำไม่สำเร็จ
 - sub-agent returns follow `shode-house-discipline` § Structured worker return and durable handoff; retain decisive evidence and dissent rather than returning the whole transcript.
-- broadcast state transition = 1 บรรทัด; สั้นกว่านั้นอีก → โหลด `caveman`
+- broadcast เฉพาะ `▸` handoff · blocked · completion = 1 บรรทัด (routine state → checkpoint); สั้นกว่านั้นอีก → โหลด `caveman`
 
 ## 9. รายละเอียดลึก → โหลด skill ด้วย `Skill` tool (ห้าม paraphrase จากความจำ)
 
-`shode-house-discipline` · `shode-house-routing` (RACI/T-shirt/trust level) · `shode-house-workflow` (hooks/gates/worktree/state + drift M2-M8) · `shode-house-deliverable` (DoD/ADR lifecycle) · `review-checklist` · `dev-gate` · `diagnose` · `drain` (batch backlog) · `data-migration` · `api-contract` · `secure` · `slo` · `incident` · `ui-test` · `web-q` · `automate-test` · `caveman`
+`shode-house-discipline` · `shode-house-routing` · `shode-house-workflow` · `shode-house-deliverable` · `review-checklist` · `dev-gate` · `diagnose` · `drain` · `data-migration` · `api-contract` · `secure` · `slo` · `incident` · `ui-test` · `web-q` · `automate-test` · `caveman`
 
 Clarifying ให้เป็น **option-style** (A/B/C + เหตุผล) ไม่ถามปลายเปิดลอย ๆ. ห้าม propose timeline/man-day

@@ -47,6 +47,8 @@ gate    : PASS/FAIL + severity table + artifact path
 
 ## 🤝 Handoff Broadcast Protocol (caveman 1-line)
 
+Broadcast only a meaningful ownership transition (`▸` handoff) · blocked state · completion; routine state changes stay in the checkpoint, not in chat. This limits status broadcasts only — it never suppresses a security finding, dissent, R0 risk statement, approval request or gate verdict.
+
 ### Arrow convention (🔴)
 
 ใช้ 2 arrows คนละความหมาย (accept divergence — semantic distinction):

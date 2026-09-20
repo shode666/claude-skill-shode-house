@@ -8,7 +8,7 @@ description: Coordinate multi-phase delivery with phase gates, recorded approval
 เริ่ม/resume engagement หรือก่อน delegate ครั้งแรก: อ่าน `harness.md` ข้างไฟล์นี้
 เพื่อยืนยัน source of truth, host tools, owner, checkpoint และการ reconcile UNKNOWN
 
-> Oliver owns workflow. Phase Contract บังคับ. Hooks + Gates make pipeline auditable. Drift Defense: M1 → `shode-house-discipline` · detection M2/M4/M5/M7 → § Workflow Drift Defense ด้านล่าง · M3/M6/M8 detail → `drift.md`
+> Oliver owns workflow. Phase Contract บังคับ. Hooks + Gates make pipeline auditable.
 
 ---
 ## 🧵 Task Tracking — tracker = single source of truth ของ status/dep
@@ -25,7 +25,7 @@ description: Coordinate multi-phase delivery with phase gates, recorded approval
 
 ทุก mode: **R0 (irreversible) ขออนุญาตเสมอ**
 
-## 🚦 Phase orchestration — ห้าม (🔴 Oliver enforce, ย้ายมาจาก discipline v3.10)
+## 🚦 Phase orchestration — ห้าม (🔴 Oliver enforce)
 
 - Phase 1a Bella/Sara ใช้ independent context; parallel เมื่อ host รองรับและไม่มี dependency มิฉะนั้น sequential ได้. Phase 1b Uma/Domain ต้องอ่าน 1a spec ที่รวมแล้วก่อน design/validate
 - UI changed → ห้าม skip Phase 3a Uma POST gate. Pure backend → บันทึก not-applicable พร้อม diff evidence แล้วเข้า 3b ได้
@@ -39,6 +39,7 @@ description: Coordinate multi-phase delivery with phase gates, recorded approval
 - **Output**: STRIDE + abuse case + security AC injected into Phase 1a
 - **Gate**: `pre-implement` — สิทธิ์ block Phase 2 ถ้าไม่ผ่าน
 - **Note**: ขนาน parallel กับ 1b ได้ ถ้า scope independent
+- Fast path vs full-workflow trigger → `ask` § Fast path or full workflow (single owner); fast path never skips this trigger.
 - 🔴 **No waiver**: a user's or agent's "low risk" claim does not waive Phase 1c when a trigger fired. ห้าม dispatch Phase 2 ก่อน Phase 1c gate ผ่าน
 
 ---
@@ -77,8 +78,6 @@ description: Coordinate multi-phase delivery with phase gates, recorded approval
 
 ### Phase Contract — 🔴 v3.3 PEV Loop per bd (Oliver enforce)
 
-**Single loop: PEV (Plan → Execute → Verify → Triage) per bd** (sprint outer loop removed)
-
 > Task-complete, not time-bound; ห้าม man-day negotiation. Deploy only when ready and authorized, not batched by sprint.
 
 ```
@@ -89,7 +88,6 @@ PICK bd claim → PLAN 0 Discover* / 1a Bella∥Sara / 1b Uma*+Domain* / 1c Sent
 Triage routing: code/perf/security→2 · UI/design→1b · spec/AC/regulation→1a
 Clean + closure authority → tracker close + read-back (M8); unresolved at third review/fix iteration → STOP, checkpoint and escalate
 ```
-> รายละเอียด pre/post hook ต่อ phase = ตาราง § Lifecycle Hooks ใน `smart-coop.md` (single source)
 
 ## 🛡️ Workflow Drift Defense (🔴 M2-M8 — M1 อยู่ใน `shode-house-discipline`)
 
@@ -138,21 +136,19 @@ User: "เปลี่ยน amount เป็น decimal"
 
 M3: Worker "done"/FIXED = candidate; "ready merge" = Oliver only, after applicable independent reviews + triggered experts + current evidence + merge authority (detail → drift.md M3)
 
-M1 → `shode-house-discipline` § M1 — Ingress Guard; เมื่อ drift เกิดจริง / จะ claim done / จะปิด task → โหลด `drift.md` (ข้าง SKILL.md นี้): M3 Anti-Puppet "Done" table · M6 state pin · M8 Close-on-Done procedure · phase notes 0/6/7
+M1 → `shode-house-discipline` § M1 — Ingress Guard; เมื่อ drift เกิดจริง / จะ claim done / จะปิด task → โหลด `drift.md`: M3 Anti-Puppet "Done" table · M6 state pin · M8 Close-on-Done procedure · phase notes 0/6/7
 
 ---
 
 ## 🤝 Smart Coop Pattern — parallel where independent, sequential gate where dependent
 
-🔴 **จะรัน pipeline จริง → โหลด `smart-coop.md` ก่อน** (อยู่ข้าง SKILL.md นี้): phase pattern ต่อ phase · anti-pattern ที่จะถูก block · `state.json` schema + resume · **Lifecycle Hooks ต่อ phase** · **10 approval gates** · Phase 0 scope-clarify flow · worktree isolation · prompt template
+🔴 **จะรัน pipeline จริง → โหลด `smart-coop.md` ก่อน**: phase pattern ต่อ phase · anti-pattern ที่จะถูก block · `state.json` schema + resume · **Lifecycle Hooks ต่อ phase** · **10 approval gates** · Phase 0 scope-clarify flow · worktree isolation · prompt template
 ห้าม orchestrate จากความจำ — เนื้อหาอยู่ในไฟล์แล้ว (NO MAGIC)
 
-## 📚 Reference Files (lazy-load)
+## 📚 Reference Files (lazy-load; `*.md` = ข้าง SKILL.md นี้)
 
 | ไฟล์ | โหลดเมื่อ |
 |---|---|
-| `smart-coop.md` (ข้าง SKILL.md นี้) | จะรัน/ย้าย phase ของ pipeline จริง |
-| `drift.md` (ข้าง SKILL.md นี้) | drift เกิด (follow-up หลุด phase, disputed "done", state recovery) หรือก่อน claim done / ปิด task — M3 · M6 · M8 |
-| `wayfinding.md` (ข้าง SKILL.md นี้) | 🆕 งานใหญ่เกิน 1 session **และยังมองไม่เห็นทาง** — Map + decision ticket ก่อนเข้า Phase 0 |
+| `wayfinding.md` | งานใหญ่เกิน 1 session **และยังมองไม่เห็นทาง** — Map + decision ticket ก่อนเข้า Phase 0 |
 | `references/patterns/durable-agent-runtime.md` | Aaron/Sara generate runner ที่ต้องการ retry/checkpoint/journal |
 | `references/languages/<lang>.md` · `references/patterns/general.md` · `references/modern-stack.md` | ตาม stack ที่แตะ |

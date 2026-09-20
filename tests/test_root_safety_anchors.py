@@ -58,6 +58,8 @@ REQUIRED = {
     "bias-reggie-runbook-blocked", "bias-sara-no-microservices-default", "bias-iris-no-yield-oic", "bias-quinn-premerge-ui-blocked",
     # P6 validation fixes (Sentinel F1b/F4)
     "dave-observable-implement", "bias-chris-unsure-blocked", "bias-quinn-unsure-blocked",
+    # P7 (Sentinel P7-C4/C5): fast path + full-workflow trigger at their single owner (ask root); trust cascade stays a behaviour rule
+    "fast-path-five-conditions", "fast-path-still-enforces", "full-workflow-nine-triggers", "trust-cascade-no-upgrade",
 }
 DELIVERABLE_ROOT = "skills/discipline/shode-house-deliverable/SKILL.md"
 PRECEDENCE = ('**Stop and return outranks completion.** "Continue until complete" never overrides a Stop-and-return '

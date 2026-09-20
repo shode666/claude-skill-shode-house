@@ -1399,6 +1399,50 @@
       "source_of_truth": "agents/qa-engineer.md",
       "verification": "ci:21 + test_root_safety_anchors",
       "anchor": "unsure which verdict applies → default to BLOCKED or FAIL, never PASS or retry-until-green"
+    },
+    {
+      "id": "fast-path-five-conditions",
+      "rule": "Fast path is allowed only when ALL five conditions hold; one unknown = full workflow",
+      "owner": "main session (Oliver)",
+      "trigger": "small task / depth decision",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/workflow/ask/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "single-file deterministic fix · clear behaviour · no architecture change · no domain decision · no security boundary. One unknown → full workflow."
+    },
+    {
+      "id": "fast-path-still-enforces",
+      "rule": "Fast path still enforces evidence + R0/R1/R2 + Stop-and-return + the Phase 1c trigger; never drops a triggered role or gate",
+      "owner": "main session (Oliver)",
+      "trigger": "fast path chosen",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/workflow/ask/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Fast path still enforces evidence + R0/R1/R2 + Stop-and-return + the Phase 1c trigger; it never drops a triggered role or a gate."
+    },
+    {
+      "id": "full-workflow-nine-triggers",
+      "rule": "Full multi-agent workflow is mandatory when any of the nine triggers applies (security-sensitive = a Phase 1c trigger)",
+      "owner": "main session (Oliver)",
+      "trigger": "depth decision",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/workflow/ask/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "new product behaviour · architecture decision · cross-domain impact · large feature · security-sensitive change (= a Phase 1c trigger) · significant UI flow · complex migration · multi-service contract · production deployment"
+    },
+    {
+      "id": "trust-cascade-no-upgrade",
+      "rule": "Trust cascade: a chain never upgrades trust (level = min of the chain); the label is internal, the behaviour is not",
+      "owner": "ทุก agent",
+      "trigger": "agent cites another agent's output",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "skills/discipline/shode-house-routing/SKILL.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "trust level = min(A's level, A's output level). ห้าม upgrade trust ของ chain"
     }
   ]
 }

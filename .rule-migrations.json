@@ -702,6 +702,82 @@
         "ผ่าน YAGNI ladder (Step 0) ก่อนทุกครั้ง"
       ],
       "reason": "P6 integration: checklist re-aligned with the Gate 0-10 table; YAGNI stays as Step 0; observability moved to agents/developer.md Process 6 (anchor dave-observable-implement)."
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/SKILL.md",
+      "old_fragment": "**Single loop: PEV (Plan → Execute → Verify → Triage) per bd** (sprint outer loop removed)",
+      "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
+      "requires": [
+        "Phase Contract — 🔴 v3.3 PEV Loop per bd (Oliver enforce)",
+        "PICK bd claim → PLAN 0 Discover*"
+      ],
+      "reason": "P7 ceremony (FR-P7-1): phase narration that restated its own heading and diagram; byte payment for the fast-path owner section. The PEV loop stays defined by the heading + diagram; no behaviour removed."
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/SKILL.md",
+      "old_fragment": "drift เกิด (follow-up หลุด phase, disputed \"done\", state recovery) หรือก่อน claim done / ปิด task — M3",
+      "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
+      "requires": [
+        "เมื่อ drift เกิดจริง / จะ claim done / จะปิด task → โหลด `drift.md`",
+        "M3 Anti-Puppet \"Done\" table · M6 state pin · M8 Close-on-Done procedure"
+      ],
+      "reason": "P7 ceremony (FR-P7-1): duplicate load trigger — the Reference Files row repeated the drift.md trigger already stated in the root's M1/drift pointer line; one owner kept, byte payment for the fast-path section."
+    },
+    {
+      "source": "skills/discipline/shode-house-routing/SKILL.md",
+      "old_fragment": "**Pattern**: ก่อน claim → state trust level",
+      "replacement": "skills/discipline/shode-house-routing/SKILL.md",
+      "requires": [
+        "ไม่บังคับพิมพ์ label; claim ต้อง cite source เสมอ",
+        "ห้าม upgrade trust ของ chain",
+        "ทุก agent ประเมิน **trust level** ของ source ก่อน act/claim"
+      ],
+      "reason": "P7 FR-P7-5 / Sentinel P7-C5 (SPEC §59): displaying the trust label is no longer mandatory output; classification stays an internal behaviour rule, source citation stays mandatory, and the cascade rule is now a root_only anchor (trust-cascade-no-upgrade)."
+    },
+    {
+      "source": "agents/devops-engineer.md",
+      "old_fragment": "เริ่มงาน: \"Aaron (DevOps) รับงาน setup/deploy ครับ\"",
+      "replacement": "agents/devops-engineer.md",
+      "requires": [
+        "คุณคือ **Aaron**"
+      ],
+      "reason": "P7 ceremony (FR-P7-1 / SPEC §66 agent introductions): mandatory greeting line removed, same treatment as the P6 Stan greeting; the action half (where one existed) stays verbatim; worker return format is owned by preloaded shode-house-discipline § Structured worker return."
+    },
+    {
+      "source": "agents/sre-engineer.md",
+      "old_fragment": "เริ่มงาน: \"Reggie (SRE) รับงาน reliability ครับ\"",
+      "replacement": "agents/sre-engineer.md",
+      "requires": [
+        "คุณคือ **Reggie**"
+      ],
+      "reason": "P7 ceremony (FR-P7-1 / SPEC §66 agent introductions): mandatory greeting line removed, same treatment as the P6 Stan greeting; the action half (where one existed) stays verbatim; worker return format is owned by preloaded shode-house-discipline § Structured worker return."
+    },
+    {
+      "source": "agents/orchestrator.md",
+      "old_fragment": "เริ่มงาน: \"Oliver (OR) รับงาน จะจัดทีมให้ครับ\" → triage ทันที",
+      "replacement": "agents/orchestrator.md",
+      "requires": [
+        "เริ่มงาน → triage ทันที"
+      ],
+      "reason": "P7 ceremony (FR-P7-1 / SPEC §66 agent introductions): mandatory greeting line removed, same treatment as the P6 Stan greeting; the action half (where one existed) stays verbatim; worker return format is owned by preloaded shode-house-discipline § Structured worker return."
+    },
+    {
+      "source": "agents/security-engineer.md",
+      "old_fragment": "เริ่มงาน: \"Sentinel (SEC) รับงาน security ครับ\" → read task + classify scope",
+      "replacement": "agents/security-engineer.md",
+      "requires": [
+        "เริ่มงาน → read task + classify scope"
+      ],
+      "reason": "P7 ceremony (FR-P7-1 / SPEC §66 agent introductions): mandatory greeting line removed, same treatment as the P6 Stan greeting; the action half (where one existed) stays verbatim; worker return format is owned by preloaded shode-house-discipline § Structured worker return."
+    },
+    {
+      "source": "agents/security-engineer.md",
+      "old_fragment": "เริ่มงาน: \"Sentinel (SEC) รับงาน security ครับ\" → bd show + classify scope",
+      "replacement": "agents/security-engineer.md",
+      "requires": [
+        "เริ่มงาน → read task + classify scope"
+      ],
+      "reason": "P7 ceremony (FR-P7-1): pre-P5 spelling of the same Sentinel greeting line (tracker-specific `bd show` already neutralised to `read task`); greeting removed, action half kept."
     }
   ]
 }

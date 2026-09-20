@@ -38,6 +38,13 @@ review does not authorize edits. An authorized start after design continues here
 no additional implement command is required. First project use confirms the
 source-of-truth mapping; Markdown is the fallback for every concern.
 
+## Fast path or full workflow (single owner)
+
+**Fast path** = inspect → edit → validate → handoff, without phase banners, cards or an `outputs/` artifact — only when ALL five hold: single-file deterministic fix · clear behaviour · no architecture change · no domain decision · no security boundary. One unknown → full workflow.
+Fast path still enforces evidence + R0/R1/R2 + Stop-and-return + the Phase 1c trigger; it never drops a triggered role or a gate.
+**Full workflow** when ANY of nine applies: new product behaviour · architecture decision · cross-domain impact · large feature · security-sensitive change (= a Phase 1c trigger) · significant UI flow · complex migration · multi-service contract · production deployment.
+Fast path is never lighter than the harness Bounded tier: that tier's exclusions (UI · money/auth/PII/external integration · schema or migration) move the task up, and the edit still gets independent review (Dave implements, Chris reviews). Between the two, depth follows the harness risk tier.
+
 ## Dispatch real specialists
 
 Choose outcomes and risks, not keyword matches. Consult the role directory below;

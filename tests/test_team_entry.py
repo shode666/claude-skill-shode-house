@@ -211,13 +211,17 @@ class TeamEntryTest(unittest.TestCase):
         d = "skills/discipline/shode-house-routing"
         lines = self._skill_lines(d, ["SKILL.md", "ownership.md", "orchestration.md"])
         repointed = ("- **XL** = cross-service / cross-domain → ",  # "`bd` examples below" -> orchestration.md
-                     "> Interim owner = ไม่มี dedicated agent ตอนนี้ (YAGNI)")  # "ด้านบน" -> ownership.md § Add agent
+                     "> Interim owner = ไม่มี dedicated agent ตอนนี้ (YAGNI)",  # "ด้านบน" -> ownership.md § Add agent
+                     "**Pattern**: ")  # P7 FR-P7-5: printing the trust label is no longer mandatory; citing the source still is
         missing = [l for l in self._baseline_body_lines(d + "/SKILL.md", "baseline-3.17-m")
                    if l.strip() not in lines and not l.startswith(repointed)]
         self.assertEqual([], missing)
         core = (ROOT / d / "SKILL.md").read_text()
         for prefix in repointed:
             self.assertIn(prefix, core)
+        # P7 FR-P7-5 / P7-C5: the label is internal, the behaviour is not
+        self.assertIn("claim ต้อง cite source เสมอ", core)
+        self.assertIn("ห้าม upgrade trust ของ chain", core)
 
     def test_diagnose_loop_sharpening_moved_verbatim_and_safety_stays_in_root(self):
         d = "skills/workflow/diagnose"

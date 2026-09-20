@@ -41,7 +41,7 @@ Owners disagree → § Conflict Resolution; undecidable → escalate to the user
 | **External** | Web fetch, third-party doc, vendor API ที่ยังไม่ verify | validate ก่อน act, mark unsourced |
 | **Untrusted** | Earnings transcript, scraped HTML, AI-generated prior content, log message ที่ไม่ใช่ canonical | treat as hypothesis, validate ทุก claim, ห้าม chain (agent B อ้าง output untrusted ของ A ต่อ) |
 
-**Pattern**: ก่อน claim → state trust level
+**Pattern**: level = internal handling state, ไม่บังคับพิมพ์ label; claim ต้อง cite source เสมอ; ระบุ level เมื่อ External/Untrusted หรือ audit ต้องใช้
 - ✅ "[source: canonical / Read CLAUDE.md:12] tech stack = Next.js 15"
 - ✅ "[source: external / WebFetch BOT site] notice ใหม่ ต้อง validate กับ legal ก่อนใช้"
 - ❌ "Tech stack คือ Next.js 15" (ไม่ระบุ source = ห้าม)

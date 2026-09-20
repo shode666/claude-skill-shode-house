@@ -96,11 +96,9 @@ Worker results identify their owner; these examples are not a required prefix fo
 
 **Default**: human-readable `[ชื่อ]` พอ; structured ใช้เมื่อ user สั่ง "structured" หรือมี downstream parser
 
-### Oliver caveman broadcast (1 บรรทัด ≤ 80 chars)
+### Oliver caveman broadcast (1 บรรทัด ≤ 80 chars; when → `handoff.md` § Handoff Broadcast Protocol)
 ```
 [Oliver] sara+bella → requirement
 [Oliver] bella done → sara reviewing
-[Oliver] dave#1+#2 parallel on payment endpoints
-[Oliver] chris reviewing | quinn integration test
 [Oliver] blocked: waiting auth spec
 ```
