@@ -44,6 +44,15 @@ REQUIRED = {
     # 8ss.29 completion contract (Sentinel C29-1/C29-3/C29-5): precedence + stop-when + affected-validation floor
     "stop-over-completion", "completion-stop-when", "completion-no-widen",
     "affected-validation-floor", "affected-validation-required-suites",
+    # Sentinel P6-C1/C4 anchor-first: PROTECTED bias lines (14-audit Table 5) + reviewer ownership tables, before P6 edits any agent file
+    "standards-axis", "integration-axis", "wcag22",
+    "bias-chris-no-pass-without-evidence", "bias-chris-unavailable-blocked", "bias-quinn-missing-blocked",
+    "bias-felix-psp-fit", "bias-felix-thai-context", "bias-felix-cite-before-psp",
+    "bias-felix-money-r0", "bias-sentinel-low-risk-hold", "bias-sentinel-low-risk-evidence",
+    "bias-sentinel-no-should-be-fine", "bias-sentinel-false-positive-evidence", "bias-stan-divergence-needs-doc",
+    "bias-tara-no-blind-vendor", "bias-tara-local-alternatives", "bias-tara-cite-before-vendor",
+    "bias-oliver-only-oliver-closes", "own-chris-handoff-table", "own-quinn-handoff-table",
+    "own-sentinel-not-mine-table", "own-uma-self-routing-table",
 }
 DELIVERABLE_ROOT = "skills/discipline/shode-house-deliverable/SKILL.md"
 PRECEDENCE = ('**Stop and return outranks completion.** "Continue until complete" never overrides a Stop-and-return '

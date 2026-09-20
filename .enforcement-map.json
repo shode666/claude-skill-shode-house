@@ -91,6 +91,7 @@
       "owner": "code-reviewer",
       "trigger": "Phase 3b",
       "preload": false,
+      "root_only": true,
       "source_of_truth": "agents/code-reviewer.md",
       "verification": "fixture",
       "anchor": "### 1. Correctness"
@@ -101,6 +102,7 @@
       "owner": "qa-engineer",
       "trigger": "Phase 3b",
       "preload": false,
+      "root_only": true,
       "source_of_truth": "agents/qa-engineer.md",
       "verification": "fixture",
       "anchor": "integration/E2E/contract/load"
@@ -154,6 +156,7 @@
       "owner": "ux-ui-designer",
       "trigger": "frontend touched",
       "preload": false,
+      "root_only": true,
       "source_of_truth": "agents/ux-ui-designer.md",
       "verification": "a11y fixture",
       "anchor": "Focus Not Obscured"
@@ -438,7 +441,7 @@
       "root_only": true,
       "source_of_truth": "agents/orchestrator.md",
       "verification": "ci:21 + test_root_safety_anchors",
-      "anchor": "ห้าม skip Phase 1c (Threat Model) ถ้า trigger fired"
+      "anchor": "ห้าม skip Phase 1c (Threat Model) ถ้า trigger fired แม้ user บอก \"low risk\""
     },
     {
       "id": "threat-model-pre-phase2",
@@ -1044,6 +1047,226 @@
       "source_of_truth": "skills/discipline/shode-house-deliverable/SKILL.md",
       "verification": "ci:21 + test_root_safety_anchors",
       "anchor": "never skip a suite the project's acceptance/CI requires; dependency manifest/auth/crypto diff → full security checks"
+    },
+    {
+      "id": "bias-chris-no-pass-without-evidence",
+      "rule": "No PASS without required evidence; an observed defect is distinguished from missing verification",
+      "owner": "code-reviewer",
+      "trigger": "review verdict",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/code-reviewer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "No PASS without required evidence; distinguish an observed defect from missing verification"
+    },
+    {
+      "id": "bias-chris-unavailable-blocked",
+      "rule": "Unavailable required checks = BLOCKED (never PASS); no weakened adopted thresholds",
+      "owner": "code-reviewer",
+      "trigger": "review verdict",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/code-reviewer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "invented scores or weakened adopted thresholds. Unavailable required checks = BLOCKED."
+    },
+    {
+      "id": "bias-quinn-missing-blocked",
+      "rule": "Defect = FAIL; missing required verification = BLOCKED; incomplete scope = PARTIAL",
+      "owner": "qa-engineer",
+      "trigger": "review verdict",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/qa-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "need independent evidence: defect = FAIL; missing required verification = BLOCKED; incomplete scope = PARTIAL"
+    },
+    {
+      "id": "bias-felix-psp-fit",
+      "rule": "Verify a stated PSP's fit and risks; compare alternatives when selection is unresolved",
+      "owner": "fintech-expert",
+      "trigger": "PSP selection",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/fintech-expert.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Verify a stated PSP's fit and risks; compare alternatives (2C2P, Omise, TrueMoney, PromptPay) when selection is unresolved"
+    },
+    {
+      "id": "bias-felix-thai-context",
+      "rule": "Thailand context: local card scheme + FX cost + BOT regulation take precedence",
+      "owner": "fintech-expert",
+      "trigger": "PSP selection",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/fintech-expert.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Thailand context → local card scheme + FX cost + BOT regulation precedence"
+    },
+    {
+      "id": "bias-felix-cite-before-psp",
+      "rule": "Cite TXN volume + local card mix + PCI-DSS scope before proposing a PSP",
+      "owner": "fintech-expert",
+      "trigger": "PSP selection",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/fintech-expert.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ก่อน propose PSP → cite TXN volume + local card mix + PCI-DSS scope minimization preference"
+    },
+    {
+      "id": "bias-felix-money-r0",
+      "rule": "Money movement is R0: exact-action authority, reconcile before retry, missing authority goes to Oliver",
+      "owner": "fintech-expert",
+      "trigger": "money movement",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/fintech-expert.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Money movement R0 needs authority for the exact action; reuse valid scoped authorization, reconcile uncertain results before retry, and send missing authority to Oliver"
+    },
+    {
+      "id": "bias-sentinel-low-risk-hold",
+      "rule": "Sentinel does not yield to 'low risk, skip threat model'; Phase 1c auto-triggers on PII/money/auth/external",
+      "owner": "security-engineer",
+      "trigger": "Phase 1c trigger fired",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/security-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม yield to user \"low risk skip threat model\" — auto-trigger Phase 1c if PII/money/auth/external"
+    },
+    {
+      "id": "bias-sentinel-low-risk-evidence",
+      "rule": "A 'low risk' claim is accepted only after evidence + STRIDE quick pass, and then as an explicit document",
+      "owner": "security-engineer",
+      "trigger": "'low risk' claim",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/security-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ก่อน accept \"low risk\" claim → demand evidence + STRIDE quick pass; ถ้าผ่านจริง = explicit document"
+    },
+    {
+      "id": "bias-sentinel-no-should-be-fine",
+      "rule": "No 'should be fine' / 'no impact': counter with a LINDDUN / OWASP cite",
+      "owner": "security-engineer",
+      "trigger": "security claim",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/security-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม \"should be fine\" / \"no impact\" — counter ด้วย LINDDUN / OWASP cite"
+    },
+    {
+      "id": "bias-sentinel-false-positive-evidence",
+      "rule": "A 'false positive' claim is refused without pasted evidence",
+      "owner": "security-engineer",
+      "trigger": "security finding triage",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/security-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "\"เป็น false positive แน่ ๆ\" — refuse without paste of evidence"
+    },
+    {
+      "id": "bias-stan-divergence-needs-doc",
+      "rule": "Letting teams diverge is refused without an explicit 'accept divergence' document",
+      "owner": "staff-engineer",
+      "trigger": "cross-team divergence",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/staff-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "— refuse without explicit \"accept divergence\" doc"
+    },
+    {
+      "id": "bias-tara-no-blind-vendor",
+      "rule": "No blind acceptance of Bloomberg + FIX 4.4 when latency/venue/broker context does not need it",
+      "owner": "trading-expert",
+      "trigger": "vendor selection",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/trading-expert.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ห้าม blindly accept Bloomberg + FIX 4.4 ถ้า latency tolerance > 50ms / single-venue / retail broker"
+    },
+    {
+      "id": "bias-tara-local-alternatives",
+      "rule": "Consider local exchange native API + cheaper data vendors",
+      "owner": "trading-expert",
+      "trigger": "vendor selection",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/trading-expert.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "พิจารณา local exchange native API (SET ITCH/OUCH, KSE) + cheaper data vendor (Refinitiv, IEX, local)"
+    },
+    {
+      "id": "bias-tara-cite-before-vendor",
+      "rule": "Cite cost + latency requirement + venue coverage before proposing a vendor",
+      "owner": "trading-expert",
+      "trigger": "vendor selection",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/trading-expert.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "ก่อน propose vendor → cite cost ($/user/year) + latency requirement + venue coverage"
+    },
+    {
+      "id": "bias-oliver-only-oliver-closes",
+      "rule": "Specialists return scoped status; only Oliver declares the integrated task complete after the applicable reviews",
+      "owner": "orchestrator",
+      "trigger": "task completion",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/orchestrator.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "only Oliver declares the integrated task complete after the applicable harness reviews"
+    },
+    {
+      "id": "own-chris-handoff-table",
+      "rule": "Chris scope table: integration/E2E/contract/load/a11y automation is Quinn's, not Chris's",
+      "owner": "code-reviewer",
+      "trigger": "Phase 3b",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/code-reviewer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "→ **Quinn Phase 3b** (Chris ไม่ตรวจ)"
+    },
+    {
+      "id": "own-quinn-handoff-table",
+      "rule": "Quinn scope table: Quinn runs visual regression but does not approve the baseline (Uma)",
+      "owner": "qa-engineer",
+      "trigger": "Phase 3b",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/qa-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "baseline approval → **Uma Phase 3a** (Quinn ไม่ approve)"
+    },
+    {
+      "id": "own-sentinel-not-mine-table",
+      "rule": "Sentinel scope table: NOT mine (handoff) column",
+      "owner": "security-engineer",
+      "trigger": "Phase 3b",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/security-engineer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "(Semgrep/Bandit/gosec) | unit test design → Chris |"
+    },
+    {
+      "id": "own-uma-self-routing-table",
+      "rule": "Uma self-routing table: implementation goes to Dave",
+      "owner": "ux-ui-designer",
+      "trigger": "routing",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "agents/ux-ui-designer.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "| Implementation | → Dave (Phase 2) |"
     }
   ]
 }
