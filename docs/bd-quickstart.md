@@ -40,6 +40,66 @@ git add .beads/ && git commit -m "chore: init bd tracker"
 
 ---
 
+## Beads internals and agent protocol (relocated from `AGENTS.md`, v3.17)
+
+`AGENTS.md` keeps only repo-wide rules. The Beads detail that used to live there is kept here. It is task-tracking guidance, not permission to override repository, user, or orchestrator instructions.
+
+### Storage and sync architecture
+
+- Issues live in a local Dolt database (`.beads/dolt/`, or `.beads/embeddeddolt/` in embedded mode).
+- Cross-machine sync uses `bd dolt push` / `bd dolt pull` (a git-compatible protocol). The data is stored under `refs/dolt/data` on your git remote — separate from `refs/heads/*` where your code lives.
+- `.beads/issues.jsonl` is a passive export, not the wire protocol and not the source of truth.
+- One-screen overview and anti-patterns: [SYNC_CONCEPTS.md](https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md) — don't treat JSONL as the source of truth; don't `bd import` during normal operation; don't reach for third-party Dolt hosting before trying the default.
+- Remote sync is a Safety-gated action in `AGENTS.md`: run `bd dolt push` / `bd dolt pull` only when authorized.
+
+### Agent Context Profiles
+
+- **Conservative (default)**: Use `bd` for task tracking. Do not run git commits, git pushes, or Dolt remote sync unless explicitly asked. At handoff, report changed files, validation, and suggested next commands.
+- **Minimal**: Keep tool instruction files as pointers to `bd prime`; use the same conservative git policy unless active instructions say otherwise.
+- **Team-maintainer**: Only when the repository explicitly opts in, agents may close beads, run quality gates, commit, and push as part of session close. A current "do not commit" or "do not push" instruction still wins.
+
+This repository runs the **Conservative** profile.
+
+### Session Completion
+
+Applies when ending a Beads implementation workflow. Subordinate to explicit user, repository, and orchestrator instructions.
+
+1. **File issues for remaining work** — create beads for anything that needs follow-up
+2. **Run quality gates** (if code changed) — tests, linters, builds
+3. **Update issue status** — close finished work, update in-progress items
+4. **Handle git/sync by active profile**:
+   ```bash
+   # Conservative/minimal/default: report status and proposed commands; wait for approval.
+   git status
+
+   # Team-maintainer opt-in only, unless current instructions forbid it:
+   git pull --rebase
+   bd dolt push
+   git push
+   git status
+   ```
+5. **Hand off** — summarize changes, validation, issue status, and any blocked sync/commit/push step
+
+Critical rules: explicit user or orchestrator instructions override Beads guidance; do not commit or push without clear authority from the active profile or the current user request; if a required sync or push is blocked, stop and report the exact command and error.
+
+Also: use `bd remember` for persistent project knowledge rather than ad hoc memory files; `bd prime` prints the full command reference.
+
+### Keeping the bd-managed blocks out of `AGENTS.md`
+
+Verified with bd 1.2.2 in a scratch repo (2026-09-20):
+
+| Command | Effect on `AGENTS.md` |
+|---|---|
+| `bd prime`, `bd ready`, `bd create`, `bd init --init-if-missing` (already initialized) | none |
+| `bd init` (fresh / re-init) | appends `<!-- BEGIN BEADS INTEGRATION ... profile:minimal -->` block (~3 KB incl. profiles + session completion) **and** runs the codex setup below. `--agents-profile` only offers `minimal` (default) or `full`; `--agents-template` is ignored when `AGENTS.md` already exists |
+| `bd init --skip-agents` | none — this is the opt-out |
+| `bd setup codex` | appends `<!-- BEGIN BEADS CODEX SETUP -->` block (second `## Beads Issue Tracker`) **and overwrites `.agents/skills/beads/SKILL.md`** with the stock skill — never hand-edit that skill; put local detail in this file |
+| `bd setup codex --remove` | removes the codex block, but also deletes the beads skill and `.codex/hooks.json` — do not use |
+
+Policy: re-initialize only with `bd init --skip-agents`; do not run `bd setup codex` in this repo. If a block reappears: `git checkout -- AGENTS.md` (or delete everything between the `BEGIN BEADS` / `END BEADS` markers, inclusive).
+
+---
+
 ## Option 2: ไม่มี bd — ใช้ Linear / Jira / GitHub Issues
 
 shode-house workflow ทำงานได้ทุก tracker ถ้า map คำสั่งให้ถูก. Agent ใช้ "bd" เป็น **abstraction**, user เปลี่ยน implementation ได้
