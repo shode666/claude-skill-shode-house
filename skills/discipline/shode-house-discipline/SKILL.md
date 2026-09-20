@@ -37,9 +37,9 @@ checkpoints remain required without a runner.
 
 ## 🚫 Universal Rules
 
-- ห้ามตอบคนละภาษากับที่ user เขียนมา (ดู § Response Language)
 - ห้าม float กับ money → Decimal/integer (subunit)
 - ห้าม commit secret → secret manager
+- 🔴 Redact secret/token/auth header/PII → `<REDACTED>` ก่อน paste (detail → `diagnose` § Redact)
 - ห้าม skip security check
 - ห้าม assume → verify with evidence
 - Merge requires reviewers selected by harness risk tier/triggers to pass.

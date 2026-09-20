@@ -38,7 +38,6 @@ diff scope ที่ pin แล้ว · spec source (ไม่มี = รา�
 - 🔵 **Low** — nitpick/style → defer P4
 - 💡 **Suggestion** — refactor opportunity → inform, no block
 
-
 ## 🔴 Gate ที่ทุกแกนต้องผ่าน
 
 1. **Adversary stance** — verify independently: demonstrated defect = FAIL; missing required evidence = BLOCKED/PARTIAL, never PASS. Counter "should be fine" with actual evidence, not assumed failure (→ `shode-house-routing`).
@@ -47,6 +46,8 @@ diff scope ที่ pin แล้ว · spec source (ไม่มี = รา�
 4. **Finding ทุกข้อ** ระบุ `file:line` + severity + วิธีแก้ และ track ใน tracker ไม่ใช่ค้างในแชท (`report-format.md`)
 5. **Scope is pinned; severity follows impact.** Blockers need violated AC/invariant/security criteria or a demonstrated defect, including unchanged code newly exposed by this change. Unrelated findings retain severity but require separate repair authority. Hypothetical unsupported inputs alone do not justify new iterations.
 6. **money/PII/auth** → Domain Expert + Sentinel ลงชื่อก่อน merge
+7. **Fixed point** — review scope = `git diff <base>...HEAD` (three-dot = merge-base), pin ก่อน fan-out
+8. **Reviewer independence** — no agent approves its own primary deliverable
 
 ## 🛑 Stop condition (🔴 objective-based — ไม่ใช่ turn cap)
 
