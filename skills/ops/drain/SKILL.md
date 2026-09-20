@@ -7,7 +7,7 @@ description: Deliver a verified set of independent, concrete, ready tasks using 
 
 > **Owner**: Oliver (route + own the run). Impl/verify: Dave · Chris · Quinn · Aaron · Uma; security item → Sentinel
 > Before dispatch/resume, read `skills/discipline/shode-house-workflow/harness.md`. Its authority, reviewer triggers and recovery contract apply to each item. Use the project's confirmed tracker, including Markdown (harness § Source of truth); tracker verbs here are neutral — find ready / read / note / close / link — and Beads commands in `harness.md` are an example, not a prerequisite. Oliver owns tracker writes; unavailable updates remain pending sync, never claimed CLOSED.
-> Skill นี้แก้ **2 failure mode ที่วัดได้จริง**: (1) **stale-open task** — งานเสร็จ แต่ไม่มีใครปิด (2) **git race / tree collision** ตอน agent หลายตัวแตะ trunk พร้อมกัน
+> แก้ 2 failure mode: **stale-open task** · **git race / tree collision**
 
 ## When NOT to use
 
@@ -16,10 +16,17 @@ description: Deliver a verified set of independent, concrete, ready tasks using 
 - **Design / architecture / feature shape ใหม่** — route ไป Phase 1a/1b (`design-system`: Bella/Sara/Uma) ก่อน; drain implement เฉพาะ item ที่ fix **concrete แล้ว** (file:line + direction)
 - **Owner / counsel / billing decision** — agent ทำเสร็จเองไม่ได้ → เอาออกจาก run
 - **> ~20 item** — แตกเป็นรอบ (report + close ระหว่างรอบ) ห้าม fan-out ไม่จำกัด
-- **มีแค่ list/count ของ tracker เป็นหลักฐาน** — ดู § Required inputs: verify set ก่อน, list โกหกได้
+- **มีแค่ list/count ของ tracker เป็นหลักฐาน** — ดู § Stop and return: verify set ก่อน, list โกหกได้
 - **Production outage** — ใช้ `incident` (mitigate ก่อน) ไม่ใช่ batch drain
 
-## Required inputs — refuse without
+## Inputs and decision boundaries
+
+Derive first: item facts (open state, blockers, acceptance revision, `file:line`) come from each authoritative task record and the repo — read them, do not ask or assume. Still missing → return the question to Oliver.
+When to ask → `shode-house-discipline` § Ask vs derive
+
+### Stop and return
+
+ขาดข้อใด → list สิ่งที่ขาด ส่งกลับ caller **ก่อน** fan-out
 
 - [ ] **Ready set with verified dependencies** — use `decompose` for oversized/abstract work, not independent items with an explicitly verified empty blocker list. Recheck current blockers before dispatch; a legitimately empty ready set means checkpoint, not fan-out.
 - [ ] **Verified-open set** — read each candidate's authoritative task record and acceptance revision; list counts and passive exports alone do not prove readiness.
@@ -27,8 +34,6 @@ description: Deliver a verified set of independent, concrete, ready tasks using 
       Pass canonical ID, acceptance IDs/revision, relevant paths and non-goals. Verify worker access; send only necessary excerpts with provenance when paths are inaccessible. Do not copy the whole backlog/chat or assume tracker access from a worktree.
 - [ ] **Routing** — Oliver assign owner agent ต่อ item + ยืนยัน parallel-safe / file-disjoint
 - [ ] **Owner greenlight + scope** — subset ไหน (security / code-gap / test) หรือทั้งหมด; full drain = multi-agent token spend ก้อนใหญ่ → ต้อง opt-in
-
-ขาดข้อใด → list สิ่งที่ขาด ส่งกลับ caller **ก่อน** fan-out
 
 ## 9 Invariants (map เข้า 5 Philosophy)
 
@@ -85,7 +90,7 @@ sort /tmp/drain-files.txt | uniq -d   # ต้องว่าง — ไม่�
 
 ## Step 3–4 — Fan-out + serial merge (lazy reference)
 
-Load `skills/ops/drain/execution.md` **only after eligibility is confirmed** (When NOT to use clear · Required inputs complete · Step 1–2 done) and before the first dispatch. It holds the COMMON worker brief, runners, serial integration, resume checkpoint, conflict protocol and evidence examples. Eligibility not confirmed → stop and return the missing inputs; do not load it and do not fan out.
+Load `skills/ops/drain/execution.md` **only after eligibility is confirmed** (When NOT to use clear · § Stop and return clear · Step 1–2 done) and before the first dispatch. It holds the COMMON worker brief, runners, serial integration, resume checkpoint, conflict protocol and evidence examples. Eligibility not confirmed → stop and return the missing inputs; do not load it and do not fan out.
 
 ## Step 5 — Close on done (🔴 anti-puppet — run ยังไม่จบจนกว่าครบ)
 
@@ -122,8 +127,8 @@ Close each accepted item in the confirmed tracker with reason `<verdict> <commit
 | Situation | Next skill | Reason |
 |---|---|---|
 | ยังไม่มี item list / ไม่รู้ใครรับ | → `shode-house-routing` | Oliver produce item list + owner ต่อ item ก่อน drain |
-| Item ยัง abstract (ไม่มี file:line) | → `diagnose` แล้วค่อยกลับมา | ต้อง root cause ก่อน; drain implement เฉพาะ fix ที่ concrete |
-| ต้องการ spec/design ก่อน | → `design-system` | drain ไม่ใช่ที่ออกแบบ feature |
+| Item ยัง abstract (ไม่มี file:line) | → `diagnose` แล้วค่อยกลับมา | ต้อง root cause ก่อน |
+| ต้องการ spec/design ก่อน | → `design-system` | — |
 | TDD discipline ต่อ item | → `dev-gate` | red-green-refactor + quality gate ภายใน agent แต่ละตัว |
 | Reviewer lens ตอน verify | → `review-checklist` | Chris 7-dim / Quinn matrix สำหรับ item ที่ต้อง review ลึก |
 | Definition of Done | → `shode-house-deliverable` | acceptance + authorized closure/read-back in confirmed tracker; unavailable sync remains pending, not CLOSED |

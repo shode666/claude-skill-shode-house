@@ -7,7 +7,7 @@ description: Investigate an unresolved failure, regression or performance proble
 
 > Inspired by mattpocock/skills (engineering/diagnose) — adapted for shode-house
 
-> **Owner**: Chris (review) + Quinn (test) + Dave (implement) — เปิด skill นี้เมื่อมี bug/perf
+> **Owner**: Chris (review) + Quinn (test) + Dave (implement)
 
 **Goal**: identify the cause of an unresolved failure and verify the smallest justified fix.
 
@@ -33,10 +33,14 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 - Feature request ที่ถูกเรียกว่า "bug" — นั่นคืองานของ Bella/Patrick
 - Known issue ที่มี ticket + root cause แล้ว — fix ตรง ๆ
 
-## Required inputs — refuse without
+## Inputs and decision boundaries
 
-- [ ] Symptom ที่ระบุได้ (error message / behavior ที่ผิด / metric ที่เปลี่ยน)
-- [ ] วิธี reproduce หรือช่องทางที่จะหามาได้ (env, ข้อมูล, ขั้นตอน)
+- [ ] วิธี reproduce — หาเองก่อนจาก test ที่มี · README/Makefile · log/fixture ที่ได้รับ; หรือช่องทางที่จะหามาได้ (env, ข้อมูล, ขั้นตอน); หาไม่ได้ → ส่งกลับ Oliver (§ Step 1)
+- When to ask → `shode-house-discipline` § Ask vs derive
+
+### Stop and return
+
+- [ ] Symptom ที่ระบุได้ (error message / behavior ที่ผิด / metric ที่เปลี่ยน) — ไม่มีใครระบุ → ส่งคำถามกลับ Oliver
 - [ ] Access ไป log / trace / ตัว service — ไม่มี = ระบุว่าติดตรงไหน ห้ามเดา root cause
 - [ ] Redact ผ่านแล้ว (§ Redact ก่อน paste)
 
@@ -44,7 +48,7 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 
 | ระดับ | เมื่อไหร่ | ทำอะไร |
 |---|---|---|
-| **Fast path** | error message ชี้ตรงจุด · deterministic · 1 ไฟล์ · แก้แล้วเห็นผลทันที (typo, off-by-one, null guard ที่ขาด) | ทำ **ขั้น 1 (loop) → 4 (fix + regression test)** พอ · ข้าม minimise/hypothesis list แล้วบอกใน report ว่าข้าม |
+| **Fast path** | error message ชี้ตรงจุด · deterministic · 1 ไฟล์ · แก้แล้วเห็นผลทันที | ทำ **ขั้น 1 (loop) → 4 (fix + regression test)** พอ · ข้าม minimise/hypothesis list แล้วบอกใน report ว่าข้าม |
 | **Full** | flaky · perf regression · ข้าม service · reproduce ไม่ตรงกับที่ user เจอ · fast path fix แล้วยังไม่หาย | ครบ 5 ขั้น |
 
 เลือก fast path แล้วพลาด (fix ไม่หาย / bug อื่นโผล่) → **ขึ้น Full ทันที ห้ามลองเดาต่อ**
@@ -53,12 +57,12 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 
 ### 1. สร้าง feedback loop ที่ **tight** และ **red-capable** (🔴 นี่คือหัวใจ ที่เหลือ mechanical)
 
-มี loop ที่แดงกับ bug ตัวนี้ = เจอสาเหตุแน่ (bisect / test hypothesis / instrument ล้วนกิน loop นี้ทั้งนั้น)
+มี loop ที่แดงกับ bug ตัวนี้ = เจอสาเหตุแน่
 ไม่มี loop = จ้อง code ให้ตายก็ไม่เจอ → **ทุ่มเวลาตรงนี้มากเป็นพิเศษ ก้าวร้าว สร้างสรรค์ ห้ามยอมแพ้**
 
 **วิธีสร้าง — 3 อันแรกครอบเกือบทุกเคส**
 1. **Failing test** ที่ seam ซึ่งเข้าถึง bug · 2. **curl / HTTP script** ยิงใส่ dev server · 3. **CLI + fixture** diff stdout กับ snapshot ที่รู้ว่าถูก
-ทั้งสามไม่ได้ผล **หรือ** loop ที่ได้ยังช้า / flaky / bug ไม่ deterministic → เปิด **`loop-ladder.md`** (ไฟล์ข้าง SKILL.md นี้) ก่อนไป Step 2 (วิธีที่ 4–10 + วิธีลับ loop)
+ทั้งสามไม่ได้ผล **หรือ** loop ที่ได้ยังช้า / flaky / bug ไม่ deterministic → เปิด **`loop-ladder.md`** ก่อนไป Step 2 (วิธีที่ 4–10 + วิธีลับ loop)
 
 **✅ เงื่อนไขจบ Step 1 (ห้ามข้ามไป Step 2 ก่อนครบ)**
 ระบุได้ว่า **คำสั่งเดียว** คืออะไร (path ของ script / test invocation / curl) และ **รันไปแล้วอย่างน้อย 1 ครั้ง** พร้อม paste invocation + output (redacted):
@@ -109,7 +113,7 @@ Diagnose finished → Chris: review fix + regression unit test · Quinn: integra
 
 | Situation | Next skill | Reason |
 |---|---|---|
-| Diagnosis เสร็จ → จะเขียน fix code | → `dev-gate` | TDD + 11-gate (diagnose ไม่บังคับ TDD) |
-| Bug เกิดเพราะ test gap | → `automate-test` | เพิ่ม regression coverage + CI gate (close the hole) |
-| Bug ใน frontend (visual/a11y) | → `ui-test` | Playwright + axe + visual diff (diagnose ไม่มี UI tooling) |
-| Bug เกี่ยวกับ security vuln | → `secure` | Sentinel STRIDE + abuse case (diagnose ไม่ classify threat)
+| Diagnosis เสร็จ → จะเขียน fix code | → `dev-gate` | TDD + 11-gate |
+| Bug เกิดเพราะ test gap | → `automate-test` | เพิ่ม regression coverage + CI gate |
+| Bug ใน frontend (visual/a11y) | → `ui-test` | Playwright + axe + visual diff |
+| Bug เกี่ยวกับ security vuln | → `secure` | Sentinel STRIDE + abuse case

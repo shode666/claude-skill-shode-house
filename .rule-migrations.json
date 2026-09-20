@@ -4,7 +4,11 @@
       "source": "skills/discipline/shode-house-workflow/SKILL.md",
       "old_fragment": "- Oliver: ห้าม re-analyze สิ่งที่ agent อื่นทำแล้ว",
       "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
-      "requires": ["Oliver reuses specialist analysis", "must check returned artifacts, conflicting findings and stale evidence against acceptance", "avoiding duplicate work never means blind trust"],
+      "requires": [
+        "Oliver reuses specialist analysis",
+        "must check returned artifacts, conflicting findings and stale evidence against acceptance",
+        "avoiding duplicate work never means blind trust"
+      ],
       "reason": "Retain reuse of expert work while restoring required integration and acceptance checks; blanket no-reanalysis would accept stale or conflicting evidence."
     },
     {
@@ -226,6 +230,140 @@
         "An agreed contract can unblock independent coding against a test double"
       ],
       "reason": "Composition table cell restated the Chunk rule; the api-contract route moved to the Interface contract required input."
+    },
+    {
+      "source": "skills/discipline/shode-house-discipline/SKILL.md",
+      "old_fragment": "- ห้าม proceed กำกวม → grill option-style (`main-session.md`)",
+      "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
+      "requires": [
+        "ห้าม proceed เมื่อกำกวมแบบ material (→ § Ask vs derive; ไม่แน่ใจว่า material ไหม = material) → grill option-style (`main-session.md`)",
+        "## Ask vs derive",
+        "unsure whether material = material"
+      ],
+      "reason": "P5 (8ss.28) Sentinel ruling 3: ambiguity stop narrowed to MATERIAL ambiguity only with the tie-breaker (unsure = material) and the definition in § Ask vs derive; guards E03 (must ask) / E12 (must not ask)."
+    },
+    {
+      "source": "skills/discipline/shode-house-discipline/SKILL.md",
+      "old_fragment": "Self-check ก่อนส่ง: \"user ภาษาอะไร → ผมภาษาเดียวกันไหม?\"",
+      "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
+      "requires": [
+        "ภาษาเดียวกับ message ล่าสุดของ user",
+        "signal เดียวคือ message ของ user"
+      ],
+      "reason": "P5 byte payment for § Ask vs derive: self-check restated the mirror-the-user rule kept on the same two lines; non-safety ceremony."
+    },
+    {
+      "source": "skills/discipline/shode-house-discipline/SKILL.md",
+      "old_fragment": "- 🔴 frontend agent (Uma/Dave/Quinn/Chris) **ต้องโหลด `ui-test` ก่อนแตะ UI** — token/8-pt grid/contrast/focus/touch target/7 state อยู่ที่นั่น",
+      "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
+      "requires": [
+        "frontend agent (Uma/Dave/Quinn/Chris) **ต้องโหลด `ui-test` ก่อนแตะ UI**"
+      ],
+      "reason": "P5 byte payment: the load rule is kept verbatim; only the trailing description of what ui-test contains was dropped."
+    },
+    {
+      "source": "skills/discipline/shode-house-discipline/SKILL.md",
+      "old_fragment": "ที่เหลือ **โหลดเองด้วย `Skill` เมื่อจะใช้จริง** (รายการอยู่ใน agent file ของคุณ § Skill loading)",
+      "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
+      "requires": [
+        "ที่เหลือ **โหลดเองด้วย `Skill` เมื่อจะใช้จริง**"
+      ],
+      "reason": "P5 byte payment: rule kept verbatim; dropped only the parenthetical saying where the list lives (each agent file has its own § Skill loading)."
+    },
+    {
+      "source": "skills/workflow/decompose/SKILL.md",
+      "old_fragment": "approved pipeline, no extra public command",
+      "replacement": "skills/workflow/decompose/SKILL.md",
+      "requires": [
+        "Oliver continues the approved implementation workflow with its canonical ID"
+      ],
+      "reason": "P5 byte payment: the hand-off route stays; the remark that no extra public command is needed carried no behaviour."
+    },
+    {
+      "source": "skills/workflow/dev-gate/SKILL.md",
+      "old_fragment": "ก่อน hand-off Phase 2 → 3, confirm ทุก checklist",
+      "replacement": "skills/workflow/dev-gate/SKILL.md",
+      "requires": [
+        "### Hand-off evidence (Phase 2 → 3) — ขาดข้อใด = ยังไม่ done, ห้าม claim \"done\""
+      ],
+      "reason": "P5 CH-2: legacy 'confirm every checklist' preamble became the Hand-off evidence heading (anchor devgate-handoff-not-done)."
+    },
+    {
+      "source": "skills/workflow/dev-gate/SKILL.md",
+      "old_fragment": "ถ้าขาด **list สิ่งที่ขาด แล้วหยุด** — ห้าม claim \"done\":",
+      "replacement": "skills/workflow/dev-gate/SKILL.md",
+      "requires": [
+        "ขาดข้อใด → **list สิ่งที่ขาด แล้วหยุด** ส่งกลับ Oliver:",
+        "ห้าม claim \"done\""
+      ],
+      "reason": "P5: the stop moved into ### Stop and return (now names the receiver, Oliver); the no-done-claim phrase stays in the Hand-off evidence heading."
+    },
+    {
+      "source": "skills/workflow/dev-gate/SKILL.md",
+      "old_fragment": "This root is sufficient on its own; references add depth for one branch only.",
+      "replacement": "skills/workflow/dev-gate/SKILL.md",
+      "requires": [
+        "## Routing — load only the branch the task is on"
+      ],
+      "reason": "P5 byte payment: descriptive sentence about the router layout; the Routing section states the same load rule."
+    },
+    {
+      "source": "skills/workflow/dev-gate/SKILL.md",
+      "old_fragment": "detail lives there and is never copied here; do not load other languages",
+      "replacement": "skills/workflow/dev-gate/SKILL.md",
+      "requires": [
+        "only the active language's file `references/languages/<lang>.md`"
+      ],
+      "reason": "P5 byte payment: the 'only the active language's file' cell already excludes other languages."
+    },
+    {
+      "source": "skills/workflow/diagnose/SKILL.md",
+      "old_fragment": "แก้แล้วเห็นผลทันที (typo, off-by-one, null guard ที่ขาด)",
+      "replacement": "skills/workflow/diagnose/SKILL.md",
+      "requires": [
+        "แก้แล้วเห็นผลทันที"
+      ],
+      "reason": "P5 byte payment: dropped the three examples of a fast-path bug; the criterion itself is kept."
+    },
+    {
+      "source": "skills/workflow/diagnose/SKILL.md",
+      "old_fragment": "มี loop ที่แดงกับ bug ตัวนี้ = เจอสาเหตุแน่ (bisect / test hypothesis / instrument ล้วนกิน loop นี้ทั้งนั้น)",
+      "replacement": "skills/workflow/diagnose/SKILL.md",
+      "requires": [
+        "มี loop ที่แดงกับ bug ตัวนี้ = เจอสาเหตุแน่",
+        "No fix without a loop that goes red"
+      ],
+      "reason": "P5 byte payment: dropped the explanatory parenthetical; the loop-first rule is kept."
+    },
+    {
+      "source": "skills/ui/ui-test/SKILL.md",
+      "old_fragment": "- [ ] URL หรือ dev server ที่เปิดได้จริง (ไม่มี = BLOCKED ไม่ใช่ PASS)",
+      "replacement": "skills/ui/ui-test/SKILL.md",
+      "requires": [
+        "start it only on localhost/ephemeral",
+        "(ไม่มี = BLOCKED ไม่ใช่ PASS)",
+        "base URL ที่ไม่ใช่ localhost/ephemeral (staging/prod) → ไม่ start/ไม่รัน test ที่เขียนข้อมูลจนกว่าจะได้ authorization"
+      ],
+      "reason": "P5 CH-1: derive-and-start only for localhost/ephemeral targets; non-local base URL needs authorization; the BLOCKED-not-PASS half is kept verbatim."
+    },
+    {
+      "source": "skills/ui/ui-test/SKILL.md",
+      "old_fragment": "- Backend-only work loads neither this skill nor its reference.",
+      "replacement": "skills/ui/ui-test/SKILL.md",
+      "requires": [
+        "Backend-only diff"
+      ],
+      "reason": "P5 byte payment for CH-1: restated the When NOT to use exclusion."
+    },
+    {
+      "source": "skills/ui/ui-test/SKILL.md",
+      "old_fragment": "- An axe or Lighthouse pass is evidence only for the rules it ran (see a11y coverage above); the manual keyboard and screen-reader checks stay.",
+      "replacement": "skills/ui/ui-test/SKILL.md",
+      "requires": [
+        "\"axe 0 violations\" ≠ \"WCAG 2.2 AA ผ่าน\"",
+        "Manual: keyboard navigation (tab order = visual order)"
+      ],
+      "reason": "P5 byte payment for CH-1: restated § a11y coverage and § a11y Coverage, which keep the rule."
     }
   ]
 }

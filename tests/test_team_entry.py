@@ -130,9 +130,26 @@ class TeamEntryTest(unittest.TestCase):
             "### Per-language tool matrix",
             "## Pre-commit integration (when authorized)",
             "## Hand-off",  # now "## Hand-off + completion boundary"
+            # P5 (8ss.28) byte payment: illustrative hand-off chain, owned by the workflow root (no rule)
+            "Dave  ▸ Chris   : impl + smoke (dev-gate passed)",
+            "Chris ▸ Quinn   : 7-dim + unit quality vs adopted targets",
         }
-        missing = [l for l in self._baseline_body_lines(d + "/SKILL.md") if self._neutral(l) not in lines and l not in dropped]
+        p5 = {  # P5 (8ss.28): whole baseline line -> the whole line that replaces it (must exist verbatim)
+            "## Required inputs — refuse without": "## Inputs and decision boundaries",
+            'ก่อน hand-off Phase 2 → 3, confirm ทุก checklist. ถ้าขาด **list สิ่งที่ขาด แล้วหยุด** — ห้าม claim "done":':
+                "ขาดข้อใด → **list สิ่งที่ขาด แล้วหยุด** ส่งกลับ Oliver:",
+            "| Test pass แต่ยังไม่มี CI gate | → `automate-test` | Pyramid ratio + CI threshold + contract test (dev-gate = per-task; automate-test = project-wide) |":
+                "| Test pass แต่ยังไม่มี CI gate | → `automate-test` | Pyramid ratio + CI threshold + contract test |",
+            "| Code touches frontend | → `ui-test` | E2E + visual + a11y automation (dev-gate ไม่ครอบ visual) |":
+                "| Code touches frontend | → `ui-test` | E2E + visual + a11y automation |",
+            "| Hand-off Phase 2 → 3b review | → `review-checklist` skill | Chris 7-dim + Quinn integration matrix (used by /implement Phase 3b + /review)":
+                "| Hand-off Phase 2 → 3b review | → `review-checklist` skill | Chris 7-dim + Quinn integration matrix",
+        }
+        missing = [l for l in self._baseline_body_lines(d + "/SKILL.md")
+                   if self._neutral(l) not in lines and l not in dropped and p5.get(l) not in lines]
         self.assertEqual([], missing)
+        self.assertIn('### Hand-off evidence (Phase 2 → 3) — ขาดข้อใด = ยังไม่ done, ห้าม claim "done"', lines)
+        self.assertIn("### Stop and return", lines)
         core = (ROOT / d / "SKILL.md").read_text()
         for ref in ("tdd.md", "quality-gates.md"):
             self.assertIn("[%s](%s)" % (ref, ref), core)
@@ -141,7 +158,14 @@ class TeamEntryTest(unittest.TestCase):
     def test_ui_test_router_keeps_every_baseline_line(self):
         d = "skills/ui/ui-test"
         lines = self._skill_lines(d, ["SKILL.md", "automation-patterns.md"])
-        self.assertEqual([], [l for l in self._baseline_body_lines(d + "/SKILL.md") if self._neutral(l) not in lines])
+        # P5 CH-1 (8ss.28): the one reworded baseline line; its BLOCKED-not-PASS half must survive on the SAME line
+        url = "- [ ] URL หรือ dev server ที่เปิดได้จริง (ไม่มี = BLOCKED ไม่ใช่ PASS)"
+        new_url = [l for l in lines if l.startswith("- [ ] URL หรือ dev server ที่เปิดได้จริง — ")]
+        self.assertEqual(1, len(new_url))
+        self.assertIn("(ไม่มี = BLOCKED ไม่ใช่ PASS)", new_url[0])
+        self.assertIn("จนกว่าจะได้ authorization", new_url[0])
+        self.assertEqual([], [l for l in self._baseline_body_lines(d + "/SKILL.md")
+                              if self._neutral(l) not in lines and l != url])
         self.assertIn("automation-patterns.md", (ROOT / d / "SKILL.md").read_text())
 
     def test_drain_router_keeps_invariants_in_root_and_moved_blocks_in_execution(self):

@@ -35,7 +35,7 @@ description: Automated browser-level end-to-end, visual regression and accessibi
 
 ## Required inputs — for the applicable check
 
-- [ ] URL หรือ dev server ที่เปิดได้จริง (ไม่มี = BLOCKED ไม่ใช่ PASS)
+- [ ] URL หรือ dev server ที่เปิดได้จริง — from `playwright.config.*` / package scripts / Makefile / compose; start it only on localhost/ephemeral (R2); not found/won't start → return to Oliver (ไม่มี = BLOCKED ไม่ใช่ PASS) — base URL ที่ไม่ใช่ localhost/ephemeral (staging/prod) → ไม่ start/ไม่รัน test ที่เขียนข้อมูลจนกว่าจะได้ authorization
 - [ ] Stable selector: accessible role/name or existing `data-testid`; add test hooks only when needed and authorized
 - [ ] Design source or existing approved design-system reference for design-conformity checks
 - [ ] Baseline screenshot for visual-regression comparison (รอบแรกให้สร้างแล้วบันทึกไว้)
@@ -43,11 +43,10 @@ description: Automated browser-level end-to-end, visual regression and accessibi
 Missing a visual baseline blocks that comparison, not independent functional or
 accessibility checks. Report each applicable check's actual evidence and limitations.
 
-## References — load only when needed
+## References
 
-- Writing or maintaining automated E2E / visual-regression / a11y tests (tool choice, Page Object / data builder, snapshot setup, axe script, device matrix, CI wiring, Storybook) → load `automation-patterns.md` first.
-- Reviewing, manually verifying or implementing a UI change → this root is enough; do not load the reference.
-- Backend-only work loads neither this skill nor its reference.
+- Writing or maintaining automated E2E / visual-regression / a11y tests → load `automation-patterns.md` first.
+- Reviewing, manually verifying or implementing a UI change → this root is enough.
 
 ## a11y coverage — axe จับได้แค่ไหน (🔴)
 
@@ -109,7 +108,6 @@ plugin **ไม่ได้จัดหา** browser MCP (`.mcp.json` มีแ�
 ## Evidence rule (Catalog ≠ Evidence)
 
 - Tool output from this run — axe / Lighthouse / Playwright report, screenshot, console + network log — is evidence: cite the command and the artifact path. Catalog ≠ evidence → `references/design-intel/README.md` § กฎเหล็ก.
-- An axe or Lighthouse pass is evidence only for the rules it ran (see a11y coverage above); the manual keyboard and screen-reader checks stay.
 
 ## Completion boundary
 

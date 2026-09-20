@@ -3,22 +3,26 @@ name: decompose
 description: Split an agreed, signed-off scope into small, independently verifiable outcome slices with owners, acceptance criteria and explicit dependencies. Not for work whose finished shape is still unclear, tasks already small, or a backlog already verified and ready.
 ---
 
-# Decompose (epic → leaf task ที่ลงมือได้)
+# Decompose (epic → leaf task)
 
-> **Owner**: Bella (จาก user story) + Oliver (จาก XL triage). Co-pilot: Sara (interface contract), Patrick (ลำดับตาม outcome), Quinn (test slice)
+> **Owner**: Bella (จาก user story) + Oliver (จาก XL triage).
 > Use the confirmed tracker/evidence home, including Markdown. Beads is not required. Planning does not authorize creating remote tickets: draft locally when writes are unavailable or unapproved, mark pending sync, and never claim remote creation.
 
 ## When NOT to use
 
 - **ยังมีหมอก** — ยังตอบไม่ได้ว่า "เสร็จ" หน้าตายังไง หรือมี decision ค้างที่ต้องตัดก่อน → **`shode-house-workflow/wayfinding.md` (Map mode)** ก่อน. แตกหมอกเป็น task = ซอยสิ่งที่ยังไม่รู้ว่าคืออะไร
-- **งานเล็กอยู่แล้ว** — 1 task จบใน pipeline เดียว (S/M) → อย่าแตก แตกแล้วจ่ายค่า coordination ฟรี ๆ
+- **งานเล็กอยู่แล้ว** — 1 task จบใน pipeline เดียว (S/M) → อย่าแตก
 - **แตกเพื่อให้ดูมีความคืบหน้า** — no verifiable behavior, risk reduction or named downstream benefit = rethink the slice (see Tracer bullet)
 - **backlog ที่ verified + concrete แล้ว** → do not split again; use `drain` only for an eligible ready frontier. If all tasks are legitimately blocked, record the blockers and checkpoint instead of starting workers.
 
-## Required inputs — refuse without
+## Inputs and decision boundaries
+
+- **Outcome ของก้อนใหญ่** 1-2 บรรทัด — ดึงจาก goal/summary ของ spec แล้ว cite (ใช้ตัดสินว่า leaf ไหน "อยู่ในทาง"); spec ไม่บอก → ส่งคำถามกลับ Oliver ไม่เดา (ขาดข้อนี้ = แตกได้ แต่เรียงลำดับไม่ได้)
+- When to ask → `shode-house-discipline` § Ask vs derive
+
+### Stop and return
 
 - [ ] **Spec หรือ BRD ที่ sign-off แล้ว** (Phase 1a) — แตกจาก AC/FR ไม่ใช่จากชื่อ feature
-- [ ] **Outcome ของก้อนใหญ่** 1-2 บรรทัด — ใช้ตัดสินว่า leaf ไหน "อยู่ในทาง" (ขาดข้อนี้ = แตกได้ แต่เรียงลำดับไม่ได้)
 - [ ] **Confirmed record location and write authority** — publish only where authorized; an explicitly labelled local draft can hold task IDs and dependencies until remote sync is available
 - [ ] **Interface contract** ถ้าข้าม service/module (Sara กำหนดก่อน ผ่าน `api-contract` — ดู § Chunk)
 
@@ -73,4 +77,4 @@ contract เปลี่ยนกลางทาง = **spec change** → canoni
 4. **หา dep จริง** — เขียน edge ลงกระดาษก่อน แล้วถามทุกเส้นว่า "ถ้าไม่มีเส้นนี้ ใบหลังพังตรงไหน" ตอบไม่ได้ = edge ปลอม ตัดทิ้ง
 5. **Create and link** in the confirmed tracker (§ Blocking edge), associating each leaf with its epic; draft-only when remote writes are not authorized
 6. **Read back and verify** the graph and ready set; retain evidence or mark pending sync, not a fabricated remote result
-7. **ส่งต่อ**: one ready leaf → Oliver continues the approved implementation workflow with its canonical ID; several concrete, independent, file-disjoint leaves → `drain` after checking its applicability. No additional public command is required.
+7. **ส่งต่อ**: one ready leaf → Oliver continues the approved implementation workflow with its canonical ID; several concrete, independent, file-disjoint leaves → `drain` after checking its applicability.
