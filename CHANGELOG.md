@@ -3,7 +3,25 @@
 All notable changes to shode-house plugin.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](https://semver.org/).
 
-## [Unreleased]
+## [Unreleased] — 3.17.0 (Multi-model prompt & skill simplification)
+
+> **Not released.** `plugin.json` still says 3.16.3, no 3.17.0 tag or `.plugin` exists. Release is gated on the live cross-model runs (Sonnet / Opus / Fable / OpenAI via Codex CLI), which **have not been run**: nothing below is a claim about model behaviour. Every number is a static measurement of the repo against tag `baseline-3.17` (bytes, counts), not tokens or cost.
+
+### v3.17 — Summary by phase
+
+- **P0 Baseline + guard repair** - themed commits of the 3.16.3 tree, `.baseline-3.16.3.json`, tag `baseline-3.17`. `scripts/rule-conservation.py` now compares against `--base` (survives renames/deletes, covers every shipped skill + agent; pinned cycle base in `.rule-baseline`); CI skill-ref scan derives names from the shipped dirs; `.skill-metadata-budget` `__total__` is the real sum (the old check measured only the first file) with a two-way key set; `root_only` safety anchors in `.enforcement-map.json` (0 → 121, CI #21 floor 121). `AGENTS.md` reduced to repo-wide instructions (5,926 → 2,044 B); Beads internals moved to `docs/bd-quickstart.md`.
+- **Eval protocol** - frozen N=5 routing-probe protocol (`eval/PROBE-GATE.md`, `eval/FREEZE.sha256`, held-out hashes only), E01 + the routing-probe set, 16 core scenarios E02–E15 + E10b + E1c with fixtures (`eval/run-core.sh`), behaviour-asserting failure-mode fixtures. One live baseline arm recorded on the pre-simplification plugin (`eval/baseline/3.16.3-probe-n5/`, Claude Code `sonnet`); the after-arm and the model matrix are pending.
+- **P1 Descriptions** - 1–2 English sentences (capability + decision boundary) for every surviving skill; the four-section description rule is gone. Skill metadata 7,817 B (24 skills) → 5,458 B (20 skills).
+- **P3 Adapters** - generated skill adapters are lazy entry points; no unconditional "read in full" (CI #25b + `tests/test_team_candidate.py`).
+- **Merge 24 → 20 skills, no stub** - table below.
+- **P4 Thin-router roots** - depth moved verbatim to lazy references, roots keep goal / invariants / exclusions / stops / routing: dev-gate 22,211 → 10,640 B, drain 18,614 → 11,993 B, plus routing, diagnose, ui-test, workflow, decompose, incident. `≤ 300 lines` now has no exception (CI #1).
+- **Tracker-neutral** - no hardcoded `bd <verb>` on shipped surfaces; the tracker follows the target project (`tests/test_tracker_neutral.py`; one Beads example block in `harness.md`).
+- **P5 Decision boundaries + completion contract** - "refuse without" gates became `## Inputs and decision boundaries` with a non-empty `### Stop and return` (CI #24c, 6 roots): derive from the repo first, every real stop kept; "Stop and return outranks completion".
+- **P6 Agent files** - role-specific core, owner pointers instead of restated universal rules, one bias default-direction line per agent. Agent files 183,606 → 173,934 B (19 files); reviewer ownership tables and protected bias rules anchored first.
+- **P7 Ceremony + markers** - fast path with a single owner in `ask` (never lighter than the Bounded tier), mandatory greeting lines removed, broadcast only on transition / blocked / completion; strong markers (`CRITICAL|🔴|MUST|ALWAYS|NEVER|STOP` lines) 249 → 197 by marker-only downgrade of ordinary guidance - 12 protected lines pinned to keep theirs.
+- **P10 CI + ratchet + docs** - CI #9 skill description cap (≤ 320 chars) and `CLAUDE.md` header == `plugin.json` version; CI #16 preload `GRACE` 600 → 0 after paying the debt carried since v3.13 (7 domain experts +10 B, 3 reviewers +385 B over key): the discipline root lost one duplicate evidence example pair, three restated lines (one bullet removed, two lines shortened with their root-only anchor kept) and one stale word (11,432 → 11,032 B; the rule stays in the evidence table + two worked examples, including the one where evidence overturns real-world knowledge; 7 migration entries). All four budget files == measured and no key is above `baseline-3.17`: preload sum 287,654 → 277,849 B (Oliver 25,854 → 22,284), full fan-out scenario 491,150 → 461,970 B. `CLAUDE.md` 21,908 → 21,091 B (stale bucket list / prerequisites / dev-loop fixed, runtime detail → owner pointers, budget + conservation + generated-tree invariants and 3 contribution rules added; Cowork validator section untouched). README § Model Support (designed vs measured), ownership map in `docs/enforcement-map.md`, `SHODE-HOUSE-MASTER.md` marked maintainer/historical, `docs/bd-quickstart.md`: bd = beads.
+- **Rule accounting** - `.rule-migrations.json` 11 → 88 entries, each with exact source + fragment + reason; conservation green against `baseline-3.17` and every phase tag (`-m`, `-p4`, `-p5`, `-p6`, `-p7a`, `-p7`).
+- **Not done / pending** - live probe after-arm; core matrix on 5 models; model profiles (none shipped - only if the matrix proves a need); Cowork drag-drop check; version bump, pack and tag.
 
 ### v3.17 — Skill merge 24 → 20 (no stub; old names removed)
 

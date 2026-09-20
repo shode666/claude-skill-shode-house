@@ -1,6 +1,6 @@
 # bd Tool Quickstart + Alternatives
 
-> shode-house ใช้ `bd` (Backlog Doctor — local-first git-native issue tracker) ตลอด workflow. ถ้าไม่มี bd → ใช้ alternative ที่ map ลงท่าเดียวกันได้
+> repo นี้ (maintainer) ใช้ `bd` (beads — local-first git-native issue tracker). Plugin เอง tracker-neutral: ใช้ tracker ของ target project (`shode-house-workflow/harness.md`); ไม่มี bd → alternative ด้านล่าง map ลงท่าเดียวกันได้
 
 ---
 

@@ -168,6 +168,24 @@ Recite Discipline Card, AskUserQuestion main-session relay, Spec axis (diff vs s
 
 Closed in v3.17 merge (Sentinel S4 / G-C6): the canonical 8-item Phase 1c trigger list + "a 'low risk' claim does not waive 1c" + no Phase 2 before the 1c gate live in the `shode-house-workflow` root (§ Phase 1c); `harness.md`, `smart-coop.md`, `agents/orchestrator.md` and `references/registry/routes.json` cite that list.
 
+## Instruction ownership map (v3.17 — SPEC §113)
+
+> One canonical owner per rule family; every other file points, it does not restate. Machine-checked part = the `source_of_truth` + `anchor` of each rule in `.enforcement-map.json` (CI #21); this table is the human index used when deduplicating. Before adding a rule, answer the contribution questions in `CLAUDE.md` § Contribution rules.
+
+| Rule family | Canonical owner | Consumers (point, never copy) |
+|---|---|---|
+| R0/R1/R2 · NO MAGIC / Project Evidence · language · handoff contract · input trust · ask-vs-derive | `skills/discipline/shode-house-discipline/SKILL.md` (preloaded 19/19) | every agent file, every skill root |
+| Who owns the work · domain trigger · parallelization | `skills/discipline/shode-house-routing/SKILL.md` | `agents/orchestrator.md`, `ask` |
+| Completion contract · Anti-Puppet · report/output contract | `skills/discipline/shode-house-deliverable/SKILL.md` | producers |
+| Review axes · severity · fixed point · reviewer independence | `skills/discipline/review-checklist/SKILL.md` + the reviewer's own agent file (ownership table) | Chris, Quinn, Sentinel, Bella, domain experts |
+| Lifecycle Plan→Execute→Verify→Triage · approval durability · Phase 1c triggers · drift M2–M8 | `skills/discipline/shode-house-workflow/SKILL.md` | `agents/orchestrator.md`, `output-styles/oliver.md` |
+| Approval gate table | `agents/orchestrator.md` | workflow root, commands |
+| Frontend validation | `skills/ui/ui-test/SKILL.md` | Uma, Dave, Quinn, Chris |
+| Domain citation contract + persona disclaimer | `skills/discipline/domain-core/SKILL.md` | 7 domain experts |
+| Task tracker usage (target project) | `skills/discipline/shode-house-workflow/harness.md` (tracker-neutral; one Beads example block) | all shipped surfaces stay tracker-neutral |
+| Skill discovery | frontmatter `description` of each skill (budget `.skill-metadata-budget`, cap CI #9) | host discovery, generated adapters |
+| This repo's own tracker commands | `.agents/skills/beads/SKILL.md` + `docs/bd-quickstart.md` | maintainers only - never shipped |
+
 ## บทเรียนจาก v3.12 ที่ทำให้ต้องมีเอกสารนี้
 
 กฎ 5 ข้อนี้เคย **พังเงียบ** เพราะไม่มีใครถือ inventory: Recite Card (ซ้ำ 2 ที่ ขัดกันเอง) · AskUserQuestion (permission ถูกชั้น API แต่ผิดชั้น runtime) · Close-on-done (เขียนไว้แต่ไม่มี step รัน) · WCAG 2.2 (ประกาศ 4 จุด ไม่มี criterion) · XL split (กฎมี ไม่มีใครรัน)

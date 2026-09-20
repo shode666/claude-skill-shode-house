@@ -69,6 +69,32 @@ Patrick    Bella ∥ Sara   Uma      Sentinel    Domain SME ×7
 
 ---
 
+## Model Support
+
+shode-house uses a **model-agnostic core**: the same 19 agents and 20 skills are written to work on any capable reasoning model, and nothing in a skill or agent asks the model which model it is.
+
+Six layers, each with one owner:
+
+| Layer | Holds | Lives in |
+|---|---|---|
+| Core | universal rules: NO MAGIC, verify-before-done, R0/R1/R2, authority precedence, redaction, language, handoff | [`shode-house-discipline`](skills/discipline/shode-house-discipline/SKILL.md) (preloaded by all 19 agents) |
+| Roles | owns / does not own, judgment, bias default, skill pointers | `agents/<role>.md` |
+| Skills | thin root = goal, invariants, exclusions, stop conditions, routing | `skills/<bucket>/<name>/SKILL.md` |
+| References | depth, loaded only when the root says so | files beside each `SKILL.md` + `references/` |
+| Model calibration | per-family deltas, only when an eval proves the need | none shipped in 3.17 - the base workflow runs without a profile |
+| Evals | frozen routing probes + E01 + 16 core scenarios, scored from raw traces | [`eval/`](eval/) |
+
+**What is designed vs what is measured (status, stated plainly):**
+
+- *Designed, checked statically in CI:* the 3.17 simplification (semantic descriptions, lazy adapters, thin-router roots, decision boundaries, role-only agent files) keeps every rule - rule conservation against the cycle baseline, 121 root-tier safety anchors, four byte budgets that only go down.
+- *Measured so far:* one live routing-probe baseline on the **pre-simplification** plugin (Claude Code, `sonnet`, 38 probes x N=5 = 190 runs). Per-run and per-probe aggregates are committed in [`eval/baseline/3.16.3-probe-n5/`](eval/baseline/3.16.3-probe-n5/) (`SUMMARY.tsv`, `AGG.tsv`); raw traces stay on the maintainer machine (gitignored). It is a baseline only - no before/after comparison exists yet.
+- *Not measured yet:* the after-arm of those probes and the cross-model core matrix (Sonnet / Opus / Fable / OpenAI via Codex CLI) **have not been run**. No pass rate, cost or latency claim is made for any model on 3.17, and no "supported" label is given to a model family until its row exists.
+- *How to measure:* comparison rule and gate fixed before any data - [`eval/PROBE-GATE.md`](eval/PROBE-GATE.md); probes - `bash eval/run-probes.sh`; core matrix - `bash eval/run-core.sh <model>`; both need a real Claude Code / Codex CLI on the maintainer machine ([`eval/RUNBOOK.md`](eval/RUNBOOK.md)). OpenAI runs are recorded manually and kept separate from CI.
+
+A model profile may be added later only under the contribution rule in [`CLAUDE.md`](CLAUDE.md) § Contribution rules: it never redefines workflow, safety, ownership or domain rules. The `model:` values in § Model Strategy below are Claude Code frontmatter defaults, not a statement about which models were evaluated.
+
+---
+
 ## 60-second example
 
 ```
@@ -107,7 +133,7 @@ Chris   ∥ Quinn   : 7-dim clean · E2E green · spec-axis 6/6
 | business rule | architect/dev เดา | งานที่แตะ money/regulation **บังคับ** ผ่าน domain expert + citation contract (cite primary source ก่อน claim) |
 | การเปลี่ยนแปลง | เพิ่ม feature | ทุก release มี root-cause analysis ใน CHANGELOG + rule conservation check (กฎหายเงียบ ๆ = CI แดง) |
 
-**CI = 24 gate** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml), รันเองได้ด้วย `make validate`): rule conservation · lazy-load reachability · agent/preload/dispatch budget · cross-reference + section-ref resolution · model single-source · enforcement-map anchor · design-intel pipeline smoke + negative test
+**CI = 26 gate section (#1–#25 + #11b)** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml), รันเองได้ด้วย `make validate`): rule conservation · lazy-load reachability · agent/preload/dispatch budget · cross-reference + section-ref resolution · model single-source · enforcement-map anchor · design-intel pipeline smoke + negative test · skill description cap · generated-tree `--check` + thin adapters · retired-name tombstone · tracker-neutral scan
 
 ---
 
@@ -267,10 +293,11 @@ harness + วิธีรัน → [`eval/README.md`](eval/README.md) · [`eval
 
 ---
 
-## ⚡ Slash Commands (5)
+## ⚡ Slash Commands (6)
 
 | Command | ใช้เมื่อ |
 |---------|----------|
+| `/shode-house:ask [คำถาม / outcome / continue]` | public entry point — ทำงานกับ Oliver และทั้งทีม (skill [`ask`](skills/workflow/ask/SKILL.md)) |
 | `/shode-house:consult [คำถาม]` | ปรึกษาด่วน — route ไป agent ตัวเดียว |
 | `/shode-house:init [project]` | Init project scaffold — **default**: interactive wizard; `--quick "<stack>"` direct Aaron Docker-first |
 | `/shode-house:design-system [feature]` | Smart Spec pipeline — **default**: spec → suggest implement; `--stop`: stop at spec; `--estimate`: add T-shirt sizing; `--stop --estimate` = proposal mode |
@@ -466,6 +493,8 @@ Pattern: ระบุ action + impact + rollback → ขอ confirm → execute
 3. `make validate` ต้องเขียว → bump version → `make pack`
 
 **Remove agent**: ลบไฟล์ + remove จาก routing + capability matrix
+
+**New rule / new skill / new model profile** → ตอบคำถามใน [`CLAUDE.md`](CLAUDE.md) § Contribution rules ก่อน (failure ที่กัน · canonical owner ใน [`docs/enforcement-map.md`](docs/enforcement-map.md) · always-on หรือ lazy · eval ที่คุ้มครอง). Default = ไม่เพิ่ม.
 
 > ตอนนี้ **ไม่รับ agent ใหม่** — 19 agent ครอบ capability ครบแล้ว; สิ่งที่ project ต้องการคือ E2E proof, benchmark และ reliability ไม่ใช่ agent ที่ 20
 

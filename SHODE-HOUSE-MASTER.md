@@ -1,5 +1,7 @@
 # shode-house — Master Handoff (v3.3.0, May 30, 2026)
 
+> **Status (v3.17): maintainer / historical document.** Snapshot of the v3.3.0 handoff; it is NOT kept current and is NOT a runtime dependency - no skill, agent, command or output style loads it (checked: `grep -rn 'SHODE-HOUSE-MASTER' skills agents commands output-styles` = 0). Current invariants → `CLAUDE.md`; current architecture → `README.md` + `docs/ARCHITECTURE.md`; history → `CHANGELOG.md`. Open it only for maintenance/migration archaeology.
+
 > เปิดอ่านไฟล์เดียวก่อนเริ่ม session ใหม่. ครอบ current state + design decisions + audit trail
 > v3.2.0 tagged but SUPERSEDED same day by v3.3.0 (over-engineering revert). ดู CHANGELOG.md
 
