@@ -5,7 +5,8 @@ trace in the shape scripts/team-run-check.py parses. The Skill input shape mirro
 trace of 2026-09-20 (CLI 2.1.269): {"skill": "shode-house:<name>", "args": ...}.
 Behaviour: prompt containing "typo" -> fix src/validators.py in cwd + targeted test + success;
 anything else -> one Skill load (env FAKE_SKILL, default diagnose) then error_max_turns.
-FAKE_MODE=noresult -> trace without a result event (UNSCORABLE path)."""
+FAKE_MODE=noresult -> trace without a result event (crash path). FAKE_MODE=infra -> the run ends with
+`error_during_execution` (rate limit / credits path). FAKE_INFRA_ON=<substring of the prompt> limits it to one probe."""
 import json, os, sys
 
 args = sys.argv[1:]
@@ -44,5 +45,7 @@ else:
     use("Skill", {"skill": "shode-house:" + os.environ.get("FAKE_SKILL", "diagnose")})
     final = {"type": "result", "subtype": "error_max_turns", "is_error": True, "result": ""}
 final.update({"total_cost_usd": 0.0, "modelUsage": {"stub": {"outputTokens": 1}}})
+if os.environ.get("FAKE_MODE") == "infra" and os.environ.get("FAKE_INFRA_ON", "") in prompt:
+    final = {"type": "result", "subtype": "error_during_execution", "is_error": True, "result": "API Error: 429 rate_limit_error"}
 if os.environ.get("FAKE_MODE") != "noresult":
     emit(final)

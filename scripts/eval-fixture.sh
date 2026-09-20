@@ -5,11 +5,14 @@ set -euo pipefail
 
 # flags (3.17): --no-tracker = ไม่ bd init / ไม่สร้าง TRACKER.md (tracker-neutral run)
 #              --no-resolve = ไม่เขียน eval/prompts/resolved/ ใน plugin repo (runner 3.17 สร้าง fixture ใหม่ทุก run)
-DEST="" NO_TRACKER=0 NO_RESOLVE=0
+#              --with-ui    = เพิ่ม commit หน้า refund history (web/) ให้ probe ฝั่ง UI มีเป้าจริง (P07, P34);
+#                             ไม่ใส่ flag = fixture เนื้อหาเท่าเดิมทุก byte
+DEST="" NO_TRACKER=0 NO_RESOLVE=0 WITH_UI=0
 for arg in "$@"; do
   case "$arg" in
     --no-tracker) NO_TRACKER=1 ;;
     --no-resolve) NO_RESOLVE=1 ;;
+    --with-ui) WITH_UI=1 ;;
     -*) echo "!! unknown flag: $arg"; exit 2 ;;
     *) [ -z "$DEST" ] && DEST="$arg" || { echo "!! เกิน 1 path: $arg"; exit 2; } ;;
   esac
@@ -228,6 +231,71 @@ if __name__ == "__main__":
     unittest.main()
 EOF
 git add -A && git commit -qm "fixture(3.17): validators + targeted tests (E01 typo)"
+
+# ── commit UI (3.17, เฉพาะ --with-ui): หน้า refund history ตาม artifact bd-102 ─────────
+if [ "$WITH_UI" = 1 ]; then
+mkdir -p web
+cat > web/refund-history.html <<'EOF'
+<!doctype html>
+<!-- bd-102 refund history: implements outputs/bd-102/01-ux-ui-designer-phase-1b.md -->
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ประวัติการคืนเงิน</title>
+  <style>
+    :root { --color-text: #1b1b1f; --color-surface: #fff; --space-4: 16px; --radius-2: 8px; }
+    body { color: var(--color-text); background: var(--color-surface); margin: var(--space-4); font-family: sans-serif; }
+    table { width: 100%; border-collapse: collapse; }
+    td.amount, th.amount { text-align: right; }
+    @media (max-width: 480px) {
+      thead { display: none; }
+      tr { display: block; border: 1px solid; border-radius: var(--radius-2); margin-bottom: var(--space-4); padding: var(--space-4); }
+      td { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <h1>ประวัติการคืนเงิน</h1>
+  <label for="range">ช่วงเวลา</label>
+  <select id="range"><option value="30">30 วัน</option><option value="90">90 วัน</option></select>
+  <table id="refunds">
+    <thead><tr><th>วันที่</th><th>order</th><th class="amount">ยอด</th><th>สถานะ</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <div id="empty" hidden>
+    <p>ยังไม่มีรายการคืนเงิน</p>
+    <a href="/orders" id="go-orders">ดูคำสั่งซื้อ</a>
+  </div>
+  <nav id="pagination"><button type="button" id="prev">ก่อนหน้า</button><button type="button" id="next">ถัดไป</button></nav>
+  <script src="refund-history.js"></script>
+</body>
+</html>
+EOF
+cat > web/refund-history.js <<'EOF'
+// bd-102 refund history: newest first, amount right-aligned, empty state with a way out.
+const ROWS = [
+  { date: "2026-01-12", order: "#10231", amount: 1250.0, status: "สำเร็จ" },
+  { date: "2026-01-09", order: "#10198", amount: 300.0, status: "รอดำเนินการ" },
+];
+
+function render(rows) {
+  const body = document.querySelector("#refunds tbody");
+  body.innerHTML = "";
+  document.getElementById("empty").hidden = rows.length > 0;
+  document.getElementById("refunds").hidden = rows.length === 0;
+  [...rows].sort((a, b) => b.date.localeCompare(a.date)).forEach((r) => {
+    const tr = document.createElement("tr");
+    tr.tabIndex = 0;
+    tr.innerHTML = `<td>${r.date}</td><td>${r.order}</td><td class="amount">${r.amount.toFixed(2)}</td><td>${r.status}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+render(new URLSearchParams(location.search).has("empty") ? [] : ROWS);
+EOF
+git add -A && git commit -qm "fixture(3.17): refund history screen (web/) for UI probes"
+fi
 
 # ── tracker ───────────────────────────────────────────────────────────
 if [ "$NO_TRACKER" = 1 ]; then

@@ -1,0 +1,5 @@
+id	exit	route	first_skill	first_agent	seconds
+P02	0	skill:diagnose	shode-house:diagnose	-	39
+P09	0	skill:drain	shode-house:drain	-	53
+P14	0	agent:code-reviewer	-	shode-house:code-reviewer	65
+P27	0	agent:code-reviewer	-	shode-house:code-reviewer	72

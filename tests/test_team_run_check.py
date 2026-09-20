@@ -227,6 +227,66 @@ class ScenarioScoreTest(unittest.TestCase):
                 trc.score({"id": "t", "kind": "probe", "expected": {"route_any": bad}},
                           trc.observe([skill("secure"), final()]))
 
+    def test_max_skills_caps_distinct_main_session_loads(self):
+        exp = {"route_any": ["skill:secure"], "max_skills": 2}
+        self.pair(exp, [skill("secure"), skill("secure"), skill("slo"), final()],      # repeat load is not distinct
+                  [skill("secure"), skill("slo"), skill("incident"), final()], kind="probe")   # shotgun
+        preload = [skill(n) for n in ("shode-house-routing", "shode-house-discipline", "ask", "review-checklist", "caveman", "domain-core")]
+        self.assertTrue(self.verdict(exp, preload + [skill("secure"), skill("slo"), final()], kind="probe"),
+                        "only the 12 routable workflow/ops/ui skills count")
+        self.assertFalse(self.verdict(exp, preload + [skill("secure"), skill("slo"), skill("web-q"), final()], kind="probe"))
+        shipped = {q.parent.name for g in ("workflow", "ops", "ui") for q in ROOT.glob(f"skills/{g}/*/SKILL.md")}
+        self.assertEqual(trc.ROUTABLE_SKILLS, shipped - {"ask", "meeting"})
+
+    def test_probe_infra_error_is_never_scored_as_behaviour(self):
+        for exp in ({"route_any": ["skill:data-migration"]}, {"max_spawns": 0, "must_not_load": ["data-migration"]}):
+            for bad in (final("API Error: 429", "error_during_execution"), final("", "error_max_budget_usd"),
+                        {"type": "result", "subtype": "success", "is_error": True, "result": "Credit balance is too low"}):
+                with self.assertRaises(trc.Unscorable) as ctx:   # neither a would-be FAIL nor a would-be PASS
+                    trc.score({"id": "t", "kind": "probe", "expected": exp}, trc.observe([skill("data-migration"), bad]))
+                self.assertIn("INFRA_ERROR", str(ctx.exception))
+            for fine in (final(), final("", "error_max_turns")):
+                trc.score({"id": "t", "kind": "probe", "expected": exp}, trc.observe([skill("data-migration"), fine]))
+        self.assertFalse(self.verdict({"max_spawns": 0}, [final("", "error_during_execution")]), "core: still a scored FAIL")
+
+    def test_sub_agent_tool_use_is_not_main_session_routing(self):
+        sub_skill = tool("Skill", {"skill": "shode-house:secure"}, parent="call-x")
+        sub_spawn = spawn("security-engineer", parent="call-x")
+        exp = {"route_any": ["skill:secure", "agent:security-engineer"]}
+        self.assertFalse(self.verdict(exp, [spawn("developer"), sub_skill, sub_spawn, final()], kind="probe"),
+                         "a sub-agent loading the skill is not the main session routing to it")
+        self.assertTrue(self.verdict(exp, [skill("secure"), final()], kind="probe"))
+        # ...but a forbidden load / dispatch stays forbidden wherever it happens
+        self.assertFalse(self.verdict({"must_not_load": ["secure"]}, [spawn("developer"), sub_skill, final()]))
+        self.assertFalse(self.verdict({"must_not_dispatch": ["security-engineer"]}, [spawn("developer"), sub_spawn, final()]))
+        self.assertFalse(self.verdict({"max_spawns": 1}, [spawn("developer"), sub_spawn, final()]))
+        self.assertTrue(self.verdict({"max_skills": 1}, [skill("slo"), sub_skill, final()], kind="probe"))
+
+    def test_shell_path_counts_as_load_only_for_read_commands(self):
+        path = "skills/workflow/data-migration/SKILL.md"
+        exp = {"route_any": ["skill:data-migration"]}
+        for cmd in (f"cat {path}", f"cd /r && head -40 {path}", f"sed -n 1,40p {path}", f"tail -5 {path}", f"ls; less {path}"):
+            self.assertTrue(self.verdict(exp, [bash(cmd), final()], kind="probe"), cmd)
+        for cmd in (f"echo see {path}", f"ls {path}", f"sed -i s/a/b/ {path}", f"git log -- {path}", f"echo x > {path}",
+                    f"grep -c x {path}", f"rg Owner {path}", f"awk 'NR<3' {path}"):   # search is not load
+            self.assertFalse(self.verdict(exp, [bash(cmd), final()], kind="probe"), cmd)
+            self.assertTrue(self.verdict({"must_not_load": ["data-migration"]}, [bash(cmd), final()], kind="probe"), cmd)
+            self.assertEqual(trc.observe([bash(cmd), final()])["mentions"], ["data-migration"], cmd)
+
+    def test_describe_channel_and_terminal_are_report_only(self):
+        sc = {"id": "t", "kind": "probe", "expected": {"route_any": ["skill:secure", "agent:security-engineer"]}}
+        d = lambda events: trc.describe(sc, trc.observe(events))
+        self.assertEqual(("skill", "completed"), tuple(d([skill("secure"), spawn("security-engineer"), final()])[k] for k in ("channel", "terminal")))
+        self.assertEqual("agent", d([skill("slo"), spawn("security-engineer"), final()])["channel"])   # unlisted skill is not the channel
+        self.assertEqual(("none", "asked"), tuple(d([bash("ls"), final("route: Sentinel\n\nเอา A หรือ B ครับ?\n- A\n- B")])[k] for k in ("channel", "terminal")))
+        self.assertEqual("max_turns", d([skill("secure"), final("", "error_max_turns")])["terminal"])
+        self.assertEqual("asked", d([final("route: Reggie\n\nจะ scope ให้ service ไหนครับ:\n\n- **A) notification** — x\n- **B) ledger** — y")])["terminal"])
+        self.assertEqual("completed", d([final("Done. Changed:\n- src/a.py\n- src/b.py")])["terminal"])
+        self.assertEqual("error:error_during_execution", d([final("", "error_during_execution")])["terminal"])
+        self.assertEqual(2, d([skill("secure"), skill("slo"), skill("slo"), final()])["distinct_skills"])
+        no_list = {"id": "n", "kind": "probe", "expected": {"max_spawns": 1}}
+        self.assertEqual("agent", trc.describe(no_list, trc.observe([spawn("developer"), final()]))["channel"])
+
     def test_must_not_load(self):
         self.pair({"must_not_load": ["ui-test", "web-*"]}, [skill("dev-gate"), final()],
                   [bash("sed -n 1,40p skills/ui/web-q/SKILL.md"), final()])
@@ -338,7 +398,7 @@ class ScenarioScoreTest(unittest.TestCase):
             trc.score({"id": "GS1"}, trc.observe([final()]))
 
     def test_fields_match_the_whitelist(self):
-        self.assertEqual(19, len(trc.EXPECTED_FIELDS))   # 18 + route_any (3.17 probe redesign)
+        self.assertEqual(20, len(trc.EXPECTED_FIELDS))   # 18 + route_any + max_skills (3.17 probe redesign)
 
 
 class CodexNormalizeTest(unittest.TestCase):
@@ -399,6 +459,21 @@ class ScenarioCliTest(unittest.TestCase):
             p = subprocess.run([sys.executable, str(ROOT / "scripts/team-run-check.py"), str(run), "--scenario",
                                 scenario_id, "--scenarios", str(golden), "--json"], capture_output=True, text=True)
             return p.returncode, json.loads(p.stdout)
+
+    def test_not_applicable_scenario_is_never_scored(self):
+        na = {"id": "X-na", "kind": "probe", "not_applicable": "style skill", "expected": {"skills": ["caveman"]}}
+        for events in ([skill("caveman"), final()], [final()]):   # neither a would-be PASS nor a would-be FAIL is reported
+            code, out = self.run_cli(events, "X-na", scenarios=(na,))
+            self.assertEqual((2, "NOT_APPLICABLE"), (code, out["status"]))
+            self.assertIn("style skill", out["reason"])
+
+    def test_infra_error_exit_2_with_status(self):
+        code, out = self.run_cli([skill("incident"), final("API Error: 429", "error_during_execution")], "X-probe-outage")
+        self.assertEqual((2, "INFRA_ERROR"), (code, out["status"]))
+
+    def test_json_carries_channel_and_terminal(self):
+        code, out = self.run_cli([skill("incident"), final()], "X-probe-outage")
+        self.assertEqual((0, "skill", "completed", 1), (code, out["channel"], out["terminal"], out["distinct_skills"]))
 
     def test_exit_codes(self):
         good = [edit("/fx/src/ledger.py"), final("Fixed.")]

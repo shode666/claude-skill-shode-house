@@ -48,7 +48,7 @@ an unknown field is UNSCORABLE. `core` also requires a `success` result; `probe`
 
 | field | passes when |
 |---|---|
-| `skills` / `must_not_load` | `Skill` tool_use or a Read/shell read under `skills/[<group>/]<name>/` (prefix `shode-house:` stripped; preloads are invisible — never list them in `must_not_load`) |
+| `skills` / `must_not_load` | `Skill` tool_use or a Read/shell read under `skills/[<group>/]<name>/` (prefix `shode-house:` stripped; preloads are invisible — never list them in `must_not_load`; a shell path counts only for read commands — cat/head/tail/less/more/nl/bat/sed without -i; grep/rg/awk are search, not load — other mentions are reported as `path_mentions_not_counted`; `skills`/`agents`/`route_any`/`max_skills` see the MAIN session only, the `must_not_*` and `max_spawns` negatives also see sub-agents) |
 | `must_not_read`, `files_forbidden_glob`, `artifacts_forbidden` | no read / written path matches (fnmatch on the path or any suffix; `!glob` = exception) |
 | `agents` / `must_not_dispatch` (fnmatch, whole run) / `max_spawns` | `Task`/`Agent` `subagent_type`, nested spawns included |
 | `ask_user` | true: no edit AND (`AskUserQuestion` or `?` in final text); false: no `AskUserQuestion` and final text does not end with a question |
@@ -58,6 +58,7 @@ an unknown field is UNSCORABLE. `core` also requires a `success` result; `probe`
 | `files_touched_glob` | every written file matches a glob and every glob was touched (`[]` = nothing written) |
 | `artifacts` | each glob matches a written / `--files` path |
 | `result_matches` | each regex found in the final text only |
+| `max_skills` | number of DISTINCT routable skills (the 12 workflow/ops/ui skills; not ask/meeting/discipline/style) the main session loaded ≤ value |
 | `route_any` | any listed `skill:<name>` was loaded OR any listed `agent:<role>` was dispatched, anywhere in the run (routing probes: a skill or one of its owning agents; a route named only in text does not count) |
 
 ## v3.17 core matrix — live runs (maintainer's Mac; the team cannot run `claude`)
@@ -73,7 +74,7 @@ cd ~/workspace/shode-house
 bash eval/run-e01.sh sonnet
 # 2. routing-probe baseline (FR-P0-4): plugin = baseline tag, harness = this checkout
 PLUGIN_REF=baseline-3.17 PROBE_IDS=all bash eval/run-probes.sh sonnet eval/baseline/3.16.3-probe
-#    default ids = P01..P15 · PROBE_IDS=all = P01..P27 minus not_applicable (P21)
+#    default ids = every applicable probe (P21 not_applicable is refused); layout <out>/<id>/r<k>/ — see "Routing-probe protocol"
 #    subset rerun -> always a NEW directory, original evidence untouched:
 #    PLUGIN_REF=baseline-3.17 PROBE_IDS="P01 P02" bash eval/run-probes.sh sonnet eval/baseline/3.16.3-probe-r2
 #    (P16-P20 negatives, P21-P27 = remaining eval/fixtures/{triggers,routing}.yaml cases)
@@ -109,6 +110,67 @@ expect somewhat more per probe; actual `cost_usd` per run is in `meta.json`.
 Send back: the whole run directory (`outputs/eval-3.17/E01/<run>/`, `eval/baseline/3.16.3-probe/`) or at least
 `meta.json`, `score.txt`, `tools-seen.txt`, `run.stderr` and `SUMMARY.tsv`. Check `run.jsonl` for secrets before
 sharing outside the machine.
+
+## Routing-probe protocol (N=5, two arms, separation of duties)
+
+Roles: the runner (`eval/run-probes.sh`, Quinn) builds and records; verdicts come only from
+`scripts/team-run-check.py`; an independent validator (Chris) reads the raw traces. Nobody edits expectations
+after the after-arm has run — any edit means `bash eval/check-freeze.sh --update` and re-scoring BOTH arms from raw traces.
+
+```bash
+cd ~/workspace/shode-house && bash eval/check-freeze.sh          # must print "freeze OK" (the runner refuses otherwise)
+# baseline arm: plugin = baseline tag, harness/expectations = this checkout, 38 applicable probes x 5, cap 6 turns
+PLUGIN_REF=baseline-3.17 REPEATS=5 bash eval/run-probes.sh sonnet eval/baseline/3.16.3-probe-n5
+# interrupted (sleep, network, Ctrl-C)? run the SAME command again: complete runs are skipped, nothing is overwritten
+# after arm, same day/machine/CLI:  PLUGIN_REF=<after-ref> REPEATS=5 bash eval/run-probes.sh sonnet eval/baseline/<after>-probe-n5
+# held-out set: file lives outside the repo; runs go ONLY under git-ignored outputs/heldout-3.17/runs/<arm>/
+# (the runner refuses a tracked location). Only AGG.tsv + SHA256SUMS of that dir are ever committed -- never
+# prompt.txt / run.jsonl / BATCH.json / SUMMARY.tsv of a held-out run.
+PROBE_FILE=/abs/path/outside/repo/heldout.json PLUGIN_REF=baseline-3.17 REPEATS=5 \
+  bash eval/run-probes.sh sonnet outputs/heldout-3.17/runs/baseline
+```
+
+Held-out file format: `{"scenarios": [{"id", "kind": "probe", "class", "prompt_text": "<verbatim prompt>", "max_turns": 6,
+"fixture_flags": ["--with-ui"]?, "expected": {…}}]}` (a bare list and `prompt` paths relative to the file also work).
+
+**Rate window / infra errors.** A run whose result is not `success` / `error_max_turns` (429, out of credits,
+`error_during_execution`, budget stop, `success` with `is_error`) is infrastructure, not behaviour: the scorer exits 2
+`INFRA_ERROR`, the run is kept but never counted, and the batch STOPS immediately (exit 5) with a message. Wait for the
+limit to reset and run the same command again; the slot is re-run into `r<k>.retry<n>`. Three runs in a row without any
+result event also stop the batch. On a subscription the 5-hour window, not USD, is the real limit: expect several stops.
+
+**After arm.** `PLUGIN_REF` other than `BASE_REF` (default `baseline-3.17`) is refused unless
+`bash eval/check-arm-diff.sh <base> <after>` passes: only `description:` of `skills/*/*/SKILL.md` may differ (+ the
+`version` line of `.claude-plugin/{plugin,marketplace}.json`), bodies and every other frontmatter key byte-identical, no
+add/delete/rename under agents/commands/skills/hooks/references/output-styles/.claude-plugin, and no new description may
+share a Thai run ≥ 8 chars or 3 consecutive latin words with a P28+ prompt. The validator alone runs the same lint
+against the held-out file: `bash eval/check-arm-diff.sh <base> <after> /abs/path/heldout.json`. Result + shas land in `BATCH.json`.
+
+- Order is round-robin (all ids for r1, then r2, …) so time drift spreads over probes. Layout `<out>/<id>/r<k>/`.
+- Resume: a run dir with a result event is complete (skipped, never overwritten). One without (crash/kill) is kept
+  and the slot is re-run once into `r<k>.retry1`. A scored FAIL is never retried. A directory that belongs to a
+  different batch (`BATCH.json`: model, plugin sha, scenarios sha256, CLI version) is refused.
+- `SUMMARY.tsv` = one row per run (`id run exit class route channel terminal distinct_skills first_skill first_agent
+  seconds cost_usd`); `AGG.tsv` = one row per probe (`id class k_pass/N n_fail n_unscorable_or_incomplete channels
+  terminals mean_distinct_skills`). Both are derived (`python3 eval/probe-agg.py <out>` rebuilds them).
+- `class`: `description-sensitive` | `control-agent-table` (P06, P14, P15, P23–P27: routed by the always-loaded agent
+  table, reported as controls) | `negative`. The claim is made on description-sensitive + held-out only.
+- `channel` (skill|agent|none = how a listed route was reached) and `terminal` (asked|max_turns|completed|error:…)
+  are report-only; `terminal` is a text heuristic (question mark or an A)/B) option list at the end) — never use it in a gate.
+- `AGG.tsv` `uninformative_0_of_N` = yes when a probe never passed in that arm: a floor, excluded from the claim in advance. `not_applicable` probes (P21) are refused by the runner and exit 2 `NOT_APPLICABLE` in the scorer.
+- `meta.json` adds `sha256` {scenarios, prompt_file, prompt_txt, scorer, run_lib, fixture_script, probe_settings,
+  freeze_manifest} and `init_sha256` {skills, agents, slash_commands, tools, mcp_servers, plugins(name@version|source)} —
+  both arms must show identical init hashes except where the plugin itself differs.
+- UI probes (P07, P34) get `scripts/eval-fixture.sh --with-ui` (`web/refund-history.{html,js}`); every other probe's
+  fixture tree is byte-identical to before (`fixture_flags` in golden.json).
+- Probe expectations: `route_any` ≤ 2 entries, `max_skills` 2 on positives, `must_not_load` = every workflow/ops/ui
+  skill except the target and the scenario's `related` co-load; `max_skills` counts only those 12 routable skills
+  (other loads are reported); P38/P39 by validator ruling = `max_spawns: 1` + `must_not_dispatch`; other negatives carry a positive assertion
+  (`route_any` owner or `max_spawns: 0`). `tests/test_eval_runners.py` guards all of this.
+
+Estimate (from measurements, not a quote): 3-turn runs averaged USD 0.16 / 30 s (n=27), 6-turn reruns USD 0.23 / 57 s
+(n=4, the slow cases). One arm = 38 x 5 = 190 runs ≈ USD 30–45 and 1.6–3 h; both arms ≈ USD 60–90 and 3–6 h; a held-out
+set of 12 adds 60 runs per arm (≈ USD 10–14, 0.5–1 h). Hard ceiling USD 1 per run. Rate limiting can stretch the time.
 
 ## Historical v3.13 procedure (not current installation instructions)
 

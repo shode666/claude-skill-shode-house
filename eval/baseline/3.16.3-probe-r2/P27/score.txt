@@ -1,0 +1,3 @@
+  ok route_any: matched ['agent:code-reviewer']; loaded [], spawned ['code-reviewer']
+  RESULT: PASS
+exit=0

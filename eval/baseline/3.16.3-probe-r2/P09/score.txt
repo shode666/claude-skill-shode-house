@@ -1,0 +1,4 @@
+  ok route_any: matched ['skill:drain']; loaded ['drain'], spawned []
+  ok must_not_load: forbidden loads: []
+  RESULT: PASS
+exit=0

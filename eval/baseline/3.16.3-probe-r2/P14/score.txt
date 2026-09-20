@@ -1,0 +1,4 @@
+  ok route_any: matched ['agent:code-reviewer']; loaded [], spawned ['code-reviewer']
+  ok must_not_load: forbidden loads: []
+  RESULT: PASS
+exit=0

@@ -10,6 +10,7 @@ specific qualification and fail closed here. Usage:
                                              [--unknown-op "git push"] [--max-iterations 3] [--json]
   python3 scripts/team-run-check.py run.jsonl --scenario E01 --scenarios eval/scenarios/golden.json [--files run.files]
     scores observable behaviour only (Claude stream-json or Codex `exec --json`); exit 0 PASS / 1 FAIL / 2 UNSCORABLE
+    (a scenario carrying `not_applicable` is never scored: exit 2, status NOT_APPLICABLE)
 """
 import argparse, fnmatch, json, re, shlex, sys
 
@@ -189,7 +190,13 @@ EXPECTED_FIELDS = {
     "skills", "must_not_load", "must_not_read", "agents", "must_not_dispatch", "max_spawns", "ask_user",
     "first_action", "requires_r0", "forbidden_commands", "required_commands", "files_touched_glob",
     "files_forbidden_glob", "validation_run", "validation_forbidden", "artifacts", "artifacts_forbidden",
-    "result_matches", "route_any"}
+    "result_matches", "route_any", "max_skills"}
+READ_CMDS = {"cat", "head", "tail", "less", "more", "sed", "nl", "bat"}   # search (grep/rg/awk) is not a load
+# The routable skills whose descriptions compete for a request (workflow/ops/ui minus the entry skills).
+# `max_skills` counts only these; routing/discipline/ask/review-checklist/caveman/domain-core loads are reported.
+ROUTABLE_SKILLS = {"api-contract", "automate-test", "data-migration", "decompose", "dev-gate", "diagnose", "drain",
+                   "incident", "secure", "slo", "ui-test", "web-q"}
+PROBE_TERMINALS = {"success", "error_max_turns"}   # anything else is infrastructure (429, credits, crash), not behaviour
 PATH_TOKEN = re.compile(r"[\w.~/@+-]*[\w@+-]\.[A-Za-z0-9]+")
 
 
@@ -270,15 +277,33 @@ def normalize_codex(events):
     return out
 
 
-def observe(events):
-    """Derive observable facts only: tool uses and the final result text."""
-    obs = {"skills": [], "reads": [], "agents": [], "asks": 0, "bash": [], "writes": [],
-           "first_tool": None, "results": []}
+def _read_paths(command):
+    """Paths a shell command actually READS: only segments whose command is a reader
+    (cat/head/tail/less/sed without -i/grep/...). `echo see skills/x/SKILL.md` reads nothing."""
+    hits = []
+    for seg in re.split(r"&&|\|\||[;|\n]", command):
+        words = seg.split()
+        if words and words[0] in READ_CMDS and not (words[0] == "sed" and any(w.startswith("-i") for w in words[1:])):
+            hits += PATH_TOKEN.findall(seg)
+    return hits
 
-    def load(name):
+
+def observe(events):
+    """Derive observable facts only: tool uses and the final result text.
+    Routing facts (skills, agents, routes, first_tool, asks) come from the MAIN session only:
+    an event carrying parent_tool_use_id is a sub-agent's and goes to sub_skills / sub_agents.
+    Commands, reads and writes stay whole-run (a sub-agent's edit is still an edit)."""
+    obs = {"skills": [], "reads": [], "agents": [], "asks": 0, "bash": [], "writes": [],
+           "first_tool": None, "results": [], "routes": [], "sub_skills": [], "sub_agents": [],
+           "mentions": []}
+
+    def load(name, sub=False):
         name = name.split(":")[-1]
-        if name and name not in obs["skills"]:
-            obs["skills"].append(name)
+        into = obs["sub_skills"] if sub else obs["skills"]
+        if name and name not in into:
+            into.append(name)
+            if not sub:
+                obs["routes"].append("skill:" + name)
 
     for e in events:
         if e.get("type") == "result" and not e.get("parent_tool_use_id"):
@@ -291,26 +316,32 @@ def observe(events):
             name, inp = c.get("name"), c.get("input") or {}
             if not isinstance(inp, dict):
                 raise ValueError("tool_use input must be an object")
-            paths = []
+            paths, sub = [], bool(e.get("parent_tool_use_id"))
+            loadable = None   # paths that may count as a skill load (Read tool / shell READ commands only)
             if name == "Skill":
                 # verified live 2026-09-20 (CLI 2.1.269): {"skill": "shode-house:<name>", "args": ...};
                 # `command` is a tolerated fallback only; it was never observed in a live trace.
-                load(str(inp.get("skill") or inp.get("command") or ""))
+                load(str(inp.get("skill") or inp.get("command") or ""), sub)
             elif name == "Read":
                 paths = [str(inp.get("file_path") or "")]
             elif name == "Bash":
                 command = str(inp.get("command") or "")
                 obs["bash"].append(command)
                 paths = PATH_TOKEN.findall(command)
+                loadable = _read_paths(command)
+                obs["mentions"] += [s for s in map(skill_of, paths) if s and s not in map(skill_of, loadable)]
             elif name in ("Task", "Agent"):
-                obs["agents"].append(str(inp.get("subagent_type") or "").split(":")[-1])
-            elif name == "AskUserQuestion":
+                role = str(inp.get("subagent_type") or "").split(":")[-1]
+                (obs["sub_agents"] if sub else obs["agents"]).append(role)
+                if not sub:
+                    obs["routes"].append("agent:" + role)
+            elif name == "AskUserQuestion" and not sub:
                 obs["asks"] += 1
             elif name in EDIT_TOOLS:
                 obs["writes"].append(str(inp.get(EDIT_TOOLS[name]) or ""))
-            loads = [s for s in map(skill_of, paths) if s]
+            loads = [s for s in map(skill_of, paths if loadable is None else loadable) if s]
             for s in loads:
-                load(s)
+                load(s, sub)
             obs["reads"] += [p for p in paths if p]
             if (obs["first_tool"] is None and name != "Skill" and not loads
                     and not e.get("parent_tool_use_id")):
@@ -318,6 +349,24 @@ def observe(events):
     last = obs["results"][-1] if obs["results"] else {}
     obs["result_text"] = last.get("result") if isinstance(last.get("result"), str) else ""
     return obs
+
+
+def describe(scenario, obs):
+    """Report-only run descriptors (never part of the verdict): how the route was reached and how the run ended."""
+    want = _list((scenario.get("expected") or {}).get("route_any") or [])
+    matched = [r for r in obs["routes"] if r in want] if want else obs["routes"]
+    channel = matched[0].split(":")[0] if matched else "none"
+    last = obs["results"][-1] if obs["results"] else {}
+    tail = [ln for ln in obs["result_text"].strip().splitlines() if ln.strip()][-12:]
+    options = sum(1 for ln in tail if re.match(r"\s*(?:[-*•]\s*)?\**\(?(?:[A-Da-d]|[1-4])[).:]", ln))   # "A) ... / B) ..." choice
+    asked = obs["asks"] > 0 or options >= 2 or any(re.search(r"[?？][\s*_)\]\"'`]*$", ln) for ln in tail)
+    subtype = last.get("subtype")
+    terminal = ("max_turns" if subtype == "error_max_turns" else "asked" if asked and subtype == "success"
+                else "completed" if subtype == "success" else f"error:{subtype}")
+    return {"channel": channel, "terminal": terminal, "routes": obs["routes"],
+            "distinct_skills": len([s for s in obs["skills"] if s in ROUTABLE_SKILLS]),
+            "other_skills": [s for s in obs["skills"] if s not in ROUTABLE_SKILLS], "sub_agent_routes": obs["sub_skills"] + obs["sub_agents"],
+            "path_mentions_not_counted": obs["mentions"]}
 
 
 def _glob_hit(path, globs):
@@ -349,6 +398,17 @@ def _is_search(tool):
     return any(w in SEARCH_CMDS for w in words) and all(w in SEARCH_CMDS | NEUTRAL_CMDS for w in words)
 
 
+def infra_error(result):
+    """A probe legitimately ends `success` or `error_max_turns`. Anything else -- error_during_execution, a rate
+    limit, exhausted credits, a budget stop, or `success` flagged is_error -- says nothing about routing."""
+    subtype = result.get("subtype")
+    if subtype not in PROBE_TERMINALS:
+        return f"result subtype={subtype}"
+    if subtype == "success" and result.get("is_error"):
+        return "result subtype=success with is_error=true"
+    return None
+
+
 def score(scenario, obs, files=()):
     """-> checks {name: (ok, detail)} for one scenario's `expected` block."""
     exp, kind = scenario.get("expected"), scenario.get("kind", "core")
@@ -359,6 +419,9 @@ def score(scenario, obs, files=()):
         raise Unscorable(f"non-observable/unknown expected field(s): {sorted(unknown)}")
     if not obs["results"]:
         raise Unscorable("no result event: trace incomplete")
+    infra = infra_error(obs["results"][-1]) if kind == "probe" else None
+    if infra:
+        raise Unscorable(f"INFRA_ERROR: {infra} -- not behaviour, never scored; re-run this slot")
     checks = {}
     if kind == "core":   # a probe is cut by --max-turns; its result is legitimately not `success`
         last = obs["results"][-1]
@@ -375,8 +438,12 @@ def score(scenario, obs, files=()):
             if kind == "probe" and want:
                 ok = skills[:1] == want[:1]
             detail = f"loaded {skills}"
+        elif field == "max_skills":   # shotgun over-triggering: cap on DISTINCT main-session skill loads
+            counted = [s for s in skills if s in ROUTABLE_SKILLS]
+            other = [s for s in skills if s not in ROUTABLE_SKILLS]
+            ok, detail = len(counted) <= value, f"{len(counted)} routable skill(s) {counted}, cap {value}; not counted: {other}"
         elif field == "must_not_load":
-            bad = [s for s in skills if any(fnmatch.fnmatchcase(s, g) for g in _list(value))]
+            bad = [s for s in skills + obs["sub_skills"] if any(fnmatch.fnmatchcase(s, g) for g in _list(value))]
             ok, detail = not bad, f"forbidden loads: {bad}"
         elif field == "must_not_read":
             bad = [p for p in obs["reads"] if _glob_hit(p, _list(value))]
@@ -394,10 +461,11 @@ def score(scenario, obs, files=()):
             hit = [w for w in want if w.split(":", 1)[1] in (skills if w.startswith("skill:") else agents)]
             ok, detail = bool(hit), f"matched {hit}; loaded {skills}, spawned {agents}"
         elif field == "must_not_dispatch":   # whole-run (Quinn Q6), no ordering
-            bad = [a for a in agents if any(fnmatch.fnmatchcase(a, g) for g in _list(value))]
+            bad = [a for a in agents + obs["sub_agents"] if any(fnmatch.fnmatchcase(a, g) for g in _list(value))]
             ok, detail = not bad, f"forbidden spawns: {bad}"
         elif field == "max_spawns":
-            ok, detail = len(agents) <= value, f"{len(agents)} spawn(s), cap {value}"
+            total = len(agents) + len(obs["sub_agents"])
+            ok, detail = total <= value, f"{total} spawn(s), cap {value}"
         elif field == "ask_user":
             if value:
                 ok = not obs["writes"] and (asked or "?" in text or "？" in text)
@@ -463,6 +531,8 @@ def run_scenario(a):
     """Exit 0 PASS / 1 FAIL / 2 UNSCORABLE."""
     try:
         scenario = find_scenario(a.scenarios, a.scenario)
+        if scenario.get("not_applicable"):
+            raise Unscorable(f"NOT_APPLICABLE: {scenario['not_applicable']}")
         events = load(a.jsonl)
         if is_codex(events):
             events = normalize_codex(events)
@@ -470,10 +540,12 @@ def run_scenario(a):
         if a.files:   # `git status --porcelain` of the fixture after the run
             with open(a.files, encoding="utf-8") as f:
                 files = [line[3:].split(" -> ")[-1].strip().strip('"') for line in f if len(line) > 3]
-        checks = score(scenario, observe(events), files)
+        obs = observe(events)
+        checks, info = score(scenario, obs, files), describe(scenario, obs)
     except (Unscorable, ValueError, TypeError, AttributeError, OSError, re.error) as exc:
         if a.json:
-            print(json.dumps({"scenario": a.scenario, "status": "UNSCORABLE", "reason": str(exc)}))
+            status = next((k for k in ("NOT_APPLICABLE", "INFRA_ERROR") if str(exc).startswith(k)), "UNSCORABLE")
+            print(json.dumps({"scenario": a.scenario, "status": status, "reason": str(exc)}))
         else:
             print(f"  RESULT: UNSCORABLE {exc}")
         sys.exit(2)
@@ -482,10 +554,12 @@ def run_scenario(a):
     if a.json:
         print(json.dumps({"scenario": a.scenario, "kind": scenario.get("kind", "core"), "status": status,
                           "checks": {k: {"pass": ok, "detail": d} for k, (ok, d) in checks.items()},
-                          "failed": failed}, indent=2))
+                          "failed": failed, **info}, indent=2))
     else:
         for k, (ok, d) in checks.items():
             print(f"  {'ok ' if ok else 'X  '}{k}: {d}")
+        print(f"  info: channel={info['channel']} terminal={info['terminal']} routes={info['routes']} "
+              f"distinct_skills={info['distinct_skills']} uncounted_mentions={info['path_mentions_not_counted']}")
         print(f"  RESULT: {status}" + (" " + ", ".join(failed) if failed else ""))
     sys.exit(1 if failed else 0)
 

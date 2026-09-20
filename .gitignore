@@ -40,3 +40,6 @@ Claude outputs/
 /eval/baseline/*-probe*/*/*
 !/eval/baseline/*-probe*/*/score.txt
 !/eval/baseline/*-probe*/*/prompt.txt
+/eval/baseline/*-n5/*/
+/eval/baseline/*/BATCH.json
+/eval/baseline/*/log.txt

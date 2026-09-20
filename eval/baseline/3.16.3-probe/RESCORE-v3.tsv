@@ -1,0 +1,34 @@
+# v1 = first/only-skill-or-agent expectations (3 turns) · v2 = route_any wide accept-lists · v3 = tightened: skill + ONE primary owner + named wrong routes (2026-09-20)
+# turns_cap 3 = eval/baseline/3.16.3-probe/<id> · 6 = eval/baseline/3.16.3-probe-r2/<id>; route = every Skill/Agent tool_use in order; evidence untouched
+id	turns_cap	v1	v2	v3	route	reason
+P01	3	1	1	1	-	route_any: matched []; loaded [], spawned []
+P02	3	1	1	1	-	route_any: matched []; loaded [], spawned []
+P03	3	0	0	0	skill:incident	pass: matched ['skill:incident']
+P04	3	0	0	0	skill:data-migration	pass: matched ['skill:data-migration']
+P05	3	0	0	0	skill:api-contract	pass: matched ['skill:api-contract']
+P06	3	1	0	0	agent:security-engineer	pass: matched ['agent:security-engineer']
+P07	3	1	1	1	-	route_any: matched []; loaded [], spawned []
+P08	3	0	0	0	skill:decompose	pass: matched ['skill:decompose']
+P09	3	1	1	1	-	route_any: matched []; loaded [], spawned []
+P10	3	1	1	1	-	route_any: matched []; loaded [], spawned []
+P11	3	1	1	1	-	route_any: matched []; loaded [], spawned []
+P12	3	0	0	0	skill:web-q	pass: matched ['skill:web-q']
+P13	3	0	0	0	skill:automate-test	pass: matched ['skill:automate-test']
+P14	3	1	1	1	-	route_any: matched []; loaded [], spawned []
+P15	3	0	0	0	agent:fintech-expert	pass: matched ['agent:fintech-expert']
+P16	3	0	0	0	-	pass: negatives only
+P17	3	0	0	0	agent:developer	pass: negatives only
+P18	3	0	0	0	-	pass: negatives only
+P19	3	0	0	0	-	pass: negatives only
+P20	3	0	0	0	-	pass: negatives only
+P21	3	1	N/A	N/A	-	not_applicable (style skill, no tool_use)
+P22	3	0	0	0	-	pass: negatives only
+P23	3	0	0	0	agent:trading-expert	pass: matched ['agent:trading-expert']
+P24	3	0	0	0	agent:insurance-expert	pass: matched ['agent:insurance-expert']
+P25	3	0	0	0	agent:ux-ui-designer	pass: matched ['agent:ux-ui-designer']
+P26	3	1	1	1	-	route_any: matched []; loaded [], spawned []
+P27	3	1	1	1	-	route_any: matched []; loaded [], spawned []
+P02	6	-	0	0	skill:diagnose	pass: matched ['skill:diagnose']
+P09	6	-	0	0	skill:drain	pass: matched ['skill:drain']
+P14	6	-	0	0	agent:code-reviewer	pass: matched ['agent:code-reviewer']
+P27	6	-	0	0	agent:code-reviewer	pass: matched ['agent:code-reviewer']
