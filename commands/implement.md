@@ -103,7 +103,7 @@ Uma เข้า Phase 3a ทำตาม **mandatory Bash invocation pattern** 
 10. Content design (manual paste vs spec)
 11. AC verification (bullet per AC + evidence path)
 
-**🔴 Anti-Puppet UX/UI (meeting skill บังคับ)**: ห้าม claim PASS โดยไม่ paste tool output. Verdict format ดู `agents/ux-ui-designer.md`
+**🔴 Anti-Puppet UX/UI (บังคับ — `shode-house-deliverable` § Anti-Puppet Rule)**: ห้าม claim PASS โดยไม่ paste tool output. Verdict format ดู `agents/ux-ui-designer.md`
 
 Verdict:
 - **PASS** → `bd update <id> --notes "Phase 3a Uma POST PASS — evidence: [Chromatic build/N, axe report path, AC bullets]"` → unlock Phase 3b

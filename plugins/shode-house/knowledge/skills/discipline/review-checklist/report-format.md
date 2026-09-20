@@ -13,11 +13,11 @@ REQUIRED-BEFORE: review_report_post
 # REVIEW Report Format + Loop Routing (reference)
 
 > แยกจาก `SKILL.md` เป็น output template ที่ใช้ตอนท้ายของ review เท่านั้น ไม่ต้องอยู่ใน preload
-> `shode-house-evidence` ชี้มาที่นี่ (single source of truth ของ REVIEW format)
+> `shode-house-discipline` § Extension protocols ชี้มาที่นี่ (single source of truth ของ REVIEW format)
 
 ## REVIEW Report Format (confirmed evidence home, Markdown fallback)
 
-ใช้ format ใน `shode-house-evidence` (REVIEW Report Format section). สรุป:
+ใช้ format นี้ (cite-before-claim ตาม `shode-house-discipline` § Project Evidence Protocol). สรุป:
 
 ### Compact task summary (Beads example)
 ```
@@ -84,6 +84,6 @@ Trigger ตาม code path:
 | booking / rate / yield (hotel/airline) | → **Brooke** |
 | cart / checkout / promotion / catalog | → **Emma** |
 
-Domain Expert verify: regulation cite (`shode-house-evidence`) + business rule + edge case ที่เฉพาะ domain. ห้าม skip ถ้า domain-sensitive
+Domain Expert verify: regulation cite (`shode-house-discipline` § Project Evidence Protocol) + business rule + edge case ที่เฉพาะ domain. ห้าม skip ถ้า domain-sensitive
 
 ---

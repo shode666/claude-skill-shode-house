@@ -1,6 +1,6 @@
 # Shode House 3.16.3 host notes
 
-All 19 role sources and 24 skills are preserved under knowledge/. Use ask as the entry; Oliver is the main session.
+All 19 role sources and 20 skills are preserved under knowledge/. Use ask as the entry; Oliver is the main session.
 
 - Claude Code / Codex: `.claude-plugin` / `.codex-plugin` manifests, flat skills, agent adapters, `/ask` command.
 - Cursor: `.cursor-plugin` manifest; skills and agents discovered, no command (ask is a skill).

@@ -111,7 +111,7 @@ B) AFK (Auto) — Oliver delegate ทุก phase, user approve เฉพาะ 
 C) Interactive (Supervised) — human approve ทุก hand-off
 ```
 
-**Mode bind R0/R1/R2** (ดู meeting skill):
+**Mode bind R0/R1/R2** (ดู `shode-house-workflow` § Engagement Mode):
 - AFK: R2 auto, R1 inform, R0 ขออนุญาต
 - Interactive: R2/R1 inform, R0 ask + ทุก phase exit ขออนุมัติ
 - Hybrid: AFK rule pre-deploy → Interactive deploy ขึ้น

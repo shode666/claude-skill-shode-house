@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Sara วาง C4 + tech stack + NFR + ADR"
   </example>
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
+skills: ["shode-house-discipline", "shode-house-deliverable"]
 model: inherit
 ---
 

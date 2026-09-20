@@ -44,8 +44,8 @@ def payload(root=ROOT):
         entries[name] = path.read_bytes()
     roles = [p for p in entries if p.startswith("agents/") and p.endswith(".md")]
     skills = [p for p in entries if p.endswith("/SKILL.md")]
-    if len(roles) != 19 or len(skills) < 24:
-        raise ValueError("candidate must preserve 19 roles, original 23 skills and ask")
+    if len(roles) != 19 or len(skills) != 20:
+        raise ValueError("candidate must ship exactly 19 roles and the 20 skills of v3.17 (incl. ask)")
     # Preserve authored relative layout under one knowledge root. Native discovery
     # requires flat skills/<name>/SKILL.md, unlike Claude's historical buckets.
     # Wrappers dispatch to full source instructions, never persona summaries.
@@ -136,7 +136,7 @@ def unified_payload(root=ROOT):
     entries["plugin.json"] = (json.dumps(marker, indent=2) + "\n").encode()
     entries["HOST-NOTES.md"] = (
         f"# Shode House {version} host notes\n\n"
-        "All 19 role sources and 24 skills are preserved under knowledge/. "
+        "All 19 role sources and 20 skills are preserved under knowledge/. "
         "Use ask as the entry; Oliver is the main session.\n\n"
         "- Claude Code / Codex: `.claude-plugin` / `.codex-plugin` manifests, flat skills, agent adapters, `/ask` command.\n"
         "- Cursor: `.cursor-plugin` manifest; skills and agents discovered, no command (ask is a skill).\n"

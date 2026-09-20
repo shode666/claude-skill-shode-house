@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Elena ออกแบบ inventory + costing method"
   </example>
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "domain-core"]
+skills: ["shode-house-discipline", "domain-core"]
 model: inherit
 ---
 

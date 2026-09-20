@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Aaron setup project + Dockerfile + compose + GitHub Actions"
   </example>
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
+skills: ["shode-house-discipline", "shode-house-deliverable"]
 model: inherit
 ---
 

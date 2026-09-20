@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Stan วิเคราะห์ + propose convergence (or accept divergence + tradeoff)"
   </example>
 tools: ["Read", "Grep", "Glob", "Bash", "WebSearch", "Write", "Edit", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence"]
+skills: ["shode-house-discipline"]
 model: inherit
 ---
 

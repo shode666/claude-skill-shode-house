@@ -110,7 +110,7 @@
     {
       "source": "skills/discipline/shode-house-drift/SKILL.md",
       "old_fragment": "งาน land แล้ว → bd ต้อง CLOSED ในรอบเดียวกัน (3 ขั้น ห้ามข้าม):",
-      "replacement": "skills/discipline/shode-house-drift/SKILL.md",
+      "replacement": "skills/discipline/shode-house-workflow/drift.md",
       "requires": [
         "Oliver updates the canonical task after required acceptance and",
         "authorized closure, then reads it back",
@@ -118,6 +118,33 @@
         "claim CLOSED without the authoritative result"
       ],
       "reason": "Preserve evidence-backed closure and read-back for the selected tracker, including honest pending sync."
+    },
+    {
+      "source": "skills/workflow/meeting/SKILL.md",
+      "old_fragment": "- Agents ที่บอก *\"ยึด meeting skill เป็น discipline foundation\"* ยังถูกต้อง — meeting skill ตอนนี้ = thin entry-point + Recite Card + index",
+      "replacement": "skills/workflow/ask/SKILL.md",
+      "requires": [
+        "orientation summaries only — each detail stays with its owner skill"
+      ],
+      "reason": "Historical v3.1 split note that described the retired team-entry skill itself; no runtime rule. v3.17 removes that skill with no stub, so agents now hold shode-house-discipline directly."
+    },
+    {
+      "source": "skills/workflow/meeting/SKILL.md",
+      "old_fragment": "- เนื้อหา 1316 บรรทัดเดิมยังอยู่ครบ — แค่กระจายไปยัง 7 sub-skills + reference table ในไฟล์นี้",
+      "replacement": "skills/workflow/ask/SKILL.md",
+      "requires": [
+        "orientation summaries only — each detail stays with its owner skill"
+      ],
+      "reason": "Historical v3.1 split note (where the old god-skill content went); no runtime rule. The v3.17 orientation summary lives in ask."
+    },
+    {
+      "source": "skills/workflow/meeting/SKILL.md",
+      "old_fragment": "- The historical line-count reduction is not a measured token or quality result.",
+      "replacement": "skills/workflow/ask/SKILL.md",
+      "requires": [
+        "orientation summaries only — each detail stays with its owner skill"
+      ],
+      "reason": "Historical caveat about the v3.1 line-count claim; no runtime rule and no claim remains to caveat after the v3.17 merge into ask."
     }
   ]
 }

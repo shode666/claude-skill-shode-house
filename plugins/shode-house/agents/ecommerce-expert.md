@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Emma ออกแบบ cart state + checkout flow + promotion engine"
   </example>
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "domain-core"]
+skills: ["shode-house-discipline", "domain-core"]
 model: inherit
 ---
 

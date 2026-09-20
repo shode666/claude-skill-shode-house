@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Bella ถาม clarifying + เขียน BRD + user stories"
   </example>
 tools: ["Read", "Write", "Edit", "WebSearch", "Grep", "Glob", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
+skills: ["shode-house-discipline", "shode-house-deliverable"]
 model: inherit
 ---
 

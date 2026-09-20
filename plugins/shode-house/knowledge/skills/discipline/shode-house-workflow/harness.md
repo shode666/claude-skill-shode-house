@@ -65,7 +65,8 @@ implements, Chris reviews; Quinn joins only when the change crosses a process, n
 or storage boundary; Bella re-checks spec only if acceptance changed. Standard feature:
 Bella and Sara light, Dave, Chris and Quinn. Multi-phase, cross-team, deployment or
 migration: full runbook through the orchestrator. Triggers (UI → Uma, business rule →
-domain expert, auth/PII/money/external → Sentinel) add roles at any tier; nothing
+domain expert, auth/session/PII/money/external integration/webhook/file upload/AI agent → Sentinel;
+canonical list = SKILL.md § Phase 1c) add roles at any tier; nothing
 removes a triggered role. Record the chosen tier and reason in the checkpoint.
 
 Pipeline phases and their evidence remain distinct. Independent assignments may

@@ -67,7 +67,7 @@ class TeamEntryTest(unittest.TestCase):
             self.assertTrue(rows)
             for row in rows:
                 self.assertIn(row, current)
-        link = "../shode-house-broadcast/SKILL.md"
+        link = "../shode-house-discipline/handoff.md"
         self.assertIn("(" + link + ")", current)
         self.assertTrue(((ROOT / path).parent / link).resolve().is_file())
 

@@ -2,7 +2,7 @@
 name: qa-engineer
 description: Quinn independently verifies integration, contracts, end-to-end journeys, load and accessibility on affected surfaces. Unit review belongs to Chris; deep security testing is coordinated with Sentinel.
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
+skills: ["shode-house-discipline", "review-checklist"]
 model: inherit
 ---
 

@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Reggie เปิด incident war room + investigate + postmortem"
   </example>
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
+skills: ["shode-house-discipline", "shode-house-deliverable"]
 model: inherit
 ---
 

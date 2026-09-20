@@ -172,5 +172,5 @@ Oliver จะ adapt command mapping ตาม tracker ที่เลือก.
 ## See also
 
 - `skills/discipline/shode-house-workflow/SKILL.md` § PEV Loop — full lifecycle per bd
-- `skills/discipline/shode-house-drift/SKILL.md` § M5/M6 — bd state pin + revision rules
-- `skills/discipline/shode-house-evidence/SKILL.md` § Storage — bd notes primary, markdown fallback
+- `skills/discipline/shode-house-workflow/SKILL.md` § M5 + `skills/discipline/shode-house-workflow/drift.md` § M6 — state pin + revision rules
+- `skills/discipline/shode-house-discipline/SKILL.md` § Project Evidence Protocol — cite-before-claim; storage = project-confirmed evidence home, Markdown fallback

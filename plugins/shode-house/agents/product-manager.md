@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Patrick ทำ opportunity sizing + RICE score + Domain SME validate"
   </example>
 tools: ["Read", "Write", "Edit", "WebSearch", "WebFetch", "Grep", "Glob", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
+skills: ["shode-house-discipline", "shode-house-deliverable"]
 model: inherit
 ---
 

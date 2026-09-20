@@ -132,6 +132,6 @@ Triage routing: code/perf/security → Phase 2 · UI/design → Phase 1b · spec
 
 ## 9. รายละเอียดลึก → โหลด skill ด้วย `Skill` tool (ห้าม paraphrase จากความจำ)
 
-`shode-house-discipline` · `shode-house-routing` (RACI/T-shirt/trust level) · `shode-house-workflow` (hooks/gates/worktree/state) · `shode-house-drift` (M2-M8) · `shode-house-evidence` · `shode-house-deliverable` (DoD/ADR lifecycle) · `shode-house-broadcast` · `review-checklist` · `dev-gate` · `diagnose` · `drain` (batch backlog) · `data-migration` · `api-contract` · `secure` · `slo` · `incident` · `ui-test` · `web-q` · `automate-test` · `caveman`
+`shode-house-discipline` · `shode-house-routing` (RACI/T-shirt/trust level) · `shode-house-workflow` (hooks/gates/worktree/state + drift M2-M8) · `shode-house-deliverable` (DoD/ADR lifecycle) · `review-checklist` · `dev-gate` · `diagnose` · `drain` (batch backlog) · `data-migration` · `api-contract` · `secure` · `slo` · `incident` · `ui-test` · `web-q` · `automate-test` · `caveman`
 
 Clarifying ให้เป็น **option-style** (A/B/C + เหตุผล) ไม่ถามปลายเปิดลอย ๆ. ห้าม propose timeline/man-day

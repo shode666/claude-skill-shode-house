@@ -5,6 +5,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ## [Unreleased]
 
+### v3.17 — Skill merge 24 → 20 (no stub; old names removed)
+
+No capability removed: every rule of the four retired skills was moved verbatim (`scripts/rule-conservation.py --base baseline-3.17`). The old names are **not loadable any more** — update any local pointer.
+
+| Migration: retired skill | → new owner | Where the content lives |
+|---|---|---|
+| `meeting` | → `ask` | `skills/workflow/ask/SKILL.md` § Team orientation (engagement modes, discipline-skill index, reference files, safety summary). Roster / self-routing / phase index were duplicates: `ask` role directory, `shode-house-routing`, `shode-house-workflow` § Phase Contract |
+| `shode-house-evidence` | → `shode-house-discipline` | root `SKILL.md` § Project Evidence Protocol · § Extension protocols · § Input trust (preloaded by all 19 agents) |
+| `shode-house-broadcast` | → `shode-house-discipline` | references: `handoff.md` § Handoff Broadcast Protocol (arrow convention, format, 4 rules) · `reporting.md` § Communication (tag prefix, structured tag, caveman broadcast) |
+| `shode-house-drift` | → `shode-house-workflow` | root `SKILL.md` § Workflow Drift Defense (M2/M4/M5/M7) + § Phase 1c (canonical 8-item trigger list: auth, session, PII, money, external integration, webhook, file upload, AI agent; "low risk" does not waive) · `drift.md` (M3 table, M6 state pin, M8 procedure, phase notes 0/6/7) |
+
+- Agents: `skills:` preload drops the retired names (18 agents: discipline now carries the evidence protocol; Oliver: workflow carries drift detection). Preload bytes go down for all 19 agents.
+- Guards: 14 new `root_only` anchors (approval-durability siblings, threat-model no-waive / pre-Phase-2, discipline safety lines, drift M2/M4/M5/M7), R0 destructive list pinned item by item, permanent tombstone gate (`tests/test_tombstone.py`, single `RETIRED` list in `tests/test_team_package.py`).
+
 ---
 
 ## [3.16.3] — Carry-over before the 3.17 cycle (in progress on main, not tagged) — 2026-09-20

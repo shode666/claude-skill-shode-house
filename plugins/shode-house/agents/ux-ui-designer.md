@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Uma ทำ user research + journey map + wireframe + prototype"
   </example>
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch", "WebFetch", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
+skills: ["shode-house-discipline", "shode-house-deliverable"]
 model: inherit
 ---
 

@@ -12,14 +12,14 @@
 ## Skills
 
 - **bucket folders** ใต้ `skills/`:
-  - `workflow/` (meeting, dev-gate, automate-test, diagnose) · `ops/` (incident, slo, secure) · `ui/` (ui-test, web-q) · `style/` (caveman)
+  - `workflow/` (ask, dev-gate, automate-test, diagnose) · `ops/` (incident, slo, secure, drain) · `ui/` (ui-test, web-q) · `style/` (caveman)
   - `workflow/` เพิ่ม data-migration + api-contract (v3.10) + decompose (v3.12)
-  - `discipline/` (shode-house-discipline, -evidence, -routing, -deliverable, -broadcast, -drift, -workflow, review-checklist)
+  - `discipline/` (shode-house-discipline, -routing, -deliverable, -workflow, review-checklist, domain-core) — v3.17: 20 shipped skills (7 workflow · 4 ops · 2 ui · 1 style · 6 discipline); 4 ชื่อเก่าถูก merge ไม่มี stub (ตาราง → CHANGELOG)
   - `in-progress/` + `deprecated/` — **ไม่ ship**
 - 5 bucket แรก → ต้องอยู่ใน `.claude-plugin/plugin.json` skills list + `README.md` index
 - `in-progress/` + `deprecated/` → **ไม่** อยู่
 - SKILL.md description = **1–2 English sentences**: capability + decision boundary (what it is for, and the nearest thing it is not for) — no trigger/keyword lists, no fixed section format
-- SKILL.md **≤ 300 บรรทัด** เกิน → แตกเป็น reference file ข้าง ๆ. Exception: `meeting` (thin entry-point) + `dev-gate` (11 gates + per-language matrix) — **ยกเว้นจาก 300 แต่เพดาน 400 บังคับด้วย CI #1** (v3.12). ขนาดเป็น byte ไม่มี cap แยก: skill ที่ถูก preload คุมด้วย budget CI #16 อยู่แล้ว ที่เหลือคุมด้วย line cap (กฎ "≤ 12 KB" เดิมไม่เคยมี CI ตรวจและมี 7 ไฟล์เกินมาตลอด → ถอดออก)
+- SKILL.md **≤ 300 บรรทัด** เกิน → แตกเป็น reference file ข้าง ๆ. Exception: `dev-gate` เท่านั้น (11 gates + per-language matrix) — **ยกเว้นจาก 300 แต่เพดาน 400 บังคับด้วย CI #1** (v3.12; v3.17 ถอด exception ของ entry skill — `ask` ≤ 300). ขนาดเป็น byte ไม่มี cap แยก: skill ที่ถูก preload คุมด้วย budget CI #16 อยู่แล้ว ที่เหลือคุมด้วย line cap (กฎ "≤ 12 KB" เดิมไม่เคยมี CI ตรวจและมี 7 ไฟล์เกินมาตลอด → ถอดออก)
 - Skill ผลิต deliverable ต้องมี: `## When NOT to use` + `## Required inputs — refuse without`
 
 ## Handoff (🆕 v3.8)
@@ -52,8 +52,8 @@
   - ขั้นต่ำ `shode-house-discipline`; ≤ 3 skill/agent (คุม instruction density — IFScale: instruction เยอะ = following เสื่อม)
   - ห้ามชี้ `in-progress/` หรือ `deprecated/` — **Claude Code ข้ามเงียบ ๆ** (debug log เท่านั้น) ไม่ error
   - **enforce**: CI gate check #13
-- ทุก agent reference `shode-house-discipline` (core universal rules) + `shode-house-evidence` ขั้นต่ำ; Recite Card อยู่ที่ `output-styles/oliver.md` §1
-- `meeting/SKILL.md` = thin entry-point เท่านั้น (≤ 300 บรรทัด)
+- ทุก agent reference `shode-house-discipline` ขั้นต่ำ (core universal rules + Project Evidence Protocol — v3.17 รวมเข้า root เดียว); Recite Card อยู่ที่ `output-styles/oliver.md` §1
+- `ask/SKILL.md` = public entry-point + team orientation (≤ 300 บรรทัด — ไม่มี exception)
 - **Model frontmatter (v3.5)**: ค่าที่อนุญาต = `claude-fable-5` (Stan/Sara/Sentinel/Uma เท่านั้น) | `opus` | `sonnet`. ห้าม pin dated model string. ตาราง model มีที่เดียว = README § Model Strategy (skill อื่นห้าม copy — เคย drift ใน routing skill v2.x). Fallback = settings `fallbackModel`, budget = `CLAUDE_CODE_SUBAGENT_MODEL` (doc ใน README)
 - **enforce**: CI gate (`.github/workflows/ci.yml`) ตรวจ model value + Fable-5 whitelist + ห้าม model table นอก README
 
@@ -99,7 +99,7 @@
 {
   "description": "Multi-agent software house team v3.1: 19 expert agents in 7 teams + 18 lazy-load skills (split meeting-god-skill into 7 discipline modules + review-checklist DRY) + 6 commands (consolidated /init+/setup-project, /design-system+/spec-only). Bucket-folder lifecycle (workflow/ops/ui/style/discipline/in-progress/deprecated). CLAUDE.md repo invariants + scripts/ dev-loop. 9arm-inspired skill craft: 4-section description format, When-NOT + Required-inputs gates, Recite Discipline Card, skill composition pointers. Covers Fintech, ERP, SAP, Trading, Insurance, Booking, E-commerce, UX/UI.", // 586 chars + em-dash → FAIL
   "skills": [
-    {"name": "meeting", "path": "skills/workflow/meeting", "bucket": "workflow", "role": "..."} // object form → schema reject
+    {"name": "ask", "path": "skills/workflow/ask", "bucket": "workflow", "role": "..."} // object form → schema reject
   ]
 }
 

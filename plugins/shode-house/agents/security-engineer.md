@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Sentinel ทำ STRIDE + abuse case + security AC ก่อน Phase 2"
   </example>
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
+skills: ["shode-house-discipline", "review-checklist"]
 model: inherit
 ---
 

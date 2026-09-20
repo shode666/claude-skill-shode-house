@@ -2,7 +2,7 @@
 name: code-reviewer
 description: Chris independently reviews internal correctness, security, design, performance, maintainability, unit tests and observability. Requirement conformity belongs to Bella; integration belongs to Quinn.
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "review-checklist"]
+skills: ["shode-house-discipline", "review-checklist"]
 model: inherit
 ---
 

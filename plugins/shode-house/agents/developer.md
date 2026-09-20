@@ -2,7 +2,7 @@
 name: developer
 description: Dave implements authorized features and fixes across the project stack, including frontend, backend, business logic, databases and integration. Owns implementation and behavior tests, not independent acceptance.
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "shode-house-deliverable"]
+skills: ["shode-house-discipline", "shode-house-deliverable"]
 model: inherit
 ---
 

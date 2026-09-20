@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Sam ออกแบบ approach (CDS/ABAP/OData) + clarify ECC vs S/4"
   </example>
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "domain-core"]
+skills: ["shode-house-discipline", "domain-core"]
 model: inherit
 ---
 

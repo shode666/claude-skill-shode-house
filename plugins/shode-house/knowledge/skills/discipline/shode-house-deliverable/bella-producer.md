@@ -50,7 +50,7 @@ GitHub: `gh issue create -t "BR-01: ..." -l business-req,p1`
 Linear: `linear issue create -t "BR-01: ..." -p urgent`
 Jira: ใช้ Atlassian MCP (`createJiraIssue`)
 
-**Universal rules** (ตาม meeting skill tracker abstraction):
+**Universal rules** (ตาม `shode-house-workflow` § Task Tracking — tracker abstraction):
 - BR → ≥1 FR → ≥1 test (link via blocked-by/parent-child)
 - Orphan: FR ไม่มี BR = scope creep; BR ไม่มี test = untested
 - Keep status/dependencies in the confirmed canonical home, including Markdown

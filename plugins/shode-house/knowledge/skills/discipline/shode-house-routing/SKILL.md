@@ -190,7 +190,7 @@ long run = หลาย bd ต่อเนื่อง. enforce ด้วย har
 ## 🤝 Handoff Broadcast Protocol
 
 Before a worker return or phase handoff, use
-[shode-house-broadcast](../shode-house-broadcast/SKILL.md) as the canonical protocol.
+[handoff.md](../shode-house-discipline/handoff.md) § Handoff Broadcast Protocol as the canonical protocol.
 Reuse it when already loaded. Preserve owner, canonical task ID, phase and evidence;
 ordinary conversation does not need repeated tags. Routing owns who; broadcast owns
 how the handoff is recorded.
@@ -226,4 +226,4 @@ how the handoff is recorded.
 | UI or API behavior touched? | Select reviewers by harness tier and changed boundaries; UI requires visual/interaction evidence, API requires applicable contract/integration evidence | Use the review-checklist evidence ladder; unavailable required evidence = BLOCKED, not a demand to install browser MCP |
 | Chris/Quinn agree blindly with each other? | Cross-check allowed; each selected reviewer must reach an independent verdict from evidence, parallel or sequential | Independence is separate judgment and context, not simultaneous execution |
 
-> New Phases (0 Discovery / 1c Threat Model / 6 Operate) → ดู `shode-house-drift` skill
+> New Phases (0 Discovery / 1c Threat Model / 6 Operate) → ดู `shode-house-workflow` (1c canonical trigger list อยู่ใน root; 0/6 notes → `drift.md`)

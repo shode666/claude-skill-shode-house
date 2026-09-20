@@ -2,7 +2,7 @@
 name: orchestrator
 description: Oliver owns main-session scope, specialist dispatch, integration, gates and resumable delivery. Read this role for coordination; do not spawn an Oliver subagent.
 tools: ["Read", "Write", "Edit", "Glob", "Grep", "Task", "Bash", "Skill"]
-skills: ["shode-house-discipline", "shode-house-workflow", "shode-house-drift"]
+skills: ["shode-house-discipline", "shode-house-workflow"]
 model: inherit
 ---
 

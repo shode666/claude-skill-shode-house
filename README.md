@@ -4,7 +4,8 @@
 
 **3.16.x** — the full software house is back: [ask](skills/workflow/ask/SKILL.md) is the
 single team entrypoint (Oliver in the main session), the original 19 roles and 23 skills
-are preserved, and the same package installs on Claude Code, Codex, Cursor and
+are preserved (v3.17 consolidates them into 20 skills with no capability removed — see Skills
+below), and the same package installs on Claude Code, Codex, Cursor and
 Antigravity from `plugins/shode-house`. 3.16.1+ supersedes 3.16.0, which shipped a
 single-skill package without the team; the 3.16.0 tag and history are kept unchanged.
 
@@ -126,7 +127,7 @@ reviewers still running after 600 s before Oliver can integrate their verdicts.
 
 ### Codex
 Add the repo as a plugin marketplace (`.claude-plugin/marketplace.json` is the shared catalog);
-`plugins/shode-house/.codex-plugin/plugin.json` registers the 24 skills. Start with the `ask` skill.
+`plugins/shode-house/.codex-plugin/plugin.json` registers the 20 skills. Start with the `ask` skill.
 
 ### Cursor
 Install from this repository (`.cursor-plugin/marketplace.json` → `plugins/shode-house`).
@@ -280,12 +281,14 @@ harness + วิธีรัน → [`eval/README.md`](eval/README.md) · [`eval
 
 ---
 
-## 📚 Skills (21 lazy-load — bucket organized)
+## 📚 Skills (20 lazy-load — bucket organized)
+
+**v3.17 (24 → 20, no stub):** four skills were merged into their owners — the team-meeting entry into [`ask`](skills/workflow/ask/SKILL.md), the evidence protocol and the broadcast/handoff protocol into [`shode-house-discipline`](skills/discipline/shode-house-discipline/SKILL.md) (root + `handoff.md`/`reporting.md`), drift defense into [`shode-house-workflow`](skills/discipline/shode-house-workflow/SKILL.md) (root + `drift.md`). Old names are no longer loadable; old → new table: [CHANGELOG](CHANGELOG.md).
 
 ### `skills/workflow/` — daily process
 | Skill | Owner | Trigger |
 |-------|-------|---------|
-| [`meeting`](skills/workflow/meeting/SKILL.md) | ALL | **Entry-point** + index ไป discipline skills (Recite Card อยู่ที่ `output-styles/oliver.md` §1) |
+| [`ask`](skills/workflow/ask/SKILL.md) | ALL | **Entry-point** — engage the team + team orientation (Recite Card อยู่ที่ `output-styles/oliver.md` §1) |
 | [`dev-gate`](skills/workflow/dev-gate/SKILL.md) | Dave + Chris | TDD red-green-refactor + 7-gate quality |
 | [`automate-test`](skills/workflow/automate-test/SKILL.md) | Quinn + Chris + Aaron | CI test pyramid 70/20/10 + threshold |
 | [`diagnose`](skills/workflow/diagnose/SKILL.md) | Chris + Quinn + Dave | Bug + perf root cause — เริ่มที่ feedback loop |
@@ -315,13 +318,10 @@ harness + วิธีรัน → [`eval/README.md`](eval/README.md) · [`eval
 ### `skills/discipline/` — preload modules
 | Skill | Owner | Role |
 |-------|-------|------|
-| [`shode-house-discipline`](skills/discipline/shode-house-discipline/SKILL.md) | ALL (mandatory) | 5 Philosophy + Safety + Universal Rules + M1 + handoff min fields |
-| [`shode-house-evidence`](skills/discipline/shode-house-evidence/SKILL.md) | Claimers, Domain experts | Project + UX + Domain Evidence |
+| [`shode-house-discipline`](skills/discipline/shode-house-discipline/SKILL.md) | ALL (mandatory) | 5 Philosophy + Safety + Universal Rules + M1 + handoff min fields + Project Evidence Protocol + Input trust (refs: handoff/broadcast protocol, reporting/tag prefix) |
 | [`shode-house-routing`](skills/discipline/shode-house-routing/SKILL.md) | Oliver | Routing + RACI + T-shirt + Trust Levels |
 | [`shode-house-deliverable`](skills/discipline/shode-house-deliverable/SKILL.md) | Producers | Output contract + Anti-Puppet rule + pointer ไป DoD/ADR/UX evidence |
-| [`shode-house-broadcast`](skills/discipline/shode-house-broadcast/SKILL.md) | ALL | Tag Prefix + Caveman broadcast + Handoff Protocol |
-| [`shode-house-workflow`](skills/discipline/shode-house-workflow/SKILL.md) | Oliver | Phase Contract + Smart Coop + hooks + gates + worktree + run durability |
-| [`shode-house-drift`](skills/discipline/shode-house-drift/SKILL.md) | Oliver enforcer | Drift Defense M2-M8 |
+| [`shode-house-workflow`](skills/discipline/shode-house-workflow/SKILL.md) | Oliver | Phase Contract + Smart Coop + hooks + gates + worktree + run durability + Phase 1c trigger list + Drift Defense M2-M8 |
 | [`review-checklist`](skills/discipline/review-checklist/SKILL.md) | Chris + Quinn + Sentinel + Domain | Review orchestration core (แกน standards + แกน Spec / severity / gate) |
 | [`domain-core`](skills/discipline/domain-core/SKILL.md) | Domain experts (7) | AI Persona Disclaimer + citation contract + source validation |
 
@@ -462,7 +462,7 @@ Pattern: ระบุ action + impact + rollback → ขอ confirm → execute
 
 **Add new domain expert**:
 1. Drop `agents/<name>.md` (ตาม 5-Dim Role template)
-2. Update Team Routing ใน `agents/orchestrator.md` + Team Structure ใน `skills/workflow/meeting/SKILL.md` + `skills/discipline/shode-house-routing/SKILL.md`
+2. Update Team Routing ใน `agents/orchestrator.md` + role directory ใน `skills/workflow/ask/SKILL.md` + `skills/discipline/shode-house-routing/SKILL.md`
 3. `make validate` ต้องเขียว → bump version → `make pack`
 
 **Remove agent**: ลบไฟล์ + remove จาก routing + capability matrix

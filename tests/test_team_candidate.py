@@ -82,7 +82,7 @@ class TeamCandidateTest(unittest.TestCase):
         self.assertEqual(["commands/ask.md"], [p for p in entries if p.startswith("commands/")])
         self.assertIn("skills/ask/SKILL.md", entries)
         skills = [p for p in entries if p.startswith("skills/") and p.endswith("/SKILL.md")]
-        self.assertEqual(24, len(skills))
+        self.assertEqual(20, len(skills))
         self.assertTrue(all(len(Path(p).parts) == 3 for p in skills))
 
     def test_every_adapter_points_to_full_preserved_source(self):

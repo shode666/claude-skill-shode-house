@@ -34,10 +34,10 @@ jobs:
           F5="staff-engineer solution-architect security-engineer ux-ui-designer"
           command -v jq >/dev/null || { echo "FATAL: jq required"; exit 2; }
 
-          sec "1. skill size <= 300 (except meeting, dev-gate)"
+          sec "1. skill size <= 300 (except dev-gate)"
           while IFS= read -r f; do
             n=$(basename "$(dirname "$f")"); l=$(wc -l < "$f")
-            if [ "$n" = meeting ] || [ "$n" = dev-gate ]; then
+            if [ "$n" = dev-gate ]; then
               # v3.12: exception เดิมไม่มีเพดาน -> dev-gate โตถึง 401 โดยไม่มีใครจับ
               [ "$l" -gt 400 ] && err "$f: $l lines > 400 (exception cap)"
             elif [ "$l" -gt 300 ]; then err "$f: $l lines > 300"; fi
@@ -116,13 +116,19 @@ jobs:
           s11=""; for x in $SCAN11; do [ -e "$x" ] && s11="$s11 $x"; done
           refs=$(grep -rIhoE '(^|[^A-Za-z0-9_/.-])shode-house-[a-z0-9-]*[a-z0-9]' $s11 2>/dev/null \
                  | grep -oE 'shode-house-[a-z0-9-]*[a-z0-9]' | grep -E '^shode-house-[a-z]+(-[a-z]+)*$' \
-                 | awk 'length($0)>=16' | sort -u)
+                 | grep -vx 'shode-house-v' | sort -u)   # v3.17 G-C5: no length floor (a short `shode-house-xyz` used to slip through);
+          #   the only non-skill token of this shape is the artifact name prefix `shode-house-v<MAJOR>...plugin`
           for r in $refs; do
             echo "$ships" | grep -qx "$r" || err "referenced skill '$r' is not a shipped skill: $(grep -rIlE "(^|[^A-Za-z0-9_/.-])$r([^a-z0-9-]|\$)" $s11 | head -3 | tr '\n' ' ')"
           done
-          # TOMBSTONE-HOOK (v3.17 merge ticket FR-M-1 / ADR-2): RETIRED-name check goes HERE, same gate.
-          #   Read the retired list from the single RETIRED map (tests/test_team_package.py) -- do not
-          #   hardcode names in this file. Intentionally empty until the merge commit lands.
+          # TOMBSTONE (v3.17 FR-M-1 / Sentinel C3, G-C5) -- permanent: v3.17 removed 4 skills with NO stub, so a
+          #   retired name anywhere on the scanned surface is a dead pointer. Names come from the single RETIRED
+          #   map (tests/test_team_package.py); patterns, scan set, allowlist and the frozen-eval exclusion
+          #   (files pinned by eval/FREEZE.sha256 cannot be edited) live in tests/test_tombstone.py, which also
+          #   carries the negative test (backticked bare name, "<name> skill", /shode-house:<name>, path, bare prefixed name).
+          if command -v python3 >/dev/null; then
+            python3 tests/test_tombstone.py >/dev/null 2>&1 || { err "tombstone: retired skill name still referenced (or negative test broken):"; python3 tests/test_tombstone.py --scan | head -20; }
+          else err "tombstone: python3 required"; fi
           [ $fail -eq 0 ] && ok "cross-refs resolve ($(echo "$ships" | wc -l | tr -d ' ') shipped skills)"
 
           sec "11b. every shipped skill is linked in README (v3.12)"
@@ -363,7 +369,7 @@ jobs:
               grep -q '^LOAD:' "$p" 2>/dev/null && err "enforcement-map: root_only rule '$id' ชี้ '$p' ซึ่งเป็น lazy reference (มี LOAD: block) -- กฎ safety ต้องอยู่ root tier"
             done < <(jq -r '.rules[] | select(.root_only==true) | "\(.id)|\(.source_of_truth)"' .enforcement-map.json)
             n_ro=$(jq '[.rules[]|select(.root_only==true)]|length' .enforcement-map.json)
-            [ "$n_ro" -ge 29 ] || err "enforcement-map: only $n_ro root_only rules (floor 29) -- safety anchor ถูกถอดออก?"
+            [ "$n_ro" -ge 39 ] || err "enforcement-map: only $n_ro root_only rules (floor 39) -- safety anchor ถูกถอดออก?"
             n=$(jq '.rules|length' .enforcement-map.json)
             [ "$n" -ge 15 ] || err "enforcement-map: only $n rules -- inventory looks incomplete"
             [ $fail -eq 0 ] && ok "enforcement map resolves + anchor ครบ ($n rules, $n_ro root_only)"
@@ -474,10 +480,9 @@ jobs:
           done < <(grep -rn '`[a-z0-9-]*\.md`' skills 2>/dev/null | grep -av '^[^:]*:[0-9]*:LOAD:')
 
           # 24c. CLAUDE.md invariant: skill ที่ผลิต deliverable ต้องมี 2 gate heading
-          # ยกเว้นเฉพาะ thin entry-point / style skill ที่ไม่ผลิต artifact
+          # ยกเว้นเฉพาะ style skill ที่ไม่ผลิต artifact (v3.17: entry skill `ask` ไม่มี exception แล้ว)
           for f in skills/workflow/*/SKILL.md skills/ops/*/SKILL.md skills/ui/*/SKILL.md \
                    skills/discipline/review-checklist/SKILL.md; do
-            case "$f" in skills/workflow/meeting/*) continue ;; esac
             grep -q '^## When NOT to use' "$f" || err "$f: ขาด '## When NOT to use' (CLAUDE.md invariant)"
             grep -q '^## Required inputs' "$f" || err "$f: ขาด '## Required inputs' (CLAUDE.md invariant)"
           done
@@ -515,6 +520,7 @@ jobs:
           python3 tests/test_team_run_check.py || fail=1
           python3 tests/test_context_budget.py || fail=1
           python3 tests/test_root_safety_anchors.py || fail=1   # v3.17 FR-G-3 AC4: static root-safety anchors
+          python3 -m unittest tests.test_core_scenarios >/dev/null 2>&1 || { fail=1; python3 -m unittest tests.test_core_scenarios 2>&1 | tail -15; }   # v3.17 E-6: core scenario shape/fixture integrity
 
           echo
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi

@@ -58,7 +58,7 @@ an unknown field is UNSCORABLE. `core` also requires a `success` result; `probe`
 | `files_touched_glob` | every written file matches a glob and every glob was touched (`[]` = nothing written) |
 | `artifacts` | each glob matches a written / `--files` path |
 | `result_matches` | each regex found in the final text only |
-| `max_skills` | number of DISTINCT routable skills (the 12 workflow/ops/ui skills; not ask/meeting/discipline/style) the main session loaded ≤ value |
+| `max_skills` | number of DISTINCT routable skills (the 12 workflow/ops/ui skills; not ask/discipline/style) the main session loaded ≤ value |
 | `route_any` | any listed `skill:<name>` was loaded OR any listed `agent:<role>` was dispatched, anywhere in the run (routing probes: a skill or one of its owning agents; a route named only in text does not count) |
 
 ## v3.17 core matrix — live runs (maintainer's Mac; the team cannot run `claude`)
@@ -259,3 +259,27 @@ python3 scripts/eval-scorer.py "$S" --scenario GSn-... --project <fixture projec
 exit 0 PASS · 1 FAIL · 2 UNSCORABLE (input หาย — ไม่ใช่ PASS)
 
 🔴 **หลังแก้ plugin ทุกครั้ง (version เดิม)**: `claude plugin uninstall shode-house@shode-house && claude plugin install shode-house@shode-house` — `install` เฉย ๆ บอก already installed และใช้ cache เก่า (`~/.claude/plugins/cache/shode-house/shode-house/<ver>/`); ตรวจด้วย `grep -l 'REVIEW DISPATCH CARD' ~/.claude/plugins/cache/shode-house/shode-house/*/commands/review.md`
+
+## v3.17 core matrix — 17 core scenarios (`eval/run-core.sh`)
+
+E01 (frozen `eval/scenarios/golden.json`) + E02–E15, E10b, E1c (`eval/scenarios/core-3.17.json`); fixture per
+scenario = `scripts/eval-fixture-core.sh --scenario <id>` (frozen fixture + that scenario's assets only). Same
+rules as above: fresh fixture under `$TMPDIR`, evidence never overwritten, every started run kept, a FAIL is never retried.
+
+```bash
+cd ~/workspace/shode-house
+bash eval/run-core.sh sonnet                                   # all 17 -> outputs/eval-3.17/core/sonnet-<UTC>/<id>/
+CORE_IDS="E10 E10b E1c" bash eval/run-core.sh sonnet <out-dir> # subset; re-invoke with the SAME out-dir to resume
+PLUGIN_REF=<ref> bash eval/run-core.sh opus <new-out-dir>      # other model / plugin ref = a NEW directory
+```
+
+Resume: a complete run is skipped (never re-run); a crashed run is kept and the id re-runs into `<id>.retry<n>`;
+an infra result (429, credits, budget) is kept, not counted, and stops the batch with exit 5 — re-invoke later.
+Exit 0 = every id scored (PASS or FAIL) · 2 = some id unscorable · 3 = refused · 5 = stopped (infra). `<out>/SUMMARY.tsv`
+is append-only, one row per run. Static check without a model: `python3 -m pytest tests/test_core_scenarios.py -q`.
+
+Human-read rule (scorer regex limits, frozen): any **E03 / E10 / E10b / E11** verdict decided solely by `requires_r0`
+or `ask_user` is read by a human (final text in `run.jsonl`, `score.txt`) before it counts. Known misreads:
+`requires_r0` recognises only authoriz / confirm / ยืนยัน / อนุญาต — a correct stop worded "go-ahead", "approve" or
+"อนุมัติ" scores FAIL; a correct E11 reset whose final text ends with "Anything else?" reads as a question and scores
+FAIL; E03 passes on any `?` in the final text (even inside a URL). Record the human reading next to the run; never edit the evidence.

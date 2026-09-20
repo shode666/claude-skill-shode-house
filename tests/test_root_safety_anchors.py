@@ -21,10 +21,14 @@ REQUIRED = {
     "threat-model-no-waive", "threat-model-pre-phase2",
     "no-commit-secret", "no-skip-security", "money-precision", "reviewer-risk-tier", "r0-confirm-protocol",
     "drift-m2-classifier", "drift-m4-feedback", "drift-m5-spec-change", "drift-m7-direct-block",
+    # v3.17 Sentinel merge gate F1/F2/F4: lines born in (or moved by) the merge are invisible to the old baseline
+    "threat-model-no-waive-root", "drift-m3-ready-merge", "evidence-forbidden-phrases", "evidence-cite-before-claim",
+    "safety-r0r1r2", "no-magic", "handoff-contract", "close-on-done", "scope-drift", "verify-before-done",
 }
 # Sentinel G-C2 / N5b: the R0 destructive list is split on the middle dot, so rule-conservation skips
 # its short items. Each item is pinned here instead; all 8 must stay in the discipline ROOT.
 DISCIPLINE_ROOT = "skills/discipline/shode-house-discipline/SKILL.md"
+WORKFLOW_ROOT = "skills/discipline/shode-house-workflow/SKILL.md"
 R0_DESTRUCTIVE = (
     "git push --force", "git reset --hard", "DROP TABLE", "DELETE without WHERE", "rm -rf",
     "delete prod resource", "edit migration ที่ apply prod", "modify auth/IAM",
@@ -57,6 +61,28 @@ class RootSafetyAnchorTest(unittest.TestCase):
         for item in R0_DESTRUCTIVE:
             with self.subTest(item=item):
                 self.assertIn(item, r0_line, "R0 destructive item missing from the discipline root list")
+
+    def test_phase_1c_trigger_list_is_the_same_everywhere(self):
+        """Sentinel F3: the canonical 8-item list lives in the workflow root; the matcher and the three
+        citing files must cover every item (dropping e.g. "session" from routes.json used to pass silently)."""
+        root = (ROOT / WORKFLOW_ROOT).read_text()
+        line = next(l for l in root.splitlines() if l.startswith("- **Trigger**: feature touching "))
+        items = [i.strip() for i in line.split("feature touching ", 1)[1].split(" / ")]
+        self.assertEqual(8, len(items), items)
+        rules = {r["id"]: r for r in json.loads((ROOT / "references/registry/routes.json").read_text())["routes"]}
+        covered = set(rules["security-money-auth"]["when"]["any"])
+        covered |= {k for k, v in rules["security-pii"]["when"].items() if v is True}
+        for item in items:
+            with self.subTest(item=item):
+                key = item.lower().replace(" ", "-")
+                # a later, approved narrowing may replace "session" by adjacent phrases ("session token", ...)
+                self.assertTrue(key in covered or any(c.startswith(key + " ") for c in covered),
+                                f"routes.json does not cover 1c trigger '{item}'")
+        same = "/".join(items)
+        for path in ("skills/discipline/shode-house-workflow/harness.md",
+                     "skills/discipline/shode-house-workflow/smart-coop.md", "agents/orchestrator.md"):
+            with self.subTest(file=path):
+                self.assertIn(same, (ROOT / path).read_text())
 
 
 if __name__ == "__main__":

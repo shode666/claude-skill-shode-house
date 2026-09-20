@@ -172,7 +172,7 @@ bd show <id>    # ต้องอ่านได้ว่า CLOSED — นี�
 | `PARTIAL` / `BLOCKED` | **คง OPEN** + `bd update --notes` บอกว่าติดอะไร + owner ถัดไป |
 
 **Drift guard**: a worker FIXED return is not task completion. Only accepted items with authoritative closure may be reported CLOSED; pending review, failed integration or unavailable tracker updates remain explicitly incomplete.
-(ดู `shode-house-drift` § M8 (ห้าม claim "ปิดแล้ว" โดยไม่ paste output))
+(ดู `shode-house-workflow/drift.md` § M8 (ห้าม claim "ปิดแล้ว" โดยไม่ paste output))
 
 ## Round cap
 
@@ -211,4 +211,4 @@ bd show <id>    # ต้องอ่านได้ว่า CLOSED — นี�
 | TDD discipline ต่อ item | → `dev-gate` | red-green-refactor + quality gate ภายใน agent แต่ละตัว |
 | Reviewer lens ตอน verify | → `review-checklist` | Chris 7-dim / Quinn matrix สำหรับ item ที่ต้อง review ลึก |
 | Definition of Done | → `shode-house-deliverable` | acceptance + authorized closure/read-back in confirmed tracker; unavailable sync remains pending, not CLOSED |
-| ปิดไม่ครบ / อ้างว่าปิดแล้ว | → `shode-house-drift` § M8 | Close-on-Done Guard (anti-puppet บน close step) |
+| ปิดไม่ครบ / อ้างว่าปิดแล้ว | → `shode-house-workflow/drift.md` § M8 | Close-on-Done Guard (anti-puppet บน close step) |

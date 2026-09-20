@@ -8,7 +8,7 @@ description: Coordinate multi-phase delivery with phase gates, recorded approval
 เริ่ม/resume engagement หรือก่อน delegate ครั้งแรก: อ่าน `harness.md` ข้างไฟล์นี้
 เพื่อยืนยัน source of truth, host tools, owner, checkpoint และการ reconcile UNKNOWN
 
-> Oliver owns workflow. Phase Contract บังคับ. Hooks + Gates make pipeline auditable. สำหรับ Drift Defense (M1-M8) ดู `shode-house-drift` skill
+> Oliver owns workflow. Phase Contract บังคับ. Hooks + Gates make pipeline auditable. Drift Defense: M1 → `shode-house-discipline` · detection M2/M4/M5/M7 → § Workflow Drift Defense ด้านล่าง · M3/M6/M8 detail → `drift.md`
 
 ---
 ## 🧵 Task Tracking — tracker = single source of truth ของ status/dep
@@ -38,6 +38,14 @@ bd close <id> --reason "<sha> <test>"  &&  bd show <id>   # 🔴 M8 close-on-don
 - Phase 3b Chris/Quinn ตรวจคนละ scope และ verdict อิสระ; parallel เมื่อทำได้ หรือ sequential คนละ context โดยห้ามคัดลอก verdict กัน
 - 🔴 ห้าม skip Phase 4 Triage routing. Review fail → loop ไป phase ที่ตรง finding (code→2, UI→1b, spec→1a); ห้าม "ผ่านครึ่ง ๆ" ข้ามไป Deploy
 - ห้าม close Phase 3 (3a/3b) ก่อน review report อยู่ใน evidence home ที่ project ยืนยัน; task record เก็บ link ไม่ copy ซ้ำ. ใช้ REVIEW Report Format
+
+## 🛡️ Phase 1c — Threat Model (🔴 canonical trigger list — single source)
+- **Owner**: ✅ Sentinel (lead) + Sara (architecture context)
+- **Trigger**: feature touching auth / session / PII / money / external integration / webhook / file upload / AI agent
+- **Output**: STRIDE + abuse case + security AC injected into Phase 1a
+- **Gate**: `pre-implement` — สิทธิ์ block Phase 2 ถ้าไม่ผ่าน
+- **Note**: ขนาน parallel กับ 1b ได้ ถ้า scope independent
+- 🔴 **No waiver**: a user's or agent's "low risk" claim does not waive Phase 1c when a trigger fired. ห้าม dispatch Phase 2 ก่อน Phase 1c gate ผ่าน
 
 ---
 
@@ -102,6 +110,65 @@ Clean + closure authority → tracker close + read-back (M8); unresolved at thir
 
 > Uma/Domain consume one approved baseline. UI gates precede downstream review; failures return to the affected phase. Measure token savings, never assume a fixed percentage.
 
+## 🛡️ Workflow Drift Defense (🔴 M2-M8 — M1 อยู่ใน `shode-house-discipline`)
+
+แก้ปัญหา **agent หลุด workflow ใน follow-up message** — Dave บอก "เสร็จแล้ว" โดยไม่ผ่าน Verify, fix ตรงโดยไม่ผ่าน Phase 1a
+
+### M2 — Follow-up Classifier (Oliver auto-triage ทุก user message)
+
+```
+User message → Oliver classify (1-line caveman):
+  "ลองใหม่ / ไม่ work"   → inspect evidence → route affected owner/phase, track iteration; no blind retry
+  "เปลี่ยน X"             → assess acceptance delta → Bella/Sara where affected, not full replay
+  "ทำไม Y / ที่นี่ทำไม"   → quest   → answer, no phase change
+  "OK / ผ่าน / approve"   → approve → bd close gate check
+  "เพิ่ม Z"               → new     → bd create child issue
+  "เสร็จยัง"              → status  → bd show, no action
+```
+
+ห้าม Dave/Chris/Quinn proceed ก่อน Oliver classify
+
+### M4 — User feedback invalidates the affected claim
+
+```
+Inspect feedback against acceptance and evidence:
+  defect → record finding, reopen affected criterion/phase, increment iteration
+  scope change → record revised acceptance and route its owners before editing
+  question/status → answer from evidence without inventing a failure or new scope
+  unresolved finding → hold closure; no automatic PASS after a worker's claim
+```
+
+ห้าม Dave "OK เพิ่มให้ครับ" → fix ตรง ๆ โดยไม่ผ่าน iter counter
+
+### M5 — Spec change = recorded acceptance revision
+
+```
+User: "เปลี่ยน amount เป็น decimal"
+  ❌ WRONG: Dave fix code ตรง
+  ✅ RIGHT:
+     Oliver  ▸ Bella  : spec change request
+     Bella   → revise canonical acceptance record, preserve prior revision/history
+     Bella ∥ Sara : Phase 1a redo (delta only — light)
+     Gate: pre-spec-expand
+     Revalidate affected phases/dependencies only; preserve unchanged approvals/evidence
+```
+
+### M7 — Direct-to-agent block
+
+```
+User direct ping → Dave (bypass Oliver):
+  ❌ WRONG: Dave "OK ครับ" ทำ
+  ✅ RIGHT: Dave ▸ "ผมต้อง escalate Oliver ก่อน — message นอก phase context
+                   (bd-42 state:review-pending). Classify ก่อน"
+  → Oliver ingest, re-classify (M2)
+```
+
+ทุก agent ที่ไม่ใช่ Oliver ห้าม accept direct-from-user ใน active engagement — ส่งกลับ Oliver
+
+M3: Worker "done"/FIXED = candidate; "ready merge" = Oliver only, after applicable independent reviews + triggered experts + current evidence + merge authority (detail → drift.md M3)
+
+M1 → `shode-house-discipline` § M1 — Ingress Guard; เมื่อ drift เกิดจริง / จะ claim done / จะปิด task → โหลด `drift.md` (ข้าง SKILL.md นี้): M3 Anti-Puppet "Done" table · M6 state pin · M8 Close-on-Done procedure · phase notes 0/6/7
+
 ---
 
 ## 🤝 Smart Coop Pattern — parallel where independent, sequential gate where dependent
@@ -121,6 +188,7 @@ Clean + closure authority → tracker close + read-back (M8); unresolved at thir
 | ไฟล์ | โหลดเมื่อ |
 |---|---|
 | `smart-coop.md` (ข้าง SKILL.md นี้) | จะรัน/ย้าย phase ของ pipeline จริง |
+| `drift.md` (ข้าง SKILL.md นี้) | drift เกิด (follow-up หลุด phase, disputed "done", state recovery) หรือก่อน claim done / ปิด task — M3 · M6 · M8 |
 | `wayfinding.md` (ข้าง SKILL.md นี้) | 🆕 งานใหญ่เกิน 1 session **และยังมองไม่เห็นทาง** — Map + decision ticket ก่อนเข้า Phase 0 |
 | `references/patterns/durable-agent-runtime.md` | Aaron/Sara generate runner ที่ต้องการ retry/checkpoint/journal |
 | `references/languages/<lang>.md` · `references/patterns/general.md` · `references/modern-stack.md` | ตาม stack ที่แตะ |

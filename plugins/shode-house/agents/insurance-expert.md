@@ -8,7 +8,7 @@ description: |
   assistant: "ใช้ Iris ออกแบบ policy lifecycle + endorsement flow"
   </example>
 tools: ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
-skills: ["shode-house-discipline", "shode-house-evidence", "domain-core"]
+skills: ["shode-house-discipline", "domain-core"]
 model: inherit
 ---
 

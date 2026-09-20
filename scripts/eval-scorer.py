@@ -564,7 +564,7 @@ EVIDENCE_LOOKBACK_WINDOW = 8
 #     (e.g. `bd update`) between the subagent's tool_result and the relay text can legitimately
 #     push it further back than any reasonable fixed window. A main-session line that starts with
 #     an Oliver tag prefix and names a known persona followed by a verdict IS a relay, by
-#     construction (Tag Prefix + Return format, shode-house-broadcast) -- it is evidenced if that
+#     construction (Tag Prefix + Return format, shode-house-discipline reporting.md) -- it is evidenced if that
 #     persona's agent type was spawned ANYWHERE earlier in the same main file, not window-bound.
 MARKDOWN_EMPHASIS_CHARS = str.maketrans('', '', '*_')
 
@@ -577,7 +577,7 @@ def _strip_markdown_emphasis(text):
 
 
 OLIVER_RELAY_PREFIX_RE = re.compile(r'^\[Oliver\|')
-# source of truth for the persona roster: shode-house-broadcast Tag Prefix convention. Reuses
+# source of truth for the persona roster: shode-house-discipline reporting.md Tag Prefix convention. Reuses
 # CARD_AGENT_TYPE (Chris/Quinn/Bella/Sentinel, bd:B3 iter12) and extends with the rest of the team
 # that Oliver can plausibly relay a verdict for.
 PERSONA_AGENT_TYPE = dict(CARD_AGENT_TYPE)

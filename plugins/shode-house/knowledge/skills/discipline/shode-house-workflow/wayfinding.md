@@ -92,7 +92,7 @@ out of scope ไม่มีวัน graduate; จะกลับมาได�
 
 | Type | HITL? | ใครรับ | ใช้เมื่อ |
 |---|---|---|---|
-| **research** | AFK | Domain expert (regulation/business) · Sara (tech/vendor) — โหลด `shode-house-evidence` § Project Evidence Protocol, **primary source เท่านั้น** | ต้องรู้ข้อเท็จจริงนอก working directory ก่อนตัดสินใจ |
+| **research** | AFK | Domain expert (regulation/business) · Sara (tech/vendor) — โหลด `shode-house-discipline` § Project Evidence Protocol, **primary source เท่านั้น** | ต้องรู้ข้อเท็จจริงนอก working directory ก่อนตัดสินใจ |
 | **prototype** | HITL | Uma (flow) · Dave (logic) — isolated throwaway per `dev-gate`; retain artifact/verdict, commit only if authorized | Resolve behavior/design uncertainty |
 | **grilling** | HITL | Oliver asks user; Bella/Patrick/Sara return questions/options through Oliver using `shode-house-discipline/main-session.md` | Human decision needed |
 | **task** | ทั้งคู่ | Aaron (provision/access) · owner (สมัคร service, ขอสิทธิ์) | ไม่มีอะไรให้ตัดสินใจ แต่ decision ติดอยู่จนกว่างานนี้จะเสร็จ. ปิดแล้วบันทึก fact ที่ ticket หลังต้องใช้ (ที่อยู่ credential, URL ใหม่, จำนวนแถว) |
