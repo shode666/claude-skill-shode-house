@@ -19,6 +19,18 @@ REQUIRED-BEFORE: claim_done_or_close_task
 M1 บังคับที่ **ทุก agent** ไม่ใช่แค่ Oliver → ย้ายเข้า skill ที่ทุก agent preload เพื่อการันตีว่าถึงจริง
 `shode-house-workflow` = **M2–M7 (Oliver enforcer)** เท่านั้น
 
+### M2/M4/M5/M7 — why + M7 example (detection rules themselves stay in SKILL.md root)
+
+แก้ปัญหา **agent หลุด workflow ใน follow-up message** — Dave บอก "เสร็จแล้ว" โดยไม่ผ่าน Verify, fix ตรงโดยไม่ผ่าน Phase 1a
+
+```
+User direct ping → Dave (bypass Oliver):
+  ❌ WRONG: Dave "OK ครับ" ทำ
+  ✅ RIGHT: Dave ▸ "ผมต้อง escalate Oliver ก่อน — message นอก phase context
+                   (bd-42 state:review-pending). Classify ก่อน"
+  → Oliver ingest, re-classify (M2)
+```
+
 ### M3 — Anti-Puppet "Done" (extend v2.8.1 Anti-Puppet)
 
 | Agent | Can say | Can NOT say |
@@ -54,15 +66,15 @@ Pending gates:
 > **Measured failure mode**: งานเสร็จจริง (merged / test green / verdict PASS) แต่ bd ค้าง OPEN — backlog โกหก, รอบถัดไปทำซ้ำ
 
 ```
-Beads example, only when the project has selected Beads:
-  1. bd close <id> --reason "<verdict> <commit_sha> <test_result>"
-  2. bd show <id>            → ต้องอ่านได้ว่า CLOSED
+In the confirmed tracker (Beads commands → harness.md § Beads example):
+  1. close <id> with reason "<verdict> <commit_sha> <test_result>"
+  2. read <id> back          → ต้องอ่านได้ว่า CLOSED
   3. paste output ของข้อ 2   → หลักฐาน ไม่ใช่คำพูดของ agent
 ```
 
 | Agent | Can say | Can NOT say |
 |-------|---------|-------------|
-| **Oliver** | "bd-42 CLOSED [paste `bd show`]" | "ปิด bd แล้ว" / "เคลียร์ backlog แล้ว" (ไม่มี output) |
+| **Oliver** | "bd-42 CLOSED [paste tracker read-back]" | "ปิด bd แล้ว" / "เคลียร์ backlog แล้ว" (ไม่มี output) |
 | Dave/Chris/Quinn | "verdict FIXED, sha a1b2c3d, 214 passed" | "ปิด bd ให้แล้ว" (close = Oliver Phase 4 เท่านั้น) |
 
 For any tracker, Oliver updates the canonical task after required acceptance and
@@ -74,9 +86,9 @@ or claim CLOSED without the authoritative result.
 - ❌ claim task closure when the selected record was not updated and verified
 - ❌ close without the applicable revision, verification and reason
 - ❌ close `PARTIAL` / `BLOCKED` ให้ตัวเลขสวย — **คง OPEN + note ตรงไปตรงมา**
-- ❌ เชื่อ `bd list` เป็นหลักฐานสถานะ — `bd show` เท่านั้นที่ trust ได้
+- ❌ เชื่อ list/summary view เป็นหลักฐานสถานะ — read-back ของ task นั้นเท่านั้นที่ trust ได้
 
-**Batch / backlog run** (หลาย item รอบเดียว) → ใช้ `drain` skill; Step 5 = close-on-done + `bd show` verify ทุก item
+**Batch / backlog run** (หลาย item รอบเดียว) → ใช้ `drain` skill; Step 5 = close-on-done + read-back verify ทุก item
 
 ## 🆕 New Phases (🔴)
 
@@ -94,7 +106,7 @@ or claim CLOSED without the authoritative result.
 - **Escalation**: error budget < 0 → ping Patrick (PM) for feature freeze conversation
 
 ### ~~Phase 7 — Learn (REMOVED v3.3)~~
-- **v3.3 change**: Phase 7 sprint retro deprecated — per-bd reflect in Phase 4 Triage (Oliver `bd remember <lesson>`)
+- **v3.3 change**: Phase 7 sprint retro deprecated — per-bd reflect in Phase 4 Triage (Oliver records the lesson in the checkpoint retro per `harness.md`)
 - **Patrick OKR review**: continuous (per-bd contribution to OKR; no sprint bracket)
 - **Tech debt RICE**: continuous backlog priority by Patrick (Stan tech-debt input)
 - **ห้ามใช้** `/sprint close retro` — command removed

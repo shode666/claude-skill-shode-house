@@ -12,7 +12,7 @@ REQUIRED-BEFORE: map_creation
 
 # Wayfinding — Map mode (งานใหญ่เกิน 1 session, ยังมองไม่เห็นทาง)
 
-> Adapted จาก [mattpocock/skills · wayfinder](https://github.com/mattpocock/skills) (MIT) — port ไป `bd` + PEV loop ของเรา
+> Adapted จาก [mattpocock/skills · wayfinder](https://github.com/mattpocock/skills) (MIT) — port ไป tracker ที่ project ยืนยัน + PEV loop ของเรา
 > **Owner**: Oliver (ถือแผนที่) + Patrick (destination + scope) · Bella/Sara (decision ticket ที่เป็น spec/architecture) · Domain expert (decision ที่ต้องใช้ความรู้ domain)
 
 ## ปัญหาที่มันแก้ (ช่องที่ pipeline เดิมไม่มี)
@@ -34,20 +34,20 @@ Phase 0 Discover (Patrick) → Phase 1a Spec (Bella ∥ Sara) → ... → drain
 
 Map resolves decisions, not implementation acceptance. Once necessary decisions settle, Oliver continues the authorized pipeline; planning-only scope still stops before implementation. Unrelated open decisions need not block independent approved work.
 
-## โครงสร้างบน `bd`
+## โครงสร้างบน tracker ที่ project ยืนยัน (Markdown fallback)
 
-| ของ wayfinder | บน bd |
+| ของ wayfinder | บน tracker |
 |---|---|
-| Map | `bd create "MAP: <destination>" -t map -p1` — 1 issue เป็น canonical artifact |
-| Ticket | `bd create "<คำถาม>" -t decision` แล้ว `bd link <map> <ticket> parent-child` |
-| Blocking | `bd link <a> <b> blocks` — ใช้ native เสมอ เพื่อให้ `bd ready` คำนวณ frontier ให้เอง |
-| Claim | `bd update <id> --claim` **ก่อนเริ่มงานทุกครั้ง** — unassigned = ยังไม่มีใครจับ |
-| Frontier | `bd ready --json` = open + unblocked + unclaimed |
-| Resolution | `bd close <id> --reason "<คำตอบ>"` + append 1 บรรทัดเข้า Decisions so far ของ map |
+| Map | create task `MAP: <destination>` (type map, priority 1) — 1 issue เป็น canonical artifact |
+| Ticket | create task `<คำถาม>` (type decision) แล้ว link map → ticket เป็น parent-child |
+| Blocking | link a blocks b — ใช้ native blocking ของ tracker เสมอ เพื่อให้ ready query คำนวณ frontier ให้เอง |
+| Claim | claim task **ก่อนเริ่มงานทุกครั้ง** — unassigned = ยังไม่มีใครจับ |
+| Frontier | find ready = open + unblocked + unclaimed |
+| Resolution | close task with reason `<คำตอบ>` + append 1 บรรทัดเข้า Decisions so far ของ map |
 
 > tracker อื่น (GitHub/Linear/Jira) → ใช้ native label + parent-child + blocking ของตัวเอง; abstraction เดิม `tracker.link(from,to,type)` ใน `shode-house-workflow` ครอบให้แล้ว
 
-### Map body (`bd update <map> --notes`)
+### Map body (notes ของ map task)
 
 ```markdown
 ## Destination
@@ -66,7 +66,7 @@ Map resolves decisions, not implementation acceptance. Once necessary decisions 
 <สิ่งที่ตัดออกจาก effort นี้อย่างตั้งใจ + เหตุผล + link ticket ที่ปิดไป>
 ```
 
-🔴 **Map = index ไม่ใช่คลัง** — decision อยู่ที่ ticket ของมันที่เดียว; map แค่ gist + link. ห้าม list ticket ที่ยังเปิด (หาเอาจาก `bd ready`)
+🔴 **Map = index ไม่ใช่คลัง** — decision อยู่ที่ ticket ของมันที่เดียว; map แค่ gist + link. ห้าม list ticket ที่ยังเปิด (หาเอาจาก ready query ของ tracker)
 
 ## Fog of war — แผนที่ไม่สมบูรณ์โดยตั้งใจ
 
@@ -122,16 +122,16 @@ Continue eligible authorized tickets with per-ticket evidence and ownership. Che
 1. อ่าน **map** อย่างเดียว (low-res) — ห้ามดึง body ของทุก ticket มากอง
 2. เลือก ticket: user ระบุมา → ใช้อันนั้น; ไม่ระบุ → ใบแรกของ frontier. **claim ก่อนแตะงาน**
 3. แก้มัน — **zoom เมื่อจำเป็น**: ดึง body ของ ticket ที่เกี่ยว/ที่ปิดแล้วเป็นราย ๆ ไป; โหลด skill ตามที่ `## Notes` สั่ง
-4. บันทึกผล: `bd close <id> --reason "<คำตอบ>"` → `bd show <id>` ยืนยัน CLOSED (M8) → append 1 บรรทัดเข้า Decisions so far
+4. บันทึกผล: close task with reason `<คำตอบ>` → read it back ยืนยัน CLOSED (M8) → append 1 บรรทัดเข้า Decisions so far
 5. **graduate fog** ที่คำตอบนี้ทำให้คมพอแล้ว → สร้าง ticket ใหม่ (create-then-wire) + **ลบ patch นั้นออกจาก Not yet specified** เพื่อไม่ให้มันอยู่สองที่
    คำตอบเผยว่า ticket ใด (ใบนี้หรือใบอื่น) อยู่เลย destination → **rule out of scope** ไม่ใช่แก้มันบนเส้นทาง
    คำตอบล้มส่วนอื่นของแผนที่ → amend/defer affected tickets within authority, preserving history and ownership
 
-> user รัน ticket ที่ unblocked ขนานกันได้ → **คาดหมายว่ามี session อื่นแก้ tracker พร้อมกัน** อ่าน `bd show` ใหม่ก่อนเขียนทับเสมอ
+> user รัน ticket ที่ unblocked ขนานกันได้ → **คาดหมายว่ามี session อื่นแก้ tracker พร้อมกัน** อ่าน task record ใหม่ก่อนเขียนทับเสมอ
 
 ## จบ map แล้วไปไหนต่อ
 
 ทางชัด (ไม่เหลือ decision) → destination กลายเป็น input ของ pipeline ปกติ:
 - destination = spec → `/design-system` (Bella ∥ Sara) ต่อได้ทันที เพราะรูปงานนิ่งแล้ว
 - destination = ชุดงานที่ concrete + independent → `drain`
-- destination = decision ล้วน ๆ (เช่นเลือก platform) → `bd close` map + บันทึกเป็น ADR (`shode-house-deliverable/adr.md` § ADR Lifecycle)
+- destination = decision ล้วน ๆ (เช่นเลือก platform) → close map task + บันทึกเป็น ADR (`shode-house-deliverable/adr.md` § ADR Lifecycle)

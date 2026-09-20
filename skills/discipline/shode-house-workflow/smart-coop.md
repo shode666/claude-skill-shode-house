@@ -21,6 +21,17 @@ REQUIRED-BEFORE: phase_dispatch
 
 **Smart Coop ≠ everything parallel.** ใช้ parallel เฉพาะที่ agent **truly independent** (no read dependency); ใช้ sequential gate ที่มี natural dependency
 
+**Smart Coop ≠ everything parallel.** parallel เฉพาะที่ agent **truly independent** (ไม่มี read dependency); sequential gate ที่มี natural dependency
+
+| Phase | Pattern |
+|---|---|
+| 1a Bella ↔ Sara · 3b Chris ↔ Quinn · Dave#1 ↔ Dave#2 (คนละไฟล์) | **Parallel** |
+| 1a → 1b · 2 → 3a · 3a → 3b | **Sequential gate** |
+
+**Key rules**: ❌ ไม่มี outer sprint loop · ✅ Patrick OKR + Deploy = continuous per-bd · ✅ per-bd reflect ใน Phase 4 Triage
+
+> Uma/Domain consume one approved baseline. UI gates precede downstream review; failures return to the affected phase. Measure token savings, never assume a fixed percentage.
+
 ### Parallel-vs-Sequential Matrix
 
 | สถานการณ์ | Pattern | เหตุผล |
@@ -40,7 +51,7 @@ REQUIRED-BEFORE: phase_dispatch
 3. Light cross-read at end (NOT mid-checkpoint — too token-heavy):
    - Bella check FR ขัด ADR ไหม
    - Sara check ADR support FR ครบไหม
-4. Sign-off → bd update <id> --notes (compact)
+4. Sign-off → note on the task record (compact)
 ```
 
 ### Phase 1b Pattern (Sequential Expand)
@@ -102,7 +113,7 @@ When Domain SME (Felix/Iris/Sam/Tara/Elena/Brooke/Emma) flags scope gap in Phase
      ```
      subagent  → return { questions[], options[], recommended } + path ของไฟล์ clarify
      main session (command) → เรียก AskUserQuestion (≤ 4 ข้อ) หรือ post markdown + สรุปในแชท (> 4 ข้อ)
-                            → เขียนคำตอบกลับ tracker (bd update --notes) แล้วส่ง path ให้ subagent รอบถัดไป
+                            → เขียนคำตอบกลับ tracker (task note) แล้วส่ง path ให้ subagent รอบถัดไป
      ```
      Oliver uses the main session's actual popup tool when available, otherwise Markdown. Host limits determine question batch size; the Claude example is not a portable API.
 3. **Block Phase 1a** until user response (M2 classify = `quest`, NOT M5 — no spec exists yet)
@@ -121,9 +132,9 @@ When Domain SME (Felix/Iris/Sam/Tara/Elena/Brooke/Emma) flags scope gap in Phase
 
 | Phase | Actor | Pre-hook | Post-hook |
 |-------|-------|----------|-----------|
-| **Pick bd** | Oliver | `bd ready --json` not empty | `bd update <id> --claim` posted |
+| **Pick bd** | Oliver | ready (unblocked) task exists in the confirmed tracker | task claimed in the tracker |
 | **Phase 0 Discover** (opt — new initiative) | Patrick + Domain SME (dispatched separately, no Patrick role-play) | opportunity flagged | OKR + RICE + kill criteria → `outputs/opportunity-<feature>.md`. **Conditional PASS** if Domain SME flags scope ambiguity → escalate user clarify, block Phase 1a (per § Phase 0 scope-clarify flow) |
-| **Phase 1a Foundation** | Bella ∥ Sara | bd issue context + CLAUDE.md loaded | BRD + ADR drafts done, light cross-read pass, `bd update <id> --notes` posted |
+| **Phase 1a Foundation** | Bella ∥ Sara | bd issue context + CLAUDE.md loaded | BRD + ADR drafts done, light cross-read pass, task note posted |
 | **Phase 1b Expand** | Uma + Domain (conditional) | 1a sign-off + frontend/business-rule trigger detected | Uma: wireframe + tokens + a11y baseline; Domain: regulation cite + rule. Integrated `outputs/SPEC-<bd-id>.md` saved |
 | **Phase 1c Threat Model** (conditional) | Sentinel | auth/session/PII/money/external integration/webhook/file upload/AI agent trigger (canonical list → SKILL.md § Phase 1c; "low risk" ไม่ waive) | STRIDE + abuse case + security AC injected to 1a |
 | **Phase 2 Implement** | Dave | Scope Contract posted, verified write isolation; UI artifact required only for UI work | lint + type + unit pass, smoke green, Scope Contract closed |
@@ -142,7 +153,7 @@ Do not claim deterministic enforcement merely because a condition is written her
 
 Illustrative notation only; this plugin does not supply a template interpreter.
 Static (host): `{{PROJECT_NAME}}` `{{STACK}}` `{{DOMAIN}}` `{{TRACKER}}` `{{ENV}}` `{{ENGAGEMENT_ID}}` `{{USER}}` `{{DATE}}` `{{BRANCH}}`
-Shell eval (sandbox, per iteration): `` {{!`git rev-parse HEAD`}} `` · `` {{!`bd ready --json | jq '.[0].id'`}} ``
+Shell eval (sandbox, per iteration): `` {{!`git rev-parse HEAD`}} `` · `` {{!`<tracker: next ready task id>`}} ``
 > ใช้เฉพาะที่จำเป็น — over-template = อ่านยาก
 
 ### Loop with Exit (Dave/Quinn)
@@ -178,7 +189,7 @@ Use case: parallel Dave, hotfix-while-feature, A/B. **Batch backlog (N item อ�
 
 | Tracker | Init | Create | Ready | Close |
 |---------|------|--------|-------|-------|
-| **beads (bd)** if selected | `bd init` | `bd create "..." -p1 -t feature` | `bd ready --json` | `bd close N --reason "<sha> <test>"` + `bd show N` |
+| **Beads** if selected | (existing) | see `harness.md` § Beads example | same | same: close + read-back |
 | **GitHub Issues** | (gh authed) | `gh issue create -t "..." -l p1` | `gh issue list -l "ready"` | `gh issue close N` |
 | **Linear** | (linear auth) | `linear issue create -t "..."` | `linear issue list --state Todo` | `linear issue update --state Done` |
 | **Jira** | (atlassian MCP) | `mcp jira create ...` | JQL ready query | transition to Done |

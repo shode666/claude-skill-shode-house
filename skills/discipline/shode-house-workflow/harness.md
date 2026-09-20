@@ -130,3 +130,27 @@ Resume invalidates approvals/evidence only where scope or content changed; it do
 not replay completed external actions or rerun all historical phases. Ownership
 notes are not locks. Use tested host/project isolation when concurrent writes need
 it; otherwise serialize. Report the actual enforcement and recovery limits.
+
+## Beads example — only when the project's confirmed tracker is Beads
+
+ตัวอย่างต่อไปนี้สำหรับ project ที่เลือก **beads (bd)** เท่านั้น:
+```bash
+bd create "..." -p1 -t feature   # create
+bd ready --json                  # next unblocked
+bd update <id> --notes "..."     # Beads example: progress + link to the confirmed evidence home
+bd close <id> --reason "<sha> <test>"  &&  bd show <id>   # 🔴 M8 close-on-done + paste
+```
+
+Run stamp (at task pick) and approval record:
+```bash
+bd update <id> --notes "run: plugin=v<X.Y.Z> model=<agent:model,...> started=<ISO8601> branch=<branch>"
+```
+```bash
+bd update <id> --notes "approved: gate=<gate> by=<who> at=<ISO8601> artifact=<path> sha=<git hash-object path>"
+```
+postmortem/dispute ที่ไม่รู้ว่ารันด้วย prompt version ไหน = สืบไม่ได้ (มัน**เป็น**ตัวแปรที่เปลี่ยนผลลัพธ์)
+
+## Context economy
+
+- Use available documentation tools and primary sources; tool names are host-specific. A search snippet or link alone is not verified evidence.
+- Reuse accessible artifact paths and matching revisions; provide necessary excerpts when the receiver cannot access them.
