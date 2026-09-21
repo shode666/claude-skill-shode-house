@@ -62,3 +62,9 @@ without sight of any p12/base17 result. So this rule is pre-data for 5 of 6 batc
        for r in 1 2 3; do PLUGIN_REF=baseline-3.17 bash eval/run-core.sh sonnet outputs/eval-3.17/core/sonnet-base17-r$r || break; done
    (`|| break`: exit 2/3/5 stops the loop; an all-scored batch with FAILs exits 0.) Cost ESTIMATE, not a quote:
    measured ~USD 5.2 per 17-id Sonnet batch so far -> ~USD 31 for 6 batches; per-run cap MAX_BUDGET_USD default 5.
+
+Addendum (Oliver, 2026-09-21, before any p12/base17 result was read): committing this file moved HEAD 4740c43 -> f7945a1 (+ this
+addendum commit). Those commits touch ONLY eval/CORE-GATE.md (`git diff --stat 4740c43 HEAD` = this file), plugin dirs are
+byte-identical, so AFTER runs recorded at any of these shas are one arm; in rule 6 replace the HEAD test with
+`git diff --quiet 4740c43 HEAD -- agents commands skills hooks references output-styles .claude-plugin`. p12-r1 was started by
+the user with an 11-id CORE_IDS list before this file existed; re-invoking rule 6 on the same dir resumes and adds the missing 6 ids.
