@@ -142,7 +142,7 @@
 ## Budgets · rule conservation · generated tree (v3.17)
 
 - **4 budget files** (`.skill-metadata-budget` · `.preload-budget` · `.agent-core-budget` · `.workflow-scenario-budget`) = ค่าวัดจริง ลงได้อย่างเดียว. ห้ามเพิ่ม budget file; ห้ามขึ้น key/grace เพื่อให้เขียว → ตัด non-safety text ใน change เดียวกัน
-- ลบ/reword rule line ใน shipped skill/agent → entry ใน `.rule-migrations.json` (exact source + fragment + reason) + count pin ใน `tests/test_rule_migrations.py`; gate = `scripts/rule-conservation.py` (pinned base `.rule-baseline`). กฎที่มี `root_only` anchor (`.enforcement-map.json`, CI #21 floor 121) ต้องอยู่ root file ไม่ใช่ lazy reference
+- ลบ/reword rule line ใน shipped skill/agent → entry ใน `.rule-migrations.json` (exact source + fragment + reason) + count pin ใน `tests/test_rule_migrations.py`; gate = `scripts/rule-conservation.py` (pinned base `.rule-baseline`). กฎที่มี `root_only` anchor (`.enforcement-map.json`, CI #21 floor 123) ต้องอยู่ root file ไม่ใช่ lazy reference
 - `plugins/shode-house/**` = generated — `python3 scripts/pack-team.py --tree plugins/shode-house`; ห้ามแก้มือ (CI #25 `--check`); skill adapter ห้ามบังคับ full read (#25b)
 - Shipped surface = tracker-neutral: ห้าม hardcode `bd <verb>` (`tests/test_tracker_neutral.py`); tracker ตาม target project
 - skills/agents/commands/output-styles ห้ามพึ่ง `CHANGELOG.md` / `SHODE-HOUSE-MASTER.md` (maintainer history เท่านั้น)

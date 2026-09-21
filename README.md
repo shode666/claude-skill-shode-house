@@ -86,7 +86,7 @@ Six layers, each with one owner:
 
 **What is designed vs what is measured (status, stated plainly):**
 
-- *Designed, checked statically in CI:* the 3.17 simplification (semantic descriptions, lazy adapters, thin-router roots, decision boundaries, role-only agent files) keeps every rule - rule conservation against the cycle baseline, 121 root-tier safety anchors, four byte budgets that only go down.
+- *Designed, checked statically in CI:* the 3.17 simplification (semantic descriptions, lazy adapters, thin-router roots, decision boundaries, role-only agent files) keeps every rule - rule conservation against the cycle baseline, 123 root-tier safety anchors, four byte budgets that only go down.
 - *Measured so far:* one live routing-probe baseline on the **pre-simplification** plugin (Claude Code, `sonnet`, 38 probes x N=5 = 190 runs). Per-run and per-probe aggregates are committed in [`eval/baseline/3.16.3-probe-n5/`](eval/baseline/3.16.3-probe-n5/) (`SUMMARY.tsv`, `AGG.tsv`); raw traces stay on the maintainer machine (gitignored). It is a baseline only - no before/after comparison exists yet.
 - *Not measured yet:* the after-arm of those probes and the cross-model core matrix (Sonnet / Opus / Fable / OpenAI via Codex CLI) **have not been run**. No pass rate, cost or latency claim is made for any model on 3.17, and no "supported" label is given to a model family until its row exists.
 - *How to measure:* comparison rule and gate fixed before any data - [`eval/PROBE-GATE.md`](eval/PROBE-GATE.md); probes - `bash eval/run-probes.sh`; core matrix - `bash eval/run-core.sh <model>`; both need a real Claude Code / Codex CLI on the maintainer machine ([`eval/RUNBOOK.md`](eval/RUNBOOK.md)). OpenAI runs are recorded manually and kept separate from CI.

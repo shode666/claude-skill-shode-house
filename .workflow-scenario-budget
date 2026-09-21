@@ -9,15 +9,16 @@
 # v3.17 P4 thin-router ratchet: all 12 scenarios re-measured DOWN after 7 roots became routers (full-fanout 491,150 -> 480,376 B)
 # v3.17 P6 ratchet: scenarios re-measured DOWN after the 19 agent files were simplified
 # v3.17 P10 ratchet: discipline root -400 B (1 duplicate evidence example pair + 3 restated lines + 1 stale word) -> every scenario lowered to measured
-consult=38854
-design-system-be=71052
-design-system-fe=126832
-implement-be=126876
-implement-ui=160989
-phase3b-base=105475
-phase3b-sensitive=149694
-review-cmd=100961
-diagnose-fast=48056
-diagnose-full=84471
-map-mode=89946
-full-fanout=461970
+# 8ss.RC-1/E1c: output style 10,187 -> 10,152 B (dispatch floor [fast path = Dave alone, user decision 2026-09-21] + Phase 1c no-waiver paid by trimming restated filler) -> every scenario -35 B
+consult=38819
+design-system-be=71017
+design-system-fe=126797
+implement-be=126841
+implement-ui=160954
+phase3b-base=105440
+phase3b-sensitive=149659
+review-cmd=100926
+diagnose-fast=48021
+diagnose-full=84436
+map-mode=89911
+full-fanout=461935

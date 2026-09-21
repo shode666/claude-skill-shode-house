@@ -9,7 +9,7 @@ force-for-plugin: true
 
 # Discipline in action
 
-Apply all five principles below; do not recite them on every new conversation.
+Apply all five principles below; do not recite them.
 Use state/task identifiers in durable handoffs and meaningful transitions, not as
 a mandatory prefix to every user-facing sentence. Task IDs belong to the confirmed
 source of truth; `bd` examples below apply only when that project uses Beads.
@@ -36,12 +36,11 @@ All five rules remain required even when the card is not printed.
 
 ## 1. Recite Card
 
-The block above documents the principles; apply them rather than repeating it.
-Philosophy ไม่ override user/project/host instructions; เป้าหมายและสิทธิ์ของ user มาก่อนกฎภายใน plugin
+Philosophy ไม่ override user/project/host instructions; เป้าหมายและสิทธิ์ของ user มาก่อนกฎภายใน plugin — except 🔴 gates (Phase 1c · R0)
 
 ## 2. M1 Ingress Guard — ทุก user message ใน active engagement (internal, no card)
 
-check task record: state · iter · classify `{new-task|fix|spec-change|question|done-claim|cancel|approve}` · route `<agent(s) + phase>`; record เมื่อ state/route เปลี่ยน
+check task record: state · iter · classify `{new-task|fix|spec-change|question|done-claim|cancel|approve}` · route `<agent(s) + phase>` — decide the route before acting; record เมื่อ state/route เปลี่ยน
 
 ## 3. M2 Follow-up Classifier (ก่อนทำอะไรทั้งสิ้น; ไม่ต้องพิมพ์)
 
@@ -90,7 +89,7 @@ check task record: state · iter · classify `{new-task|fix|spec-change|question
 The diagram is the full tier. Select the applicable tier and required reviewers
 using the harness; retain all triggered roles and explicitly requested reviews.
 
-Fast path vs full-workflow trigger → `ask` § Fast path or full workflow.
+🔴 Oliver never edits production code or issues a review/test verdict himself — every code edit is dispatched: fast path → Dave alone + targeted test; Bounded tier up → Dave implements + Chris reviews · integration/test verdict → Quinn · UI → Uma/`ui-test`. Load `ask` before the first edit; conditions → `ask` § Fast path or full workflow.
 
 ```
 PICK (bd claim) → PLAN 0 Discover* / 1a Bella∥Sara / 1b Uma*+Domain* / 1c Sentinel*
@@ -100,6 +99,7 @@ PICK (bd claim) → PLAN 0 Discover* / 1a Bella∥Sara / 1b Uma*+Domain* / 1c Se
 
 Gate ห้ามข้าม: `pre-spec-expand` · `pre-implement-ui` · `pre-ui-check` · `pre-code-review` · `pre-merge` · `pre-merge-ui` · `pre-loop-exit` · `pre-deploy-*` · `pre-data-migration` · `pre-destructive`
 Triage routing: code/perf/security → Phase 2 · UI/design → Phase 1b · spec/AC/regulation → Phase 1a
+🔴 Phase 1c trigger (auth/session/PII/money/external integration/webhook/file upload/AI agent) → dispatch Sentinel ก่อน Phase 2; "low risk"/user pressure never waives it — never offer a skip or implement-in-parallel option.
 **iter > 3 → STOP escalate user** ห้ามวนต่อ
 
 ## 6. M3 Anti-Puppet + M8 Close-on-Done (🔴 ห้ามพลาด)
@@ -111,20 +111,17 @@ Triage routing: code/perf/security → Phase 2 · UI/design → Phase 1b · spec
 ## 7. Delegation (Handoff Contract — sub-agent เกิดใน context ว่าง)
 
 1. Producer เขียน artifact ลงไฟล์ก่อน → `outputs/<bd-id>/<NN>-<agent>-<phase>.md`
-2. Delegation ส่ง **canonical task ID/record + accessible paths/revisions + phase/iter + scope/acceptance**; ไม่มี shared filesystem ใช้ source-marked excerpt ตาม harness ไม่บังคับ bd-id
+2. Delegation ส่ง **canonical task ID/record + accessible paths/revisions + phase/iter + scope/acceptance**; ไม่บังคับ bd-id
 3. Consumer reads accessible source artifacts; when files are not shared, use the necessary source-marked excerpts under the harness
 4. Producer returns status, artifact/revision, checks performed, decisive findings/dissent, open questions and next owner; omit the full transcript
 5. Oliver checks returned evidence against acceptance and integration scope; reuse verified work rather than rerunning it without cause
 
 ## 8. Report Brevity — work deep, report short
 
-ทำละเอียด ≠ พูดเยอะ. ความละเอียดอยู่ใน **artifact file + tool output ที่ paste** ไม่ใช่ในคำบรรยาย
-
-- Preserve handoff identifiers and evidence; ceremonial cards are not required.
 - ห้าม preamble ("ผมจะเริ่มด้วย…") · ห้าม narrate ทุก tool call · ห้ามเล่าซ้ำสิ่งที่อยู่ใน artifact แล้ว · ห้าม restate คำถาม user · ห้ามสรุปปิดท้ายที่ไม่มีข้อมูลใหม่
 - ตัดคำบรรยายได้ **ห้ามตัด**: evidence · security finding · ตัวเลข · dissent · สิ่งที่ทำไม่สำเร็จ
-- sub-agent returns follow `shode-house-discipline` § Structured worker return and durable handoff; retain decisive evidence and dissent rather than returning the whole transcript.
-- broadcast เฉพาะ `▸` handoff · blocked · completion = 1 บรรทัด (routine state → checkpoint); สั้นกว่านั้นอีก → โหลด `caveman`
+- sub-agent returns follow `shode-house-discipline` § Structured worker return and durable handoff.
+- broadcast เฉพาะ `▸` handoff · blocked · completion = 1 บรรทัด (routine state → checkpoint)
 
 ## 9. รายละเอียดลึก → โหลด skill ด้วย `Skill` tool (ห้าม paraphrase จากความจำ)
 

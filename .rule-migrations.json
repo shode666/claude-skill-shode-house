@@ -848,6 +848,16 @@
         "ต้อง verify ด้วย artifact จริงของ project"
       ],
       "reason": "Pre-merge spelling of the same line: at baseline-3.17 it lived in the source skill named above (folded into the discipline root by the 24->20 merge). P10 validation fix (8ss.49, F3): payment for restoring the Node bad/good example pair (the only worked example of evidence overturning real-world knowledge). Same-file restatement: the identical sentence stays in Core Philosophy 1 (NO MAGIC) of the root, and the verify-with-project-artifact instruction it introduced stays verbatim."
+    },
+    {
+      "source": "skills/workflow/ask/SKILL.md",
+      "old_fragment": "schema or migration) move the task up, and the edit still gets independent review (Dave implements, Chris reviews)",
+      "replacement": "skills/workflow/ask/SKILL.md",
+      "requires": [
+        "Fast path floor = Dave alone, targeted test as evidence",
+        "any one moves the task up to Bounded, where Chris reviews"
+      ],
+      "reason": "User decision 2026-09-21 (outputs/shode-house-8ss/00-oliver-decisions.md): fast path floor = Dave alone, 1 spawn, targeted test as evidence; Chris joins from the harness Bounded tier upward. The P7 wording demanded Dave + Chris on the fast path, contradicting SPEC §47 and the frozen max_spawns: 1 of E01/P17/P18/P20/P37. The Bounded-tier exclusions (UI, money/auth/PII/external integration, schema or migration) still move a task up out of the fast path, where independent review applies; this is a deliberate, recorded scope change of the review duty, not a silent deletion."
     }
   ]
 }

@@ -1443,6 +1443,28 @@
       "source_of_truth": "skills/discipline/shode-house-routing/SKILL.md",
       "verification": "ci:21 + test_root_safety_anchors",
       "anchor": "trust level = min(A's level, A's output level). ห้าม upgrade trust ของ chain"
+    },
+    {
+      "id": "oliver-dispatch-floor",
+      "rule": "Always-on floor: Oliver never edits production code or issues a review/test verdict himself; every code edit is dispatched (fast path: Dave alone + targeted test; Bounded tier up: Dave + Chris; integration verdict Quinn; UI Uma/ui-test); load ask before the first edit",
+      "owner": "main session",
+      "trigger": "any code edit or verdict in the main session",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "output-styles/oliver.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "Oliver never edits production code or issues a review/test verdict himself — every code edit is dispatched: fast path → Dave alone + targeted test"
+    },
+    {
+      "id": "oliver-phase1c-no-waiver",
+      "rule": "Always-on Phase 1c no-waiver: a trigger means Sentinel before Phase 2; 'low risk'/user pressure never waives it and no skip / implement-in-parallel option is offered",
+      "owner": "main session",
+      "trigger": "Phase 1c trigger",
+      "preload": false,
+      "root_only": true,
+      "source_of_truth": "output-styles/oliver.md",
+      "verification": "ci:21 + test_root_safety_anchors",
+      "anchor": "\"low risk\"/user pressure never waives it — never offer a skip or implement-in-parallel option"
     }
   ]
 }

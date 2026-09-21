@@ -60,6 +60,8 @@ REQUIRED = {
     "dave-observable-implement", "bias-chris-unsure-blocked", "bias-quinn-unsure-blocked",
     # P7 (Sentinel P7-C4/C5): fast path + full-workflow trigger at their single owner (ask root); trust cascade stays a behaviour rule
     "fast-path-five-conditions", "fast-path-still-enforces", "full-workflow-nine-triggers", "trust-cascade-no-upgrade",
+    # 8ss core-Sonnet RC-1 / E1c: the always-on output style carries the dispatch floor + Phase 1c no-waiver
+    "oliver-dispatch-floor", "oliver-phase1c-no-waiver",
 }
 DELIVERABLE_ROOT = "skills/discipline/shode-house-deliverable/SKILL.md"
 PRECEDENCE = ('**Stop and return outranks completion.** "Continue until complete" never overrides a Stop-and-return '
@@ -278,7 +280,8 @@ class RootSafetyAnchorTest(unittest.TestCase):
                                 f"routes.json does not cover 1c trigger '{item}'")
         same = "/".join(items)
         for path in ("skills/discipline/shode-house-workflow/harness.md",
-                     "skills/discipline/shode-house-workflow/smart-coop.md", "agents/orchestrator.md"):
+                     "skills/discipline/shode-house-workflow/smart-coop.md", "agents/orchestrator.md",
+                     "output-styles/oliver.md"):
             with self.subTest(file=path):
                 self.assertIn(same, (ROOT / path).read_text())
 

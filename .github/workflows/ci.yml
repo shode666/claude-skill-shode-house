@@ -380,7 +380,7 @@ jobs:
               grep -q '^LOAD:' "$p" 2>/dev/null && err "enforcement-map: root_only rule '$id' ชี้ '$p' ซึ่งเป็น lazy reference (มี LOAD: block) -- กฎ safety ต้องอยู่ root tier"
             done < <(jq -r '.rules[] | select(.root_only==true) | "\(.id)|\(.source_of_truth)"' .enforcement-map.json)
             n_ro=$(jq '[.rules[]|select(.root_only==true)]|length' .enforcement-map.json)
-            [ "$n_ro" -ge 121 ] || err "enforcement-map: only $n_ro root_only rules (floor 121) -- safety anchor ถูกถอดออก?"
+            [ "$n_ro" -ge 123 ] || err "enforcement-map: only $n_ro root_only rules (floor 123) -- safety anchor ถูกถอดออก?"
             n=$(jq '.rules|length' .enforcement-map.json)
             [ "$n" -ge 15 ] || err "enforcement-map: only $n rules -- inventory looks incomplete"
             [ $fail -eq 0 ] && ok "enforcement map resolves + anchor ครบ ($n rules, $n_ro root_only)"
