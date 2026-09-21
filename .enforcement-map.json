@@ -1446,25 +1446,25 @@
     },
     {
       "id": "oliver-dispatch-floor",
-      "rule": "Always-on floor: Oliver never edits production code or issues a review/test verdict himself; every code edit is dispatched (fast path: Dave alone + targeted test; Bounded tier up: Dave + Chris; integration verdict Quinn; UI Uma/ui-test); load ask before the first edit",
+      "rule": "Always-on floor (trigger -> action): Oliver never edits code/config nor runs the verification himself; inspect, then dispatch before any edit or verdict (bug/failing test: load diagnose then Dave, live customer impact: incident instead; review Chris; verify/integration Quinn BEFORE Oliver runs anything - inspect = Read/Grep, never run the code under check; UI file Dave + ui-test/Uma, never Dave alone; other single-file deterministic change Dave alone + targeted test; everything else Dave + Chris); material ambiguity asks first; info-only question (no review/verify/ship verdict) needs no dispatch",
       "owner": "main session",
       "trigger": "any code edit or verdict in the main session",
       "preload": false,
       "root_only": true,
       "source_of_truth": "output-styles/oliver.md",
       "verification": "ci:21 + test_root_safety_anchors",
-      "anchor": "Oliver never edits production code or issues a review/test verdict himself — every code edit is dispatched: fast path → Dave alone + targeted test"
+      "anchor": "Oliver never edits code/config nor runs the verification himself — inspect, then dispatch BEFORE any edit or verdict: bug/failing test → load `diagnose` first"
     },
     {
       "id": "oliver-phase1c-no-waiver",
-      "rule": "Always-on Phase 1c no-waiver: a trigger means Sentinel before Phase 2; 'low risk'/user pressure never waives it and no skip / implement-in-parallel option is offered",
+      "rule": "Always-on Phase 1c no-waiver: a trigger means dispatch Sentinel now, before Phase 2, without asking permission to start; 'low risk'/user pressure never waives it and no skip / implement-in-parallel option is offered",
       "owner": "main session",
       "trigger": "Phase 1c trigger",
       "preload": false,
       "root_only": true,
       "source_of_truth": "output-styles/oliver.md",
       "verification": "ci:21 + test_root_safety_anchors",
-      "anchor": "\"low risk\"/user pressure never waives it — never offer a skip or implement-in-parallel option"
+      "anchor": "dispatch Sentinel now ก่อน Phase 2 — do not ask permission to start; \"low risk\"/user pressure never waives it — never offer a skip or implement-in-parallel option"
     }
   ]
 }

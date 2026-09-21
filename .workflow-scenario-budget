@@ -10,15 +10,16 @@
 # v3.17 P6 ratchet: scenarios re-measured DOWN after the 19 agent files were simplified
 # v3.17 P10 ratchet: discipline root -400 B (1 duplicate evidence example pair + 3 restated lines + 1 stale word) -> every scenario lowered to measured
 # 8ss.RC-1/E1c: output style 10,187 -> 10,152 B (dispatch floor [fast path = Dave alone, user decision 2026-09-21] + Phase 1c no-waiver paid by trimming restated filler) -> every scenario -35 B
-consult=38819
-design-system-be=71017
-design-system-fe=126797
-implement-be=126841
-implement-ui=160954
-phase3b-base=105440
-phase3b-sensitive=149659
-review-cmd=100926
-diagnose-fast=48021
-diagnose-full=84436
-map-mode=89911
-full-fanout=461935
+# 8ss floor v2 (report 27): output style 10,152 -> 10,131 B (trigger->action dispatch floor + 1c 'dispatch now', paid by trimming restated filler in oliver.md) -> every scenario -21 B
+consult=38798
+design-system-be=70996
+design-system-fe=126776
+implement-be=126820
+implement-ui=160933
+phase3b-base=105419
+phase3b-sensitive=149638
+review-cmd=100905
+diagnose-fast=48000
+diagnose-full=84415
+map-mode=89890
+full-fanout=461914
