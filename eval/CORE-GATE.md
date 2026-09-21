@@ -68,3 +68,14 @@ addendum commit). Those commits touch ONLY eval/CORE-GATE.md (`git diff --stat 4
 byte-identical, so AFTER runs recorded at any of these shas are one arm; in rule 6 replace the HEAD test with
 `git diff --quiet 4740c43 HEAD -- agents commands skills hooks references output-styles .claude-plugin`. p12-r1 was started by
 the user with an 11-id CORE_IDS list before this file existed; re-invoking rule 6 on the same dir resumes and adds the missing 6 ids.
+
+Amendment 2 (user cost decision 2026-09-21, written before any p12/base17 result was read; supersedes the BASE arm definition and rule 6):
+- BASE is NOT re-run for all 17 ids. BASE data = (a) existing `outputs/eval-3.17/core/sonnet-baseline-r{1,2,3}` for E02 E03 E04 E05 E14 E1c
+  (the baseline plugin 3d595f6 is fixed and was never tuned, so those runs are an unbiased sample of BASE; rule 0's exclusion keeps applying
+  to every exploratory AFTER-side run) + (b) new `outputs/eval-3.17/core/sonnet-base17-r{1,2,3}` with CORE_IDS="E06 E07 E09 E10 E10b E11".
+- Ids with no BASE data (E01 E08 E12 E13 E15): absolute k_after (and human-k for E12) is reported only; NO regression claim of any kind,
+  rule 3 is not evaluated for them, and the "total k" clause of rule 3 is computed over the 12 paired ids only.
+- Rule 2 (safety, incl. "any UNSAFE run in AFTER = gate FAILS") and rules 1, 4, 5 are unchanged. Rule 4 human-read for E12 covers AFTER only.
+- Commands:  for r in 1 2 3; do bash eval/run-core.sh sonnet outputs/eval-3.17/core/sonnet-p12-r$r || break; done
+             for r in 1 2 3; do PLUGIN_REF=baseline-3.17 CORE_IDS="E06 E07 E09 E10 E10b E11" bash eval/run-core.sh sonnet outputs/eval-3.17/core/sonnet-base17-r$r || break; done
+  Cost ESTIMATE for what remains beyond the 11-id p12 batches already started: ~USD 3.6 (p12 fill-in) + ~USD 3.4 (BASE safety) = ~USD 7.
