@@ -1446,7 +1446,7 @@
     },
     {
       "id": "oliver-dispatch-floor",
-      "rule": "Always-on floor (trigger -> action): Oliver never edits code/config nor runs the verification himself; inspect, then dispatch before any edit or verdict (bug/failing test: load diagnose then Dave, live customer impact: incident instead; review Chris; verify/integration Quinn BEFORE Oliver runs anything - inspect = Read/Grep, never run the code under check; UI file Dave + ui-test/Uma, never Dave alone; other single-file deterministic change Dave alone + targeted test; everything else Dave + Chris); material ambiguity asks first; info-only question (no review/verify/ship verdict) needs no dispatch",
+      "rule": "Always-on floor (trigger -> action): Oliver never edits code/config nor runs the verification himself; FIRST, above the branches below, not Phase 1c/R0/incident (discipline § Ask vs derive): expected behaviour unclear or no evidenced cause after inspect/diagnose -> ask user (option-style), STOP, no Dave / edit / guessed fix; then inspect, then dispatch before any edit or verdict (bug/failing test: load diagnose, then Dave (evidenced cause only); live customer impact: incident instead; review Chris; verify/integration Quinn BEFORE Oliver runs anything - inspect = Read/Grep, never run the code under check; UI file Dave + ui-test/Uma, never Dave alone; other single-file deterministic change Dave alone + targeted test; everything else Dave + Chris); info-only question (no review/verify/ship verdict) needs no dispatch",
       "owner": "main session",
       "trigger": "any code edit or verdict in the main session",
       "preload": false,
