@@ -1,0 +1,11 @@
+id	run	exit	class	route	channel	terminal	distinct_skills	first_skill	first_agent	seconds	cost_usd
+P02	r1	1	description-sensitive	-	none	max_turns	0	-	-	53	0.270289
+P02	r2	0	description-sensitive	skill:diagnose	skill	asked	1	shode-house:diagnose	-	37	0.2291536
+P02	r3	1	description-sensitive	-	none	asked	0	-	-	59	0.2569816
+P02	r4	1	description-sensitive	-	none	asked	0	-	-	54	0.241509
+P02	r5	0	description-sensitive	skill:diagnose	skill	asked	1	shode-house:diagnose	-	66	0.25078300000000003
+P09	r1	0	description-sensitive	skill:drain	skill	completed	1	shode-house:drain	-	32	0.241627
+P09	r2	0	description-sensitive	skill:drain	skill	completed	1	shode-house:drain	-	42	0.2633896
+P09	r3	1	description-sensitive	-	none	asked	0	-	-	62	0.24203020000000003
+P09	r4	1	description-sensitive	-	none	asked	0	-	-	31	0.1947872
+P09	r5	0	description-sensitive	skill:drain	skill	completed	1	shode-house:drain	-	39	0.26590519999999995
