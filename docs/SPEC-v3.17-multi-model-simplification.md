@@ -3201,6 +3201,16 @@ v3.14 is complete when all are true:
 [ ] no safety regression exists
 ```
 
+### 3.17.0 scope note (user decision 2026-09-22)
+
+The checklist above is kept unchanged as the full target. 3.17.0 ships with a narrower scope:
+
+- **Released for Claude Code with Sonnet only.** The Opus, Fable, Astra and GPT-5.6-class eval-suite items (and any model profile that depends on them) are deferred to 3.17.x; no 3.17 run exists for those models and no claim is made about them.
+- **Sonnet eval suite status** (N=3 core, N=5 routing; details and known limitations in `CHANGELOG.md` 3.17.0 release notes):
+  - Core behaviour gate `eval/CORE-GATE-rc2.md`: CORE-GATE-rc2: PASSED (N=3, Sonnet). The 17-id core set is a DEV set, tuned-on-test: rc2 is the 4th wording iteration made after reading its prompts, expectations and traces. Dev numbers show fit, not generalisation.
+  - Routing-probe gate `eval/PROBE-GATE.md`: NOT PASSED for the v3.17 skill-description rewrite (`diagnose` P02 5/5 → 0/5, `drain` P09 4/5 → 1/5). A post-gate re-measure (not pre-registered) after the description fix gave P02 2/5 and P09 3/5, below the target the maintainer set before this re-run (not in a pre-registered gate file); shipped as a known limitation by user decision.
+- The "Sonnet eval suite passes" item is therefore only partly met (core gate yes, routing gate no) and stays unchecked.
+
 ## 118. Success Criteria
 
 The refactor is successful if:

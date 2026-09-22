@@ -13,7 +13,7 @@ single-skill package without the team; the 3.16.0 tag and history are kept uncha
 > 19 agent ใน 7 ทีม ที่มี ownership ชัด, quality gate ที่ต้องมีหลักฐาน, token-aware context routing,
 > CI invariant ที่พิสูจน์ด้วย mutation test และ behavioral A/B eval
 
-[![Version](https://img.shields.io/badge/version-3.16.3-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.17.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/shode666/claude-skill-shode-house/actions/workflows/ci.yml/badge.svg)](https://github.com/shode666/claude-skill-shode-house/actions/workflows/ci.yml)
 
@@ -87,8 +87,11 @@ Six layers, each with one owner:
 **What is designed vs what is measured (status, stated plainly):**
 
 - *Designed, checked statically in CI:* the 3.17 simplification (semantic descriptions, lazy adapters, thin-router roots, decision boundaries, role-only agent files) keeps every rule - rule conservation against the cycle baseline, 123 root-tier safety anchors, four byte budgets that only go down.
-- *Measured so far:* one live routing-probe baseline on the **pre-simplification** plugin (Claude Code, `sonnet`, 38 probes x N=5 = 190 runs). Per-run and per-probe aggregates are committed in [`eval/baseline/3.16.3-probe-n5/`](eval/baseline/3.16.3-probe-n5/) (`SUMMARY.tsv`, `AGG.tsv`); raw traces stay on the maintainer machine (gitignored). It is a baseline only - no before/after comparison exists yet.
-- *Not measured yet:* the after-arm of those probes and the cross-model core matrix (Sonnet / Opus / Fable / OpenAI via Codex CLI) **have not been run**. No pass rate, cost or latency claim is made for any model on 3.17, and no "supported" label is given to a model family until its row exists.
+- *Measured (3.17.0): Claude Code with Sonnet only* (`claude-sonnet-5`). 3.17.0 is released for Sonnet; full numbers and known limitations are in the [CHANGELOG](CHANGELOG.md) 3.17.0 release notes.
+  - Core behaviour gate [`eval/CORE-GATE-rc2.md`](eval/CORE-GATE-rc2.md): CORE-GATE-rc2: PASSED (N=3, Sonnet). No regression >= 2 detected on the held-out set (held-out, N=3, Sonnet). The 17-id core set is a DEV set, tuned-on-test: rc2 is the 4th wording iteration made after reading its prompts, expectations and traces. Dev numbers show fit, not generalisation.
+  - Routing-probe gate [`eval/PROBE-GATE.md`](eval/PROBE-GATE.md): **NOT PASSED** for the v3.17 skill-description rewrite (N=5 per probe): `diagnose` probe P02 5/5 → 0/5, `drain` probe P09 4/5 → 1/5, description-sensitive total k 64 → 55.
+  - Post-gate re-measure (not pre-registered) of the fixed `diagnose` / `drain` descriptions: P02 2/5 (baseline 5/5), P09 3/5 (baseline 4/5) - below the target the maintainer set before this re-run (not in a pre-registered gate file), shipped as a known limitation; held-out routing probes (N=5 each), positives excluding the baseline-0 H07: 40/45 → 43/45; largest per-id drop 1. Probe aggregates: [`eval/baseline/`](eval/baseline/); raw traces stay on the maintainer machine (gitignored).
+- *Not measured:* Opus, Fable, Astra and OpenAI (Codex CLI) have **no 3.17 run**. No pass rate, cost or latency claim is made for them, and no "supported" label is given to a model family until its row exists; the cross-model matrix is deferred to 3.17.x.
 - *How to measure:* comparison rule and gate fixed before any data - [`eval/PROBE-GATE.md`](eval/PROBE-GATE.md); probes - `bash eval/run-probes.sh`; core matrix - `bash eval/run-core.sh <model>`; both need a real Claude Code / Codex CLI on the maintainer machine ([`eval/RUNBOOK.md`](eval/RUNBOOK.md)). OpenAI runs are recorded manually and kept separate from CI.
 
 A model profile may be added later only under the contribution rule in [`CLAUDE.md`](CLAUDE.md) § Contribution rules: it never redefines workflow, safety, ownership or domain rules. The `model:` values in § Model Strategy below are Claude Code frontmatter defaults, not a statement about which models were evaluated.
@@ -173,7 +176,7 @@ if the host has no delegation tool, Oliver reports team execution BLOCKED instea
 /plugin marketplace update shode-house
 /plugin update shode-house@shode-house      # `install` alone keeps the already-installed version
 ```
-Check with `/plugin list` — the version must read 3.16.3.
+Check with `/plugin list` — the version must read 3.17.0.
 
 Prerequisite (optional): `brew install node` (Context7 MCP ใช้ npx) · `brew install beads` (task tracker `bd`)
 

@@ -1,4 +1,4 @@
-# shode-house — Repo Invariants (v3.16.3)
+# shode-house — Repo Invariants (v3.17.0)
 
 > ทุก rule = invariant ที่ script ตรวจ. จะแหก → แก้ script ก่อน
 
