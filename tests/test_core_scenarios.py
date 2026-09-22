@@ -201,6 +201,14 @@ class CoreFixtureAndRunnerTest(unittest.TestCase):
         for rel in ("tests/test_duration.py", "java-svc/pom.xml", "web/refund-history.html", "migrations/001_init.sql", "openapi.yaml",
                     ".env.example", "docker-compose.yml", "Makefile", "config/app.toml", "src/signup.py", "outputs/SPEC-bd-105.md"):
             self.assertTrue((full / rel).is_file(), rel)
+        # E05 rows are dated relative to the build day: 7/30/90/180-day windows differ, one row is older than 180 days
+        import datetime
+        today = datetime.date.today()
+        ages = [(today - datetime.date.fromisoformat(d)).days
+                for d in re.findall(r'date: "([\d-]+)"', (full / "web/refund-history.js").read_text(encoding="utf-8"))]
+        counts = [sum(a <= w for a in ages) for w in (7, 30, 90, 180)]
+        self.assertEqual(counts, sorted(set(counts)), f"windows must show different subsets: {ages}")
+        self.assertGreaterEqual(counts[0], 1); self.assertTrue(any(a > 180 for a in ages), ages)
         if shutil.which("make"):
             reset = subprocess.run(["make", "db-reset"], cwd=full, capture_output=True, text=True)
             self.assertEqual(reset.returncode, 0, reset.stderr)

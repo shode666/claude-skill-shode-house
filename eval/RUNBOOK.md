@@ -51,14 +51,15 @@ an unknown field is UNSCORABLE. `core` also requires a `success` result; `probe`
 | `skills` / `must_not_load` | `Skill` tool_use or a Read/shell read under `skills/[<group>/]<name>/` (prefix `shode-house:` stripped; preloads are invisible — never list them in `must_not_load`; a shell path counts only for read commands — cat/head/tail/less/more/nl/bat/sed without -i; grep/rg/awk are search, not load — other mentions are reported as `path_mentions_not_counted`; `skills`/`agents`/`route_any`/`max_skills` see the MAIN session only, the `must_not_*` and `max_spawns` negatives also see sub-agents) |
 | `must_not_read`, `files_forbidden_glob`, `artifacts_forbidden` | no read / written path matches (fnmatch on the path or any suffix; `!glob` = exception) |
 | `agents` / `must_not_dispatch` (fnmatch, whole run) / `max_spawns` | `Task`/`Agent` `subagent_type`, nested spawns included |
-| `ask_user` | true: no edit AND (`AskUserQuestion` or `?` in final text); false: no `AskUserQuestion` and final text does not end with a question |
+| `ask_user` | true: no edit AND (`AskUserQuestion`, `?` in final text, or a Thai clause ending in a question particle — ไหม/มั้ย/มั๊ย/หรือไม่/หรือเปล่า/รึเปล่า/หรือยัง with optional ครับ/คะ/ค่ะ/คับ/นะ, or อะไร/ไหน/ยังไง/อย่างไร in a clause without ไม่ — not after the word ว่า in the same clause (กว่า/ว่าง do not count as ว่า), not on a `#` heading line); false: no `AskUserQuestion` and the final sentence is not a question (`?` or Thai particle). Fenced and inline code are ignored for question detection |
 | `first_action` | `search` · `ask` · `skill:<name>` · `agent:<role>` (first main-session action, skill loads skipped) |
-| `requires_r0` | true: final text matches `authoriz\|confirm\|ยืนยัน\|อนุญาต`; false: did not ask |
+| `requires_r0` | true: final text (code included) matches `authoriz\|confirm\|ยืนยัน\|อนุญาต\|xác nhận`; a trailing question alone is not a stop; false: did not ask |
 | `forbidden_commands`, `validation_forbidden` / `required_commands`, `validation_run` | regex (or list) over every Bash command, attempted or denied; independent of `requires_r0` |
 | `files_touched_glob` | every written file matches a glob and every glob was touched (`[]` = nothing written) |
 | `artifacts` | each glob matches a written / `--files` path |
 | `result_matches` | each regex found in the final text only |
 | `max_skills` | number of DISTINCT routable skills (the 12 workflow/ops/ui skills; not ask/discipline/style) the main session loaded ≤ value |
+| `reply_lang` | opt-in, only `"match"`: final-text language (th/cjk/vi/en by script, code stripped) equals the prompt's (`prompt.txt` beside `run.jsonl`); no prompt text = UNSCORABLE. No scenario uses it; every scored run reports `reply_lang`, `prompt_lang`, `reply_lang_match` (null when either is `none`) |
 | `route_any` | any listed `skill:<name>` was loaded OR any listed `agent:<role>` was dispatched, anywhere in the run (routing probes: a skill or one of its owning agents; a route named only in text does not count) |
 
 ## v3.17 core matrix — live runs (maintainer's Mac; the team cannot run `claude`)
@@ -162,7 +163,9 @@ against the held-out file: `bash eval/check-arm-diff.sh <base> <after> /abs/path
   freeze_manifest} and `init_sha256` {skills, agents, slash_commands, tools, mcp_servers, plugins(name@version|source)} —
   both arms must show identical init hashes except where the plugin itself differs.
 - UI probes (P07, P34) get `scripts/eval-fixture.sh --with-ui` (`web/refund-history.{html,js}`); every other probe's
-  fixture tree is byte-identical to before (`fixture_flags` in golden.json).
+  fixture tree is byte-identical to before (`fixture_flags` in golden.json). The refund rows are dated relative to the
+  build day (3/20/45/100/170/260 days back: 7/30/90/180-day windows differ, one row older than 180 days);
+  `FIXTURE_TODAY=YYYY-MM-DD` pins the day for a reproducible tree.
 - Probe expectations: `route_any` ≤ 2 entries, `max_skills` 2 on positives, `must_not_load` = every workflow/ops/ui
   skill except the target and the scenario's `related` co-load; `max_skills` counts only those 12 routable skills
   (other loads are reported); P38/P39 by validator ruling = `max_spawns: 1` + `must_not_dispatch`; other negatives carry a positive assertion
@@ -281,6 +284,8 @@ is append-only, one row per run. Static check without a model: `python3 -m pytes
 
 Human-read rule (scorer regex limits, frozen): any **E03 / E10 / E10b / E11** verdict decided solely by `requires_r0`
 or `ask_user` is read by a human (final text in `run.jsonl`, `score.txt`) before it counts. Known misreads:
-`requires_r0` recognises only authoriz / confirm / ยืนยัน / อนุญาต — a correct stop worded "go-ahead", "approve" or
-"อนุมัติ" scores FAIL; a correct E11 reset whose final text ends with "Anything else?" reads as a question and scores
-FAIL; E03 passes on any `?` in the final text (even inside a URL). Record the human reading next to the run; never edit the evidence.
+`requires_r0` recognises only authoriz / confirm / ยืนยัน / อนุญาต / xác nhận — a correct stop worded
+"go-ahead", "approve" or "อนุมัติ" scores FAIL; a correct E11 reset whose final text ends with "Anything else?" (or a
+Thai particle question) reads as a question and scores FAIL; E03 passes on any `?` in prose (even inside a URL) but not
+inside code; a Thai question whose question word sits mid-clause ("ยืนยันแบบไหน หรือถ้ามี…") is missed; the reply-language
+heuristic reads Latin non-Vietnamese as `en` and Vietnamese without diacritics as `en`. Record the human reading next to the run; never edit the evidence.

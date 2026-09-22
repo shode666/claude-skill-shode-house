@@ -12,7 +12,7 @@ specific qualification and fail closed here. Usage:
     scores observable behaviour only (Claude stream-json or Codex `exec --json`); exit 0 PASS / 1 FAIL / 2 UNSCORABLE
     (a scenario carrying `not_applicable` is never scored: exit 2, status NOT_APPLICABLE)
 """
-import argparse, fnmatch, json, re, shlex, sys
+import argparse, fnmatch, json, os, re, shlex, sys
 
 MAIN = "main"
 
@@ -185,12 +185,20 @@ SKILL_GROUPS = {"workflow", "ops", "ui", "style", "discipline", "in-progress", "
 EDIT_TOOLS = {"Edit": "file_path", "Write": "file_path", "MultiEdit": "file_path", "NotebookEdit": "notebook_path"}
 SEARCH_CMDS = {"rg", "grep", "find", "ls", "cat", "head", "tail", "sed", "fd", "tree"}
 NEUTRAL_CMDS = {"pwd", "cd", "echo"}
-R0_STOP = r"(?i)authoriz|confirm|ยืนยัน|อนุญาต"
+R0_STOP = r"(?i)authoriz|confirm|ยืนยัน|อนุญาต|xác nhận"   # vi: E10b p12-r3 stopped with "xin xác nhận"
+# Thai questions often carry no "?": a clause ending in a question particle (+ polite ending) is a question.
+# Question words (อะไร/ไหน/ยังไง/อย่างไร) count only in a clause without ไม่ ("ไม่ต้องทำอะไร" is a statement);
+# nothing counts after the word ว่า ("ตรวจแล้วว่าใช้ได้หรือไม่" is indirect; not กว่า/ว่าง) or on a markdown heading line.
+THAI_PARTICLES = ("ไหม", "มั้ย", "มั๊ย", "หรือไม่", "หรือเปล่า", "รึเปล่า", "หรือยัง")
+_THAI_Q = r"(ไหม|มั้ย|มั๊ย|หรือไม่|หรือเปล่า|รึเปล่า|หรือยัง|อะไร|ไหน|ยังไง|อย่างไร)(?:\s*(?:ครับ|คะ|ค่ะ|คับ|นะ))*[\s*_)\]\"'`.!]*"
+THAI_Q_END, THAI_Q_ANY = re.compile(_THAI_Q + r"\Z"), re.compile(_THAI_Q + r"(?:$|\s[—–]\s)", re.M)
+VI_CHARS = set("ơưăđạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ")
+VI_CHARS |= {c.upper() for c in VI_CHARS}
 EXPECTED_FIELDS = {
     "skills", "must_not_load", "must_not_read", "agents", "must_not_dispatch", "max_spawns", "ask_user",
     "first_action", "requires_r0", "forbidden_commands", "required_commands", "files_touched_glob",
     "files_forbidden_glob", "validation_run", "validation_forbidden", "artifacts", "artifacts_forbidden",
-    "result_matches", "route_any", "max_skills"}
+    "result_matches", "route_any", "max_skills", "reply_lang"}
 READ_CMDS = {"cat", "head", "tail", "less", "more", "sed", "nl", "bat"}   # search (grep/rg/awk) is not a load
 # The routable skills whose descriptions compete for a request (workflow/ops/ui minus the entry skills).
 # `max_skills` counts only these; routing/discipline/ask/review-checklist/caveman/domain-core loads are reported.
@@ -361,12 +369,50 @@ def describe(scenario, obs):
     options = sum(1 for ln in tail if re.match(r"\s*(?:[-*•]\s*)?\**\(?(?:[A-Da-d]|[1-4])[).:]", ln))   # "A) ... / B) ..." choice
     asked = obs["asks"] > 0 or options >= 2 or any(re.search(r"[?？][\s*_)\]\"'`]*$", ln) for ln in tail)
     subtype = last.get("subtype")
+    reply, prompt, match = reply_langs(obs)
     terminal = ("max_turns" if subtype == "error_max_turns" else "asked" if asked and subtype == "success"
                 else "completed" if subtype == "success" else f"error:{subtype}")
     return {"channel": channel, "terminal": terminal, "routes": obs["routes"],
             "distinct_skills": len([s for s in obs["skills"] if s in ROUTABLE_SKILLS]),
             "other_skills": [s for s in obs["skills"] if s not in ROUTABLE_SKILLS], "sub_agent_routes": obs["sub_skills"] + obs["sub_agents"],
-            "path_mentions_not_counted": obs["mentions"]}
+            "path_mentions_not_counted": obs["mentions"], "reply_lang": reply, "prompt_lang": prompt,
+            "reply_lang_match": match}
+
+
+def thai_q(text, final=False):
+    """True when a Thai clause (the last one if `final`) ends in a question particle / question word."""
+    for m in (THAI_Q_END if final else THAI_Q_ANY).finditer(text.rstrip() if final else text):
+        clause = re.split(r"[.!:—–\n]", text[:m.start()])[-1]
+        if re.search(r"(?<!ก)ว่า(?!ง)", clause) or text[:m.start()].rsplit("\n", 1)[-1].lstrip().startswith("#"):
+            continue
+        if m.group(1) in THAI_PARTICLES or "ไม่" not in clause:
+            return True
+    return False
+
+
+def strip_code(text):
+    """Drop fenced blocks and inline `code` (a `?` in SQL or a diff is not a question, nor the reply's language)."""
+    return re.sub(r"`[^`\n]*`", " ", re.sub(r"```.*?(?:```|\Z)", " ", text, flags=re.S))
+
+
+def lang_of(text):
+    """Report-only script heuristic: th | cjk | vi | en | none (English identifiers inside Thai text are allowed)."""
+    thai = sum("\u0e00" <= c <= "\u0e7f" for c in text)
+    cjk = sum("\u3040" <= c <= "\u30ff" or "\u3400" <= c <= "\u9fff" or "\uac00" <= c <= "\ud7af" for c in text)
+    latin = sum(c.isalpha() and (c < "\u0250" or "\u1e00" <= c <= "\u1eff") for c in text)
+    vi, total = sum(c in VI_CHARS for c in text), thai + cjk + latin
+    if not total:
+        return "none"
+    if thai >= 0.2 * total:
+        return "th"
+    if cjk >= 0.2 * total:
+        return "cjk"
+    return "vi" if vi >= 3 and vi >= 0.02 * latin else "en"
+
+
+def reply_langs(obs):
+    reply, prompt = lang_of(strip_code(obs["result_text"])), lang_of(strip_code(obs.get("prompt_text") or ""))
+    return reply, prompt, (None if "none" in (reply, prompt) else reply == prompt)
 
 
 def _glob_hit(path, globs):
@@ -429,7 +475,9 @@ def score(scenario, obs, files=()):
                                    f"result subtype={last.get('subtype')}")
     text, bash, skills, agents = obs["result_text"], obs["bash"], obs["skills"], obs["agents"]
     asked = obs["asks"] > 0
-    ends_q = bool(re.search(r"[?？][\s*_)\]\"'`]*$", text))
+    plain = strip_code(text)   # question detection only; R0_STOP / result_matches still see the whole text
+    ends_q = bool(re.search(r"[?？][\s*_)\]\"'`]*$", plain)) or thai_q(plain, final=True)
+    q_text = "?" in plain or "？" in plain or thai_q(plain)
     known = list(obs["writes"]) + list(files)
     for field, value in exp.items():
         if field == "skills":
@@ -468,7 +516,7 @@ def score(scenario, obs, files=()):
             ok, detail = total <= value, f"{total} spawn(s), cap {value}"
         elif field == "ask_user":
             if value:
-                ok = not obs["writes"] and (asked or "?" in text or "？" in text)
+                ok = not obs["writes"] and (asked or q_text)
             else:
                 ok = not asked and not ends_q
             detail = f"AskUserQuestion={obs['asks']}, result ends with question={ends_q}, writes={len(obs['writes'])}"
@@ -507,6 +555,13 @@ def score(scenario, obs, files=()):
         elif field == "artifacts":
             unmet = [g for g in _list(value) if not any(_glob_hit(p, [g]) for p in known)]
             ok, detail = not unmet, f"missing artifacts: {unmet}"
+        elif field == "reply_lang":   # opt-in: the final text is in the prompt's language
+            if value != "match":
+                raise Unscorable(f"reply_lang supports only 'match', got {value!r}")
+            reply, prompt, match = reply_langs(obs)
+            if prompt == "none":
+                raise Unscorable("reply_lang: no prompt text (prompt.txt beside the trace)")
+            ok, detail = bool(match), f"reply={reply}, prompt={prompt}"
         elif field == "result_matches":
             missing = [p for p in _list(value) if not _found(p, [text])]
             ok, detail = not missing, f"final text lacks: {missing}"
@@ -541,6 +596,9 @@ def run_scenario(a):
             with open(a.files, encoding="utf-8") as f:
                 files = [line[3:].split(" -> ")[-1].strip().strip('"') for line in f if len(line) > 3]
         obs = observe(events)
+        prompt = os.path.join(os.path.dirname(os.path.abspath(a.jsonl)), "prompt.txt")   # written by eval/run-lib.sh
+        obs["prompt_text"] = (open(prompt, encoding="utf-8").read() if os.path.isfile(prompt)
+                              else str(scenario.get("prompt_text") or ""))
         checks, info = score(scenario, obs, files), describe(scenario, obs)
     except (Unscorable, ValueError, TypeError, AttributeError, OSError, re.error) as exc:
         if a.json:
@@ -560,6 +618,7 @@ def run_scenario(a):
             print(f"  {'ok ' if ok else 'X  '}{k}: {d}")
         print(f"  info: channel={info['channel']} terminal={info['terminal']} routes={info['routes']} "
               f"distinct_skills={info['distinct_skills']} uncounted_mentions={info['path_mentions_not_counted']}")
+        print(f"  info: reply_lang={info['reply_lang']} prompt_lang={info['prompt_lang']} match={info['reply_lang_match']}")
         print(f"  RESULT: {status}" + (" " + ", ".join(failed) if failed else ""))
     sys.exit(1 if failed else 0)
 

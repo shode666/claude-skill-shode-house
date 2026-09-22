@@ -275,8 +275,12 @@ EOF
 cat > web/refund-history.js <<'EOF'
 // bd-102 refund history: newest first, amount right-aligned, empty state with a way out.
 const ROWS = [
-  { date: "2026-01-12", order: "#10231", amount: 1250.0, status: "สำเร็จ" },
-  { date: "2026-01-09", order: "#10198", amount: 300.0, status: "รอดำเนินการ" },
+  { date: "@D3@", order: "#10231", amount: 1250.0, status: "สำเร็จ" },
+  { date: "@D20@", order: "#10198", amount: 300.0, status: "รอดำเนินการ" },
+  { date: "@D45@", order: "#10142", amount: 890.0, status: "สำเร็จ" },
+  { date: "@D100@", order: "#10077", amount: 45.5, status: "สำเร็จ" },
+  { date: "@D170@", order: "#10012", amount: 2100.0, status: "ปฏิเสธ" },
+  { date: "@D260@", order: "#09934", amount: 760.0, status: "สำเร็จ" },
 ];
 
 function render(rows) {
@@ -294,6 +298,16 @@ function render(rows) {
 
 render(new URLSearchParams(location.search).has("empty") ? [] : ROWS);
 EOF
+# dates relative to the build day (FIXTURE_TODAY=YYYY-MM-DD pins it): 7/30/90/180-day filters each show a
+# different subset and one row is older than 180 days (hardcoded 2026-01 rows went stale -> E05 stopped to ask)
+python3 - web/refund-history.js "${FIXTURE_TODAY:-}" <<'PY'
+import datetime, re, sys
+path, pinned = sys.argv[1], sys.argv[2]
+today = datetime.date.fromisoformat(pinned) if pinned else datetime.date.today()
+text = open(path, encoding="utf-8").read()
+text = re.sub(r"@D(\d+)@", lambda m: str(today - datetime.timedelta(days=int(m.group(1)))), text)
+open(path, "w", encoding="utf-8").write(text)
+PY
 git add -A && git commit -qm "fixture(3.17): refund history screen (web/) for UI probes"
 fi
 

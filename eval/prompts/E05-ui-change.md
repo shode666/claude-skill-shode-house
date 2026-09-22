@@ -1,6 +1,6 @@
 # E05 — UI Change (SPEC §47)
 
-- kind: `core` · fixture: `scripts/eval-fixture-core.sh --scenario E05` (frozen `--with-ui`: `web/refund-history.*`)
+- kind: `core` · fixture: `scripts/eval-fixture-core.sh --scenario E05` (frozen `--with-ui`: `web/refund-history.*`, rows dated relative to the build day; `FIXTURE_TODAY` pins it)
 - expected (observable, scored by `team-run-check.py --scenario E05 --scenarios eval/scenarios/core-3.17.json`): see that file, id `E05`
   — UI verification reached (ui-test skill, Uma or Quinn) · backend/Java untouched · no migration/API/incident skill
 - runner: `bash eval/run-core.sh [model] [out-dir]` with `CORE_IDS=E05`
