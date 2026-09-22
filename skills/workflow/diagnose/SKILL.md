@@ -1,6 +1,6 @@
 ---
 name: diagnose
-description: Debug something broken or wrong (an error, crash, failing test, wrong output, flaky behavior, regression or slowdown) by reproducing it and isolating the root cause before fixing. For live production impact that needs mitigation, use incident instead.
+description: Debug an error, crash, failing test, wrong output, regression or slowdown (พัง, ไม่ทำงาน, ช้า, ทำไมถึง, bug) by reproducing and isolating the root cause before fixing. For live production impact, use incident.
 ---
 
 # Diagnose (structured debugging)
