@@ -1,6 +1,6 @@
 ---
 name: drain
-description: Deliver a verified set of independent, concrete, ready tasks using isolated workers, bounded concurrency, independent review, serial integration and evidence-backed closure. Not for interdependent or still-abstract work, new design decisions, or a production outage.
+description: Work through a backlog of ready tickets or tasks, continuing the remaining ones in batches with isolated workers, independent review, serial integration and evidence-backed closure. For work not yet split into concrete, independent tickets, use decompose first.
 ---
 
 Use the referenced skill [drain](../../knowledge/skills/ops/drain/SKILL.md) as the workflow entry point. Follow only the branches that apply to the current task, and load additional references only when the root skill directs you to.

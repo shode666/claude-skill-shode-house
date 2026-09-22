@@ -1,6 +1,6 @@
 ---
 name: diagnose
-description: Investigate an unresolved failure, regression or performance problem with no active production impact, even one seen in production, by reproducing it and isolating the root cause before fixing. Not for mitigating a live outage or issues with a known cause.
+description: Debug something broken or wrong (an error, crash, failing test, wrong output, flaky behavior, regression or slowdown) by reproducing it and isolating the root cause before fixing. For live production impact that needs mitigation, use incident instead.
 ---
 
 Use the referenced skill [diagnose](../../knowledge/skills/workflow/diagnose/SKILL.md) as the workflow entry point. Follow only the branches that apply to the current task, and load additional references only when the root skill directs you to.

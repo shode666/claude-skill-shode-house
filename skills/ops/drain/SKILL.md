@@ -1,6 +1,6 @@
 ---
 name: drain
-description: Deliver a verified set of independent, concrete, ready tasks using isolated workers, bounded concurrency, independent review, serial integration and evidence-backed closure. Not for interdependent or still-abstract work, new design decisions, or a production outage.
+description: Work through a backlog of ready tickets or tasks, continuing the remaining ones in batches with isolated workers, independent review, serial integration and evidence-backed closure. For work not yet split into concrete, independent tickets, use decompose first.
 ---
 
 # Drain (verified backlog → parallel worktree → serial merge → close-on-done)

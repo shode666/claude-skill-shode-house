@@ -1,6 +1,6 @@
 ---
 name: diagnose
-description: Investigate an unresolved failure, regression or performance problem with no active production impact, even one seen in production, by reproducing it and isolating the root cause before fixing. Not for mitigating a live outage or issues with a known cause.
+description: Debug something broken or wrong (an error, crash, failing test, wrong output, flaky behavior, regression or slowdown) by reproducing it and isolating the root cause before fixing. For live production impact that needs mitigation, use incident instead.
 ---
 
 # Diagnose (structured debugging)
