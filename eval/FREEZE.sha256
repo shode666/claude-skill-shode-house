@@ -1,5 +1,5 @@
 cf5c881430e92b400801888f24e3a49538fd7fcf07d14064b1daea92e66c87d5  eval/scenarios/golden.json
-f17c69e9534dc483f728047bb674915c1d1892e51580b61060adf1f0ccf10ab8  scripts/team-run-check.py
+3f4d6c18ed995315df73f00f4d020761657e7bbeb055bbd7c3fd4d85c4a7c3c0  scripts/team-run-check.py
 562f6a0de818519fc1b0fa73f251f4a7ccea920c809b37d37cf54a70de41c149  scripts/eval-fixture.sh
 60563a951eea5b15c06e7a19305adb474ccbfd7c08970fda67e8b57c2cf86188  eval/run-lib.sh
 d5f71bd61977cf6bc3af2990fd302ae94e37f03a61dcd572057ce4a5f8b086e1  eval/run-probes.sh

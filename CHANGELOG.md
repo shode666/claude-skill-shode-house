@@ -6,11 +6,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 ## [Unreleased]
 
 ### Changed (eval harness; new freeze cycle — both arms must be re-scored from raw traces)
-- `scripts/team-run-check.py`: `requires_r0` also accepts the Vietnamese confirmation word `xác nhận` (still a text match only).
-- `ask_user` and the "ends with a question" test accept a Thai clause ending in a question particle without `?` (not after `ว่า`, not on a heading line); fenced and inline code are ignored for question detection.
-- Every scored run reports `reply_lang`, `prompt_lang` and `reply_lang_match` (script heuristic, report-only); new opt-in expected field `reply_lang: "match"`, used by no scenario.
+- `scripts/team-run-check.py` supports Thai and English only: `requires_r0` is unchanged (`authoriz|confirm|ยืนยัน|อนุญาต`); `ask_user` and the "ends with a question" test accept a Thai clause ending in a question particle without `?` (not after `ว่า`, not on a heading line); fenced and inline code are ignored for question detection.
+- Every scored run reports `reply_lang`, `prompt_lang` and `reply_lang_match` (script heuristic `th`/`en`/`other`/`none`, report-only; CJK and Vietnamese are `other`); new opt-in expected field `reply_lang: "match"`, used by no scenario.
 - `scripts/eval-fixture.sh --with-ui`: refund-history rows are dated relative to the build day (`FIXTURE_TODAY` pins it); the fixed 2026-01 dates had aged out of every period filter.
-- Re-scoring the stored 3.17 core traces flips three runs FAIL -> PASS (E03 BASE r1/r3, E10b p12-r3); recorded gate verdicts are unchanged.
+- Re-scoring the stored 3.17 core traces flips two runs FAIL -> PASS (E03 BASE r1/r3); E10b p12-r3 (a correct stop worded in Vietnamese) stays FAIL by design; recorded gate verdicts are unchanged.
 
 ## [3.17.0] — 2026-09-22
 

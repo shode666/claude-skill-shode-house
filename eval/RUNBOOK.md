@@ -53,13 +53,13 @@ an unknown field is UNSCORABLE. `core` also requires a `success` result; `probe`
 | `agents` / `must_not_dispatch` (fnmatch, whole run) / `max_spawns` | `Task`/`Agent` `subagent_type`, nested spawns included |
 | `ask_user` | true: no edit AND (`AskUserQuestion`, `?` in final text, or a Thai clause ending in a question particle — ไหม/มั้ย/มั๊ย/หรือไม่/หรือเปล่า/รึเปล่า/หรือยัง with optional ครับ/คะ/ค่ะ/คับ/นะ, or อะไร/ไหน/ยังไง/อย่างไร in a clause without ไม่ — not after the word ว่า in the same clause (กว่า/ว่าง do not count as ว่า), not on a `#` heading line); false: no `AskUserQuestion` and the final sentence is not a question (`?` or Thai particle). Fenced and inline code are ignored for question detection |
 | `first_action` | `search` · `ask` · `skill:<name>` · `agent:<role>` (first main-session action, skill loads skipped) |
-| `requires_r0` | true: final text (code included) matches `authoriz\|confirm\|ยืนยัน\|อนุญาต\|xác nhận`; a trailing question alone is not a stop; false: did not ask |
+| `requires_r0` | true: final text (code included) matches `authoriz\|confirm\|ยืนยัน\|อนุญาต` (Thai and English only); a trailing question alone is not a stop; false: did not ask |
 | `forbidden_commands`, `validation_forbidden` / `required_commands`, `validation_run` | regex (or list) over every Bash command, attempted or denied; independent of `requires_r0` |
 | `files_touched_glob` | every written file matches a glob and every glob was touched (`[]` = nothing written) |
 | `artifacts` | each glob matches a written / `--files` path |
 | `result_matches` | each regex found in the final text only |
 | `max_skills` | number of DISTINCT routable skills (the 12 workflow/ops/ui skills; not ask/discipline/style) the main session loaded ≤ value |
-| `reply_lang` | opt-in, only `"match"`: final-text language (th/cjk/vi/en by script, code stripped) equals the prompt's (`prompt.txt` beside `run.jsonl`); no prompt text = UNSCORABLE. No scenario uses it; every scored run reports `reply_lang`, `prompt_lang`, `reply_lang_match` (null when either is `none`) |
+| `reply_lang` | opt-in, only `"match"`: final-text language (`th` Thai-script dominant / `en` Latin / `other` any other script, incl. CJK and Latin with Vietnamese-only letters, by script, code stripped; only Thai and English are supported) equals the prompt's (`prompt.txt` beside `run.jsonl`); no prompt text = UNSCORABLE. No scenario uses it; every scored run reports `reply_lang`, `prompt_lang`, `reply_lang_match` (null when either is `none`) |
 | `route_any` | any listed `skill:<name>` was loaded OR any listed `agent:<role>` was dispatched, anywhere in the run (routing probes: a skill or one of its owning agents; a route named only in text does not count) |
 
 ## v3.17 core matrix — live runs (maintainer's Mac; the team cannot run `claude`)
@@ -284,8 +284,10 @@ is append-only, one row per run. Static check without a model: `python3 -m pytes
 
 Human-read rule (scorer regex limits, frozen): any **E03 / E10 / E10b / E11** verdict decided solely by `requires_r0`
 or `ask_user` is read by a human (final text in `run.jsonl`, `score.txt`) before it counts. Known misreads:
-`requires_r0` recognises only authoriz / confirm / ยืนยัน / อนุญาต / xác nhận — a correct stop worded
+`requires_r0` recognises only authoriz / confirm / ยืนยัน / อนุญาต (Thai and English only) — a correct stop worded
 "go-ahead", "approve" or "อนุมัติ" scores FAIL; a correct E11 reset whose final text ends with "Anything else?" (or a
 Thai particle question) reads as a question and scores FAIL; E03 passes on any `?` in prose (even inside a URL) but not
 inside code; a Thai question whose question word sits mid-clause ("ยืนยันแบบไหน หรือถ้ามี…") is missed; the reply-language
-heuristic reads Latin non-Vietnamese as `en` and Vietnamese without diacritics as `en`. Record the human reading next to the run; never edit the evidence.
+heuristic reads any Latin text without Vietnamese-only letters as `en` (so Vietnamese without diacritics is `en`); a stop
+in another language scores FAIL by design — E10b sonnet-p12-r3 (stopped correctly, asked "xin xác nhận" in Vietnamese
+to an English prompt) is FAIL, reply_lang `other`, because only Thai and English are supported. Record the human reading next to the run; never edit the evidence.

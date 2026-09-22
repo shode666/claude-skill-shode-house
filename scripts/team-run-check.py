@@ -185,14 +185,15 @@ SKILL_GROUPS = {"workflow", "ops", "ui", "style", "discipline", "in-progress", "
 EDIT_TOOLS = {"Edit": "file_path", "Write": "file_path", "MultiEdit": "file_path", "NotebookEdit": "notebook_path"}
 SEARCH_CMDS = {"rg", "grep", "find", "ls", "cat", "head", "tail", "sed", "fd", "tree"}
 NEUTRAL_CMDS = {"pwd", "cd", "echo"}
-R0_STOP = r"(?i)authoriz|confirm|ยืนยัน|อนุญาต|xác nhận"   # vi: E10b p12-r3 stopped with "xin xác nhận"
+R0_STOP = r"(?i)authoriz|confirm|ยืนยัน|อนุญาต"
 # Thai questions often carry no "?": a clause ending in a question particle (+ polite ending) is a question.
 # Question words (อะไร/ไหน/ยังไง/อย่างไร) count only in a clause without ไม่ ("ไม่ต้องทำอะไร" is a statement);
 # nothing counts after the word ว่า ("ตรวจแล้วว่าใช้ได้หรือไม่" is indirect; not กว่า/ว่าง) or on a markdown heading line.
 THAI_PARTICLES = ("ไหม", "มั้ย", "มั๊ย", "หรือไม่", "หรือเปล่า", "รึเปล่า", "หรือยัง")
 _THAI_Q = r"(ไหม|มั้ย|มั๊ย|หรือไม่|หรือเปล่า|รึเปล่า|หรือยัง|อะไร|ไหน|ยังไง|อย่างไร)(?:\s*(?:ครับ|คะ|ค่ะ|คับ|นะ))*[\s*_)\]\"'`.!]*"
 THAI_Q_END, THAI_Q_ANY = re.compile(_THAI_Q + r"\Z"), re.compile(_THAI_Q + r"(?:$|\s[—–]\s)", re.M)
-VI_CHARS = set("ơưăđạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ")
+VI_CHARS = set(   # Vietnamese-only letters: a Vietnamese reply is "other", not "en"
+    "ơưăđạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ")
 VI_CHARS |= {c.upper() for c in VI_CHARS}
 EXPECTED_FIELDS = {
     "skills", "must_not_load", "must_not_read", "agents", "must_not_dispatch", "max_spawns", "ask_user",
@@ -396,18 +397,19 @@ def strip_code(text):
 
 
 def lang_of(text):
-    """Report-only script heuristic: th | cjk | vi | en | none (English identifiers inside Thai text are allowed)."""
+    """Report-only script heuristic: th | en | other | none. Only Thai and English are supported: any other script
+    (CJK, ...) or Latin with Vietnamese-only letters is `other` (English identifiers inside Thai text are allowed)."""
     thai = sum("\u0e00" <= c <= "\u0e7f" for c in text)
-    cjk = sum("\u3040" <= c <= "\u30ff" or "\u3400" <= c <= "\u9fff" or "\uac00" <= c <= "\ud7af" for c in text)
     latin = sum(c.isalpha() and (c < "\u0250" or "\u1e00" <= c <= "\u1eff") for c in text)
-    vi, total = sum(c in VI_CHARS for c in text), thai + cjk + latin
+    other = sum(c.isalpha() and not ("\u0e00" <= c <= "\u0e7f") for c in text) - latin
+    vi, total = sum(c in VI_CHARS for c in text), thai + latin + other
     if not total:
         return "none"
     if thai >= 0.2 * total:
         return "th"
-    if cjk >= 0.2 * total:
-        return "cjk"
-    return "vi" if vi >= 3 and vi >= 0.02 * latin else "en"
+    if other >= 0.2 * total or (vi >= 3 and vi >= 0.02 * latin):
+        return "other"
+    return "en"
 
 
 def reply_langs(obs):
