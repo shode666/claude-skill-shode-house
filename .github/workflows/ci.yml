@@ -4,10 +4,13 @@ name: ci
 # runs only here on GitHub (bash + jq) — nothing executes on a contributor's
 # machine. To validate locally, push and read the CI result.
 
+# Manual only (user decision 2026-09-23): run from the Actions tab via
+# "Run workflow". Automatic runs on push/pull_request are off while the
+# lock-primitive suite's _lock_fs_identity check is unreliable on the runner
+# filesystem (it assumes a remove+recreate of the same path yields a new
+# inode; the runner reuses it).
 on:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   gate:
