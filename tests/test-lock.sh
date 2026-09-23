@@ -714,17 +714,61 @@ rm -rf "$D"
 # / LOCK_RECOVER_STEP1_READABLE_SYNC hooks.
 # =============================================================================
 
-t_start "NEW iter5 unit: _lock_fs_identity -- non-empty device:inode for an existing dir, empty for a path that never existed, and DIFFERENT before vs. after a remove+recreate of the SAME path (the identity signal the whole redesign depends on)"
+t_start "NEW iter5 unit (rewritten after the ubuntu-latest CI failure): the identity EVIDENCE rule -- a non-empty fingerprint for an existing dir, an empty one for a path that never existed, CHANGED when the lock dir is REMOVED and RECREATED at the SAME path (ordinary churn, a different worker's fresh mkdir) strictly BETWEEN the classifier's two identity observations, and CORRUPT when the SAME directory stays put. Asserts the CLASSIFIER's verdict, never a filesystem guarantee: the old form asserted directly that a remove+recreate yields a different inode, which ext4 does NOT give (it hands the freed directory inode straight back, 200/200) -- inode non-reuse is promised by no POSIX filesystem, so asserting it made CI fail on a property the library must not depend on. This form runs the SAME churn through the classifier: on an inode-reusing filesystem it is red unless the fingerprint carries more than device:inode."
 D=$(sandbox); dir="$D/.lock-identity"
 mkdir -p "$dir"
 id1=$(_lock_fs_identity "$dir")
 [ -n "$id1" ] && t_ok || t_fail "an existing directory must yield a non-empty identity fingerprint"
 never=$(_lock_fs_identity "$D/.never-existed")
 [ -z "$never" ] && t_ok || t_fail "a path that never existed must yield an empty fingerprint, got: '$never'"
-rmdir "$dir"; mkdir -p "$dir"
-id2=$(_lock_fs_identity "$dir")
-[ -n "$id2" ] && t_ok || t_fail "the recreated directory must also yield a non-empty fingerprint"
-[ "$id1" != "$id2" ] && t_ok || t_fail "a remove+recreate of the SAME path must yield a DIFFERENT fingerprint (new inode) -- got the same value twice: '$id1'"
+# CHANGED: the lock dir is REMOVED and a brand new one RECREATED at the SAME path --
+# the exact churn shape a different worker produces -- strictly between the
+# disambiguation's first and second fingerprint observation. The recreated directory is
+# a different OBJECT but, on ext4, reuses the very same device:inode, so this assertion
+# is red on the bare device:inode fingerprint and green only once the fingerprint also
+# carries creation time. Determinism comes from two handoffs, not from timing:
+# LOCK_DISAMBIGUATE_SYNC holds the classifier at the top of its own window, and a thin
+# wrapper around _lock_fs_identity (which still computes the REAL fingerprint of the
+# real directory) parks the classifier right after observation 1 until the recreate has
+# landed. No sleep-and-hope anywhere.
+chmod 000 "$dir"
+sync2="$D/disambig-sync"; hand="$D/identity-handoff"
+_saved_fsid="$(declare -f _lock_fs_identity)"
+(
+  eval "${_saved_fsid/#_lock_fs_identity/_lock_fs_identity_real}"
+  _lock_fs_identity() {
+    local v rc n
+    v=$(_lock_fs_identity_real "$1"); rc=$?
+    if [ ! -e "${hand}.done" ]; then
+      : > "${hand}.obs1"
+      n=0
+      while [ ! -e "${hand}.swapped" ]; do n=$((n + 1)); [ "$n" -ge 100 ] && break; sleep 0.05; done
+      : > "${hand}.done"
+    fi
+    printf '%s' "$v"; return "$rc"
+  }
+  LOCK_DISAMBIGUATE_SYNC="$sync2" _lock_disambiguate_unreadable "$dir" > "$D/out-changed"
+) &
+cpid=$!
+n=0
+while [ ! -e "${sync2}.ready" ]; do n=$((n + 1)); [ "$n" -ge 100 ] && break; sleep 0.05; done
+[ -e "${sync2}.ready" ] && t_ok || t_fail "_lock_disambiguate_unreadable never reached its own sync point"
+: > "${sync2}.go"
+n=0
+while [ ! -e "${hand}.obs1" ]; do n=$((n + 1)); [ "$n" -ge 100 ] && break; sleep 0.05; done
+[ -e "${hand}.obs1" ] && t_ok || t_fail "the classifier never took its FIRST identity observation"
+rmdir "$dir" 2>/dev/null || { chmod 700 "$dir"; rm -rf "$dir"; }
+mkdir "$dir"; chmod 000 "$dir"   # a DIFFERENT worker's fresh mkdir at the very same path
+: > "${hand}.swapped"
+wait "$cpid" 2>/dev/null
+chmod 755 "$dir" 2>/dev/null
+assert_eq "$(cat "$D/out-changed")" "CHANGED" "a lock dir removed and RECREATED at the same path between the two identity observations must answer CHANGED (ordinary churn -- a brand new, legitimate holder), NEVER CORRUPT -- on an inode-reusing filesystem (ext4) the recreated dir has the SAME device:inode, so device:inode alone cannot tell them apart"
+# CORRUPT: the contrast case -- the SAME object, never removed, still unreadable.
+stable="$D/.lock-identity-stable"
+mkdir -p "$stable"; chmod 000 "$stable"
+out=$(_lock_disambiguate_unreadable "$stable")
+chmod 755 "$stable" 2>/dev/null
+assert_eq "$out" "CORRUPT" "a stable, never-recreated, chmod 000 directory must answer CORRUPT -- the identity fingerprint matches across both observations because it IS the same object"
 rm -rf "$D"
 
 t_start "NEW iter5 unit: _lock_disambiguate_unreadable -- MISSING when the path is honestly, simply, never there"

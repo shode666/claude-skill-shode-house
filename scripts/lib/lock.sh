@@ -135,9 +135,11 @@
 #
 # `_lock_disambiguate_unreadable` (below `_lock_fs_identity`'s own header) implements
 # this: on a failed readability probe it takes ONE settled pair of observations --
-# re-run the existence probe, and if still EXISTS, compare a device:inode identity
-# fingerprint (`_lock_fs_identity`, NOT another bare existence test) across a single
-# ~50ms settle -- and returns MISSING (honestly gone, both observations agree) |
+# re-run the existence probe, and if still EXISTS, compare a
+# device:inode:creation-time identity fingerprint (`_lock_fs_identity`, NOT another
+# bare existence test -- inode numbers alone are REUSED, see that function's own
+# header) across a single ~50ms settle -- and returns MISSING (honestly gone, both
+# observations agree) |
 # CORRUPT (same fingerprint both times, still inaccessible -- confirmed stable) |
 # CHANGED (a different fingerprint, or the path became accessible, between the two
 # observations -- proceed as if the original probe had simply landed a beat later,
@@ -147,7 +149,12 @@
 # callers must map this to RECOVERY_REQUIRED, never to LOCK_BUSY, never treated as
 # license to proceed with a destructive reclaim). This is one settle-and-compare, not a
 # loop, not a third/fourth existence-only layer -- it is a different KIND of evidence
-# (identity, not existence) applied exactly once.
+# (identity, not existence) applied exactly once. The fingerprint is evidence, not
+# proof: if two distinct objects ever collide on it, the pair reads as "same object,
+# unchanged" -> CORRUPT -> every caller REFUSES (LOCK_CORRUPT, rc 4). A collision
+# therefore degrades to a spurious FAIL-CLOSED refusal, never to a destructive reclaim
+# of a live holder and never to a guessed LOCK_BUSY (`_lock_fs_identity`'s header
+# carries the measurements).
 #
 # A stuck `.recovering` marker (the recovery process itself crashed after claiming it)
 # is a first-class state, not a dead end: `lock_acquire` fails closed against it
@@ -318,25 +325,98 @@ _lock_exists_or_error() {
   printf 'EXISTS'
 }
 
-# ---- portable filesystem identity fingerprint (device:inode), used ONLY by the
-# disambiguation below to tell "the SAME object, still there" apart from "a DIFFERENT
-# object that happens to occupy the same path now" (bd:shode-house-vz8 iter5). This
-# DOES fork (`stat`) -- unlike `_lock_exists_or_error` above, it is called ONLY from
-# the already-rare disambiguation path (a readability probe has already failed), never
-# on the hot acquire/release path, so the fork-avoidance requirement documented on
+# ---- portable filesystem identity fingerprint (device:inode:creation-time), used
+# ONLY by the disambiguation below to tell "the SAME object, still there" apart from "a
+# DIFFERENT object that happens to occupy the same path now" (bd:shode-house-vz8 iter5;
+# widened from a bare device:inode in the CI-failure follow-up). This DOES fork
+# (`stat`) -- unlike `_lock_exists_or_error` above, it is called ONLY from the
+# already-rare disambiguation path (a readability probe has already failed), never on
+# the hot acquire/release path, so the fork-avoidance requirement documented on
 # `_lock_exists_or_error`'s own header does not apply here. stat's identity fields
-# (device+inode) need no permission on the target itself, only search permission on
-# its ancestors (same as `_lock_exists_or_error`) -- so this still works against a
-# directory that is itself `chmod 000`. Tries BSD stat (`-f`, this repo's dev/CI
-# machine is Darwin) first, then GNU stat (`-c`, Linux) -- lock.sh makes no other
-# platform assumption, so this stays portable rather than hard-coding one flavor.
-# Prints "" (and returns nonzero) if neither works -- e.g. the path vanished again in
-# the instant between the caller's own existence probe and this call -- callers must
-# treat that as "no identity obtained", NEVER as a match against anything.
+# (device + inode + timestamps) need no permission on the target itself, only search
+# permission on its ancestors (same as `_lock_exists_or_error`) -- so this still works
+# against a directory that is itself `chmod 000`.
+#
+# WHY device:inode ALONE IS NOT ENOUGH: inode numbers get REUSED. ext4 -- the
+# filesystem of the GitHub ubuntu-latest runner -- hands the just-freed directory inode
+# straight back to the next `mkdir` at the same path (measured: 200/200 identical
+# device:inode across back-to-back remove+recreate cycles), so a brand new, legitimate
+# holder fingerprinted as "the SAME object, unchanged" and the disambiguation below
+# answered CORRUPT for ordinary churn -- precisely the iter4 defect iter5 exists to
+# remove. No POSIX filesystem promises inode non-reuse, so the fingerprint also carries
+# a creation timestamp as well: birth time where the filesystem records one (`%w` GNU /
+# `%B` BSD), else ctime (`%z` / `%c`), which a remove+recreate moves forward even when
+# the inode number is recycled. The timestamp is READ at nanosecond precision, but the
+# resolution actually stored is coarser and kernel/filesystem dependent -- measured here
+# on ext4 the sub-second digits move in ~2-3 ms steps (a kernel tick; the trailing ns
+# digits stay constant). It is a fine-grained tiebreaker, not a true nanosecond clock.
+#
+# Probe order is GNU (`-c`, Linux) FIRST, then BSD (`-f`, this repo's dev machine is
+# Darwin) -- lock.sh still hard-codes no platform, it just stops paying for a doomed
+# fork on the platform CI actually runs on: on Linux `stat -f FMT path` means
+# `--file-system` and parses FMT as a FILENAME, so the BSD probe could only ever fail
+# there (and is one coreutils change away from returning filesystem statistics as a
+# "lock identity").
+#
+# Prints "" (and returns nonzero) when no usable identity can be built: the path
+# vanished again in the instant between the caller's own existence probe and this call,
+# neither stat flavor works, or GNU stat reports NO sub-second resolution at all (an
+# all-zero fraction on both birth and ctime, i.e. a whole-second-resolution filesystem)
+# -- which would leave a fingerprint no
+# stronger than the reusable device:inode. Callers must treat "" as "no identity
+# obtained" -> AMBIGUOUS -> fail closed, NEVER as a match against anything.
+#
+# RESIDUAL, written down deliberately: this is EVIDENCE, not proof. Two distinct
+# objects can still collide -- same device, recycled inode, creation timestamps landing
+# in the same ~2-3 ms bucket (measured 0/200 back-to-back remove+recreate cycles on ext4
+# with birth time, against 200/200 for device:inode alone; a BSD `stat` exposing only
+# whole-second precision widens that bucket a great deal). Every collision fails in ONE
+# direction: two different objects look like one unchanged object, so the
+# disambiguation says CORRUPT and every caller REFUSES -- `_lock_classify_holder` ->
+# LOCK_CORRUPT (rc 4), `lock_recover` Step 1 -> audited REFUSED / LOCK_CORRUPT (rc 4).
+# A fingerprint collision therefore degrades to a SPURIOUS, FAIL-CLOSED REFUSAL an
+# operator must look at -- never to a destructive reclaim of a live holder, never to a
+# guessed LOCK_BUSY. The reverse direction cannot occur: a fingerprint cannot differ
+# for an object that did not change.
+
+# ---- sub-second timestamp out of ONE GNU `stat` human-readable time field, read at
+# nanosecond precision (what the filesystem stores is coarser -- see the header above)
+# ("2026-09-23 08:09:52.684012204 +0000"). Prints "" (and returns nonzero) when the
+# field is absent ("-", e.g. a filesystem that records no birth time) or carries no
+# sub-second resolution at all (an all-zero fraction). Pure bash, no fork.
+_lock_ts_ns() {
+  local t="$1" frac
+  case "$t" in ''|'-'|'?'*) printf ''; return 1 ;; esac
+  case "$t" in *.*) : ;; *) printf ''; return 1 ;; esac
+  frac="${t#*.}"; frac="${frac%% *}"
+  case "$frac" in ''|*[!0-9]*) printf ''; return 1 ;; esac
+  case "$frac" in *[!0]*) : ;; *) printf ''; return 1 ;; esac
+  t="${t% *}"                       # drop the trailing timezone field
+  printf '%s' "${t/ /T}"
+}
+
 _lock_fs_identity() {
-  local path="$1" out
-  out=$(stat -f '%d:%i' "$path" 2>/dev/null) && { printf '%s' "$out"; return 0; }
-  out=$(stat -c '%d:%i' "$path" 2>/dev/null) && { printf '%s' "$out"; return 0; }
+  local path="$1" out di w z ts
+  # GNU stat (Linux) first -- see the probe-order note in the header above.
+  if out=$(stat -c '%d:%i|%w|%z' "$path" 2>/dev/null) && [ -n "$out" ]; then
+    di="${out%%|*}"; out="${out#*|}"; w="${out%%|*}"; z="${out#*|}"
+    ts=$(_lock_ts_ns "$w") || ts=$(_lock_ts_ns "$z") || ts=""
+    [ -n "$ts" ] && { printf '%s:%s' "$di" "$ts"; return 0; }
+    printf ''
+    return 1
+  fi
+  # BSD stat (Darwin). `%.9B` is a sub-second birth time where this stat supports the
+  # precision sub-field; anything that comes back without a non-zero fraction (an older
+  # stat prints a zero-padded integer instead) is rejected, and the whole-second birth
+  # AND ctime fields are used together instead -- weaker, still strictly more evidence
+  # than device:inode alone, and any collision stays fail-closed per the header.
+  if out=$(stat -f '%d:%i:%.9B' "$path" 2>/dev/null) && [ -n "$out" ]; then
+    ts="${out##*:}"
+    case "$ts" in *.*[!0]*) printf '%s' "$out"; return 0 ;; esac
+  fi
+  if out=$(stat -f '%d:%i:%B:%c' "$path" 2>/dev/null) && [ -n "$out" ]; then
+    printf '%s' "$out"; return 0
+  fi
   printf ''
   return 1
 }
@@ -364,9 +444,11 @@ _lock_is_now_accessible() {
 # runs at N=100 when a DIFFERENT worker's `mkdir` recreates the exact same path inside
 # that re-check's own gap). Prints exactly one of:
 #   MISSING    -- both observations agree the path is genuinely, honestly gone
-#   CORRUPT    -- the SAME object (matching device:inode fingerprint), confirmed
-#                 stable across two observations, still inaccessible -- an integrity
-#                 problem, never guessed for ordinary churn
+#   CORRUPT    -- the SAME object (matching device:inode:creation-time
+#                 fingerprint), confirmed stable across two observations, still
+#                 inaccessible -- an integrity problem, never guessed for ordinary
+#                 churn; this is also where a fingerprint COLLISION lands, i.e. a
+#                 wrong CORRUPT here is a fail-closed refusal, never a reclaim
 #   CHANGED    -- clear evidence a state transition happened under us: a DIFFERENT
 #                 fingerprint now occupies the path, or it became accessible between
 #                 the two observations -- ordinary contention; callers must proceed as
