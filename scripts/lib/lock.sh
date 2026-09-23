@@ -666,13 +666,55 @@ _lock_classify_holder() {
 # `.recovering` marker involved -- that path is handled separately in lock_acquire).
 # Prints "CODE|human text" on one line. Read-only, never mutates, never gates the wait
 # itself -- runs strictly AFTER the decision to fail is already made.
+# ---- internal (bd:shode-house-8ss): re-validate a DEAD liveness verdict against the
+# lock object it was read FROM, before that verdict is allowed to become the
+# non-retryable RECOVERY_REQUIRED. "The recorded pid is not running" is only evidence
+# of a crash-stuck lock if the lock that recorded it is STILL THERE, and is still the
+# SAME object. Reading the pid, and then asking the kernel whether that pid is alive,
+# are two separate non-atomic steps; under real contention a holder routinely finishes
+# its critical section and `lock_release`s (rm -rf) in exactly that gap, leaving a
+# waiter holding a pid that is dead precisely BECAUSE the lock it guarded was released
+# normally. That is ordinary churn, not a crash -- the same distinction this file
+# already draws for the readability probes (`_lock_disambiguate_unreadable`'s CHANGED
+# outcome); this closes the one remaining decision point of that shape, on the liveness
+# verdict rather than on readability. Prints DEAD | CHURN | <a fresh classification>.
+# Fail-closed is preserved in the only direction that matters: DEAD is still reported
+# whenever the SAME lock object is still present with the same dead pid -- a genuinely
+# crash-stuck lock still refuses, and a CHURN verdict can never reclaim anything (this
+# runs strictly inside the acquire-timeout DIAGNOSTIC, after the decision to fail is
+# already made; it only chooses between "retryable contention" and "stop and call a
+# human"). Deliberately NOT applied to `lock_recover`'s own liveness gate, where DEAD
+# is an operator-initiated reclaim input with its own quarantine protocol.
+_lock_revalidate_dead() {
+  local lockd="$1" pre_fp="$2" now_fp re
+  # 1. the lock is simply gone -- it was released while we were classifying it.
+  if [ "$(_lock_exists_or_error "$lockd")" = "MISSING" ]; then printf 'CHURN'; return; fi
+  # 2. a DIFFERENT object now occupies the path (fingerprint per _lock_fs_identity:
+  #    device:inode:creation-time) -- the pid we read belonged to the previous one.
+  now_fp=$(_lock_fs_identity "$lockd") || now_fp=""
+  if [ -n "$pre_fp" ] && [ -n "$now_fp" ] && [ "$pre_fp" != "$now_fp" ]; then printf 'CHURN'; return; fi
+  # 3. same object (or identity unobtainable on one side -- then we re-observe rather
+  #    than guess): one fresh classification. DEAD twice over a stable object is a real
+  #    crash-stuck lock and still fails closed.
+  re=$(_lock_classify_holder "$lockd")
+  case "$re" in
+    MISSING) printf 'CHURN' ;;
+    *)       printf '%s' "$re" ;;
+  esac
+}
+
 _lock_classify_timeout() {
   local lockd="$1"
+  # captured BEFORE the classification so a DEAD verdict can be checked against the
+  # identity of the object it was actually read from (see _lock_revalidate_dead).
+  local pre_fp; pre_fp=$(_lock_fs_identity "$lockd") || pre_fp=""
   local cls; cls=$(_lock_classify_holder "$lockd")
+  if [ "$cls" = "DEAD" ]; then cls=$(_lock_revalidate_dead "$lockd" "$pre_fp"); fi
   case "$cls" in
     CORRUPT)   printf 'LOCK_CORRUPT|lock directory exists but is not readable/traversable (permission denied) -- cannot determine who (if anyone) holds it' ;;
     AMBIGUOUS) printf 'RECOVERY_REQUIRED|could not establish whether the lock holder changed (ordinary churn) or is the same stable object during a readability check -- refusing to guess LOCK_BUSY; a human should run `scripts/lib/lock.sh recover` once contention settles (bd:shode-house-vz8 iter5)' ;;
     DEAD)      printf 'RECOVERY_REQUIRED|recorded holder is no longer running -- this lock is very likely crash-stuck; a human should run `scripts/lib/lock.sh recover` (never auto-retry)' ;;
+    CHURN)     printf 'LOCK_BUSY|the recorded holder is no longer running BECAUSE its lock was released normally while we were classifying it (the lock object is gone, or a different one now occupies the path) -- ordinary contention, bounded retry is reasonable, never RECOVERY_REQUIRED (bd:shode-house-8ss)' ;;
     *)         printf 'LOCK_BUSY|recorded holder appears to still be running, or its identity could not yet be determined (mid-populate) -- ordinary contention, bounded retry is reasonable' ;;
   esac
 }
