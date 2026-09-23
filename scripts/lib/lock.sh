@@ -318,25 +318,35 @@ _lock_exists_or_error() {
   printf 'EXISTS'
 }
 
-# ---- portable filesystem identity fingerprint (device:inode), used ONLY by the
+# ---- portable filesystem identity fingerprint (device:inode:ctime_ns), used ONLY by the
 # disambiguation below to tell "the SAME object, still there" apart from "a DIFFERENT
 # object that happens to occupy the same path now" (bd:shode-house-vz8 iter5). This
 # DOES fork (`stat`) -- unlike `_lock_exists_or_error` above, it is called ONLY from
 # the already-rare disambiguation path (a readability probe has already failed), never
 # on the hot acquire/release path, so the fork-avoidance requirement documented on
 # `_lock_exists_or_error`'s own header does not apply here. stat's identity fields
-# (device+inode) need no permission on the target itself, only search permission on
-# its ancestors (same as `_lock_exists_or_error`) -- so this still works against a
-# directory that is itself `chmod 000`. Tries BSD stat (`-f`, this repo's dev/CI
-# machine is Darwin) first, then GNU stat (`-c`, Linux) -- lock.sh makes no other
-# platform assumption, so this stays portable rather than hard-coding one flavor.
-# Prints "" (and returns nonzero) if neither works -- e.g. the path vanished again in
+# (device+inode plus ctime_ns) need no permission on the target itself, only search
+# permission on its ancestors (same as `_lock_exists_or_error`) -- so this still works
+# against a directory that is itself `chmod 000`. Uses Python's os.lstat so we can use
+# nanosecond ctime and still fingerprint dangling symlinks (important for the explicit
+# dangling-pid corruption checks), which also disambiguates inode-reuse-on-recreate
+# filesystems. Prints "" (and returns nonzero) if identity cannot be read -- e.g. Python
+# unavailable, or the path vanished again in
 # the instant between the caller's own existence probe and this call -- callers must
 # treat that as "no identity obtained", NEVER as a match against anything.
 _lock_fs_identity() {
   local path="$1" out
-  out=$(stat -f '%d:%i' "$path" 2>/dev/null) && { printf '%s' "$out"; return 0; }
-  out=$(stat -c '%d:%i' "$path" 2>/dev/null) && { printf '%s' "$out"; return 0; }
+  out=$(python3 - "$path" <<'PY' 2>/dev/null
+import os, sys
+p = sys.argv[1]
+try:
+    st = os.lstat(p)
+    ctime_ns = getattr(st, "st_ctime_ns", int(st.st_ctime * 1_000_000_000))
+    print(f"{st.st_dev}:{st.st_ino}:{ctime_ns}")
+except Exception:
+    sys.exit(1)
+PY
+  ) && { printf '%s' "$out"; return 0; }
   printf ''
   return 1
 }

@@ -714,7 +714,7 @@ rm -rf "$D"
 # / LOCK_RECOVER_STEP1_READABLE_SYNC hooks.
 # =============================================================================
 
-t_start "NEW iter5 unit: _lock_fs_identity -- non-empty for existing dirs, empty for a never-created path, and distinct across two simultaneously existing directories"
+t_start "NEW iter5 unit: _lock_fs_identity -- non-empty for existing dirs, empty for never-created paths, and DIFFERENT before vs. after remove+recreate of the SAME path"
 D=$(sandbox); dir="$D/.lock-identity"
 mkdir -p "$dir"
 id1=$(_lock_fs_identity "$dir")
@@ -724,9 +724,7 @@ never=$(_lock_fs_identity "$D/.never-existed")
 rmdir "$dir"; mkdir -p "$dir"
 id2=$(_lock_fs_identity "$dir")
 [ -n "$id2" ] && t_ok || t_fail "the recreated directory must also yield a non-empty fingerprint"
-peer="$D/.lock-identity-peer"; mkdir -p "$peer"
-id_peer=$(_lock_fs_identity "$peer")
-[ -n "$id_peer" ] && [ "$id2" != "$id_peer" ] && t_ok || t_fail "two simultaneously existing directories must not share the same identity fingerprint: '$id2'"
+[ "$id1" != "$id2" ] && t_ok || t_fail "a remove+recreate of the SAME path must yield a DIFFERENT identity fingerprint, got: id1='$id1' id2='$id2'"
 rm -rf "$D"
 
 t_start "NEW iter5 unit: _lock_disambiguate_unreadable -- MISSING when the path is honestly, simply, never there"
