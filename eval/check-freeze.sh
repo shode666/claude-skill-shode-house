@@ -12,7 +12,7 @@ root, mode = sys.argv[1], sys.argv[2]
 manifest = os.path.join(root, "eval/FREEZE.sha256")
 FIXED = ["eval/scenarios/golden.json", "eval/scenarios/core-3.17.json", "scripts/team-run-check.py", "scripts/eval-fixture.sh",
          "eval/run-lib.sh", "eval/run-probes.sh", "eval/probe-agg.py", "eval/check-freeze.sh", "eval/check-arm-diff.sh",
-         "eval/PROBE-GATE.md", "eval/PROBE-GATE-floor.md", "eval/heldout-3.17.SHA256SUMS"]
+         "eval/PROBE-GATE.md", "eval/PROBE-GATE-floor.md", "eval/PROBE-GATE-floor-v2.md", "eval/heldout-3.17.SHA256SUMS"]
 files = FIXED + sorted(os.path.relpath(p, root) for p in glob.glob(os.path.join(root, "eval/prompts/probes/*.md")))
 digest = lambda rel: hashlib.sha256(open(os.path.join(root, rel), "rb").read()).hexdigest()
 if mode == "--update":
