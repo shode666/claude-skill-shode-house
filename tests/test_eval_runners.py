@@ -163,9 +163,9 @@ class FreezeTest(unittest.TestCase):
     def test_change_missing_and_unlisted_prompt_fail(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            for rel in ("eval/scenarios/golden.json", "scripts/team-run-check.py", "scripts/eval-fixture.sh", "eval/run-lib.sh",
+            for rel in ("eval/scenarios/golden.json", "eval/scenarios/core-3.17.json", "scripts/team-run-check.py", "scripts/eval-fixture.sh", "eval/run-lib.sh",
                         "eval/run-probes.sh", "eval/probe-agg.py", "eval/check-freeze.sh", "eval/check-arm-diff.sh",
-                        "eval/PROBE-GATE.md", "eval/heldout-3.17.SHA256SUMS", "eval/prompts/probes/P01.md"):
+                        "eval/PROBE-GATE.md", "eval/PROBE-GATE-floor.md", "eval/heldout-3.17.SHA256SUMS", "eval/prompts/probes/P01.md"):
                 (root / rel).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy(ROOT / rel, root / rel)
             self.assertEqual(self.check(root).returncode, 1, "no manifest = fail")

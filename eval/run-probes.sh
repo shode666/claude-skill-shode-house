@@ -16,6 +16,9 @@
 #          A new batch refuses an existing directory that is not a matching batch (BATCH.json mismatch).
 # guards : PROBE_FILE (held-out) runs only into a git-ignored dir (or outside the repo) -- prompts must not be
 #          committable. PLUGIN_REF other than BASE_REF (default baseline-3.17) must pass eval/check-arm-diff.sh.
+#          ARM_SCOPE=floor         narrows that check to the dispatch-floor arm (eval/PROBE-GATE-floor.md): only
+#          output-styles/oliver.md + its two generated copies may differ. Default (unset) = description-only, as before.
+#          The value lands in BATCH.json as arm_diff "<scope>-only:<base>..<after>".
 # exit   : 0 = every slot has a scored run (0/1) · 2 = some slot unscorable/incomplete · 3 = refused · 5 = stopped (infra)
 . "$(dirname "${BASH_SOURCE[0]}")/run-lib.sh"
 MODEL="${1:-sonnet}"
@@ -39,12 +42,13 @@ if [ -n "${PROBE_FILE:-}" ]; then   # held-out prompts end up in prompt.txt / ru
 fi
 preflight
 BASE_REF="${BASE_REF:-baseline-3.17}"; ARM_DIFF="not-applicable"
+case "${ARM_SCOPE:-description}" in description|floor) ;; *) die "ARM_SCOPE must be description (default) or floor" ;; esac
 if [ -n "${PLUGIN_REF:-}" ]; then
   BASE_SHA="$(git -C "$REPO" rev-parse --verify "$BASE_REF^{commit}" 2>/dev/null)" || die "BASE_REF $BASE_REF not found (needed to check the arm diff)"
   if [ "$BASE_SHA" = "$PLUGIN_SHA" ]; then ARM_DIFF="baseline:$BASE_SHA"
   else
-    bash "$REPO/eval/check-arm-diff.sh" "$BASE_SHA" "$PLUGIN_SHA" || die "refuse: $PLUGIN_REF differs from $BASE_REF by more than skill descriptions (eval/check-arm-diff.sh)"
-    ARM_DIFF="description-only:$BASE_SHA..$PLUGIN_SHA"
+    ARM_SCOPE="${ARM_SCOPE:-description}" bash "$REPO/eval/check-arm-diff.sh" "$BASE_SHA" "$PLUGIN_SHA" || die "refuse: $PLUGIN_REF differs from $BASE_REF by more than ARM_SCOPE=${ARM_SCOPE:-description} allows (eval/check-arm-diff.sh)"
+    ARM_DIFF="${ARM_SCOPE:-description}-only:$BASE_SHA..$PLUGIN_SHA"
   fi
 fi
 

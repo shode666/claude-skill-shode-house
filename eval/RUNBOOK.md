@@ -120,7 +120,8 @@ after the after-arm has run — any edit means `bash eval/check-freeze.sh --upda
 
 ```bash
 cd ~/workspace/shode-house && bash eval/check-freeze.sh          # must print "freeze OK" (the runner refuses otherwise)
-# baseline arm: plugin = baseline tag, harness/expectations = this checkout, 38 applicable probes x 5, cap 6 turns
+# baseline arm: plugin = baseline tag, harness/expectations = this checkout, 46 applicable probes x 5, cap 6 turns
+# (38 before 3.17.2; P40-P47 added the unmeasured owners + two over-dispatch negatives - see the id map below)
 PLUGIN_REF=baseline-3.17 REPEATS=5 bash eval/run-probes.sh sonnet eval/baseline/3.16.3-probe-n5
 # interrupted (sleep, network, Ctrl-C)? run the SAME command again: complete runs are skipped, nothing is overwritten
 # after arm, same day/machine/CLI:  PLUGIN_REF=<after-ref> REPEATS=5 bash eval/run-probes.sh sonnet eval/baseline/<after>-probe-n5
@@ -144,7 +145,21 @@ result event also stop the batch. On a subscription the 5-hour window, not USD, 
 `bash eval/check-arm-diff.sh <base> <after>` passes: only `description:` of `skills/*/*/SKILL.md` may differ (+ the
 `version` line of `.claude-plugin/{plugin,marketplace}.json`), bodies and every other frontmatter key byte-identical, no
 add/delete/rename under agents/commands/skills/hooks/references/output-styles/.claude-plugin, and no new description may
-share a Thai run ≥ 8 chars or 3 consecutive latin words with a P28+ prompt. The validator alone runs the same lint
+share a Thai run ≥ 8 chars or 3 consecutive latin words with a P28+ prompt. `ARM_SCOPE=floor` selects the only other
+admitted arm shape (`eval/PROBE-GATE-floor.md`): `output-styles/oliver.md` plus its two generated copies
+(`plugins/shode-house/output-styles/oliver.md`, `plugins/shode-house/knowledge/output-styles/oliver.md`, which must be
+byte-identical to the root file in AFTER) may differ, the difference must be in **content** (the root file's bytes
+must differ; a mode-only `chmod` row is refused, not counted as an arm difference), and **nothing else** may differ — no skill description, no `version` line, no
+agent, no hook. The claim set under that gate is P40-P45 and its negative set is exactly P46+P47. `BATCH.json` then records
+`arm_diff = floor-only:<base>..<after>`, which that gate's rule 6.1 requires. Unset (or `description`) behaves exactly
+as before. Files outside the diff scope (`.enforcement-map.json`, `docs/**`, `.workflow-scenario-budget`) are not
+shipped in the plugin and are, as always, not inspected — CI #21/#22 and `tests/test_root_safety_anchors.py` cover them.
+Note the wider blind spot this inherits from the default path: `git archive` ships the WHOLE tree, but the checker's
+SCOPE list stops at the plugin dirs, so `scripts/**`, `eval/**`, `README.md`, `Makefile` and `.workflow-scenario-budget`
+are never compared by it in EITHER mode. `eval/check-freeze.sh` pins the harness + scenario files, and a whole-tree
+`git diff --name-only <base> <after>` before the after arm is what closes it (required by `PROBE-GATE-floor` rule 2).
+  `ARM_SCOPE=floor PLUGIN_REF=floor-after REPEATS=5 bash eval/run-probes.sh sonnet eval/baseline/floor-after-probe-n5`
+The validator alone runs the same lint
 against the held-out file: `bash eval/check-arm-diff.sh <base> <after> /abs/path/heldout.json`. Result + shas land in `BATCH.json`.
 
 - Order is round-robin (all ids for r1, then r2, …) so time drift spreads over probes. Layout `<out>/<id>/r<k>/`.
@@ -154,8 +169,15 @@ against the held-out file: `bash eval/check-arm-diff.sh <base> <after> /abs/path
 - `SUMMARY.tsv` = one row per run (`id run exit class route channel terminal distinct_skills first_skill first_agent
   seconds cost_usd`); `AGG.tsv` = one row per probe (`id class k_pass/N n_fail n_unscorable_or_incomplete channels
   terminals mean_distinct_skills`). Both are derived (`python3 eval/probe-agg.py <out>` rebuilds them).
-- `class`: `description-sensitive` | `control-agent-table` (P06, P14, P15, P23–P27: routed by the always-loaded agent
-  table, reported as controls) | `negative`. The claim is made on description-sensitive + held-out only.
+- `class`: `description-sensitive` | `control-agent-table` (P06, P14, P15, P23–P27, P40–P45: routed by the always-loaded
+  agent table, reported as controls) | `negative` (incl. P46, P47). The claim is made on description-sensitive +
+  held-out only — except under `eval/PROBE-GATE-floor.md`, whose claim set is P40–P45 because the change under test is
+  the agent table's own floor, not a skill description.
+- Ids P40–P47 (added 3.17.2, authored blind: `outputs/shode-house-8ss/51-new-probes.md`): P40 Patrick
+  (`agent:product-manager`), P41 Stan (`agent:staff-engineer`), P42 Elena (erp), P43 Sam (sap), P44 Brooke (booking),
+  P45 Emma (ecommerce) — the six owners with zero measured coverage before 3.17.2; P46 and P47 are the paired
+  over-dispatch negatives (one-line fix pitched as top priority / single-file rename pitched as project-wide
+  consistency), both `route_any: agent:developer` + frozen `max_spawns: 1`.
 - `channel` (skill|agent|none = how a listed route was reached) and `terminal` (asked|max_turns|completed|error:…)
   are report-only; `terminal` is a text heuristic (question mark or an A)/B) option list at the end) — never use it in a gate.
 - `AGG.tsv` `uninformative_0_of_N` = yes when a probe never passed in that arm: a floor, excluded from the claim in advance. `not_applicable` probes (P21) are refused by the runner and exit 2 `NOT_APPLICABLE` in the scorer.
@@ -172,7 +194,9 @@ against the held-out file: `bash eval/check-arm-diff.sh <base> <after> /abs/path
   (`route_any` owner or `max_spawns: 0`). `tests/test_eval_runners.py` guards all of this.
 
 Estimate (from measurements, not a quote): 3-turn runs averaged USD 0.16 / 30 s (n=27), 6-turn reruns USD 0.23 / 57 s
-(n=4, the slow cases). One arm = 38 x 5 = 190 runs ≈ USD 30–45 and 1.6–3 h; both arms ≈ USD 60–90 and 3–6 h; a held-out
+(n=4, the slow cases); at the 6-turn cap the current per-run planning constants are USD 0.22 / 70 s for a probe and
+USD 0.48 / 115 s for a core id (means over every `meta.json` in this repo). One arm = 46 x 5 = 230 runs ≈ USD 45–55
+and 2–4 h; both arms ≈ USD 90–110 and 4–8 h; a held-out
 set of 12 adds 60 runs per arm (≈ USD 10–14, 0.5–1 h). Hard ceiling USD 1 per run. Rate limiting can stretch the time.
 
 ## Historical v3.13 procedure (not current installation instructions)

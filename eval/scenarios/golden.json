@@ -1526,6 +1526,298 @@
         ]
       },
       "source": "paraphrase-v1 (Bella, keyword-free)"
+    },
+    {
+      "id": "P40",
+      "kind": "probe",
+      "class": "control-agent-table",
+      "desc": "unmeasured owner: Patrick \u2014 discovery / is this worth building + priority order",
+      "prompt": "eval/prompts/probes/P40.md",
+      "max_turns": 6,
+      "expected": {
+        "route_any": [
+          "agent:product-manager"
+        ],
+        "max_skills": 2,
+        "must_not_load": [
+          "api-contract",
+          "automate-test",
+          "data-migration",
+          "decompose",
+          "dev-gate",
+          "diagnose",
+          "drain",
+          "incident",
+          "secure",
+          "slo",
+          "ui-test",
+          "web-q"
+        ],
+        "must_not_dispatch": [
+          "business-analyst",
+          "solution-architect",
+          "developer"
+        ]
+      },
+      "source": "authored-blind-3.17 (unmeasured owner coverage)"
+    },
+    {
+      "id": "P41",
+      "kind": "probe",
+      "class": "control-agent-table",
+      "desc": "unmeasured owner: Stan \u2014 cross-team consistency + tech radar + large refactor strategy (stack already settled)",
+      "prompt": "eval/prompts/probes/P41.md",
+      "max_turns": 6,
+      "expected": {
+        "route_any": [
+          "agent:staff-engineer"
+        ],
+        "max_skills": 2,
+        "must_not_load": [
+          "api-contract",
+          "automate-test",
+          "data-migration",
+          "decompose",
+          "dev-gate",
+          "diagnose",
+          "drain",
+          "incident",
+          "secure",
+          "slo",
+          "ui-test",
+          "web-q"
+        ],
+        "must_not_dispatch": [
+          "developer",
+          "business-analyst"
+        ]
+      },
+      "source": "authored-blind-3.17 (unmeasured owner coverage; P41 rewritten after validation 53)"
+    },
+    {
+      "id": "P42",
+      "kind": "probe",
+      "class": "control-agent-table",
+      "desc": "unmeasured owner: Elena \u2014 ERP business-rule decision (period-close accrual, GR without invoice)",
+      "prompt": "eval/prompts/probes/P42.md",
+      "max_turns": 6,
+      "expected": {
+        "route_any": [
+          "agent:erp-expert"
+        ],
+        "max_skills": 2,
+        "must_not_load": [
+          "api-contract",
+          "automate-test",
+          "data-migration",
+          "decompose",
+          "dev-gate",
+          "diagnose",
+          "drain",
+          "incident",
+          "secure",
+          "slo",
+          "ui-test",
+          "web-q"
+        ],
+        "must_not_dispatch": [
+          "fintech-expert",
+          "trading-expert",
+          "insurance-expert",
+          "ecommerce-expert",
+          "booking-expert",
+          "sap-expert"
+        ]
+      },
+      "source": "authored-blind-3.17 (unmeasured owner coverage)"
+    },
+    {
+      "id": "P43",
+      "kind": "probe",
+      "class": "control-agent-table",
+      "desc": "unmeasured owner: Sam \u2014 SAP decision (standard append vs Z table before ECC->S/4HANA conversion)",
+      "prompt": "eval/prompts/probes/P43.md",
+      "max_turns": 6,
+      "expected": {
+        "route_any": [
+          "agent:sap-expert"
+        ],
+        "max_skills": 2,
+        "must_not_load": [
+          "api-contract",
+          "automate-test",
+          "data-migration",
+          "decompose",
+          "dev-gate",
+          "diagnose",
+          "drain",
+          "incident",
+          "secure",
+          "slo",
+          "ui-test",
+          "web-q"
+        ],
+        "must_not_dispatch": [
+          "fintech-expert",
+          "trading-expert",
+          "insurance-expert",
+          "ecommerce-expert",
+          "booking-expert"
+        ]
+      },
+      "source": "authored-blind-3.17 (unmeasured owner coverage)"
+    },
+    {
+      "id": "P44",
+      "kind": "probe",
+      "class": "control-agent-table",
+      "desc": "unmeasured owner: Brooke \u2014 booking/inventory rule decision (channel allotment, decrement point, overbooking)",
+      "prompt": "eval/prompts/probes/P44.md",
+      "max_turns": 6,
+      "expected": {
+        "route_any": [
+          "agent:booking-expert"
+        ],
+        "max_skills": 2,
+        "must_not_load": [
+          "api-contract",
+          "automate-test",
+          "data-migration",
+          "decompose",
+          "dev-gate",
+          "diagnose",
+          "drain",
+          "incident",
+          "secure",
+          "slo",
+          "ui-test",
+          "web-q"
+        ],
+        "must_not_dispatch": [
+          "fintech-expert",
+          "trading-expert",
+          "insurance-expert",
+          "erp-expert",
+          "ecommerce-expert",
+          "sap-expert"
+        ]
+      },
+      "source": "authored-blind-3.17 (unmeasured owner coverage)"
+    },
+    {
+      "id": "P45",
+      "kind": "probe",
+      "class": "control-agent-table",
+      "desc": "unmeasured owner: Emma \u2014 e-commerce rule decision (promotion stacking + discount order vs tax/shipping)",
+      "prompt": "eval/prompts/probes/P45.md",
+      "max_turns": 6,
+      "expected": {
+        "route_any": [
+          "agent:ecommerce-expert"
+        ],
+        "max_skills": 2,
+        "must_not_load": [
+          "api-contract",
+          "automate-test",
+          "data-migration",
+          "decompose",
+          "dev-gate",
+          "diagnose",
+          "drain",
+          "incident",
+          "secure",
+          "slo",
+          "ui-test",
+          "web-q"
+        ],
+        "must_not_dispatch": [
+          "fintech-expert",
+          "trading-expert",
+          "insurance-expert",
+          "erp-expert",
+          "booking-expert",
+          "sap-expert"
+        ]
+      },
+      "source": "authored-blind-3.17 (unmeasured owner coverage)"
+    },
+    {
+      "id": "P46",
+      "kind": "probe",
+      "class": "negative",
+      "desc": "NEGATIVE over-dispatch guard: a one-line comparison fix pitched as top business priority stays Dave alone",
+      "prompt": "eval/prompts/probes/P46.md",
+      "max_turns": 6,
+      "expected": {
+        "route_any": [
+          "agent:developer"
+        ],
+        "max_spawns": 1,
+        "must_not_load": [
+          "api-contract",
+          "automate-test",
+          "data-migration",
+          "decompose",
+          "diagnose",
+          "drain",
+          "incident",
+          "secure",
+          "slo",
+          "ui-test",
+          "web-q",
+          "domain-core"
+        ],
+        "must_not_dispatch": [
+          "product-manager",
+          "staff-engineer",
+          "business-analyst",
+          "orchestrator",
+          "*-expert"
+        ]
+      },
+      "source": "authored-blind-3.17 (over-dispatch guard)",
+      "related": [
+        "dev-gate"
+      ]
+    },
+    {
+      "id": "P47",
+      "kind": "probe",
+      "class": "negative",
+      "desc": "NEGATIVE over-dispatch guard: a single-file rename framed as project-wide consistency stays Dave alone",
+      "prompt": "eval/prompts/probes/P47.md",
+      "max_turns": 6,
+      "expected": {
+        "route_any": [
+          "agent:developer"
+        ],
+        "max_spawns": 1,
+        "must_not_load": [
+          "api-contract",
+          "automate-test",
+          "data-migration",
+          "decompose",
+          "diagnose",
+          "drain",
+          "incident",
+          "secure",
+          "slo",
+          "ui-test",
+          "web-q",
+          "domain-core"
+        ],
+        "must_not_dispatch": [
+          "staff-engineer",
+          "solution-architect",
+          "business-analyst",
+          "orchestrator",
+          "*-expert"
+        ]
+      },
+      "source": "authored-blind-3.17 (over-dispatch guard)",
+      "related": [
+        "dev-gate"
+      ]
     }
   ]
 }
