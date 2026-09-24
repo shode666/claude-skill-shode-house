@@ -14,6 +14,11 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 BUCKETS = ("workflow", "ops", "ui", "style", "discipline")
+# Publishing a command is a decision, not a side effect of adding a file: this is the
+# explicit allowlist of authored commands the distributions register. A new
+# commands/<name>.md is NOT published until it is named here (the packer refuses a
+# mismatch), so "should users get this?" is answered on purpose.
+PUBLISHED_COMMANDS = ("ask", "consult", "design-system", "implement", "init", "review")
 
 
 def payload(root=ROOT):
@@ -80,6 +85,50 @@ def payload(root=ROOT):
                    "under this plugin's knowledge/ directory, not the user's project.\n"
                    "Use actual host tools and preserve host/project/user authority.\n")
         entries[target] = wrapper.encode()
+    # An output style cannot be an adapter: the style file *is* the main-session
+    # system prompt, so it can never indirect through a "read the real file"
+    # wrapper. Copy it verbatim to the host's default scan path (plugin root
+    # output-styles/), which is what activates `force-for-plugin`. No `outputStyles`
+    # manifest key: that field replaces the default scan (CLAUDE.md). The authored
+    # copy stays under knowledge/ (recovery inventory + adapter path resolution).
+    for name in sorted(p for p in source_entries if p.startswith("output-styles/")):
+        if name in entries:
+            raise ValueError(f"duplicate discovery path: {name}")
+        entries[name] = source_entries[name]
+    # Commands are ordinary prompt files, so — unlike a style — they CAN indirect:
+    # mint one thin adapter per authored command at the host's default scan path,
+    # keeping the authored frontmatter (description / argument-hint / allowed-tools).
+    # The repo root registers all of them by default scan; the tree must register the
+    # same surface, or a marketplace user loses /implement, /review and the rest.
+    # ask.md keeps its own hand-written wrapper below (it enters through the ask skill).
+    authored = sorted(Path(p).stem for p in source_entries
+                      if p.startswith("commands/") and p.endswith(".md"))
+    if authored != sorted(PUBLISHED_COMMANDS):
+        raise ValueError("authored commands differ from PUBLISHED_COMMANDS: "
+                         f"{authored} != {sorted(PUBLISHED_COMMANDS)} -- publishing a command is a "
+                         "deliberate decision; add or remove it in PUBLISHED_COMMANDS")
+    for name in sorted(p for p in source_entries
+                       if p.startswith("commands/") and p.endswith(".md") and p != "commands/ask.md"):
+        text = source_entries[name].decode("utf-8")
+        parts = text.split("---", 2)
+        if len(parts) != 3 or parts[0]:
+            raise ValueError(f"missing frontmatter: {name}")
+        if name in entries:
+            raise ValueError(f"duplicate discovery path: {name}")
+        stem = Path(name).stem
+        # `$ARGUMENTS` is substituted in the INVOKED file only, never in a file that one
+        # links to -- an adapter without it silently drops what the user typed after the
+        # command name. Same shape as the hand-written ask wrapper below.
+        lead = (f"User request: $ARGUMENTS\n\n"
+                f"Use the referenced command [{stem}](../knowledge/{name}) as the entry point for this request, "
+                "applying it to the user request above. "
+                "Follow only the branches that apply to the current task, and load additional "
+                "references only when the command directs you to.\n")
+        entries[name] = ("---" + parts[1] + "---\n\n" + lead +
+                         "This is a discovery adapter, not a replacement for the command knowledge.\n"
+                         "Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ "
+                         "under this plugin's knowledge/ directory, not the user's project.\n"
+                         "Use actual host tools and preserve host/project/user authority.\n").encode()
     entries["commands/ask.md"] = (
         '---\ndescription: "Work with Oliver and the full Shode House team."\n---\n\n'
         'User request: $ARGUMENTS\n\n'
@@ -95,7 +144,7 @@ def payload(root=ROOT):
     description = "Shode House: full expert team, scoped delivery, independent verification and resumable work."
     manifest.update(description=description,
                     skills="./skills/",
-                    commands=["./commands/ask.md"])
+                    commands=sorted("./" + name for name in entries if name.startswith("commands/")))
     entries[".claude-plugin/plugin.json"] = (json.dumps(manifest, indent=2) + "\n").encode()
     codex = {key: manifest[key] for key in
              ("name", "version", "description", "author", "homepage", "repository", "license")}
@@ -138,7 +187,7 @@ def unified_payload(root=ROOT):
         f"# Shode House {version} host notes\n\n"
         "All 19 role sources and 20 skills are preserved under knowledge/. "
         "Use ask as the entry; Oliver is the main session.\n\n"
-        "- Claude Code / Codex: `.claude-plugin` / `.codex-plugin` manifests, flat skills, agent adapters, `/ask` command.\n"
+        "- Claude Code / Codex: `.claude-plugin` / `.codex-plugin` manifests, flat skills, agent adapters, the authored commands (`/ask` is the entry).\n"
         "- Cursor: `.cursor-plugin` manifest; skills and agents discovered, no command (ask is a skill).\n"
         "- Antigravity: root `plugin.json` marker; skills only. Agent files are knowledge, not native registrations.\n\n"
         "Skill discovery does not prove separate workers are available. If delegation is "

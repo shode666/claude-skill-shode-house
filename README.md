@@ -13,7 +13,7 @@ single-skill package without the team; the 3.16.0 tag and history are kept uncha
 > 19 agent ใน 7 ทีม ที่มี ownership ชัด, quality gate ที่ต้องมีหลักฐาน, token-aware context routing,
 > CI invariant ที่พิสูจน์ด้วย mutation test และ behavioral A/B eval
 
-[![Version](https://img.shields.io/badge/version-3.17.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.17.1-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/shode666/claude-skill-shode-house/actions/workflows/ci.yml/badge.svg)](https://github.com/shode666/claude-skill-shode-house/actions/workflows/ci.yml)
 
@@ -176,7 +176,7 @@ if the host has no delegation tool, Oliver reports team execution BLOCKED instea
 /plugin marketplace update shode-house
 /plugin update shode-house@shode-house      # `install` alone keeps the already-installed version
 ```
-Check with `/plugin list` — the version must read 3.17.0.
+Check with `/plugin list` — the version must read 3.17.1.
 
 Prerequisite (optional): `brew install node` (Context7 MCP ใช้ npx) · `brew install beads` (task tracker `bd`)
 
