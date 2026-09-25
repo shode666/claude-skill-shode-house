@@ -914,6 +914,92 @@ _lock_recover_nothing_to_recover() {
   return 0
 }
 
+# ---- internal (bd:shode-house-8ss close-out): re-observe a `.recovering` marker that
+# was classified UNKNOWN -- "the marker directory is there, readable, but has no pid
+# file yet". `mkdir` is the ONLY safe exclusive claim available here (see lock_recover
+# Step 0), and a directory created by mkdir is necessarily EMPTY for a nonzero interval
+# before its writer can put a pid in it, so a loser that classifies the marker inside
+# that interval sees a pid-less marker for BOTH of these, which are opposites:
+#   * a live recovery that claimed the marker microseconds ago (ordinary contention --
+#     the loser must be told RECOVERY_IN_PROGRESS and retry), and
+#   * a recovery that died between mkdir and its pid write (a genuinely abandoned,
+#     stuck marker -- the loser must fail closed and tell a human).
+# Closing the gap by making the claim ATOMICALLY CARRY the pid is OUT OF SCOPE for this
+# change, not impossible: `mkdir` is NOT the only exclusive primitive (measured on this
+# repo's ext4: a second `symlink()`, `open(O_CREAT|O_EXCL)`, `link()` and `mkdir()` all
+# refuse with EEXIST=17), so a pid-carrying claim could be built out of one of those.
+# What rules it out HERE is the blast radius: this marker is a DIRECTORY carrying four
+# metadata files (pid, recovery-token, reason, started-ts) and is consumed by the whole
+# classifier family -- _lock_exists_or_error, _lock_read, _lock_classify_holder,
+# lock_acquire's own marker pre-check, and `rm -rf` cleanup in several branches -- so
+# changing its representation is a cross-cutting redesign of the recovery protocol, not
+# a fix for this race. (And a directory rename is no shortcut: `mv other_dir marker`
+# NESTS in both the empty and non-empty case, while the raw `rename(2)` underneath it
+# REPLACES an empty target directory -- which would silently destroy a concurrent
+# claim -- and refuses a non-empty one with ENOTEMPTY=39.) The gap therefore stays, and
+# is decided on EVIDENCE instead, bounded:
+#   LIVE|DEAD|CORRUPT|AMBIGUOUS -- the marker's own content/readability became
+#                                 conclusive (the writer's pid appeared, or the object
+#                                 stopped being readable): evidence, return it
+#   VANISHED                    -- the marker itself is gone: we positively observed a
+#                                 claim come AND go, which is ordinary churn, never a
+#                                 stuck marker
+#   UNKNOWN                     -- the cap expired with the marker STILL present and
+#                                 STILL pid-less: no evidence of any writer, so the
+#                                 caller keeps its existing fail-closed verdict
+# Time alone never decides anything here: the cap only bounds how long we are willing
+# to LOOK for evidence, and its expiry returns the same UNKNOWN the caller already had.
+# Bounded by construction: at most $cap iterations of (0.1s sleep + one
+# _lock_classify_holder, itself internally bounded) -- no unbounded wait, no recursion.
+# _lock_classify_holder is called unchanged; nothing about the normal classification
+# path is altered by this helper's existence.
+_lock_recover_marker_settle() {
+  local marker="$1" i=0 cls
+  # ---- the cap, sized from measurement, clamped, and numerically guarded.
+  # One iteration costs (one bounded _lock_classify_holder, whose own pid-less settle is
+  # 5 x 0.05s) + 0.1s => ~0.45s measured on ext4. INSTRUMENTED in the real
+  # recover||recover race (60 trials pinned to 2 cores, the condition that reproduces
+  # the flake): the helper was entered 9 times and EVERY one of those 9 reached its
+  # evidence on iteration 1 -- so the measured need is ONE iteration and the default is
+  # 3 (3x the measured need, ceiling ~1.4s), not the 10 an earlier draft carried on
+  # taste. The default is deliberately small: a cap that is never exercised is untested
+  # headroom, and the loop's own multi-iteration behaviour is covered deterministically
+  # in tests/test-lock.sh with a stubbed classifier instead.
+  # GUARD: a non-numeric or out-of-range override must never become an unbounded (or
+  # absurdly long) wait -- anything that is not all digits falls back to the default,
+  # and the value is clamped to LOCK_RECOVER_MARKER_SETTLE_MAX (20 iterations, ~9s).
+  # 0 is legal and disables the re-observation entirely (returns UNKNOWN at once, i.e.
+  # exactly the pre-fix behaviour); negative values cannot survive the digits test.
+  local cap="${LOCK_RECOVER_MARKER_SETTLE_POLLS:-3}"
+  case "$cap" in ''|*[!0-9]*) cap=3 ;; esac
+  local cap_max="${LOCK_RECOVER_MARKER_SETTLE_MAX:-20}"
+  case "$cap_max" in ''|*[!0-9]*) cap_max=20 ;; esac
+  [ "$cap" -gt "$cap_max" ] && cap="$cap_max"
+  # ---- test hook: pause at the very start of the re-observation (no-op unless set),
+  # so a test can force the "writer's pid appears", "marker vanishes" or "marker stays
+  # pid-less" outcome deterministically instead of racing it. Same shape (and the same
+  # 10s safety valve) as LOCK_CLASSIFY_HOLDER_SYNC and the other hooks in this file.
+  if [ -n "${LOCK_RECOVER_MARKER_SETTLE_SYNC:-}" ]; then
+    : > "${LOCK_RECOVER_MARKER_SETTLE_SYNC}.ready"
+    local synced4=0
+    while [ ! -e "${LOCK_RECOVER_MARKER_SETTLE_SYNC}.go" ]; do
+      synced4=$((synced4 + 1)); [ "$synced4" -ge 100 ] && break
+      sleep 0.1
+    done
+  fi
+  while [ "$i" -lt "$cap" ]; do
+    i=$((i + 1))
+    cls=$(_lock_classify_holder "$marker")
+    case "$cls" in
+      MISSING) printf 'VANISHED'; return ;;
+      UNKNOWN) : ;;            # still no evidence either way -- keep looking, bounded
+      *)       printf '%s' "$cls"; return ;;
+    esac
+    sleep 0.1
+  done
+  printf 'UNKNOWN'
+}
+
 # ---- lock_recover <lockdir> <reason> [force(0|1)]
 # Explicit, audited reclaim of a stuck lock. NEVER called by lock_acquire -- the only
 # caller is a human (or a script acting on a human's behalf) via the CLI below.
@@ -932,6 +1018,41 @@ lock_recover() {
   # ---- Step 0: atomically claim the RIGHT to recover -- exactly one winner. ----
   if ! mkdir "$recovering" 2>/dev/null; then
     local mcls; mcls=$(_lock_classify_holder "$recovering")
+    # ---- bd:shode-house-8ss close-out: a marker that is merely PID-LESS (UNKNOWN) is
+    # the one classification that cannot tell "another recovery claimed this marker
+    # microseconds ago and is writing its pid right now" apart from "a recovery died
+    # between mkdir and its pid write". Before that ambiguity is allowed to become the
+    # non-retryable RECOVERY_REQUIRED (a *false* "stuck marker" claim about a live
+    # recovery -- measured red in 3 of 5 two-core runs of tests/test-lock.sh's
+    # `RACE recover||recover` case), re-observe the marker, bounded, and act only on
+    # positive evidence. See _lock_recover_marker_settle's own header.
+    #   * ONLY the UNKNOWN classification enters this. DEAD and AMBIGUOUS do not: the
+    #     force-eligible tier below is reached with exactly the same verdicts, from
+    #     exactly the same inputs, as before this change -- in particular a marker-level
+    #     AMBIGUOUS still lands in the `*)` branch untouched and stays --force-eligible
+    #     (bd:vz8 iter6 M2), and an UNKNOWN that produces no evidence within the cap
+    #     still lands there too.
+    #   * Skipped entirely under --force (force=1), so `recover --force` on a pid-less
+    #     marker behaves EXACTLY as it did before: an operator's explicit judgment call
+    #     is not re-litigated, and the force tier neither gains nor loses members.
+    #   * Read-only: this helper never creates, removes or renames anything, so it
+    #     cannot reclaim, delete or hand out the marker.
+    if [ "$mcls" = "UNKNOWN" ] && [ "$force" != "1" ]; then
+      local settled; settled=$(_lock_recover_marker_settle "$recovering")
+      case "$settled" in
+        LIVE)
+          _lock_audit_or_log "$lockd" "" "" "" "$reason" "REFUSED" "RECOVERY_IN_PROGRESS" "another recovery of this lock is currently in progress -- its .recovering marker was still pid-less when first classified (mid-populate) and the writer's pid appeared on bounded re-observation"
+          printf 'RECOVERY_IN_PROGRESS: another recovery of "%s" is already in progress -- its ".recovering" marker was mid-populate (no pid yet) when we first classified it, and its writer is alive -- bounded retry\n' "$lockd"
+          return 2
+          ;;
+        VANISHED)
+          _lock_audit_or_log "$lockd" "" "" "" "$reason" "REFUSED" "RECOVERY_IN_PROGRESS" "another recovery claimed this lock's .recovering marker and released it again while we were classifying it -- ordinary churn, never a stuck marker"
+          printf 'RECOVERY_IN_PROGRESS: another recovery of "%s" claimed its ".recovering" marker and released it again while we were classifying it -- ordinary churn, not a stuck marker -- bounded retry\n' "$lockd"
+          return 2
+          ;;
+        *) mcls="$settled" ;;   # UNKNOWN (cap expired, still pid-less) | DEAD | CORRUPT | AMBIGUOUS -- tiers below unchanged
+      esac
+    fi
     case "$mcls" in
       LIVE)
         _lock_audit_or_log "$lockd" "" "" "" "$reason" "REFUSED" "RECOVERY_IN_PROGRESS" "another recovery of this lock is currently in progress"

@@ -260,21 +260,66 @@ timestamp() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 # called directly in the caller's own shell, never through `$(...)` -- same reason
 # validate_ledger_or_die() below is: die()'s exit only kills a command-substitution
 # subshell, the caller never sees it.
-SIDEEFFECT_LOCK_MAX_ATTEMPTS="${SIDEEFFECT_LOCK_MAX_ATTEMPTS:-2}"
+#
+# ---- retry BUDGET (bd:shode-house-8ss close-out) -- sized from measurement, not taste.
+# One lock_acquire attempt is itself bounded: 20 polls x sleep 0.1 => it gives up after
+# ~2.0 s. The budget a caller needs is therefore (N-1) x one critical section, because
+# same-bd reserve/record is strictly serialized by design. Measured worst caller wait for
+# the suite's own N=20 same-key case (tests/test-reliability.sh "N=20 parallel reserve
+# calls, ALL on the SAME never-before-seen key"), instrumented per attempt:
+#   4 cores        1.94 s      (1-2 attempts)
+#   2 cores        2.07-2.48 s (2 attempts)
+#   1 core         2.72-3.33 s (2 attempts)
+#   1 loaded core  9.33-9.75 s (4 attempts)   <- 5/5 runs DIED here at 2 attempts
+# At 2 attempts the ceiling is ~4.1-4.4 s (2 x 2.0 s + one 0.1-0.4 s pause), i.e. only
+# ~1.3x the 1-core need and less than half the loaded-core need: the case was dying on
+# LOCK_BUSY -- *retryable ordinary contention*, winners=1, mutual exclusion intact -- for
+# want of budget, not because of any lock defect. The lock-identity fix in
+# scripts/lib/lock.sh (bd:shode-house-8ss) routes MORE traffic here (CHURN -> LOCK_BUSY ->
+# retry), so this budget, not that verdict, is now the binding constraint on a slow runner.
+# 9 attempts is ~2x the slowest measured need (9.75 s).
+#
+# ---- what the two knobs actually bound (corrected after independent validation).
+# The deadline is checked strictly BETWEEN attempts: it cannot preempt an attempt that is
+# already running, so it is NOT a hard wall-clock bound. It bounds when a NEW attempt may
+# start; the worst overshoot is one in-flight lock_acquire beyond it (~2 s, and ~2.9 s
+# measured under load). What IS hard is that both knobs are finite and the loop can only
+# exit by acquiring or by `die`: there is no path that waits forever.
+# The two interact -- whichever trips first ends the loop -- so the attempt cap is NOT
+# always reached: measured under the loaded condition an attempt costs ~2.9 s, so the 20 s
+# deadline ends the loop at about **7** attempts, not 9. That is the intended shape (the
+# cap bounds attempts on a fast runner, the deadline bounds elapsed time on a slow one).
+# GUARD: a non-numeric override used to be the one way to get an unbounded wait -- `[ 1
+# -ge abc ]` fails with "integer expression expected" and returns 2, which is neither
+# "cap reached" nor an error the loop noticed, so it retried forever. Anything that is not
+# all digits now falls back to the documented default.
+# Both remain ceilings, never waits: the helper returns the instant it acquires, and when
+# either bound trips it still `die`s -- fail-closed, and never a weaker verdict
+# (LOCK_CORRUPT / RECOVERY_REQUIRED are still never retried).
+SIDEEFFECT_LOCK_MAX_ATTEMPTS="${SIDEEFFECT_LOCK_MAX_ATTEMPTS:-9}"
+case "$SIDEEFFECT_LOCK_MAX_ATTEMPTS" in ''|*[!0-9]*) SIDEEFFECT_LOCK_MAX_ATTEMPTS=9 ;; esac
+[ "$SIDEEFFECT_LOCK_MAX_ATTEMPTS" -lt 1 ] && SIDEEFFECT_LOCK_MAX_ATTEMPTS=1
+SIDEEFFECT_LOCK_DEADLINE_S="${SIDEEFFECT_LOCK_DEADLINE_S:-20}"
+case "$SIDEEFFECT_LOCK_DEADLINE_S" in ''|*[!0-9]*) SIDEEFFECT_LOCK_DEADLINE_S=20 ;; esac
 SIDEEFFECT_LOCK_TOKEN=""
 sideeffect_acquire_lock() {
   local bd="$1" label="$2" lockd; lockd=$(lock_dir "$bd")
   local attempt=0 tok rc
+  # SECONDS is the shell's own monotonic second counter; it is only ever READ here, and
+  # the baseline is taken per call so the deadline is this call's own elapsed time.
+  local _started=$SECONDS elapsed=0
   while :; do
     attempt=$((attempt + 1))
     tok=$(lock_acquire "$lockd"); rc=$?
     [ "$rc" -eq 0 ] && { SIDEEFFECT_LOCK_TOKEN="$tok"; return 0; }
     [ "$rc" -eq 1 ] || break   # only LOCK_BUSY is retryable here
     [ "$attempt" -ge "$SIDEEFFECT_LOCK_MAX_ATTEMPTS" ] && break
+    elapsed=$((SECONDS - _started))
+    [ "$elapsed" -ge "$SIDEEFFECT_LOCK_DEADLINE_S" ] && break
     sleep "0.$((RANDOM % 4 + 1))"
   done
   case "$rc" in
-    1) die "$label: could not acquire lock for bd '$bd' after $attempt attempt(s) -- LOCK_BUSY (ordinary contention exhausted bounded retry) (${lockd})" ;;
+    1) die "$label: could not acquire lock for bd '$bd' after $attempt attempt(s)/$((SECONDS - _started))s -- LOCK_BUSY (ordinary contention exhausted bounded retry: cap ${SIDEEFFECT_LOCK_MAX_ATTEMPTS} attempts / ${SIDEEFFECT_LOCK_DEADLINE_S}s deadline) (${lockd})" ;;
     2) die "$label: could not acquire lock for bd '$bd' -- RECOVERY_IN_PROGRESS (an operator recovery is running; not retried by reserve/record) (${lockd})" ;;
     4) die "$label: could not acquire lock for bd '$bd' -- LOCK_CORRUPT (lock directory cannot be read -- permission problem?) (${lockd})" ;;
     5) die "$label: could not acquire lock for bd '$bd' -- RECOVERY_REQUIRED (this lock looks crash-stuck; an operator must run 'scripts/lib/lock.sh recover') (${lockd})" ;;

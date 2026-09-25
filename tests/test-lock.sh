@@ -468,6 +468,134 @@ done
 assert_eq "$bad_trials" "0" "every one of 8 trials must show exactly 1 RECOVERED and 4 RECOVERY_IN_PROGRESS out of 5 concurrent recovers -- got $bad_trials bad trial(s)"
 
 # =============================================================================
+# bd:shode-house-8ss close-out -- the RACE recover||recover flake above, made
+# deterministic. `mkdir` is the only exclusive claim available for the .recovering
+# marker, so the marker necessarily exists pid-less for a nonzero interval before its
+# winner writes the pid into it; a loser classifying it in that interval read UNKNOWN
+# and returned rc 5 RECOVERY_REQUIRED -- a FALSE "stuck marker" claim about a recovery
+# that was very much alive (measured: 3/20 trials, and the suite red in 3 of 5 runs,
+# with the whole suite pinned to 2 cores). Fixed by ONE bounded, evidence-driven
+# re-observation (_lock_recover_marker_settle); each case below forces one of its
+# outcomes through LOCK_RECOVER_MARKER_SETTLE_SYNC instead of racing it.
+# =============================================================================
+t_start "NEW bd:8ss close-out: recover||recover -- a loser that classifies a MID-POPULATE marker (winner's mkdir landed, pid not written yet) must get RECOVERY_IN_PROGRESS (rc=2) once the writer's pid appears, never a false 'stuck marker' RECOVERY_REQUIRED (forced deterministically via LOCK_RECOVER_MARKER_SETTLE_SYNC, not timing luck)"
+D=$(sandbox); lockd="$D/.lock-midpop"; recovering="${lockd}.recovering"
+seed_dead_lock "$lockd" "stale" >/dev/null
+mkdir "$recovering"            # exactly what the WINNER's atomic claim leaves behind
+sync="$D/settle-sync"
+( LOCK_RECOVER_MARKER_SETTLE_SYNC="$sync" bash "$LOCKLIB" recover "$lockd" --reason "losing recover" >"$D/out" 2>&1; echo $? > "$D/rc" ) &
+lpid=$!
+n=0
+while [ ! -e "${sync}.ready" ]; do n=$((n + 1)); [ "$n" -ge 200 ] && break; sleep 0.05; done
+[ -e "${sync}.ready" ] && t_ok || t_fail "the losing recover never reached its marker re-observation sync point within 10s"
+# the winner finishes populating its marker with a pid that is genuinely alive (this
+# test process itself) -- strictly while the loser is parked in the re-observation.
+printf '%s' "$$" > "$recovering/pid"
+: > "${sync}.go"
+wait "$lpid" 2>/dev/null
+rc=$(cat "$D/rc"); out=$(cat "$D/out")
+assert_eq "$rc" "2" "a mid-populate marker whose writer turns out to be ALIVE is another recovery in progress -- must return rc=2 RECOVERY_IN_PROGRESS, never rc=5"
+assert_contains "$out" "RECOVERY_IN_PROGRESS" "the loser's verdict must say RECOVERY_IN_PROGRESS"
+# the LIVE arm of the re-observation has its OWN message (the generic LIVE branch below
+# it would also return rc 2, so without this assertion the arm is indistinguishable from
+# it and a mutation that deletes the arm survives): it must say WHY this was not a stuck
+# marker -- the marker was mid-populate when first classified.
+assert_contains "$out" "mid-populate" "the mid-populate LIVE arm must report that the marker had no pid yet when it was first classified -- got: $out"
+case "$out" in
+  *"stuck"*) t_fail "must never claim a 'stuck' marker about a live recovery -- got: $out" ;;
+  *) t_ok ;;
+esac
+[ -d "$recovering" ] && t_ok || t_fail "the loser must never remove the winner's marker"
+assert_eq "$(cat "$recovering/pid")" "$$" "the winner's pid file must be untouched by the loser"
+rm -rf "$D"
+
+t_start "NEW bd:8ss close-out: recover||recover -- a genuinely ABANDONED marker (pid-less and it STAYS pid-less: a recovery that died between mkdir and its pid write) must still FAIL CLOSED with rc=5 RECOVERY_REQUIRED after the bounded re-observation, and must stay bounded -- the fix may only distinguish young from abandoned, never soften the abandoned verdict"
+D=$(sandbox); lockd="$D/.lock-abandoned"; recovering="${lockd}.recovering"
+dead_pid=$(seed_dead_lock "$lockd" "stale")
+mkdir "$recovering"            # nobody ever writes a pid into it
+t0=$(date +%s)
+# cap lowered from its default 10 polls purely to keep the suite fast -- the branch
+# taken is identical; cap expiry returns the same UNKNOWN the classifier already had.
+out=$(LOCK_RECOVER_MARKER_SETTLE_POLLS=3 bash "$LOCKLIB" recover "$lockd" --reason "abandoned marker" 2>&1); rc=$?
+t1=$(date +%s)
+assert_eq "$rc" "5" "an abandoned pid-less marker must still be RECOVERY_REQUIRED (rc=5) -- fail-closed is unchanged"
+assert_contains "$out" "RECOVERY_REQUIRED" "the verdict must still say RECOVERY_REQUIRED"
+assert_contains "$out" "marker holder UNKNOWN" "the verdict must still name the marker holder as UNKNOWN, exactly as before the fix"
+elapsed=$((t1 - t0))
+[ "$elapsed" -lt 15 ] && t_ok || t_fail "the bounded re-observation must never turn into an unbounded wait -- took ${elapsed}s"
+[ -d "$recovering" ] && t_ok || t_fail "the marker must be left exactly as it was -- the re-observation is read-only"
+assert_eq "$(cat "$lockd/pid")" "$dead_pid" "the underlying lock must be untouched"
+rm -rf "$D"
+
+t_start "NEW bd:8ss close-out: recover||recover -- a marker that VANISHES during the bounded re-observation (a recovery claimed it and released it again) is ordinary churn: rc=2 RECOVERY_IN_PROGRESS, never a stuck-marker claim about a marker that is not even there (forced via LOCK_RECOVER_MARKER_SETTLE_SYNC)"
+D=$(sandbox); lockd="$D/.lock-vanish"; recovering="${lockd}.recovering"
+seed_dead_lock "$lockd" "stale" >/dev/null
+mkdir "$recovering"
+sync="$D/vanish-sync"
+( LOCK_RECOVER_MARKER_SETTLE_SYNC="$sync" bash "$LOCKLIB" recover "$lockd" --reason "losing recover" >"$D/out" 2>&1; echo $? > "$D/rc" ) &
+lpid=$!
+n=0
+while [ ! -e "${sync}.ready" ]; do n=$((n + 1)); [ "$n" -ge 200 ] && break; sleep 0.05; done
+[ -e "${sync}.ready" ] && t_ok || t_fail "the losing recover never reached its marker re-observation sync point within 10s"
+rm -rf "$recovering"           # the other recovery finished and released its marker
+: > "${sync}.go"
+wait "$lpid" 2>/dev/null
+rc=$(cat "$D/rc"); out=$(cat "$D/out")
+assert_eq "$rc" "2" "a marker positively observed to come AND go is ordinary churn -- rc=2, never rc=5"
+assert_contains "$out" "ordinary churn" "the verdict must name this as churn, not as a stuck marker"
+rm -rf "$D"
+
+t_start "NEW bd:8ss close-out: recover||recover -- a marker-level AMBIGUOUS must NOT enter the new re-observation at all (stubbed _lock_classify_holder, deterministic): it stays in the fail-closed, --force-eligible tier it was already in (bd:vz8 iter6 M2), and it gets there immediately"
+D=$(sandbox); lockd="$D/.lock-ambig-marker"; recovering="${lockd}.recovering"
+seed_dead_lock "$lockd" "stale" >/dev/null
+mkdir "$recovering"
+_saved_cls="$(declare -f _lock_classify_holder)"
+_saved_settle="$(declare -f _lock_recover_marker_settle)"
+settle_marker="$D/.settle-was-consulted"
+_lock_classify_holder() { printf 'AMBIGUOUS'; }
+# if the re-observation were ever reached for AMBIGUOUS, this stub would leave a trace.
+_lock_recover_marker_settle() { : > "$settle_marker"; printf 'AMBIGUOUS'; }
+out=$(lock_recover "$lockd" "ambiguous marker" 0 2>&1); rc=$?
+eval "$_saved_cls"; eval "$_saved_settle"
+assert_eq "$rc" "5" "a marker-level AMBIGUOUS must still be RECOVERY_REQUIRED (rc=5), unchanged by this fix"
+assert_contains "$out" "marker holder AMBIGUOUS" "the verdict must still report the marker holder as AMBIGUOUS, i.e. the same --force-eligible tier as before"
+[ ! -e "$settle_marker" ] && t_ok || t_fail "AMBIGUOUS must never be routed into the UNKNOWN-only re-observation -- the settle helper was consulted"
+rm -rf "$D"
+
+t_start "NEW bd:8ss round 3: _lock_recover_marker_settle -- evidence that arrives on a LATER iteration is still acted on: the keep-looking loop must run MORE than one iteration (stubbed _lock_classify_holder answers UNKNOWN, UNKNOWN, then LIVE, counted in a file -- deterministic, no sleep-and-hope), and the helper must return that LIVE"
+D=$(sandbox); marker="$D/.lock-loop.recovering"
+mkdir -p "$marker"
+calls="$D/classify-calls"; : > "$calls"
+_saved_cls="$(declare -f _lock_classify_holder)"
+# the stub counts its own invocations on disk (it is called inside $(...) subshells, so a
+# variable would not survive) and flips to LIVE only on the THIRD call.
+_lock_classify_holder() {
+  printf 'x' >> "$calls"
+  if [ "$(wc -c < "$calls" | tr -d ' ')" -ge 3 ]; then printf 'LIVE'; else printf 'UNKNOWN'; fi
+}
+out=$(LOCK_RECOVER_MARKER_SETTLE_POLLS=5 _lock_recover_marker_settle "$marker")
+eval "$_saved_cls"
+n_calls=$(wc -c < "$calls" | tr -d ' ')
+assert_eq "$out" "LIVE" "evidence arriving on a later iteration must still be returned -- got '$out'"
+assert_eq "$n_calls" "3" "the loop must keep looking across iterations (exactly 3 classifications: UNKNOWN, UNKNOWN, LIVE) -- got $n_calls"
+rm -rf "$D"
+
+t_start "NEW bd:8ss round 3: lock_recover --force must NOT enter the re-observation at all (stubbed settle helper leaves a filesystem trace) -- an operator's explicit judgment call on a pid-less marker is not re-litigated, so the --force tier behaves exactly as it did before this fix"
+D=$(sandbox); lockd="$D/.lock-forceguard"; recovering="${lockd}.recovering"
+seed_dead_lock "$lockd" "stale" >/dev/null
+mkdir "$recovering"                 # pid-less marker: classifies UNKNOWN
+_saved_settle="$(declare -f _lock_recover_marker_settle)"
+settle_trace="$D/.settle-was-consulted"
+_lock_recover_marker_settle() { : > "$settle_trace"; printf 'LIVE'; }
+out=$(lock_recover "$lockd" "forced clear" 1 2>&1); rc=$?
+eval "$_saved_settle"
+[ ! -e "$settle_trace" ] && t_ok || t_fail "--force must bypass the re-observation entirely -- the settle helper was consulted"
+assert_eq "$rc" "0" "recover --force on a pid-less marker must still clear it and return 0 COMPLETED, exactly as before the fix -- got rc=$rc"
+assert_contains "$out" "COMPLETED" "the forced clear must still report COMPLETED"
+[ ! -e "$recovering" ] && t_ok || t_fail "the forced clear must still remove the stuck marker"
+rm -rf "$D"
+
+# =============================================================================
 # regression: chmod 000 lock defeats neither the liveness gate nor the identity check
 # (Quinn High) -- an unreadable lock directory must refuse (LOCK_CORRUPT), never read
 # as "empty, therefore safe", never falsely report success.
@@ -969,6 +1097,109 @@ chmod 644 "$f" 2>/dev/null
 assert_eq "$st" "AMBIGUOUS" "a CHANGED verdict that recurs on the single bounded retry (the object is STILL unreadable) must give up as AMBIGUOUS, never loop indefinitely -- got '$st'"
 elapsed=$((t1 - t0))
 [ "$elapsed" -lt 5 ] && t_ok || t_fail "the bounded retry must return quickly (well under 5s), not hang -- took ${elapsed}s"
+rm -rf "$D"
+
+# =============================================================================
+# bd:shode-house-8ss -- _lock_revalidate_dead: a DEAD verdict is re-validated against
+# the IDENTITY of the object it was read from before it is allowed to become the
+# non-retryable RECOVERY_REQUIRED. Three branches, one test case each, each one
+# deterministic (the object is mutated by the test itself, never by a timing race) and
+# each one written so that reverting ITS branch alone flips the verdict:
+#   1. the lock path is simply gone                      -> CHURN   (retryable)
+#   2. a DIFFERENT device:inode:creation-time is there   -> CHURN   (retryable)
+#   3. the SAME object classifies DEAD a second time     -> fails closed
+# CHURN is only ever the retryable side of the verdict (LOCK_BUSY); nothing here can
+# make a caller proceed, reclaim or delete -- _lock_classify_timeout returns non-zero
+# on every path (see scripts/lib/lock.sh).
+# =============================================================================
+t_start "NEW bd:8ss unit: _lock_revalidate_dead branch 1 -- the lock the DEAD verdict was read from is GONE (an ordinary lock_release landed in the classification window) -> CHURN, never a RECOVERY_REQUIRED-bound DEAD"
+D=$(sandbox); lockd="$D/.lock-reval-gone"
+dead_pid=$(seed_dead_lock "$lockd")
+# NOTE (portability, bd:shode-house-8ss round 3): this case asserts the CLASSIFIER's
+# verdict and deliberately assumes NOTHING about what _lock_fs_identity can produce on
+# the filesystem under test -- the same rule the iter5 identity case was rewritten to
+# obey after the ubuntu-latest failure. Branch 1 is reached on a confirmed-MISSING path
+# regardless of the fingerprint, so the case is run BOTH with whatever real fingerprint
+# this filesystem gives (possibly empty) AND with an explicitly empty one.
+pre_fp=$(_lock_fs_identity "$lockd") || pre_fp=""
+# the classification already happened and said DEAD (pid $dead_pid is genuinely reaped);
+# the holder now releases normally, exactly as lock_release does.
+rm -rf "$lockd"
+out=$(_lock_revalidate_dead "$lockd" "$pre_fp")
+assert_eq "$out" "CHURN" "a DEAD verdict whose lock object is GONE is ordinary churn (it was released), never a crash-stuck lock -- got '$out'"
+# ...and it must be the EXISTENCE probe that decides it, not a re-classification of a
+# path that is no longer there: with _lock_classify_holder stubbed to the most hostile
+# answer it could give for a gone path, the verdict must still be CHURN. This is what
+# makes this case fail if the confirmed-MISSING short-circuit is removed.
+_saved_cls="$(declare -f _lock_classify_holder)"
+_lock_classify_holder() { printf 'DEAD'; }
+out2=$(_lock_revalidate_dead "$lockd" "$pre_fp")
+eval "$_saved_cls"
+assert_eq "$out2" "CHURN" "a confirmed-MISSING lock path must be answered CHURN by the existence probe alone, never by re-classifying a path that is gone -- got '$out2'"
+# and the same verdict with NO fingerprint at all, i.e. on a filesystem where
+# _lock_fs_identity can produce no evidence: branch 1 must not depend on it.
+out3=$(_lock_revalidate_dead "$lockd" "")
+assert_eq "$out3" "CHURN" "branch 1 must answer CHURN with an EMPTY pre-fingerprint too -- it must never depend on the filesystem producing an identity fingerprint -- got '$out3'"
+rm -rf "$D"
+
+t_start "NEW bd:8ss unit: _lock_revalidate_dead branch 2 -- when the identity of the object at the path DIFFERS from the identity the DEAD verdict was read from, the verdict is CHURN, not DEAD -- asserted through the classifier's own verdict with a stubbed _lock_fs_identity, so it holds on every filesystem (never asserts that a remove+recreate yields a different fingerprint -- the exact filesystem-property assertion the iter5 case was rewritten to abolish after the ubuntu-latest failure)"
+D=$(sandbox); lockd="$D/.lock-reval-newobj"
+dead_pid=$(seed_dead_lock "$lockd" "second-token")
+# The pid at the path is DEAD, so branch 3 (a fresh classification) would say DEAD:
+# only the identity comparison can produce CHURN here, which is what makes this case
+# fail if branch 2 is reverted. Both fingerprints are supplied by the test (one as the
+# pre-verdict identity argument, one from a stubbed _lock_fs_identity), so no property
+# of the real filesystem is asserted anywhere.
+assert_eq "$(_lock_classify_holder "$lockd")" "DEAD" "test setup: the object at the path must itself classify DEAD, so only the identity comparison can produce CHURN"
+_saved_fsid="$(declare -f _lock_fs_identity)"
+_lock_fs_identity() { printf '66304:4242:2026-01-01T00:00:00.000000002'; }
+out=$(_lock_revalidate_dead "$lockd" "66304:4242:2026-01-01T00:00:00.000000001")
+eval "$_saved_fsid"
+assert_eq "$out" "CHURN" "two DIFFERENT non-empty identity fingerprints mean the pid the DEAD verdict was read from belonged to a DIFFERENT object at this path -- ordinary churn -- got '$out'"
+# the other side of the same rule: an identity that did NOT change must NOT be churn.
+_saved_fsid="$(declare -f _lock_fs_identity)"
+_lock_fs_identity() { printf '66304:4242:2026-01-01T00:00:00.000000001'; }
+same=$(_lock_revalidate_dead "$lockd" "66304:4242:2026-01-01T00:00:00.000000001")
+eval "$_saved_fsid"
+assert_eq "$same" "DEAD" "an UNCHANGED identity must fall through to the fresh classification and stay DEAD -- the comparison must be an equality test, not a 'fingerprint exists' test -- got '$same'"
+rm -rf "$D"
+
+t_start "NEW bd:8ss unit: _lock_revalidate_dead branch 2, END-TO-END on the REAL filesystem (remove + recreate at the same path, real _lock_fs_identity) -- CAPABILITY-SKIPPED, never failed, where this filesystem cannot distinguish the two objects (no sub-second birth time: the ubuntu-latest case the ci.yml header names)"
+D=$(sandbox); lockd="$D/.lock-reval-realfs"
+dead_pid=$(seed_dead_lock "$lockd" "first-token")
+pre_fp=$(_lock_fs_identity "$lockd") || pre_fp=""
+rm -rf "$lockd"
+dead_pid2=$(seed_dead_lock "$lockd" "second-token")
+now_fp=$(_lock_fs_identity "$lockd") || now_fp=""
+if [ -z "$pre_fp" ] || [ -z "$now_fp" ] || [ "$pre_fp" = "$now_fp" ]; then
+  # DOCUMENTED SKIP, not a failure: on this filesystem _lock_fs_identity cannot tell a
+  # remove+recreate at the same path apart (no sub-second creation/birth time, or an
+  # inode reused inside the same coarse timestamp bucket). Branch 2 then has no evidence
+  # to act on BY DESIGN and lock.sh correctly falls through to branch 3's fresh
+  # classification, which fails closed. The branch's LOGIC is covered by the stubbed
+  # case above, which runs everywhere; this case only adds the real-filesystem wiring
+  # where the filesystem can supply the evidence.
+  echo "   (skipped: _lock_fs_identity cannot distinguish a remove+recreate at the same path on this filesystem -- pre='$pre_fp' now='$now_fp'; branch 2 logic is covered by the stubbed case above)"
+else
+  assert_eq "$(_lock_classify_holder "$lockd")" "DEAD" "test setup: the NEW object must itself classify DEAD, so only the identity comparison can produce CHURN here"
+  out=$(_lock_revalidate_dead "$lockd" "$pre_fp")
+  assert_eq "$out" "CHURN" "on a filesystem that CAN distinguish the two objects, a real remove+recreate at the same path must produce CHURN through the real _lock_fs_identity -- got '$out'"
+fi
+rm -rf "$D"
+
+t_start "NEW bd:8ss unit: _lock_revalidate_dead branch 3 -- the SAME, STABLE lock object (identical fingerprint, untouched) whose recorded holder is still dead on the fresh classification must FAIL CLOSED: DEAD, surfacing as RECOVERY_REQUIRED, never downgraded to retryable churn"
+D=$(sandbox); lockd="$D/.lock-reval-stable"
+dead_pid=$(seed_dead_lock "$lockd")
+pre_fp=$(_lock_fs_identity "$lockd") || pre_fp=""
+# nothing is mutated: the object the verdict was read from is still there, unchanged.
+out=$(_lock_revalidate_dead "$lockd" "$pre_fp")
+assert_eq "$out" "DEAD" "a genuinely crash-stuck lock (same object, holder still dead on re-observation) must stay DEAD -- the re-validation must never launder it into CHURN -- got '$out'"
+verdict=$(_lock_classify_timeout "$lockd")
+assert_contains "$verdict" "RECOVERY_REQUIRED|" "the DEAD verdict must still surface as the non-retryable RECOVERY_REQUIRED through _lock_classify_timeout -- got '$verdict'"
+lock_acquire "$lockd" >/dev/null 2>&1; arc=$?
+assert_eq "$arc" "5" "lock_acquire on that crash-stuck lock must still fail closed with rc=5 (RECOVERY_REQUIRED), never acquire it -- got rc=$arc"
+[ -d "$lockd" ] && t_ok || t_fail "the crash-stuck lock must be left exactly as it was -- nothing reaped, nothing deleted"
+assert_eq "$(cat "$lockd/pid")" "$dead_pid" "the recorded holder pid must be untouched by the re-validation"
 rm -rf "$D"
 
 # =============================================================================
