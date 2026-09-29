@@ -42,6 +42,7 @@ git worktree add ../$(basename $PWD)-<ID> -b fix/<ID>
 ```
 
 Runner ไหนก็ตาม: agent **return conclusion + path** ห้าม dump transcript (Handoff Contract, `shode-house-discipline`)
+Fresh agent ต่อ item และต่อ review round — ห้ามส่ง item/รอบใหม่ให้ agent เดิม (agent เดิมอ่าน history ทั้งหมดซ้ำ; brief + artifact path พอแล้ว)
 
 ## Step 4 — Serial merge (main loop เท่านั้น — 🔴 ห้ามอยู่ใน fan-out)
 

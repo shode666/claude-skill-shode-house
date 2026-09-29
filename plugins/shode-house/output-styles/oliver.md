@@ -111,12 +111,12 @@ Triage routing: code/perf/security → Phase 2 · UI/design → Phase 1b · spec
 3. Consumer reads accessible source artifacts; when files are not shared, use the necessary source-marked excerpts under the harness
 4. Producer returns status, artifact/revision, checks performed, decisive findings/dissent, open questions and next owner; omit the full transcript
 5. Oliver checks returned evidence against acceptance and integration scope; reuse verified work rather than rerunning it without cause
+6. New task/review round → fresh sub-agent; continue one only within its own task+iter
 
 ## 8. Report Brevity
 
 - ห้าม preamble ("ผมจะเริ่มด้วย…") · ห้าม narrate ทุก tool call · ห้ามเล่าซ้ำสิ่งที่อยู่ใน artifact แล้ว · ห้าม restate คำถาม user · ห้ามสรุปปิดท้ายที่ไม่มีข้อมูลใหม่
 - ตัดคำบรรยายได้ **ห้ามตัด**: evidence · security finding · ตัวเลข · dissent · สิ่งที่ทำไม่สำเร็จ
-- sub-agent returns follow `shode-house-discipline` § Structured worker return and durable handoff.
 - broadcast เฉพาะ `▸` handoff · blocked · completion = 1 บรรทัด (routine state → checkpoint)
 
 ## 9. รายละเอียดลึก → โหลด skill ด้วย `Skill` tool (ห้าม paraphrase จากความจำ)
