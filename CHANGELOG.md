@@ -5,6 +5,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ## [Unreleased]
 
+## [3.17.2] — 2026-09-29
+
+### Changed
+
+- **Fresh sub-agent per task and per review round.** A token audit of a real multi-bead run (~332M cost-weighted tokens) found the largest waste was re-dispatching new beads and new review rounds to an already-used sub-agent: every reuse re-reads that agent's whole history first (one developer agent reused for ~8 beads cost 42M; one reviewer agent 33M). The Handoff Contract already carries context through artifact paths, so history buys nothing. `output-styles/oliver.md` §7 gains rule 6 — a new task or review round goes to a fresh sub-agent; an existing one is continued only within its own task+iter. `skills/ops/drain/execution.md` Step 3 states the same for drain workers, with the reason. Paid for in the same change by dropping the §8 pointer line that restated §7 rule 4 (worker return shape, owned by `shode-house-discipline` § Structured worker return); `output-styles/oliver.md` is 12 B smaller and every scenario budget still passes.
+
 ### Measured — dispatch-floor question: closed by measurement, nothing shipped
 
 - **Result: the audit's premise is refuted for the six owners measured.** `outputs/shode-house-8ss/46-intent-audit.md` §4 D1 argued that the always-on dispatch floor in `output-styles/oliver.md` names only Dave, Chris, Quinn, Uma and Sentinel, and that the rest of the team is therefore out of reach. Measured at BASE, with **no wording change of any kind**: P40 Patrick (discovery) k/n = 4/5, P41 Stan (standard-setting / tech radar) 5/5, P42 Elena (ERP) 5/5, P43 Sam (SAP) 5/5, P44 Brooke (booking) 5/5, P45 Emma (e-commerce) 5/5; pooled k = 29, n = 30. Under `eval/PROBE-GATE-floor-v2.md` rule 4.1 this is **STOP-PREMISE-WRONG**: `output-styles/oliver.md` is unchanged, no AFTER arm was run, and the wording proposal in `outputs/shode-house-8ss/50-floor-restore-plan.md` §1 is withdrawn.

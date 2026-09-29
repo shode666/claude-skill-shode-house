@@ -176,7 +176,7 @@ if the host has no delegation tool, Oliver reports team execution BLOCKED instea
 /plugin marketplace update shode-house
 /plugin update shode-house@shode-house      # `install` alone keeps the already-installed version
 ```
-Check with `/plugin list` — the version must read 3.17.1.
+Check with `/plugin list` — the version must read 3.17.2.
 
 Prerequisite (optional): `brew install node` (Context7 MCP ใช้ npx) · `brew install beads` (task tracker `bd`)
 
