@@ -57,24 +57,34 @@ def w9_block():
 PRELUDE = "set +e -u -o pipefail\nfail=0\nerr(){ printf '  X %s\\n' \"$*\"; fail=1; }\nok(){ printf '  ok %s\\n' \"$*\"; }\n"
 
 
-def run_a15(cwd, env_extra=None, with_w9=False, trailer=""):
+def gate_env(cwd, env_extra=None):
+    """The one environment the gate block runs in (and the pytest probe uses): HOME is the scratch cwd."""
     env = {"PATH": "/usr/bin:/bin:/usr/local/bin", "HOME": str(cwd)}
     env.update(env_extra or {})
+    return env
+
+
+def run_a15(cwd, env_extra=None, with_w9=False, trailer=""):
     script = PRELUDE + a15_block() + (w9_block() if with_w9 else "") + trailer + 'echo "fail=$fail"'
-    r = subprocess.run(["bash", "-c", script], cwd=cwd, capture_output=True, text=True, env=env)
+    r = subprocess.run(["bash", "-c", script], cwd=cwd, capture_output=True, text=True, env=gate_env(cwd, env_extra))
     return r.returncode, r.stdout + r.stderr
 
 
 def this_python_env(cwd):
-    """PATH with this interpreter first (setup-python's on CI) and the user site this run uses, so pytest is found."""
-    env = {"PATH": os.path.dirname(sys.executable) + ":/usr/bin:/bin:/usr/local/bin"}
-    if os.environ.get("PYTHONUSERBASE"):
-        env["PYTHONUSERBASE"] = os.environ["PYTHONUSERBASE"]
-    return env
+    """PATH with this interpreter first (setup-python's on CI) and the user site this interpreter resolves now.
+
+    PYTHONUSERBASE is pinned to site.getuserbase() of the running interpreter, not copied from the caller: the gate
+    runs with HOME=<cwd>, which would otherwise move the user site (macOS ~/Library/Python/X.Y) away from pytest.
+    """
+    import site
+    return {"PATH": os.path.dirname(sys.executable) + ":/usr/bin:/bin:/usr/local/bin",
+            "PYTHONUSERBASE": site.getuserbase()}
 
 
-def pytest_importable(env):
-    return subprocess.run(["python3", "-c", "import pytest"], env=env, capture_output=True).returncode == 0
+def pytest_importable(cwd, env_extra):
+    """Probe pytest in exactly the environment run_a15(cwd, env_extra) gives the gate, so probe and run agree."""
+    return subprocess.run(["python3", "-c", "import pytest"], cwd=cwd, env=gate_env(cwd, env_extra),
+                          capture_output=True).returncode == 0
 
 
 class A15WiringTest(unittest.TestCase):
@@ -148,6 +158,54 @@ class A15WiringTest(unittest.TestCase):
             self.assertTrue(made, "the venv fallback did not run (no temp dir made)")
             self.assertNotIn("LEFT", out, "venv temp dir left behind when pip failed")
 
+    def test_venv_temp_dir_is_removed_when_the_gate_stops_early(self):
+        """U22 iter 2 (Chris L3): an EXIT trap removes the venv dir when the gate stops before the explicit removal
+        (here: an `exit` straight after the A15 block, standing in for an interrupt or a `set -u` abort)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            (root / "bin").mkdir()
+            (root / "tmp").mkdir()
+            fake = root / "bin/python3"
+            fake.write_text('#!/bin/bash\nif [ "$1" = -m ] && [ "$2" = venv ]; then mkdir -p "$3/bin"; '
+                            'printf \'#!/bin/bash\\nexit 1\\n\' > "$3/bin/python"; chmod +x "$3/bin/python"; exit 0; fi\n'
+                            'exit 1\n')
+            fake.chmod(0o755)
+            (root / "tests").mkdir()
+            (root / "tests/test_design_run.py").write_text("def test_ok():\n    assert True\n")
+            r = subprocess.run(["bash", "-c", PRELUDE + a15_block() + 'echo "venv-dir=${a15v:-}"; exit 3\n'], cwd=root,
+                               capture_output=True, text=True,
+                               env=gate_env(root, {"PATH": f"{root / 'bin'}:/usr/bin:/bin", "CI": "true",
+                                                   "TMPDIR": str(root / "tmp")}))
+            made = re.search(r"^venv-dir=(\S+)$", r.stdout, re.M)
+            self.assertEqual(r.returncode, 3, r.stdout + r.stderr)
+            self.assertTrue(made, "the venv fallback did not run (no temp dir made)")
+            left = pathlib.Path(made.group(1)).exists()
+            if left:
+                import shutil
+                shutil.rmtree(made.group(1), ignore_errors=True)    # this test's own leftover, never a real dir
+            self.assertFalse(left, "venv temp dir left behind when the gate stopped early")
+
+    def test_pyt_mktemp_failure_is_red_and_runs_no_pytest(self):
+        """U22 iter 2 (Chris L3): pyt's `mktemp -d` failing used to leave h empty and run pytest with HOME=/home,
+        GIT_CONFIG_GLOBAL=/gitconfig (a non-hermetic run that could pass). It must be red and run nothing."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            env = this_python_env(root)
+            if not pytest_importable(root, env):
+                self.skipTest("pytest not importable from this interpreter")
+            (root / "bin").mkdir()
+            fake = root / "bin/mktemp"
+            fake.write_text("#!/bin/sh\necho 'mktemp: stub failure' >&2\nexit 1\n")
+            fake.chmod(0o755)
+            env["PATH"] = f"{root / 'bin'}:{env['PATH']}"
+            (root / "tests").mkdir()
+            (root / "tests/test_design_run.py").write_text("def test_ok():\n    assert True\n")
+            rc, out = run_a15(root, env)
+        self.assertIn("pyt: mktemp -d failed -- pytest not run", out, out)
+        self.assertIn("A15 design runner suite red", out, out)
+        self.assertNotIn("ok A15", out, out)
+        self.assertIn("fail=1", out)
+
 
 class W9WiringTest(unittest.TestCase):
     """bd v7u.4.7 W9 wiring: core-4.0 freeze + the two eval pytest suites run in gate #27, required in every mode."""
@@ -182,7 +240,7 @@ class W9WiringTest(unittest.TestCase):
             with self.subTest(missing=missing), tempfile.TemporaryDirectory() as tmp:
                 root = pathlib.Path(tmp)
                 env = this_python_env(root)
-                if not pytest_importable(env):
+                if not pytest_importable(root, env):
                     self.skipTest("pytest not importable from this interpreter")
                 self.stub_tree(root)
                 import shutil
@@ -193,7 +251,7 @@ class W9WiringTest(unittest.TestCase):
                 self.assertNotRegex(out, r"(?m)^  X (?!W9 [^\n]*" + re.escape(missing) + ")", out)  # nothing else red
 
     def test_ci_wiring_and_the_other_unit_suites_are_in_the_always_required_loop(self):
-        """Chris W10a-C5: CI runs tests/test_ci_wiring.py (and the other seven) only from #27's loop; dropping one
+        """Chris W10a-C5: CI runs tests/test_ci_wiring.py (and the other eight) only from #27's loop; dropping one
         from the list would stop checking it and stay green."""
         lines = gate_script()
         loop = [l for l in lines if re.match(r"for t in test_[\w ]+; do", l)]
@@ -201,7 +259,8 @@ class W9WiringTest(unittest.TestCase):
         body = lines[lines.index(loop[0]) + 1]
         names = re.match(r"for t in ([\w ]+); do", loop[0]).group(1).split()
         self.assertEqual(["test_agent_tools_pin", "test_skill_names", "test_shipped_text_lint", "test_floor",
-                          "test_gate27_wiring", "test_ci_wiring", "test_ux_design_runbooks", "test_eval_runners"], names)
+                          "test_gate27_wiring", "test_ci_wiring", "test_ux_design_runbooks", "test_eval_runners",
+                          "test_reference_toc"], names)
         for name in names:
             self.assertTrue((ROOT / "tests" / f"{name}.py").is_file(), name)
         self.assertIn('python3 tests/$t.py >/dev/null 2>&1 || { err "tests/$t.py red', body)
@@ -212,7 +271,7 @@ class W9WiringTest(unittest.TestCase):
             with self.subTest(freeze_rc=freeze_rc, suite_ok=suite_ok), tempfile.TemporaryDirectory() as tmp:
                 root = pathlib.Path(tmp)
                 env = this_python_env(root)
-                if not pytest_importable(env):
+                if not pytest_importable(root, env):
                     self.skipTest("pytest not importable from this interpreter")
                 self.stub_tree(root, freeze_rc, suite_ok)
                 rc, out = run_a15(root, env, with_w9=True)

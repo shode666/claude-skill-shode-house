@@ -43,7 +43,7 @@ state_dir="$shode_dir/state"
 # suite). Fires on both Stop and SubagentStop, same script, same behavior for each.
 [ -d "$state_dir" ] || exit 0
 
-# jq missing -- session-start.sh already announced DEGRADED for this session; do not
+# jq missing -- session-start.sh already announced ADVISORY-ONLY for this session; do not
 # re-announce here, just skip silently (still exit 0, never blocks).
 command -v jq >/dev/null 2>&1 || exit 0
 

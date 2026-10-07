@@ -252,6 +252,12 @@ Closed in v3.17 merge (Sentinel S4 / G-C6): the canonical 8-item Phase 1c trigge
 
 Root-only anchors added at 4.0.0 (all in the table above): the router style ids `router-*` (W3, 23; `router-design-run-confirm` dropped with R69), the body-floor ids `floor-*` and the re-sourced R0/redact/input-trust/no-skip-security ids (W4, sourced to `agents/developer.md` and asserted in every body by `test_body_floor_anchors_in_every_agent_body`) and the style-floor ids `style-floor-*`. CI #21 floor: 190.
 
+Gate rows added at 4.0.0 outside CI #27 (U22):
+
+| Id | Rule | Canonical owner | Guard (test) | Verification |
+|---|---|---|---|---|
+| C5-text | Shipped text never instructs a Bash command that the C5 control-plane guard denies: no fenced shell block (`bash`, `sh`, `shell`, `zsh`, `console`) in agents, the five skill buckets, commands, output-styles or references names `.shode-house` itself, its `state` / `journal` / `scope` roots, a look-alike or a `..` segment after `.shode-house/`. The ERE is read from `hooks/scripts/guard-scope-write.sh`, so the lint cannot drift from the hook. Known limits: unlabelled or non-shell fences, inline code spans, prose | `references/scope-lock.md` § Enforcement ceiling (rule) + `hooks/scripts/guard-scope-write.sh` (enforcement) | `tests/test_bash_control_plane_text.py` (with its negative test) | ci:11 |
+
 ## Instruction ownership map (v3.17 — SPEC §113)
 
 > One canonical owner per rule family; every other file points, it does not restate. Machine-checked part = the `source_of_truth` + `anchor` of each rule in `.enforcement-map.json` (CI #21); this table is the human index used when deduplicating. Before adding a rule, answer the contribution questions in `AGENTS.md` § Contribution rules.

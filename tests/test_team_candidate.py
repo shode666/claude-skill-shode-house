@@ -1853,5 +1853,56 @@ class CheckCommandLineTest(unittest.TestCase):
         self.assertTrue(result.stderr.startswith("error: agents/developer.md: malformed floor markers"), result.stderr)
 
 
+class SourceSymlinkRefusalTest(unittest.TestCase):
+    """U22 H3: `collect` reads the source the tree is generated from and never through a symlink -- a link inside a
+    source root, a linked source root, and (added in U22) a linked `.claude-plugin` or `.claude-plugin/plugin.json`,
+    whose fields are copied into the tree. Every planted link and its target lie inside a temporary directory."""
+
+    def _source_copy(self, tmp):
+        root = Path(tmp) / "src"
+        names = ["agents", "references", "output-styles", "commands", ".claude-plugin", "LICENSE"]
+        names += ["skills/" + b for b in pack.BUCKETS]
+        for name in names:
+            src, dst = ROOT / name, root / name
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            if src.is_dir():
+                shutil.copytree(src, dst, symlinks=True, ignore=shutil.ignore_patterns("__pycache__"))
+            else:
+                shutil.copy2(src, dst, follow_symlinks=False)
+        outside = Path(tmp) / "outside"
+        outside.mkdir()
+        (outside / "plugin.json").write_bytes((ROOT / ".claude-plugin/plugin.json").read_bytes())
+        (outside / "note.md").write_text("outside the source\n", encoding="utf-8")
+        return root, outside
+
+    def test_collect_refuses_every_source_symlink(self):
+        with tempfile.TemporaryDirectory(prefix="shode-pack-src-") as tmp:
+            root, outside = self._source_copy(tmp)
+            manifest, entries = pack.collect(root)                     # control: the copy is collected
+            self.assertEqual(manifest["name"], "shode-house")
+            self.assertIn("references/scope-lock.md", entries)
+            cases = (("a link inside a source root", "references/u22-link.md", outside / "note.md",
+                      "symlink not allowed in candidate"),
+                     ("a linked manifest", ".claude-plugin/plugin.json", outside / "plugin.json",
+                      "symlink not allowed: .claude-plugin/plugin.json"),
+                     ("a linked manifest directory", ".claude-plugin", outside,
+                      "symlink not allowed: .claude-plugin"))
+            for label, rel, target, message in cases:
+                link, aside = root / rel, None
+                if link.exists():
+                    aside = root / (rel + ".aside")
+                    link.rename(aside)
+                link.symlink_to(target)
+                try:
+                    with self.assertRaises(ValueError, msg=label) as raised:
+                        pack.collect(root)
+                    self.assertIn(message, str(raised.exception), label)
+                finally:
+                    link.unlink()
+                    if aside is not None:
+                        aside.rename(link)
+            self.assertEqual(pack.collect(root)[1], entries)           # restored: the same source again
+
+
 if __name__ == "__main__":
     unittest.main()

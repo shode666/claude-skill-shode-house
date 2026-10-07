@@ -7,6 +7,22 @@ OWNER: developer
 REQUIRED-BEFORE: handoff_phase_2_to_3
 ```
 
+**Contents**
+
+  - [Gate 0: Architecture self-check](#gate-0-architecture-self-check)
+  - [Gate 1: Format](#gate-1-format)
+  - [Gate 2: Organize Imports](#gate-2-organize-imports)
+  - [Gate 3: Remove Unused](#gate-3-remove-unused)
+  - [Gate 4: Lint (strict — diagnose)](#gate-4-lint-strict--diagnose)
+  - [Gate 5: Type Check (🔴 strict)](#gate-5-type-check--strict)
+  - [Gate 6: Complexity](#gate-6-complexity)
+  - [Gate 7: Naming](#gate-7-naming)
+  - [Gate 8: Test](#gate-8-test)
+  - [Gate 9: Security Lint](#gate-9-security-lint)
+  - [Gate 10: Doc](#gate-10-doc)
+- [Quality Smells (🚫 reject)](#quality-smells--reject)
+- [Pre-Push Checklist (all 11 gates)](#pre-push-checklist-all-11-gates)
+
 Root `SKILL.md` rules (11-gate table, carve-out, hand-off boundary) apply throughout.
 Tool selection per stack → [tool-matrix.md](tool-matrix.md) (only when a gate lacks a verified command).
 

@@ -174,6 +174,12 @@ jobs:
           if command -v python3 >/dev/null; then
             python3 tests/test_tracker_neutral.py >/dev/null 2>&1 || { err "tracker-neutral: hardcoded bd command outside harness.md (or negative test broken):"; python3 tests/test_tracker_neutral.py --scan | head -20; }
           fi
+          # BASH CONTROL PLANE (U22 H1 follow-up) -- permanent: no shipped shell block names a path the C5 Bash guard of
+          #   hooks/scripts/guard-scope-write.sh denies (.shode-house itself or its state/journal/scope roots); the pattern
+          #   is read from the hook. Scan set, limits and the negative test live in tests/test_bash_control_plane_text.py.
+          if command -v python3 >/dev/null; then
+            python3 tests/test_bash_control_plane_text.py >/dev/null 2>&1 || { err "bash-control-plane: shipped shell block names a Bash-denied .shode-house path (or negative test broken):"; python3 tests/test_bash_control_plane_text.py --scan | head -20; }
+          else err "bash-control-plane: python3 required"; fi
           [ $fail -eq 0 ] && ok "cross-refs resolve ($(echo "$ships" | wc -l | tr -d ' ') shipped skills)"
 
           sec "11b. every shipped skill is linked in README (v3.12)"
@@ -272,22 +278,28 @@ jobs:
             grep -q 'design-intel' agents/ux-ui-designer.md || err "Uma does not reference design-intel"
             # v3.12: เช็คว่าไฟล์มีอยู่ไม่พอ -- gate ที่ Uma ต้องผ่านทุก Phase 1b ต้องรันได้จริง
             # (รอบก่อนหน้า pack ผ่าน #17 ทั้งที่ check_contrast block ทุก palette ในแคตตาล็อก)
-            if command -v python3 >/dev/null; then
+            # U22: scratch files live in a per-run `mktemp -d` under $TMPDIR (removed on exit), never fixed /tmp names:
+            # concurrent gates do not overwrite each other's payload and the names cannot be predicted
+            if ! command -v python3 >/dev/null; then err "python3 missing -- design-intel smoke skipped"
+            elif ! di_tmp=$(mktemp -d "${TMPDIR:-/tmp}/shode-di.XXXXXX"); then err "design-intel: mktemp -d failed under ${TMPDIR:-/tmp} -- smoke not run"
+            else
+              trap 'rm -rf "$di_tmp"' EXIT
               for q in "saas dashboard" "fintech app" "ecommerce store"; do
-                python3 "$DI/scripts/search.py" "$q" --design-system --json > /tmp/ds.json 2>/dev/null \
+                python3 "$DI/scripts/search.py" "$q" --design-system --json > "$di_tmp/ds.json" 2>/dev/null \
                   || { err "design-intel: search.py failed for '$q'"; continue; }
-                python3 "$DI/scripts/check_contrast.py" --design-system-json /tmp/ds.json --border-decorative "CI smoke" > /tmp/cc.txt 2>&1 \
-                  || { err "design-intel: contrast gate BLOCKS catalog palette for '$q' -> Uma Phase 1b would hard-block"; sed -n '1,12p' /tmp/cc.txt; }
+                python3 "$DI/scripts/check_contrast.py" --design-system-json "$di_tmp/ds.json" --border-decorative "CI smoke" > "$di_tmp/cc.txt" 2>&1 \
+                  || { err "design-intel: contrast gate BLOCKS catalog palette for '$q' -> Uma Phase 1b would hard-block"; sed -n '1,12p' "$di_tmp/cc.txt"; }
               done
               python3 "$DI/scripts/check_contrast.py" --pair "#9CA3AF,#FFFFFF" >/dev/null 2>&1 \
                 && err "design-intel: contrast gate PASSES a 2.54:1 pair -- gate is not enforcing"
-              # ปั้น payload ที่มีขอบต่ำกว่า 3:1 แน่นอน แทนการพึ่ง /tmp/ds.json ที่ค้างจาก loop
-              printf '{"design_system":{"colors":{"background":"#FFFFFF","border":"#F2F2F2"}}}' > /tmp/ds-border.json
-              python3 "$DI/scripts/check_contrast.py" --design-system-json /tmp/ds-border.json >/dev/null 2>&1 \
+              # ปั้น payload ที่มีขอบต่ำกว่า 3:1 แน่นอน แทนการพึ่ง ds.json ที่ค้างจาก loop
+              printf '{"design_system":{"colors":{"background":"#FFFFFF","border":"#F2F2F2"}}}' > "$di_tmp/ds-border.json"
+              python3 "$DI/scripts/check_contrast.py" --design-system-json "$di_tmp/ds-border.json" >/dev/null 2>&1 \
                 && err "design-intel: sub-3:1 border passes without --border-decorative ack -- decision not forced"
-              python3 "$DI/scripts/check_contrast.py" --design-system-json /tmp/ds-border.json --border-decorative "ci" >/dev/null 2>&1 \
+              python3 "$DI/scripts/check_contrast.py" --design-system-json "$di_tmp/ds-border.json" --border-decorative "ci" >/dev/null 2>&1 \
                 || err "design-intel: --border-decorative ack does not unblock -- Uma runbook would dead-end"
-            else err "python3 missing -- design-intel smoke skipped"; fi
+              rm -rf "$di_tmp"; trap - EXIT
+            fi
             [ $fail -eq 0 ] && ok "design-intel pack intact + gate runs"
           else ok "no references/design-intel (skipped)"; fi
 
@@ -635,7 +647,7 @@ jobs:
             if [ "$3" -eq 0 ]; then ok "$1"
             elif [ $REQ4 -eq 1 ]; then err "$1 (required from 4.0.0):"; echo "$2" | head -20
             else printf '  ~ advisory (%s required from 4.0.0): %s finding(s)\n' "$1" "$(echo "$2" | grep -c .)"; echo "$2" | head -20 | sed 's/^/      /'; fi; }
-          for t in test_agent_tools_pin test_skill_names test_shipped_text_lint test_floor test_gate27_wiring test_ci_wiring test_ux_design_runbooks test_eval_runners; do   # test_floor: R45; test_ux_design_runbooks: R68/S7-1 (always required)
+          for t in test_agent_tools_pin test_skill_names test_shipped_text_lint test_floor test_gate27_wiring test_ci_wiring test_ux_design_runbooks test_eval_runners test_reference_toc; do   # test_floor: R45; test_ux_design_runbooks: R68/S7-1; test_reference_toc: U23-5 (always required)
             python3 tests/$t.py >/dev/null 2>&1 || { err "tests/$t.py red (unit/mutation tests always required; from 4.0.0 also the tree):"; python3 tests/$t.py 2>&1 | grep -E '^(FAIL|ERROR)'; }
           done
           a1=$(python3 tests/test_agent_tools_pin.py --scan 2>&1); v4tree "A1 tools pin" "$a1" $?
@@ -662,18 +674,24 @@ jobs:
           # case, also when pip failed (C-7).
           # A missing suite file is red, never a silent ok (Bella W1 r2 N1 / W12 F-12; tests/test_gate27_wiring.py).
           [ -f tests/test_design_run.py ] || err "A15 design runner suite: tests/test_design_run.py missing -- NOT CHECKED (required in every mode)"
+          # U22 iter 2 (Chris L3): the venv dir also has an EXIT trap (an interrupted gate leaves no venv behind); the
+          # trap is cleared after the explicit removal below, like the design-intel scratch dir of #17.
           a15py=python3; a15v=""
           if ! python3 -c 'import pytest' 2>/dev/null && [ -n "${CI:-}" ]; then
-            a15v=$(mktemp -d) && python3 -m venv "$a15v/venv" >/dev/null 2>&1 \
+            a15v=$(mktemp -d) && trap 'rm -rf "${a15v:-}"' EXIT && python3 -m venv "$a15v/venv" >/dev/null 2>&1 \
               && "$a15v/venv/bin/python" -m pip install --quiet --require-hashes --only-binary :all: -r .github/requirements-ci.txt >/dev/null 2>&1 \
               && a15py="$a15v/venv/bin/python"
           fi
           a15ok=0; "$a15py" -c 'import pytest' 2>/dev/null && a15ok=1
-          pyt(){ # one isolated pytest run: own HOME/GIT_CONFIG_GLOBAL/XDG under a fresh temp dir, user site kept
-            local h rc; h=$(mktemp -d)
+          # pyt: one isolated pytest run: own HOME/GIT_CONFIG_GLOBAL/XDG under a fresh temp dir, user site kept. Its body is
+          # a subshell, so the EXIT trap removes that dir on any exit; a failed `mktemp -d` is red (exit 1), never a run
+          # with HOME=/home, GIT_CONFIG_GLOBAL=/gitconfig (U22 iter 2, Chris L3).
+          pyt()(
+            h=$(mktemp -d) && [ -n "$h" ] && [ -d "$h" ] || { echo "pyt: mktemp -d failed -- pytest not run"; exit 1; }
+            trap 'rm -rf "$h"' EXIT
             env GIT_CONFIG_NOSYSTEM=1 HOME="$h/home" GIT_CONFIG_GLOBAL="$h/gitconfig" XDG_CONFIG_HOME="$h/xdg" \
               PYTHONUSERBASE="$("$a15py" -m site --user-base)" PYTHONDONTWRITEBYTECODE=1 "$a15py" -m pytest -q -p no:cacheprovider "$@" 2>&1
-            rc=$?; rm -rf "$h"; return $rc; }
+          )
           if [ -f tests/test_design_run.py ]; then
             if [ $a15ok -eq 1 ]; then
               a15=$(pyt tests/test_design_run.py); a15_rc=$?
@@ -699,7 +717,7 @@ jobs:
               else err "W9 eval suites red ($w9s):"; echo "$w9" | grep -E '^(FAILED|ERROR)|passed|failed' | head -20; fi
             else err "W9 eval suites: pytest not importable -- NOT CHECKED (python3 -m pip install --require-hashes --only-binary :all: -r .github/requirements-ci.txt)"; fi
           fi
-          rm -rf "${a15v:-}"
+          rm -rf "${a15v:-}"; trap - EXIT
           [ $fail -eq 0 ] && ok "v4 gate tests (REQ4=$REQ4, plugin.json major $VMAJ; A1/A8/A16 tree + A2 required only when REQ4=1)"
 
           echo
@@ -811,7 +829,9 @@ jobs:
         run: |
           # an archive left by an earlier suite is removed first; the snapshot is a file, so a tree with no untracked path compares as empty
           rm -f shode-house-v*.plugin
-          before="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/pack-tree-before.$$"
+          # U22 iter 2 (Chris L2/L3): an unpredictable snapshot name, and an EXIT trap for it and the unpack dir
+          before=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/pack-tree-before.XXXXXX") || exit 1
+          d=""; trap 'rm -rf "$before" ${d:+"$d"}' EXIT
           tree_state() { git status --porcelain --untracked-files=no; git ls-files --others; }
           tree_state > "$before"
           make pack

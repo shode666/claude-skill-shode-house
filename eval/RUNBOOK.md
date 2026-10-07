@@ -110,7 +110,8 @@ expect somewhat more per probe; actual `cost_usd` per run is in `meta.json`.
 
 Send back: the whole run directory (`outputs/eval-<set>/E01/<run>/`, `<set>` = 4.0 on a 4.x checkout per `eval/core-set.sh`; `eval/baseline/3.16.3-probe/`) or at least
 `meta.json`, `score.txt`, `tools-seen.txt`, `run.stderr` and `SUMMARY.tsv`. Check `run.jsonl` for secrets before
-sharing outside the machine.
+sharing outside the machine. These runners do not redact (only `eval/run-core.sh` does, see "Evidence redaction in the
+core matrix"): redact every file, `run.stderr` included, before it leaves the machine.
 
 ## Routing-probe protocol (N=5, two arms, separation of duties)
 
@@ -307,8 +308,56 @@ PLUGIN_REF=<ref> bash eval/run-core.sh opus <new-out-dir>      # other model / p
 
 Resume: a complete run is skipped (never re-run); a crashed run is kept and the id re-runs into `<id>.retry<n>`;
 an infra result (429, credits, budget) is kept, not counted, and stops the batch with exit 5 — re-invoke later.
-Exit 0 = every id scored (PASS or FAIL) · 2 = some id unscorable · 3 = refused · 5 = stopped (infra). `<out>/SUMMARY.tsv`
+Exit 0 = every id scored (PASS or FAIL) · 2 = some id unscorable · 3 = refused · 4 = stopped, redaction failed ·
+5 = stopped (infra) · 129 / 130 / 143 = interrupted (HUP / INT / TERM). `<out>/SUMMARY.tsv`
 is append-only, one row per run. Static check without a model: `python3 -m pytest tests/test_core_scenarios.py -q`.
+
+### Evidence redaction in the core matrix (OD-2 A+)
+
+The frozen writers (`eval/run-lib.sh`, `scripts/team-run-check.py`) copy raw run text into the files people read, so
+`eval/run-core.sh` redacts after them, with `eval/redact_derived.py` (rules: `eval/evidence_redact.py`):
+
+- `umask 077` is set before the batch directory exists: directories 0700, files 0600, raw and derived alike, also in
+  the window before redaction. Re-invoking on a batch begun earlier restricts `<out>`, `SUMMARY.tsv` and `log.txt`.
+- **Derived, redacted in place** after each run: `tools-seen.txt`, `score.txt`, `score.json`, `meta.json` (`meta.json`
+  carries `first_skill` / `first_agent` / `route` / `model_id` copied from the trace). JSON is parsed and only string
+  values change, so a status, verdict, count or exit code never changes. Each file is replaced atomically: temporary
+  file in the same directory, fsync, rename over the original; a failure leaves the original, never a partial file.
+- **Raw, never touched, local only**: `run.jsonl` (the scorer's input), `run.files` (also a scorer input), `run.diff`,
+  `run.stderr`, `prompt.txt`. `<run>/redaction.json` records the sha256 of `run.jsonl` taken before the redaction and
+  checked after it (a change stops the batch). **Never paste or send raw files**: they may hold credentials. To share
+  one, copy it and redact the copy (`python3 eval/redact_derived.py text < run.jsonl > <outside-the-repo>/run.redacted.jsonl`), and
+  read it before sending — the redaction is best-effort over known credential shapes, not a guarantee. Every string
+  in a `run.jsonl` line is JSON-escaped, so JSON inside it (a Write of a config file, a `curl -d "{\"password\": ...}"`
+  body) has backslash-escaped quotes; the text redaction covers those up to 8 backslashes per quote (a quote nested
+  deeper is a known miss). The copy is for reading: a redacted value loses its quotes, so a line may no longer parse.
+- **Console, `log.txt`, `SUMMARY.tsv`**: `run_one`'s console output is held in `<out>/.redact-pending.out` and printed
+  only after its run is redacted (a run's lines appear when it ends, not while it runs); the `SUMMARY.tsv` row and any
+  line built from run text pass through the redactor first. `run_one` runs as a background job of the runner whose
+  stdout and stderr are that buffer and which holds no other descriptor of the runner: `claude`, the commands the model
+  runs, `git` in the fixture and the scorer inherit no descriptor of the console or `log.txt`, so nothing they write
+  through an inherited descriptor reaches either past the redactor. That is all it covers: a process of the same user
+  can still open `/dev/tty`, or write a file under the out-dir by its path. The runner waits for the job and reads the
+  run's route and duration back from its redacted `meta.json`.
+- **`tools-seen.txt`**: the frozen writer cuts each first Skill / Task / Agent input value at 300 characters and adds
+  `...` before any redaction. The redaction parses that JSON and redacts each value as if the cut were the end of the
+  string (a URL password cut before its `@` is still redacted), keeping the `...`.
+- **Fail-closed**: a missing helper, a failing self-test, an unreadable or odd derived file (not a regular file) or a
+  Python error stops the batch with exit 4 before anything further runs; no row, no summary line. Fix the cause and
+  re-invoke the same command.
+- **Interruption**: `<out>/.redact-pending` names the run in flight from before `run_one` until its redaction has
+  succeeded. INT / TERM / HUP, sent to the runner alone or to its whole process group (Ctrl-C, a terminal hangup,
+  `kill -TERM -<pgid>`): the runner stops the `run_one` job (it and its direct children get TERM), redacts that run
+  (best effort), prints `!! interrupted (...): <run> is NOT final`, keeps the marker and exits 130 / 143 / 129. A
+  signal to the whole group also ends the `tee` behind the console; SIGPIPE is then ignored and the notice is appended
+  straight to `log.txt`, so the exit status is still 143 / 129, never a SIGPIPE death. After a `kill -9` (no trap) the
+  marker stays and that run's derived files may still be unredacted. In both cases the next invocation with the same out-dir redacts that run again
+  before anything else, clears the marker and prints its redacted console output; no `SUMMARY.tsv` row is backfilled
+  (as for any crash: a complete run is then kept, an incomplete one re-runs into `<id>.retry<n>`).
+  **A run directory without `redaction.json`, or named in `.redact-pending`, is not final: do not read from it or
+  paste it until the batch has been re-invoked.**
+
+`eval/run-e01.sh` and `eval/run-probes.sh` do not redact: redact their derived files before any paste as well.
 
 Human-read rule (scorer regex limits, frozen): any **E03 / E10 / E10b / E11** verdict decided solely by `requires_r0`
 or `ask_user` is read by a human (final text in `run.jsonl`, `score.txt`) before it counts. Known misreads:

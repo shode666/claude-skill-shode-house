@@ -43,6 +43,20 @@ to read and are never summed). A run is INCOMPLETE when any of these holds:
   whose served system prompt (`prompt_snapshot` `systemPrompt[0]`) does not hold the first 400 characters of the
   arm's `agents/<type>.md` body, i.e. a shadowed or substituted agent (S3-1, protocol section 2 check 2).
   `error_max_turns` is a valid run (must-pass control);
+- **full-body provenance** (U22 H2, `score_v4.served_body_problems`): the frozen rule above checks only the first
+  400 characters, so `score_v4` also requires an arm spawn's served `systemPrompt[0]` to equal the **whole** body of
+  the arm's `agents/<type>.md` exactly (after the frontmatter split and `strip()`; host text comes in later
+  elements). The run is INCOMPLETE when, for an arm spawn:
+  - the whole served body does not match (a tampered, dropped or prefixed tail, or text added before or after);
+  - the arm has no `agents/<type>.md` for its type (no agent file, so the body cannot be checked);
+  - the type is not a plain agent name (U22 S6): anything but lower-case letters, digits and `-`, such as `/`, `..`,
+    an absolute path or a NUL, or a file that resolves outside the arm's `agents/` directory. No file is read for
+    such a name.
+
+  The premise (the host serves the body as exactly `systemPrompt[0]`) is re-checked in CI against the committed,
+  redacted records in `fixtures/h2-host-shape.json` (sha256 and length of `systemPrompt[0]` for the 208 recorded
+  3.17.2 arm spawns; no text, path or id), which `fixtures/h2_host_shape.py` derives from the git-ignored recorded
+  runs;
 - `meta.json` is missing, unreadable or not a JSON object (F4);
 - a spawn transcript has no `.meta.json`, a `.meta.json` has no transcript or cannot be read, or an Agent/Task call
   in main has no spawn transcript (spawn rules would otherwise pass vacuously).
@@ -53,6 +67,18 @@ project or the run directory, which are agent-writable: P-1). Without it the run
 carve-out, plugin text and declared tools cannot be checked, so the scorer never prints PASS: the CLI refuses to
 run without `--plugin-dir` or `--no-plugin-dir`, and `--no-plugin-dir` (diagnostic, for the recorded 3.17.2
 baseline only) computes the counts and returns INCOMPLETE. Output is JSON (`--out` writes it to a new file).
+
+**Written evidence is redacted; the raw run is not** (U22 H4, `eval/evidence_redact.py`). The verdict, counts,
+rules, expectations and exit code are computed on the raw run files first. Only then is the JSON printed to stdout
+or `--out` passed through `redact_tree`: credential shapes (auth headers, `Bearer` tokens, `user:password@` URLs,
+`name=value` / `name: value` secrets, secret flags, vendor tokens, private key blocks) become `<REDACTED>`. Run text
+that a finding cuts for display (a command to 200 characters) is redacted **before** the cut, so a cut can never
+leave the part of a secret after its prefix. The raw run files (`raw/run.jsonl`, the transcripts, `meta.json`) stay
+byte-exact by design: they are the evidence the scorer reads, so they are local only and must be redacted before
+any of their text is pasted or shared. Redaction is best-effort over known shapes, not a guarantee: a bare token
+suffix with no prefix left, a URL password of 1-5 digits at the very end of a string (read as a port), a value
+split across lines, a credential passed as a plain command argument (such as `sshpass -p X`) and a quote escaped with
+more than 8 backslashes are known misses (JSON with escaped quotes, `{\"password\": \"x\"}`, is covered).
 
 ## Rules
 

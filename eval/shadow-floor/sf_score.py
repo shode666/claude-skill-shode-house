@@ -33,6 +33,8 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(1, os.path.dirname(HERE))                # eval/, for the shared evidence_redact
+import evidence_redact  # noqa: E402
 FIXTURES = {f["name"]: f for f in json.load(open(os.path.join(HERE, "fixtures.json"), encoding="utf-8"))["fixtures"]}
 
 
@@ -143,7 +145,9 @@ def score(run_dir):
     return {"run": name, "evidence": evidence_hash(run_dir),
             "tier": tier, "fixture": fxn, "class": fx["class"], "verdict": v, "followed": followed,
             "loaded": d["loaded"], "basedir": d["basedir"], "after": d["after"], "cli": d["version"],
-            "handback_tail": d["handback"][-200:]}
+            # U22 S3: redacted BEFORE the cut; a cut first can drop the `Bearer ` / `ghp_` a rule keys on and leave
+            # the rest of the secret showing. Display only: verdict() reads the whole raw hand-back
+            "handback_tail": evidence_redact.tail(d["handback"], 200)}
 
 
 def required_cells(n=None):
@@ -230,6 +234,9 @@ def main(argv):
     dirs = [a for a in argv if not a.startswith("--")]
     results = [score(d) for d in dirs]
     status, notes = gate_status(results)
+    # U22 H4: what is printed is redacted after the verdicts and the gate are decided (the hand-back tail, the
+    # loaded token and the notes are copied from the run); the run files and their evidence hash are untouched
+    results, notes = evidence_redact.redact_tree(results), evidence_redact.redact_tree(notes)
     if as_json:
         print(json.dumps({"gate": status, "notes": notes, "runs": results}, indent=1))
     else:

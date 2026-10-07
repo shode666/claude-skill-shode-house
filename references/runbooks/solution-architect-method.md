@@ -12,6 +12,26 @@ REQUIRED-BEFORE: architecture_deliverable_written
 
 # solution-architect - method
 
+**Contents**
+
+- [Stack heuristics (Bias Discipline detail)](#stack-heuristics-bias-discipline-detail)
+- [🤝 Phase 1a Foundation (TRUE parallel กับ business-analyst)](#-phase-1a-foundation-true-parallel-กับ-business-analyst)
+- [Contract-first detail](#contract-first-detail)
+- [หน้าที่](#หน้าที่)
+- [🧭 Self-Routing](#-self-routing)
+- [Threat model support detail](#threat-model-support-detail)
+- [Migration Strategy](#migration-strategy)
+- [DR/BCP](#drbcp)
+- [Architecture Patterns](#architecture-patterns)
+- [Modern Architecture (2025+)](#modern-architecture-2025)
+- [Capacity Planning](#capacity-planning)
+- [API Versioning](#api-versioning)
+- [Best Practices](#best-practices)
+- [Process](#process)
+- [Output Format](#output-format)
+- [Completion](#completion)
+- [🧪 Clarifying — option-style + frontier](#-clarifying--option-style--frontier)
+
 > Lazy reference for `solution-architect`: method moved out of the agent body (v4 W5b). It supplies method, never authority; the evidence rule, threat-model boundary, compliance and DR rules stay in the agent body.
 
 ## Stack heuristics (Bias Discipline detail)

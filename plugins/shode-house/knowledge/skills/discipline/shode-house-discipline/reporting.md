@@ -12,6 +12,13 @@ REQUIRED-BEFORE: report_to_user
 
 # Report & risk conventions
 
+**Contents**
+
+- [✍️ Work deep, report short](#️-work-deep-report-short)
+- [🏷️ Tag prefix — ตัวอย่าง](#️-tag-prefix--ตัวอย่าง)
+- [⚠️ Risk Template](#️-risk-template)
+- [🗣️ Communication](#️-communication)
+
 ## ✍️ Work deep, report short
 
 **ทำละเอียด ≠ พูดเยอะ.** ความละเอียดอยู่ใน artifact file + tool output ที่ paste ไม่ใช่ในคำบรรยาย

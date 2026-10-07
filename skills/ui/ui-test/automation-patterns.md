@@ -12,6 +12,16 @@ REQUIRED-BEFORE: ui_test_code_commit
 
 # UI test automation patterns
 
+**Contents**
+
+- [Stack](#stack)
+- [Test Pattern](#test-pattern)
+- [Visual Regression](#visual-regression)
+- [Accessibility Test (axe-core)](#accessibility-test-axe-core)
+- [Mobile/Responsive Test](#mobileresponsive-test)
+- [CI Integration (devops-engineer wire)](#ci-integration-devops-engineer-wire)
+- [Storybook + Test Discipline](#storybook--test-discipline)
+
 > Reference material; กฎบังคับ (universal UI rules, a11y gate, evidence ladder, selector/wait, ห้าม) อยู่ที่ root `SKILL.md` และยังมีผลเสมอ
 
 

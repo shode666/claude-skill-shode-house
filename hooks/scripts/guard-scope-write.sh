@@ -848,10 +848,60 @@ handle_bash() {
   # command reads or writes -- not a smarter parser, just a stricter, hard-coded reject
   # list. Never echoes $command back (reflected-injection rule) -- the deny message is
   # 100% static.
+  # UD U22 H1 (external review): the list used to need a "/" after each root, so a command that
+  # named a root itself passed: "rm -rf .shode-house/state", "mv .shode-house/journal x", a root
+  # at the end of the string or before a space, quote, ";", ")" or newline,
+  # "./.shode-house//state", "/abs/proj/.shode-house/state". The match now runs on a copy of the
+  # command with every line break turned into a space, every run of "/" (and of spaces) squeezed
+  # to one and every "/./" dropped, ASCII case ignored
+  # (the Write/Edit side folds case too, HT3), and DENIES when it holds
+  #   (a) ".shode-house/state", ".shode-house/journal" or ".shode-house/scope" followed by
+  #       anything at all -- a look-alike such as ".shode-house/statefoo" is denied too (fail
+  #       closed; no sanctioned child of .shode-house starts with these names), or
+  #   (b) the parent itself: ".shode-house", ".shode-house/" or ".shode-house/." followed by
+  #       the end of a line or by any character that cannot continue a path (not a letter,
+  #       digit, ".", "_", "-" or "/"). The parent holds all three roots, so "rm -rf .shode-house",
+  #       "mv .shode-house x" or ".shode-house/*" removes or detaches them as surely as naming a
+  #       root. Children such as .shode-house/config.yaml, approval/ or side-effects/ and
+  #       names such as .shode-house-backup stay allowed.
+  #   (c) a ".." segment anywhere after ".shode-house/" (U22 iter 2, Sentinel S2 / Chris M1;
+  #       widened in iter 3, Sentinel S7 / Chris N1 / Bella N1): ".shode-house/approval/../state",
+  #       "chmod -R 0 .shode-house/approval/..", ".shode-house/a+b/../state",
+  #       "'.shode-house/a b/../state'" reach a root through a child. ".." is a spelling of the
+  #       path like "//" and "/./", so it is denied whatever the child names hold (any byte:
+  #       space, quote, "+", "@", ",", ":", "=", "%", "~", non-ASCII, a line break) and whatever
+  #       follows it -- ".shode-house/approval/../config.yaml" too. A ".." segment is two dots
+  #       with no letter, digit, ".", "_" or "-" on either side, so it is also seen after a space,
+  #       quote or backslash ("cd .shode-house/approval && rm -rf ../state", ".shode-house/a/'..'/x",
+  #       ".shode-house/a/\../x"). Fail closed, like the look-alikes in (a): a command that names
+  #       ".shode-house/<child>" and ALSO uses ".." after it for something else ("cat
+  #       .shode-house/config.yaml && cd ..", "... src/../x") is denied too. A name that only
+  #       contains dots (".shode-house/a..b", ".shode-house/approval/..x", "...") is not a ".." segment and
+  #       stays allowed. Line breaks are turned into spaces before the match, so a name or a
+  #       command split over lines is judged as one line.
+  # Still deny-if-mentioned over the same fixed names, not a parser: a name spliced with quotes,
+  # globs or variables (".sho''de-house/state", ".shode-house/st*", "$D/state") is not seen,
+  # nor are the two dots of ".." themselves spliced (".shode-house/a/.''./state", "./.\./"),
+  # a ".." reached through a glob, a brace (".shode-house/a/.{.,x}/state") or a variable, a ".."
+  # written BEFORE the mention that runs after a "cd" in the same command (for example a function
+  # body, a trap or a loop: "trap 'chmod -R 0 ..' EXIT; cd .shode-house/approval"), a symlink
+  # planted under .shode-house/ ("ln -s .. .shode-house/approval/l"), or a ".." in a later,
+  # separate Bash call after "cd" -- the same ceiling as before (references/scope-lock.md
+  # "Enforcement ceiling").
+  # Cost: the case pre-filter below needs no process; only a command that holds "hode-house"
+  # in any ASCII case starts the one linear pipeline (pure-bash substitution is quadratic on a
+  # large command and could run into the 5 s hook timeout, which lets the call through). A
+  # pipeline status other than "grep matched" or "grep read everything and found nothing" is a
+  # DENY: the check could not judge the command.
   case "$command" in
-    *'.shode-house/state/'*|*'.shode-house/journal/'*|*'.shode-house/scope/'*)
-      printf 'shode-house: DENY -- Bash command mentions a control-plane path (.shode-house/state/, .shode-house/journal/, or .shode-house/scope/ -- the scope manifest/binding store). These three fixed paths are hard-denied via Bash regardless of read/write intent; every other shell write stays ADVISORY-ONLY (not tool-enforced) by design -- see references/scope-lock.md "Enforcement ceiling". Use scripts/workflow-state.sh / scripts/scope-check.sh instead (both take the shared lock and are the only sanctioned mutators of these paths).\n' >&2
-      exit 2
+    *[Hh][Oo][Dd][Ee]-[Hh][Oo][Uu][Ss][Ee]*)
+      printf '%s\n' "$command" | tr -s '/\n' '/ ' | sed -e ':a' -e 's#/\./#/#g' -e 'ta' \
+        | grep -iqE '\.shode-house/(state|journal|scope)|\.shode-house(/\.?)?([^A-Za-z0-9._/-]|$)|\.shode-house/(.*[^A-Za-z0-9._-])?\.\.([^A-Za-z0-9._-]|$)'
+      _c5_status="${PIPESTATUS[*]}"
+      if [ "$_c5_status" != "0 0 0 1" ]; then
+        printf 'shode-house: DENY -- Bash command mentions a control-plane path (.shode-house/state, .shode-house/journal, or .shode-house/scope -- the scope manifest/binding store -- with or without a trailing slash, or the .shode-house directory itself, which holds all three, or a ".." path segment anywhere after ".shode-house/" in the same command). These fixed paths are hard-denied via Bash regardless of read/write intent; every other shell write stays ADVISORY-ONLY (not tool-enforced) by design -- see references/scope-lock.md "Enforcement ceiling". Use scripts/workflow-state.sh / scripts/scope-check.sh instead (both take the shared lock and are the only sanctioned mutators of these paths); to put the directory name into a file such as .gitignore, use the Edit tool.\n' >&2
+        exit 2
+      fi
       ;;
   esac
 

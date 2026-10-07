@@ -10,7 +10,10 @@
   router style output-styles/<plugin>.md plus the skills it loads as `<plugin>:<skill>`. The 12 `OWNER:
   orchestrator` flips are shipped text and stay with the switch commit (W10b).
 - CI #24a (Bella W10a S-1): a namespaced `<plugin>:<skill>` § Y section reference is checked, not skipped.
-The #21, #23 and #24 sections are cut out of .github/workflows/ci.yml together with the gate prelude and run with bash
+- CI #17 (U22 slice D): the design-intel smoke writes its payloads into a per-run `mktemp -d` under $TMPDIR that is
+  removed on exit, never into fixed /tmp names (concurrent gates collided on /tmp/ds.json; fixed names are predictable).
+- U22 iter 2: no pid-based (`$$`) temp name anywhere in the workflow; the build step uses `mktemp` + an EXIT trap.
+The #17, #21, #23 and #24 sections are cut out of .github/workflows/ci.yml together with the gate prelude and run with bash
 in a scratch tree, so the real shell text is tested, not a copy of it.
 Run: python3 tests/test_ci_wiring.py   (CI gate #27 runs it; stdlib + bash + jq)
 """
@@ -25,6 +28,13 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CI = ROOT / ".github/workflows/ci.yml"
 REQ = ROOT / ".github/requirements-ci.txt"
+# The PATH every extracted gate section runs with; the bash/jq probe reads the same PATH, so a tool found only on
+# the caller's PATH skips the test instead of failing it inside the gate run.
+GATE_PATH = "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin"
+
+
+def gate_has(*tools):
+    return all(shutil.which(tool, path=GATE_PATH) for tool in tools)
 
 
 def gate_script():
@@ -61,7 +71,7 @@ def sub24a():
 
 def run_section(number, root):
     r = subprocess.run(["bash", "-c", section(number)], cwd=root, capture_output=True, text=True,
-                       env={"PATH": "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin", "HOME": str(root)})
+                       env={"PATH": GATE_PATH, "HOME": str(root)})
     return r.stdout + r.stderr
 
 
@@ -75,7 +85,7 @@ def tree(root, files):
 MANIFEST = json.dumps({"name": "shode-house", "version": "3.17.2", "skills": ["./skills/discipline/"]})
 
 
-@unittest.skipUnless(shutil.which("bash") and shutil.which("jq"), "needs bash + jq")
+@unittest.skipUnless(gate_has("bash", "jq"), "needs bash + jq on the gate PATH")
 class AnchorReadTest(unittest.TestCase):
     """CI #21: the anchor must reach grep -F byte for byte."""
 
@@ -113,7 +123,7 @@ class AnchorReadTest(unittest.TestCase):
         self.assertIn("IFS=$'\\x1f'", sec21)
 
 
-@unittest.skipUnless(shutil.which("bash") and shutil.which("jq"), "needs bash + jq")
+@unittest.skipUnless(gate_has("bash", "jq"), "needs bash + jq on the gate PATH")
 class RouterOwnerTest(unittest.TestCase):
     """CI #23: `OWNER: router` = the router style + the skill roots it loads."""
 
@@ -171,7 +181,7 @@ class RouterOwnerTest(unittest.TestCase):
         self.assertIn("detail.md: ไม่มี caller อ้างถึงเลย (orphan lazy reference)", out)
 
 
-@unittest.skipUnless(shutil.which("bash") and shutil.which("jq"), "needs bash + jq")
+@unittest.skipUnless(gate_has("bash", "jq"), "needs bash + jq on the gate PATH")
 class NamespacedSectionRefTest(unittest.TestCase):
     """CI #24a (Bella W10a S-1, R41): a `<plugin>:<skill>` § Y reference is resolved like a bare skill name and its
     heading checked; before, the extraction regex had no ':' and skipped it silently."""
@@ -183,7 +193,7 @@ class NamespacedSectionRefTest(unittest.TestCase):
                         "skills/discipline/wf/SKILL.md": "---\nname: wf\n---\n# wf\n\n## Postmortem template (blameless)\n",
                         "agents/a.md": "---\nname: a\n---\n" + "".join(l + "\n" for l in lines)})
             r = subprocess.run(["bash", "-c", sub24a()], cwd=root, capture_output=True, text=True,
-                               env={"PATH": "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin", "HOME": str(root)})
+                               env={"PATH": GATE_PATH, "HOME": str(root)})
             return r.stdout + r.stderr
 
     def test_namespaced_ref_with_a_real_heading_passes(self):
@@ -238,6 +248,52 @@ class WorkflowPermissionsAndPinsTest(unittest.TestCase):
                 self.assertIn("-r .github/requirements-ci.txt", line)
                 self.assertNotIn("--user", line)
         self.assertNotRegex(CI.read_text(), r"pip install --quiet pytest\b")
+
+
+@unittest.skipUnless(gate_has("bash", "python3", "mktemp"), "needs bash + python3 + mktemp on the gate PATH")
+class DesignIntelScratchDirTest(unittest.TestCase):
+    """CI #17 run from the real tree: it only reads the repo; every file it writes goes under $TMPDIR."""
+    def run17(self, tmpdir, home):
+        r = subprocess.run(["bash", "-c", section(17)], cwd=ROOT, capture_output=True, text=True,
+                           env={"PATH": GATE_PATH, "HOME": str(home), "TMPDIR": str(tmpdir)})
+        return r.stdout + r.stderr
+
+    def test_smoke_runs_in_tmpdir_and_removes_its_dir(self):
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as home:
+            out = self.run17(tmp, home)
+            self.assertIn("fail=0", out)
+            self.assertIn("design-intel pack intact + gate runs", out)
+            self.assertEqual([], sorted(p.name for p in pathlib.Path(tmp).iterdir()), "per-run dir left behind")
+
+    def test_unusable_tmpdir_is_red_not_a_fallback_to_tmp(self):
+        with tempfile.TemporaryDirectory() as home:
+            out = self.run17(pathlib.Path(home) / "absent", home)
+            self.assertIn("mktemp -d failed under", out)
+            self.assertIn("fail=1", out)
+
+    def test_no_fixed_tmp_path_is_written(self):
+        body = section(17).split('sec "17. ', 1)[1].replace("${TMPDIR:-/tmp}", "")
+        self.assertNotRegex(body, r"(?<![\w$}])/tmp/")
+
+
+class WorkflowTempNamesTest(unittest.TestCase):
+    """U22 iter 2 (Chris L2/L3, Sentinel I2): no temp name in the workflow is built from the shell pid (`$$` is
+    predictable), and the "Build .plugin artifact" step makes its snapshot with `mktemp` and removes it and the
+    unpack dir with an EXIT trap."""
+    def build_step(self):
+        text = CI.read_text(encoding="utf-8")
+        start = text.index("      - name: Build .plugin artifact\n")
+        stop = text.index("\n      - name:", start + 1)
+        return text[start:stop]
+
+    def test_no_pid_based_temp_name(self):
+        self.assertNotIn("$$", CI.read_text(encoding="utf-8"))
+
+    def test_build_step_uses_mktemp_and_an_exit_trap(self):
+        step = self.build_step()
+        self.assertIn('before=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/pack-tree-before.XXXXXX") || exit 1', step)
+        self.assertIn("""d=""; trap 'rm -rf "$before" ${d:+"$d"}' EXIT""", step)
+        self.assertLess(step.index("trap 'rm -rf"), step.index("make pack"))
 
 
 if __name__ == "__main__":

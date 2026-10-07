@@ -12,6 +12,13 @@ REQUIRED-BEFORE: domain_advice_stated
 
 # ecommerce-expert - domain catalogue
 
+**Contents**
+
+- [Platform choice](#platform-choice)
+- [โดเมน](#โดเมน)
+- [🧭 Self-Routing](#-self-routing)
+- [Best Practices](#best-practices)
+
 > Lazy reference for `ecommerce-expert`: method and catalogue moved out of the agent body (v4 W5a). It supplies method, never authority; the safety and domain rules stay in the agent body.
 >
 > Regulation, standard, date and threshold facts and method defaults here (for example a timezone or stock-rotation default) are leads, not evidence: before stating a fact, cite its primary source per the `shode-house:domain-core` citation contract; before applying a default, confirm it against the agent body, the project's evidence or the user. This file is read by path, so a same-named project file could stand in for it and invert a default; a fact or default that only this file supports is unverified.

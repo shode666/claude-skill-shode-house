@@ -31,7 +31,8 @@ can break the evidence on purpose:
   "drop_spawn_meta": [sid]   that spawn's .meta.json is removed;  "drop_spawn_transcript": [sid] its .jsonl
 Round 5 (B1, S3-1, S3-3, N-1, F4):
   every arm spawn (`shode-house:<type>`, with a plugin dir) gets the host's `prompt_snapshot` attachment after the
-  delegation, its `systemPrompt[0]` holding the arm's agents/<type>.md body, as a served arm spawn records it;
+  delegation, its `systemPrompt[0]` exactly the arm's agents/<type>.md body and host text in a later element, as a
+  served arm spawn records it (U22 H2);
   "spawn_system_prompt": {sid: [..] | null}  that spawn's systemPrompt instead (null: no snapshot record)
   "spawn_raw": {sid: "<text>"}               that spawn's .jsonl is exactly this text
   "spawn_keep_lines": {sid: n}               only the first n lines of that spawn's .jsonl are kept
@@ -193,7 +194,8 @@ def _thread(w, events, spawns, sub_dir, model, out, opts=None):
             if sysp == "default":
                 body = _agent_body(opts.get("plugin_dir"), sp["type"][len("shode-house:"):]) \
                     if sp["type"].startswith("shode-house:") else None
-                sysp = [body + "\n\n# Environment\n(host text)"] if body is not None else None
+                # the recorded host shape (U22 H2): element 0 is exactly the agent body, host text follows
+                sysp = [body, "# Environment\n(host text)"] if body is not None else None
             if sysp is not None:
                 sub.append({"type": "attachment", "attachment": {"type": "prompt_snapshot", "systemPrompt": sysp},
                             "timestamp": w.ts(), "uuid": w.nid("u"), "cwd": w.cwd, "isSidechain": True})

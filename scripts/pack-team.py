@@ -382,6 +382,11 @@ COMMAND_FOOTER = "\n" + RESOLVE + POINTER
 
 def collect(root=ROOT):
     root = root.resolve()
+    # U22 H3: the manifest's fields (description, author, homepage ...) are copied into the tree, so it is read
+    # only as a regular file in a regular directory, never through a link to a file outside the repository
+    for name in (".claude-plugin", ".claude-plugin/plugin.json"):
+        if (root / name).is_symlink():
+            raise ValueError(f"symlink not allowed: {name}")
     manifest = json.loads((root / ".claude-plugin/plugin.json").read_text())
     if manifest["name"] != "shode-house":
         raise ValueError("unexpected plugin identity")

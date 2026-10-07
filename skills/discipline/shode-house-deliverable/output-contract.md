@@ -12,6 +12,11 @@ REQUIRED-BEFORE: handoff
 
 # Standard output + "I Never Do" ต่อ agent
 
+**Contents**
+
+- [📦 Standard Output Deliverables (v2.5 — FS-inspired)](#-standard-output-deliverables-v25--fs-inspired)
+- [🚫 "I Never Do" Pattern (v2.5 — FS-inspired guardrail)](#-i-never-do-pattern-v25--fs-inspired-guardrail)
+
 > แยกจาก `SKILL.md` v3.12.1 — 7 agent preload skill นี้ แต่ส่วนนี้ใช้เฉพาะตอนกำลังจะส่งงานจริง
 
 ## 📦 Standard Output Deliverables (v2.5 — FS-inspired)

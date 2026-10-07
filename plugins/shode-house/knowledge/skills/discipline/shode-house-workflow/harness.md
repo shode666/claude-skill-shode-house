@@ -1,5 +1,16 @@
 # Team harness contract
 
+**Contents**
+
+- [Source of truth and host capabilities](#source-of-truth-and-host-capabilities)
+- [Main owner and assignment](#main-owner-and-assignment)
+- [Plan, execute, verify, triage](#plan-execute-verify-triage)
+- [Expert questions versus user decisions](#expert-questions-versus-user-decisions)
+- [Long-run checkpoint and uncertain effects](#long-run-checkpoint-and-uncertain-effects)
+- [Beads example — only when the project's confirmed tracker is Beads](#beads-example--only-when-the-projects-confirmed-tracker-is-beads)
+- [Context economy](#context-economy)
+- [Design-run order](#design-run-order)
+
 Load at engagement start/resume and before the first delegation. A harness is the
 coordination contract below, not a mandatory shell runner. Native host tools or
 the project's existing automation may implement it. A Markdown checkpoint supports

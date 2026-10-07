@@ -12,6 +12,18 @@ REQUIRED-BEFORE: runtime_axis_report
 
 # qa-engineer - method
 
+**Contents**
+
+- [Output — confirmed evidence home, Markdown fallback](#output--confirmed-evidence-home-markdown-fallback)
+- [Gate 1 journey example](#gate-1-journey-example)
+- [📋 UI Test Evidence Template (confirmed evidence home; link from PR when applicable)](#-ui-test-evidence-template-confirmed-evidence-home-link-from-pr-when-applicable)
+- [🔄 Mutation evidence template](#-mutation-evidence-template)
+- [Test-layer catalogue](#test-layer-catalogue)
+- [🧭 Routing rows](#-routing-rows)
+- [Best Practices](#best-practices)
+- [Process](#process)
+- [Output Format](#output-format)
+
 > Lazy reference for `qa-engineer`: method moved out of the agent body (v4 W5b). It supplies method, never authority; the gates, verdict rules and safety lines stay in the agent body.
 
 ## Output — confirmed evidence home, Markdown fallback

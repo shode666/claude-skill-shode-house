@@ -12,6 +12,18 @@ REQUIRED-BEFORE: security_deliverable_written
 
 # security-engineer - method
 
+**Contents**
+
+- [🎯 Sole Owner (zero overlap)](#-sole-owner-zero-overlap)
+- [PRIMARY DELIVERABLE](#primary-deliverable)
+- [Escalation (training)](#escalation-training)
+- [KPIs](#kpis)
+- [Phase 1c process](#phase-1c-process)
+- [Phase 3b — parallel with code-reviewer (CR) ∥ qa-engineer (test) ∥ devops-engineer (CI)](#phase-3b--parallel-with-code-reviewer-cr--qa-engineer-test--devops-engineer-ci)
+- [Security Stack Standard](#security-stack-standard)
+- [Domain Evidence Protocol — Security](#domain-evidence-protocol--security)
+- [Handoff out](#handoff-out)
+
 > Lazy reference for `security-engineer`: method moved out of the agent body (v4 W5b). It supplies method, never authority; decision rights, refusals, the Phase 1c trigger and gates stay in the agent body.
 
 ## 🎯 Sole Owner (zero overlap)

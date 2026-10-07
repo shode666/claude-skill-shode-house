@@ -232,9 +232,12 @@ _FILE_EXT = re.compile(r"\.[A-Za-z][A-Za-z0-9]*$")
 # Every word the `pack` recipe may contain once single-quoted text, `$$name` shell variables,
 # `$(PLUGIN)` and option flags are removed. A command that is not here (python3, perl, cp, tar,
 # sh -c, eval ...) fails the recipe check: extend this set only together with a reviewed recipe.
+# U22 H3 added `links=$$(find $$list -type l)` + the refusal (printf | sed, false) and `zip -y`;
+# U22 iter 2 added the ancestor walk (printf | awk, `test ! -L`) and the cleanup traps (trap EXIT HUP INT TERM).
 RECIPE_WORDS = frozenset(
     "rm d mktemp shode pack XXXXXX list awk allowlist test miss for p in do echo make allowlisted "
-    "path missing done zip mv rc exit built du cut K unzip tail files".split())
+    "path missing done zip mv rc exit built du cut K unzip tail files links find l printf sed false "
+    "trap EXIT HUP INT TERM".split())
 _PACK_LIST = "list=$$(awk '!/^[[:space:]]*(#|$$)/{print $$1}' .pack-allowlist)"
 
 
@@ -564,7 +567,7 @@ def recipe_problems(recipe, names):
     if unknown:
         out.append(f"the pack recipe runs or names words outside RECIPE_WORDS (an interpreter, a copy, another archiver?): {unknown}")
     zips = re.findall(r"(?<![A-Za-z0-9_\-])zip\b[^&;|\n]*", body)
-    if [" ".join(z.split()) for z in zips] != ['zip -rq "$$d/$(PLUGIN)" $$list']:
+    if [" ".join(z.split()) for z in zips] != ['zip -rqy "$$d/$(PLUGIN)" $$list']:
         out.append(f"the recipe must run exactly one zip command, over $$list alone: {zips}")
     for token in re.findall(r"[A-Za-z0-9_.\-/]+", body):
         first = next((s for s in token.split("/") if s not in ("", ".", "..")), "")
@@ -632,7 +635,7 @@ class PackAllowlistTest(unittest.TestCase):
     def test_recipe_guard_reads_every_command_line(self):
         # Standards M-5: the two mutants that passed while only the first zip line was inspected, and three more.
         recipe, names = _pack_recipe(), root_names()
-        zip_cmd, read = 'zip -rq "$$d/$(PLUGIN)" $$list', "list=$$(awk "
+        zip_cmd, read = 'zip -rqy "$$d/$(PLUGIN)" $$list', "list=$$(awk "
         self.assertIn(zip_cmd, recipe); self.assertIn(read, recipe)
         mutants = {
             "second zip call": recipe.replace(" mv ", ' zip -gqr "$$d/$(PLUGIN)" docs AGENTS.md && \\\n\t mv ', 1),
@@ -651,7 +654,7 @@ class PackAllowlistTest(unittest.TestCase):
         # read literally -- a make variable defined above the rule, a prerequisite on its own line,
         # a writer that is not `zip`, an awk program that prints a name which is not a root name.
         makefile, names = (ROOT / "Makefile").read_text(encoding="utf-8"), root_names()
-        zip_cmd, rule, mv = 'zip -rq "$$d/$(PLUGIN)" $$list', "\npack build:\n", ' mv "$$d/$(PLUGIN)" ./ ;'
+        zip_cmd, rule, mv = 'zip -rqy "$$d/$(PLUGIN)" $$list', "\npack build:\n", ' mv "$$d/$(PLUGIN)" ./ ;'
         for anchor in (zip_cmd, rule, mv, _PACK_LIST):
             self.assertEqual(1, makefile.count(anchor), anchor)
         mutants = {
@@ -909,6 +912,127 @@ class PackAllowlistTest(unittest.TestCase):
     def test_reference_from_a_shipped_script_is_seen(self):
         self.assertIn(("path", "CLAUDE.md"),
                       self._scan_text('report FAIL "$id" "see CLAUDE.md SS Agents Redact"', name="scripts/planted.sh"))
+
+
+class PackRefusesSymlinksTest(unittest.TestCase):
+    """U22 H3 (external security review): `zip -r` follows a symlink and stores the file it points to, so a link
+    inside an allowlisted path could pull a file from outside the repository into the .plugin. `make pack` refuses
+    when an allowlisted path is or contains a symlink: it lists each, exits non-zero and leaves no archive (the old
+    one included). Runs `make pack` in a throwaway copy of the packed files only; every planted link and every file
+    it points to lie inside that temporary directory."""
+
+    @classmethod
+    def setUpClass(cls):
+        missing = [t for t in ("make", "zip", "jq") if not shutil.which(t)]
+        if missing:
+            raise unittest.SkipTest(f"needs {', '.join(missing)} on PATH")
+
+    def _copy(self, tmp):
+        repo = pathlib.Path(tmp) / "repo"
+        repo.mkdir()
+        for name in ("Makefile", ALLOWLIST):
+            shutil.copy2(ROOT / name, repo / name)
+        for entry in allowlist():
+            src, dst = ROOT / entry, repo / entry
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            if src.is_dir() and not src.is_symlink():
+                shutil.copytree(src, dst, symlinks=True, ignore=shutil.ignore_patterns("__pycache__"))
+            else:
+                shutil.copy2(src, dst, follow_symlinks=False)
+        outside = pathlib.Path(tmp) / "outside"
+        outside.mkdir()
+        (outside / "secret.txt").write_text("not part of the plugin\n", encoding="utf-8")
+        return repo, outside
+
+    def _pack(self, repo, spy=None):
+        env = None
+        if spy:   # a `mktemp` on PATH that logs every path it makes (macOS `mktemp -t` ignores TMPDIR)
+            env = dict(os.environ, PATH=f"{spy}{os.pathsep}{os.environ.get('PATH', '')}")
+        run = subprocess.run(["make", "-s", "pack"], cwd=repo, capture_output=True, text=True, timeout=300, env=env)
+        return run.returncode, run.stdout + run.stderr, sorted(p.name for p in repo.glob("*.plugin"))
+
+    @staticmethod
+    def _mktemp_spy(tmp):
+        spy, log = pathlib.Path(tmp) / "spy", pathlib.Path(tmp) / "mktemp.log"
+        spy.mkdir()
+        real = shutil.which("mktemp")
+        (spy / "mktemp").write_text(f'#!/bin/sh\nout=$("{real}" "$@") || exit $?\nprintf \'%s\\n\' "$out" >> "{log}"\n'
+                                    'printf \'%s\\n\' "$out"\n', encoding="utf-8")
+        (spy / "mktemp").chmod(0o755)
+        return spy, log
+
+    def _left(self, log):
+        made = log.read_text(encoding="utf-8").split() if log.exists() else []
+        self.assertTrue(made, "the recipe made no temp dir (spy not used?)")
+        log.unlink()
+        return [m for m in made if os.path.lexists(m)]
+
+    def test_recipe_walks_every_ancestor_and_traps_cleanup(self):
+        recipe = _pack_recipe()
+        self.assertIn("for p in $$(printf '%s\\n' $$list | awk -F/ ", recipe)
+        self.assertIn('do test ! -L "$$p" || echo "$$p"; done) && \\', recipe)
+        self.assertIn("trap 'rm -rf \"$$d\"' EXIT && trap 'exit 1' HUP INT TERM && \\", recipe)
+
+    def test_a_symlinked_parent_directory_is_refused(self):
+        """U22 iter 2 (Sentinel S1): `find <path> -type l` checks the listed path and what lies below it, never
+        its ancestors, so `scripts/lib`, `scripts` or `.claude-plugin` replaced by a link (pointing at a copy of the
+        real content outside the repository) was packed through. Each must be refused with the link named, a
+        non-zero exit, no archive and no temp dir left behind."""
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, outside = self._copy(tmp)
+            spy, log = self._mktemp_spy(tmp)
+            rc, out, built = self._pack(repo, spy)                  # control: the copy as it is packs
+            self.assertEqual((rc, len(built)), (0, 1), out)
+            self.assertEqual([], self._left(log), "control: a temp dir was left behind")
+            for rel in ("scripts/lib", "scripts", ".claude-plugin"):
+                real, moved = repo / rel, outside / ("moved-" + rel.replace("/", "-").lstrip("."))
+                self.assertTrue(real.is_dir() and not real.is_symlink(), rel)
+                shutil.move(str(real), str(moved))
+                real.symlink_to(moved, target_is_directory=True)
+                try:
+                    rc, out, built = self._pack(repo, spy)
+                    self.assertNotEqual(rc, 0, rel)
+                    self.assertIn("refusing to pack -- symlink in an allowlisted path", out, rel)
+                    self.assertIn("  " + rel + "\n", out, rel)
+                    self.assertEqual(built, [], f"{rel}: an archive was left behind")
+                    self.assertEqual([], self._left(log), f"{rel}: a temp dir was left behind")
+                finally:
+                    real.unlink()
+                    shutil.move(str(moved), str(real))
+            rc, out, built = self._pack(repo, spy)                  # the links removed: it packs again
+            self.assertEqual((rc, len(built)), (0, 1), out)
+            self.assertEqual([], self._left(log), "after: a temp dir was left behind")
+
+    def test_symlinks_are_refused_and_no_archive_is_left(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, outside = self._copy(tmp)
+            rc, out, built = self._pack(repo)                       # control: the copy as it is packs
+            self.assertEqual((rc, len(built)), (0, 1), out)
+            plants = {
+                "a file link inside a shipped directory": ("references/u22-planted.md", outside / "secret.txt"),
+                "a directory link inside a shipped directory": ("hooks/u22-planted-dir", outside),
+                "a dangling link": ("skills/workflow/u22-dangling.md", outside / "gone.txt"),
+                "an allowlisted path that is itself a link": ("LICENSE", outside / "secret.txt"),
+            }
+            for label, (rel, target) in plants.items():
+                link = repo / rel
+                saved = None
+                if link.exists() and not link.is_symlink():
+                    saved = link.read_bytes()
+                    link.unlink()
+                link.symlink_to(target)
+                try:
+                    rc, out, built = self._pack(repo)
+                    self.assertNotEqual(rc, 0, label)
+                    self.assertIn("refusing to pack -- symlink in an allowlisted path", out, label)
+                    self.assertIn(rel, out, label)
+                    self.assertEqual(built, [], f"{label}: an archive was left behind")
+                finally:
+                    link.unlink()
+                    if saved is not None:
+                        link.write_bytes(saved)
+            rc, out, built = self._pack(repo)                       # the links removed: it packs again
+            self.assertEqual((rc, len(built)), (0, 1), out)
 
 
 if __name__ == "__main__":

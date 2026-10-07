@@ -1,5 +1,19 @@
 # Quick Reference — Full Rule Set (all 10 categories)
 
+**Contents**
+
+- [Quick Reference](#quick-reference)
+  - [1. Accessibility (CRITICAL)](#1-accessibility-critical)
+  - [2. Touch & Interaction (CRITICAL)](#2-touch--interaction-critical)
+  - [3. Performance (HIGH)](#3-performance-high)
+  - [4. Style Selection (HIGH)](#4-style-selection-high)
+  - [5. Layout & Responsive (HIGH)](#5-layout--responsive-high)
+  - [6. Typography & Color (MEDIUM)](#6-typography--color-medium)
+  - [7. Animation (MEDIUM)](#7-animation-medium)
+  - [8. Forms & Feedback (MEDIUM)](#8-forms--feedback-medium)
+  - [9. Navigation Patterns (HIGH)](#9-navigation-patterns-high)
+  - [10. Charts & Data (LOW)](#10-charts--data-low)
+
 Load this file when doing a UI review/audit pass, or when you need the full checklist for a category beyond the priority table in SKILL.md. Each rule is also present verbatim in `data/ux-guidelines.csv` / `data/app-interface.csv` and is reachable via `--domain ux` / `--domain web` search — this file is a static index for quick scanning without a search round-trip.
 
 ## Quick Reference

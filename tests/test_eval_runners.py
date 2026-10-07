@@ -1,12 +1,32 @@
-"""Wiring tests for eval/run-e01.sh and eval/run-probes.sh against tests/fake_claude.py.
+"""Wiring tests for eval/run-e01.sh, eval/run-probes.sh and eval/run-core.sh (incl. its OD-2 A+ redaction) against tests/fake_claude.py.
 No model is called. These prove directory refusal, fixture-outside-repo, evidence files,
 meta.json fields and scorer exit propagation -- NOT the shape of a real `claude -p` trace."""
-import csv, json, os, shutil, stat, subprocess, sys, tempfile, unittest
+import csv, json, os, re, shutil, stat, subprocess, sys, tempfile, time, unittest, unittest.mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 GOLDEN = json.loads((ROOT / "eval/scenarios/golden.json").read_text(encoding="utf-8"))["scenarios"]
 NEW = [s for s in GOLDEN if "expected" in s]
+
+# Every variable the runners (eval/run-lib.sh, run-e01.sh, run-probes.sh, run-core.sh, core-set.sh), the scripts they
+# call (check-freeze.sh, check-arm-diff.sh, scripts/eval-fixture.sh) and the stub (tests/fake_claude.py) read from the
+# environment. A caller's value (an exported PLUGIN_REF / BASE_REF from a live eval session) must not steer a fixture
+# run: each test sets the ones it needs explicitly. GIT_* variables that locate a repository (set by git when a hook
+# runs) would point the runners' and fixtures' git at the caller's repository. Config isolation the caller chose
+# (HOME, XDG_CONFIG_HOME, GIT_CONFIG_GLOBAL, GIT_CONFIG_NOSYSTEM) and TMPDIR are kept.
+EVAL_ENV = ("CLAUDE_BIN", "PLUGIN_REF", "BASE_REF", "ARM_SCOPE", "PROBE_FILE", "PROBE_IDS", "REPEATS", "MAX_RETRY",
+            "ALLOW_UNFROZEN", "PROBE_BLOCK_SPAWN", "RUN_TIMEOUT_S", "MAX_BUDGET_USD", "CORE_IDS", "CORE_LABEL",
+            "CORE_FILE", "CORE_E01", "CORE_FREEZE", "FREEZE_ROOT", "CHECK_ROOT", "FIXTURE_TODAY",
+            "FAKE_MODE", "FAKE_INFRA_ON", "FAKE_SKILL")
+GIT_REPO_ENV = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY", "GIT_COMMON_DIR",
+                "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE", "GIT_PREFIX")
+
+
+def fixture_env(**extra):
+    """The caller's environment minus every eval knob and repository-locating git variable, plus `extra` (hermetic)."""
+    env = {k: v for k, v in os.environ.items() if k not in EVAL_ENV + GIT_REPO_ENV}
+    env.update(extra)
+    return env
 
 
 @unittest.skipUnless(shutil.which("bash") and shutil.which("git"), "needs bash + git")
@@ -18,8 +38,7 @@ class RunnerWiringTest(unittest.TestCase):
         stub.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{ROOT}/tests/fake_claude.py" "$@"\n')
         stub.chmod(stub.stat().st_mode | stat.S_IXUSR)
         (self.tmp / "t").mkdir()
-        self.env = dict(os.environ, CLAUDE_BIN=str(stub), TMPDIR=str(self.tmp / "t"), ALLOW_UNFROZEN="1")
-        self.env.pop("PLUGIN_REF", None)
+        self.env = fixture_env(CLAUDE_BIN=str(stub), TMPDIR=str(self.tmp / "t"), ALLOW_UNFROZEN="1")
 
     def run_script(self, name, *args, **env):
         return subprocess.run(["bash", str(ROOT / "eval" / name), *args], capture_output=True, text=True,
@@ -131,7 +150,7 @@ class RunnerWiringTest(unittest.TestCase):
              "fixture_flags": ["--with-ui"], "expected": {"route_any": ["skill:diagnose"], "max_skills": 2}},
             {"id": "H02", "kind": "probe", "prompt": "h02.md", "expected": {"route_any": ["skill:incident"]}}]}), encoding="utf-8")
         (ext / "h02.md").write_text("# H02\n\n## Prompt\n\n```\nheld-out two\n```\n", encoding="utf-8")
-        before = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain"], capture_output=True, text=True).stdout
+        before = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain"], capture_output=True, text=True, env=fixture_env()).stdout
         out = self.tmp / "held"
         done = self.run_script("run-probes.sh", "sonnet", str(out), PROBE_FILE=str(ext / "set.json"))
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
@@ -141,7 +160,7 @@ class RunnerWiringTest(unittest.TestCase):
         self.assertEqual((fixture("H01").is_file(), fixture("H02").is_file()), (True, False), "fixture_flags honoured for external sets")
         agg = {r["id"]: r for r in csv.DictReader((out / "AGG.tsv").open(encoding="utf-8"), delimiter="\t")}
         self.assertEqual((agg["H01"]["k_pass/N"], agg["H01"]["class"], agg["H02"]["k_pass/N"]), ("1/1", "held-out", "0/1"))
-        after = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain"], capture_output=True, text=True).stdout
+        after = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain"], capture_output=True, text=True, env=fixture_env()).stdout
         self.assertEqual(before, after, "nothing from the external set lands in the repo")
 
     def test_ui_fixture_flag_only_for_ui_probes(self):
@@ -151,9 +170,474 @@ class RunnerWiringTest(unittest.TestCase):
         self.assertEqual((has_ui("P02"), has_ui("P07")), (False, True))
 
 
+# OD-2 A+ (UD U23): eval/run-core.sh redacts the derived evidence of every run. The planted credentials are built by
+# concatenation so no credential-shaped literal sits in this file.
+TOKEN = "ghp" + "_" + "Zq9Lm2Np4Rs6Tv8Wx0Yb1Cd3"
+DERIVED = ("tools-seen.txt", "score.txt", "score.json", "meta.json")
+
+
+def sha256_of(path):
+    return __import__("hashlib").sha256(Path(path).read_bytes()).hexdigest()
+
+
+def load_redactor():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("redact_derived", ROOT / "eval/redact_derived.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+@unittest.skipUnless(shutil.which("bash") and shutil.which("git"), "needs bash + git")
+class CoreRedactionLiveLibTest(unittest.TestCase):
+    """The real run-core.sh + frozen run-lib.sh + frozen scorer against tests/fake_claude.py, with a credential in the
+    first Skill input (it reaches tools-seen.txt, meta.json, the SUMMARY route and the console line of run_one)."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="shode-redact-live.")).resolve()
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        stub = self.tmp / "claude"
+        stub.write_text(f'#!/bin/sh\nexec "{sys.executable}" "{ROOT}/tests/fake_claude.py" "$@"\n')
+        stub.chmod(stub.stat().st_mode | stat.S_IXUSR)
+        (self.tmp / "t").mkdir()
+        self.env = fixture_env(CLAUDE_BIN=str(stub), TMPDIR=str(self.tmp / "t"), ALLOW_UNFROZEN="1", CORE_IDS="E02",
+                               FAKE_SKILL="diagnose --token " + TOKEN)
+
+    def test_derived_redacted_raw_byte_exact_verdict_unchanged_owner_only(self):
+        out = self.tmp / "core"
+        # a permissive caller umask: owner-only modes must come from run-core.sh itself
+        done = subprocess.run(["bash", "-c", 'umask 000; exec bash "$0" sonnet "$1"', str(ROOT / "eval/run-core.sh"), str(out)],
+                              capture_output=True, text=True, env=self.env, timeout=300)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        run = out / "E02"
+        raw = (run / "run.jsonl").read_bytes()
+        self.assertIn(TOKEN.encode(), raw, "run.jsonl is the raw trace: byte-exact, never redacted")
+        record = json.loads((run / "redaction.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["run_jsonl_sha256"], sha256_of(run / "run.jsonl"))
+        self.assertEqual(record["derived"]["tools-seen.txt"], "redacted")
+        for path in [run / n for n in DERIVED] + [out / "SUMMARY.tsv", out / "log.txt", run / "redaction.json"]:
+            self.assertNotIn(TOKEN, path.read_text(encoding="utf-8"), path.name)
+        self.assertNotIn(TOKEN, done.stdout + done.stderr)
+        self.assertIn("<REDACTED>", (run / "tools-seen.txt").read_text(encoding="utf-8"))
+        rows = list(csv.DictReader((out / "SUMMARY.tsv").open(encoding="utf-8"), delimiter="\t"))
+        self.assertEqual(len(rows), 1)
+        self.assertIn("<REDACTED>", rows[0]["route"])
+        # the verdict: the frozen scorer re-run on the raw trace agrees with the redacted score.json and the row
+        sel = dict(l.split("=", 1) for l in subprocess.run(["bash", str(ROOT / "eval/core-set.sh"), str(ROOT)],
+                   capture_output=True, text=True, check=True, env=fixture_env()).stdout.splitlines())
+        again = subprocess.run([sys.executable, str(ROOT / "scripts/team-run-check.py"), str(run / "run.jsonl"), "--scenario", "E02",
+                                "--scenarios", sel["CORE_FILE"], "--files", str(run / "run.files"), "--json"],
+                               capture_output=True, text=True, env=fixture_env())
+        self.assertEqual(json.loads((run / "score.json").read_text(encoding="utf-8"))["status"], json.loads(again.stdout)["status"])
+        self.assertEqual((rows[0]["exit"], rows[0]["verdict"]), (str(again.returncode), {0: "PASS", 1: "FAIL"}[again.returncode]))
+        self.assertIn(f"exit={again.returncode}", (run / "score.txt").read_text(encoding="utf-8"))
+        self.assertEqual(sha256_of(run / "run.jsonl"), record["run_jsonl_sha256"], "the scorer re-run did not touch it")
+        # owner-only, everything the batch wrote; no marker, buffer or temporary file left behind
+        self.assertEqual(stat.S_IMODE(out.stat().st_mode), 0o700)
+        for path in out.rglob("*"):
+            want = 0o700 if path.is_dir() else 0o600
+            self.assertEqual(stat.S_IMODE(path.lstat().st_mode), want, str(path.relative_to(out)))
+        self.assertEqual([p.name for p in out.rglob(".redact*")], [])
+
+    def test_claude_holds_no_runner_descriptor_so_nothing_reaches_the_console_past_the_redactor(self):
+        """Sentinel final F3: the console + log.txt was fd 3 of the runner, inherited by run_one's whole tree; a fake
+        claude that writes a token to every descriptor above 2 it holds now finds none (bash 3.2 also leaked a saved
+        copy of the console at a higher number when fd 3 was only closed for the call)."""
+        report = self.tmp / "fds.txt"
+        stub = self.tmp / "claude"
+        stub.write_text(f"""#!/bin/sh
+case " $* " in *" -p "*) "{sys.executable}" -c '
+import os, sys
+held = []
+for fd in range(3, 1024):
+    try:
+        os.fstat(fd)
+    except OSError:
+        continue
+    held.append(fd)
+    try:
+        os.write(fd, ("fd%d " % fd + sys.argv[2] + chr(10)).encode())
+    except OSError:
+        pass
+open(sys.argv[1], "a").write(" ".join(map(str, held)) + chr(10))
+' "{report}" "{TOKEN}" ;; esac
+exec "{sys.executable}" "{ROOT}/tests/fake_claude.py" "$@"
+""")
+        env = dict(self.env, FAKE_SKILL="diagnose")
+        out = self.tmp / "core-fd"
+        done = subprocess.run(["bash", str(ROOT / "eval/run-core.sh"), "sonnet", str(out)],
+                              capture_output=True, text=True, env=env, timeout=300)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(report.read_text().splitlines(), [""], "claude held a descriptor above 2: " + report.read_text())
+        for path in [out / "log.txt", out / "SUMMARY.tsv"] + [out / "E02" / n for n in DERIVED]:
+            self.assertNotIn(TOKEN, path.read_text(encoding="utf-8"), path.name)
+        self.assertNotIn(TOKEN, done.stdout + done.stderr)
+
+
+@unittest.skipUnless(shutil.which("bash"), "needs bash")
+class CoreRedactionControlTest(unittest.TestCase):
+    """run-core.sh against a stub run-lib.sh whose run_one writes a credential into the raw trace, every derived file,
+    FIRST_ROUTE and its console line, and can then signal the runner between that write and the redaction."""
+
+    STUB_LIB = r"""REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+SCENARIOS="$REPO/eval/scenarios/golden.json"
+die() { echo "!! $*" >&2; exit 3; }
+utc() { echo now; }
+preflight() { :; }
+run_state() { if [ ! -d "$1" ]; then echo absent; elif [ -f "$1/done" ]; then echo complete; else echo incomplete; fi; }
+run_one() {
+  local s; s="$(cat "$REPO/secret")"; mkdir -p "$3"; echo "$1" >> "$REPO/calls.txt"
+  printf '{"type": "result", "subtype": "success", "result": "%s"}\n' "$s" > "$3/run.jsonl"
+  echo "core fixture $1 ready" > "$3/fixture.log"; echo x > "$3/fixture-core.sha256"
+  printf '# first Skill tool_use input: {"skill": "x --token %s"}\n' "$s" > "$3/tools-seen.txt"
+  printf '  X check: password=%s\n  RESULT: FAIL check\nexit=1\n' "$s" > "$3/score.txt"
+  printf '{\n  "status": "FAIL",\n  "checks": {"c": {"pass": false, "detail": "Authorization: Bearer %s"}}\n}\n' "$s" > "$3/score.json"
+  printf '{\n "first_skill": "x --token %s",\n "score_exit": 1\n}\n' "$s" > "$3/meta.json"
+  touch "$3/done"; FIRST_ROUTE="skill:x --token $s"; SECONDS_TAKEN=1
+  echo "== $1 FAIL (first skill=x --token $s)"
+  [ ! -f "$REPO/baddir.$1" ] || { rm -f "$3/score.json"; mkdir "$3/score.json"; }
+  if [ -f "$REPO/signal.$1" ]; then local sig; sig="$(cat "$REPO/signal.$1")"; rm -f "$REPO/signal.$1"
+    case "$sig" in *-GROUP) kill -s "${sig%-GROUP}" 0 ;; *) kill -s "$sig" $$ ;; esac
+    [ ! -f "$REPO/inflight.$1" ] || {   # a run still in flight when the trap fires: a child that records its pid
+      /bin/sh -c 'echo $$ > "$1"; exec /bin/sleep 30.77' sh "$REPO/inflight.pid"; echo late > "$3/late"; }; fi
+  return 1
+}
+"""
+
+    def setUp(self):
+        self.repo = Path(tempfile.mkdtemp(prefix="shode-redact-ctl.")).resolve()
+        self.addCleanup(shutil.rmtree, self.repo, ignore_errors=True)
+        (self.repo / ".claude-plugin").mkdir()
+        (self.repo / ".claude-plugin/plugin.json").write_text(json.dumps({"name": "shode-house", "version": "4.0.0"}))
+        for rel in ("eval/scenarios/core-4.0/core-4.0.json", "eval/run-core.sh", "eval/core-set.sh",
+                    "eval/redact_derived.py", "eval/evidence_redact.py"):
+            (self.repo / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(ROOT / rel, self.repo / rel)
+        (self.repo / "eval/run-lib.sh").write_text(self.STUB_LIB)
+        for freeze in ("eval/check-freeze.sh", "eval/scenarios/core-4.0/check-freeze.sh"):
+            (self.repo / freeze).write_text("exit 0\n")
+        (self.repo / "scripts").mkdir()
+        (self.repo / "scripts/eval-fixture-core.sh").write_text("exit 0\n")
+        (self.repo / "secret").write_text(TOKEN)
+        self.out = self.repo / "out"
+
+    def run_core(self, ids="E02 E03"):
+        env = {"PATH": os.environ["PATH"], "HOME": str(self.repo), "CORE_IDS": ids}
+        # a session of its own: a signal to the runner's whole process group (kill 0) never reaches this test
+        return subprocess.run(["bash", str(self.repo / "eval/run-core.sh"), "sonnet", str(self.out)],
+                              capture_output=True, text=True, env=env, timeout=120, start_new_session=True)
+
+    def calls(self):
+        p = self.repo / "calls.txt"
+        return p.read_text().split() if p.exists() else []
+
+    def rows(self):
+        return list(csv.DictReader((self.out / "SUMMARY.tsv").open(encoding="utf-8"), delimiter="\t"))
+
+    def assert_no_token(self, *paths, text=""):
+        for path in paths:
+            self.assertNotIn(TOKEN, Path(path).read_text(encoding="utf-8"), str(path))
+        self.assertNotIn(TOKEN, text)
+
+    def assert_sealed(self, run, raw):
+        self.assertEqual((run / "run.jsonl").read_bytes(), raw, "raw trace byte-exact")
+        self.assertEqual(json.loads((run / "redaction.json").read_text())["run_jsonl_sha256"], sha256_of(run / "run.jsonl"))
+        self.assert_no_token(*[run / n for n in DERIVED])
+        self.assertEqual(json.loads((run / "score.json").read_text())["status"], "FAIL", "verdict unchanged")
+        self.assertIn("exit=1", (run / "score.txt").read_text())
+        self.assertEqual(json.loads((run / "meta.json").read_text())["score_exit"], 1)
+
+    def test_clean_batch_redacts_every_pasteable_output(self):
+        done = self.run_core()
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(self.calls(), ["E02", "E03"])
+        for ident in ("E02", "E03"):
+            self.assert_sealed(self.out / ident, (self.out / ident / "run.jsonl").read_bytes())
+            self.assertIn(TOKEN.encode(), (self.out / ident / "run.jsonl").read_bytes())
+        self.assert_no_token(self.out / "SUMMARY.tsv", self.out / "log.txt", text=done.stdout + done.stderr)
+        self.assertEqual([(r["id"], r["verdict"], r["exit"]) for r in self.rows()], [("E02", "FAIL", "1"), ("E03", "FAIL", "1")])
+        self.assertIn("first skill=x --token <REDACTED>", (self.out / "log.txt").read_text())
+
+    def test_sigterm_between_write_and_redaction_then_resume(self):
+        (self.repo / "signal.E02").write_text("TERM")
+        stopped = self.run_core()
+        self.assertEqual(stopped.returncode, 143, stopped.stdout + stopped.stderr)
+        run = self.out / "E02"
+        raw = (run / "run.jsonl").read_bytes()
+        self.assertIn(TOKEN.encode(), raw)
+        self.assertEqual(self.calls(), ["E02"], "nothing runs after the interruption")
+        self.assertEqual(self.rows(), [], "an interrupted run is never summarised")
+        self.assertTrue((self.out / ".redact-pending").is_file(), "the run stays marked not final")
+        self.assertIn("is NOT final", stopped.stdout)
+        self.assert_no_token(*[run / n for n in DERIVED], self.out / "log.txt", text=stopped.stdout + stopped.stderr)
+        resumed = self.run_core()
+        self.assertEqual(resumed.returncode, 0, resumed.stdout + resumed.stderr)
+        self.assertFalse((self.out / ".redact-pending").exists())
+        self.assert_sealed(run, raw)
+        self.assertEqual(self.calls(), ["E02", "E03"], "E02 is complete: kept, never re-run")
+        self.assert_no_token(self.out / "SUMMARY.tsv", self.out / "log.txt", text=resumed.stdout + resumed.stderr)
+        self.assertIn("first skill=x --token <REDACTED>", resumed.stdout, "the buffered console output is printed redacted")
+
+    def test_signal_to_the_whole_process_group_exits_with_its_status_not_sigpipe(self):
+        """Chris final L-A: TERM or HUP to the runner's process group (a terminal hangup, kill -TERM -<pgid>) also ends
+        the console tee; the notice then hit a dead pipe and SIGPIPE killed the runner (-13). It now exits 143 / 129
+        (INT: 130), the run is redacted first, and the notice goes straight into log.txt when the console is gone."""
+        for sig, code in (("TERM", 143), ("HUP", 129), ("INT", 130)):
+            with self.subTest(sig):
+                self.setUp()
+                (self.repo / "signal.E02").write_text(sig + "-GROUP")
+                stopped = self.run_core()
+                self.assertEqual(stopped.returncode, code, stopped.stdout + stopped.stderr)
+                run = self.out / "E02"
+                raw = (run / "run.jsonl").read_bytes()
+                self.assertIn(TOKEN.encode(), raw)
+                self.assertEqual(self.calls(), ["E02"], "nothing runs after the interruption")
+                self.assertEqual(self.rows(), [], "an interrupted run is never summarised")
+                self.assertTrue((self.out / ".redact-pending").is_file(), "the run stays marked not final")
+                self.assertIn("is NOT final (derived files redacted", (self.out / "log.txt").read_text())
+                self.assert_no_token(*[run / n for n in DERIVED], self.out / "log.txt", self.out / ".redact-pending.out",
+                                     text=stopped.stdout + stopped.stderr)
+                resumed = self.run_core()
+                self.assertEqual(resumed.returncode, 0, resumed.stdout + resumed.stderr)
+                self.assert_sealed(run, raw)
+                self.assertEqual(self.calls(), ["E02", "E03"])
+                self.assert_no_token(self.out / "SUMMARY.tsv", self.out / "log.txt", text=resumed.stdout + resumed.stderr)
+
+    def test_a_signal_to_the_runner_alone_stops_the_run_in_flight(self):
+        """Chris final-2 L-C: TERM to the runner pid only (`kill <pid>`, not the group) while run_one's job still runs a
+        child. stop_run must stop that child with the job; without it the job keeps running after the runner exits
+        (unattended spend up to RUN_TIMEOUT_S). The child records its own pid; only that pid is checked and killed."""
+        (self.repo / "signal.E02").write_text("TERM")
+        (self.repo / "inflight.E02").write_text("")
+        pid_file = self.repo / "inflight.pid"
+
+        def kill_recorded():
+            try:
+                os.kill(int(pid_file.read_text()), 9)
+            except (OSError, ValueError):
+                pass
+        self.addCleanup(kill_recorded)
+        stopped = self.run_core()
+        self.assertEqual(stopped.returncode, 143, stopped.stdout + stopped.stderr)
+        self.assertIn("is NOT final", stopped.stdout)
+        time.sleep(1)
+        alive = False
+        if pid_file.exists():   # absent: the job was stopped before it started the child
+            try:
+                os.kill(int(pid_file.read_text()), 0)
+                alive = True
+            except OSError:
+                pass
+        self.assertFalse(alive, "the run in flight (a child of run_one) was not stopped")
+        self.assertFalse((self.out / "E02/late").exists(), "run_one went on after the interruption")
+        self.assertTrue((self.out / ".redact-pending").is_file(), "the run stays marked not final")
+
+    def test_kill_9_between_write_and_redaction_leaves_it_marked_then_resume_redacts(self):
+        (self.repo / "signal.E02").write_text("KILL")
+        killed = self.run_core()
+        self.assertEqual(killed.returncode, -9)
+        run = self.out / "E02"
+        raw = (run / "run.jsonl").read_bytes()
+        self.assertEqual((self.out / ".redact-pending").read_text().strip(), "E02", "no trap ran: the marker says not final")
+        self.assertFalse((run / "redaction.json").exists())
+        self.assertEqual(self.rows(), [])
+        self.assert_no_token(self.out / "log.txt", text=killed.stdout + killed.stderr)   # console output was buffered
+        resumed = self.run_core()
+        self.assertEqual(resumed.returncode, 0, resumed.stdout + resumed.stderr)
+        self.assertIn("== resume:", resumed.stdout)
+        self.assert_sealed(run, raw)
+        self.assertFalse((self.out / ".redact-pending").exists() or (self.out / ".redact-pending.out").exists())
+        self.assert_no_token(self.out / "log.txt", self.out / "SUMMARY.tsv", text=resumed.stdout + resumed.stderr)
+
+    def test_sanitizer_failure_mid_batch_stops_fail_closed(self):
+        (self.repo / "baddir.E02").write_text("")   # score.json is not a regular file: the seal cannot finish
+        done = self.run_core()
+        self.assertEqual(done.returncode, 4, done.stdout + done.stderr)
+        self.assertIn("STOPPED: redaction failed", done.stdout + done.stderr)   # the batch console is tee'd to log.txt
+        self.assertIn("STOPPED: redaction failed", (self.out / "log.txt").read_text())
+        self.assertEqual(self.calls(), ["E02"], "no further run")
+        self.assertEqual(self.rows(), [], "nothing summarised")
+        self.assertNotIn("core batch done", done.stdout)
+        self.assertTrue((self.out / ".redact-pending").is_file())
+        self.assert_no_token(self.out / "SUMMARY.tsv", self.out / "log.txt", text=done.stdout + done.stderr)
+
+    def test_missing_or_broken_redactor_stops_before_any_run(self):
+        for name, breakage in (("missing helper", lambda: (self.repo / "eval/redact_derived.py").unlink()),
+                               ("broken rules", lambda: (self.repo / "eval/evidence_redact.py").write_text("raise ImportError('x')\n"))):
+            with self.subTest(name):
+                self.setUp()
+                breakage()
+                done = self.run_core()
+                self.assertEqual(done.returncode, 4, done.stdout + done.stderr)
+                self.assertIn("STOPPED: redaction failed", done.stderr)
+                self.assertEqual(self.calls(), [])
+                self.assertFalse(self.out.exists(), "stopped before the batch directory exists")
+
+
+class RedactDerivedUnitTest(unittest.TestCase):
+    def setUp(self):
+        self.mod = load_redactor()
+        self.dir = Path(tempfile.mkdtemp(prefix="shode-redact-unit.")).resolve()
+        self.addCleanup(shutil.rmtree, self.dir, ignore_errors=True)
+
+    def leftovers(self):
+        return sorted(p.name for p in self.dir.iterdir() if p.name.startswith(".redact-"))
+
+    def test_failed_replacement_leaves_the_original_and_no_partial_file(self):
+        target = self.dir / "score.txt"
+        original = ("  X c: password=" + TOKEN + "\nexit=1\n").encode()
+        for broken in ("replace", "fsync"):
+            with self.subTest(broken):
+                target.write_bytes(original)
+                with unittest.mock.patch.object(self.mod.os, broken, side_effect=OSError("disk full")):
+                    with self.assertRaises(OSError):
+                        self.mod.redact_file(str(target))
+                self.assertEqual(target.read_bytes(), original)
+                self.assertEqual(self.leftovers(), [])
+
+    def test_success_is_atomic_owner_only_and_keeps_the_verdict(self):
+        score = self.dir / "score.json"
+        score.write_text(json.dumps({"status": "PASS", "failed": [], "checks": {"a": {"pass": True, "detail": "Bearer " + TOKEN}}},
+                                    indent=2), encoding="utf-8")
+        score.chmod(0o644)
+        self.assertEqual(self.mod.redact_file(str(score)), "redacted")
+        data = json.loads(score.read_text(encoding="utf-8"))
+        self.assertEqual((data["status"], data["failed"], data["checks"]["a"]["pass"]), ("PASS", [], True))
+        self.assertNotIn(TOKEN, score.read_text(encoding="utf-8"))
+        self.assertEqual(stat.S_IMODE(score.stat().st_mode), 0o600)
+        inode = score.stat().st_ino
+        self.assertEqual(self.mod.redact_file(str(score)), "unchanged", "idempotent: a clean file is not rewritten")
+        self.assertEqual(score.stat().st_ino, inode)
+        self.assertEqual(self.leftovers(), [])
+
+    def test_json_files_are_parsed_never_redacted_as_text(self):
+        """Chris final L-B: score.json / meta.json take the JSON branch. As text, `"detail": "secret="` loses its closing
+        quote to the redactor (invalid JSON); parsed, the file stays valid and equals redact_tree of the original."""
+        er = self.mod
+        for name, indent in sorted(er.JSON_INDENT.items()):
+            with self.subTest(name):
+                original = {"detail": "secret=", "status": "FAIL", "n": 1, "pass": False,
+                            "checks": {"c": {"detail": "password=" + TOKEN}}}
+                path = self.dir / name
+                path.write_text(json.dumps(original, indent=indent) + "\n", encoding="utf-8")
+                self.assertEqual(er.redact_file(str(path), name), "redacted")
+                text = path.read_text(encoding="utf-8")
+                self.assertEqual(json.loads(text), er.redact_tree(original))
+                self.assertEqual(text, json.dumps(er.redact_tree(original), indent=indent, ensure_ascii=False) + "\n")
+                self.assertNotIn(TOKEN, text)
+                as_text = er.redact_text(json.dumps(original, indent=indent).encode()).decode()
+                with self.assertRaises(ValueError, msg="control: the text path really corrupts this file"):
+                    json.loads(as_text)
+
+    def test_seal_refuses_a_raw_trace_that_changes(self):
+        (self.dir / "run.jsonl").write_text('{"type": "result"}\n')
+        (self.dir / "score.txt").write_text("password=" + TOKEN + "\n")
+        real = self.mod.redact_file
+
+        def tamper(path, name=None):
+            with open(self.dir / "run.jsonl", "a") as f:
+                f.write("x\n")
+            return real(path, name)
+        with unittest.mock.patch.object(self.mod, "redact_file", side_effect=tamper):
+            with self.assertRaises(self.mod.RedactionError):
+                self.mod.seal(str(self.dir))
+        self.assertFalse((self.dir / "redaction.json").exists())
+
+    def test_unreadable_or_odd_derived_file_fails(self):
+        (self.dir / "tools-seen.txt").symlink_to(self.dir / "elsewhere")
+        with self.assertRaises(self.mod.RedactionError):
+            self.mod.seal(str(self.dir))
+        done = subprocess.run([sys.executable, str(ROOT / "eval/redact_derived.py"), "seal", str(self.dir)],
+                              capture_output=True, text=True)
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("redaction failed: RedactionError", done.stderr)
+
+
+class ToolsSeenCutTest(unittest.TestCase):
+    """Sentinel final F1 + F2 against the FROZEN writer: eval/run-lib.sh `tools_seen` cuts every first-input value
+    longer than 300 characters to 300 plus "..." before any redaction, and json.dumps escapes the JSON inside a value.
+    Its Python body is run as is (read from run-lib.sh), the output redacted as the seal does, for every cut position."""
+
+    SECRET = "Q7x" + "Z9pLm2Vb8Nc4Rt6Yw1Ks3Hd5Jf0Ga"
+    SHAPES = {
+        "json password": '{"password": "' + SECRET + '"}',
+        "json api_key": '{"api_key":"' + SECRET + '"}',
+        "url user:password": "https://user:" + SECRET + "@host/x",
+        "postgres url": "postgres://app:" + SECRET + "@db:5432/x",
+        "bearer": "Authorization: Bearer " + SECRET,
+        "curl -d json": 'curl -d "{\\"password\\":\\"' + SECRET + '\\"}" h',
+    }
+
+    @classmethod
+    def setUpClass(cls):
+        lib = (ROOT / "eval/run-lib.sh").read_text(encoding="utf-8")
+        body = re.search(r"^tools_seen\(\) \{\n  python3 - \"\$1\" <<'PY'\n(.*?)\nPY\n\}", lib, re.S | re.M)
+        cls.writer = compile(body.group(1), "run-lib.sh:tools_seen", "exec")
+        cls.mod = load_redactor()
+
+    def tools_seen(self, path):
+        import contextlib, io
+        buf, argv = io.StringIO(), sys.argv
+        sys.argv = ["-", str(path)]
+        try:
+            with contextlib.redirect_stdout(buf):
+                exec(self.writer, {"__name__": "__main__"})
+        finally:
+            sys.argv = argv
+        return buf.getvalue()
+
+    def leaks(self, text):
+        return any(self.SECRET[i:i + 8] in text for i in range(len(self.SECRET) - 7))
+
+    def test_no_cut_position_leaks(self):
+        tmp = Path(tempfile.mkdtemp(prefix="shode-tools-seen.")).resolve()
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        trace = tmp / "run.jsonl"
+        plain_leaks = copied = 0
+        for label, shape in self.SHAPES.items():
+            for pad in range(300):
+                value = "x" * pad + " " + shape + " tail"
+                event = {"type": "assistant", "message": {"content": [
+                    {"type": "tool_use", "name": "Skill", "input": {"skill": "s", "args": value}}]}}
+                trace.write_text(json.dumps(event) + "\n", encoding="utf-8")
+                raw = self.tools_seen(trace).encode()
+                copied += self.leaks(raw.decode())
+                clean = (self.mod.redacted_bytes("tools-seen.txt", raw) or raw).decode()
+                self.assertFalse(self.leaks(clean), (label, pad, clean))
+                if len(value) > 300:   # the cut marker is kept (or redacted with a value cut to nothing: `"pw": ...`)
+                    self.assertRegex(clean, r'(\.\.\.|<REDACTED>)"\}\n', "the cut marker is kept")
+                plain_leaks += self.leaks(self.mod.redact_text(raw).decode())
+        self.assertGreater(copied, len(self.SHAPES) * 250, "control: the frozen writer copies the credential")
+        self.assertGreater(plain_leaks, 0, "control: redacting the line as plain text leaves some cut credentials")
+
+    def test_a_cut_value_is_redacted_up_to_the_cut_and_keeps_its_marker(self):
+        """Parsing alone already lets the end-of-string rules see a cut value; the marker is then part of what they
+        replace. Redacting up to the cut keeps "..." visible, so a reader still sees the value was cut."""
+        er, part = self.mod, self.SECRET[:12]
+        for value, want in (('{"password": "' + part + "...", '{"password": <REDACTED>...'),
+                            ("https://user:" + part + "...", "https://<REDACTED>..."),
+                            ("Authorization: Bearer " + part + "...", "Authorization: <REDACTED>..."),
+                            ('{"password": ...', '{"password": <REDACTED>'),       # cut to nothing: the marker goes
+                            ("x" * 20 + "...", "x" * 20 + "...")):
+            self.assertEqual(er.redact_cut(value), want, value)
+            self.assertNotIn(part, er.redact(value))
+        self.assertEqual(er.redact('{"password": "' + part + "..."), '{"password": <REDACTED>', "control: plain loses it")
+
+    def test_lines_that_are_not_a_first_input_or_do_not_parse_are_redacted_as_text(self):
+        er = self.mod
+        text = ("# event types: {'assistant': 1}\n# first Skill tool_use input: NOT SEEN\n"
+                "# first Task tool_use input: {broken password=" + self.SECRET + "\n"
+                '# init.model: "password=' + self.SECRET + '"\n')
+        clean = er.redacted_bytes("tools-seen.txt", text.encode()).decode()
+        self.assertFalse(self.leaks(clean))
+        self.assertIn("# first Skill tool_use input: NOT SEEN\n", clean)
+        self.assertIsNone(er.redacted_bytes("tools-seen.txt", b"# first Agent tool_use input: {\"a\": \"b...\"}\n"),
+                          "nothing to redact: the file is not rewritten")
+
+
 class FreezeTest(unittest.TestCase):
     def check(self, root=None, *args):
-        env = dict(os.environ, **({"FREEZE_ROOT": str(root)} if root else {}))
+        env = fixture_env(**({"FREEZE_ROOT": str(root)} if root else {}))
         return subprocess.run(["bash", str(ROOT / "eval/check-freeze.sh"), *args], capture_output=True, text=True, env=env)
 
     def test_repo_matches_its_freeze_manifest(self):
@@ -199,7 +683,8 @@ class ArmDiffTest(unittest.TestCase):
         self.base = self.commit("base")
 
     def git(self, *args):
-        return subprocess.run(["git", "-C", str(self.root), *args], capture_output=True, text=True, check=True).stdout.strip()
+        return subprocess.run(["git", "-C", str(self.root), *args], capture_output=True, text=True, check=True,
+                              env=fixture_env()).stdout.strip()
 
     def write(self, rel, text):
         (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
@@ -214,7 +699,7 @@ class ArmDiffTest(unittest.TestCase):
         mutate()
         after = self.commit("after")
         p = subprocess.run(["bash", str(ROOT / "eval/check-arm-diff.sh"), self.base, after, *extra], capture_output=True, text=True,
-                           env=dict(os.environ, CHECK_ROOT=str(self.root)))
+                           env=fixture_env(CHECK_ROOT=str(self.root)))
         return p.returncode, p.stdout + p.stderr
 
     def new_desc(self, text):
@@ -263,8 +748,34 @@ class ArmDiffTest(unittest.TestCase):
 
     def test_bad_ref_is_usage_error(self):
         p = subprocess.run(["bash", str(ROOT / "eval/check-arm-diff.sh"), "nope", "HEAD"], capture_output=True, text=True,
-                           env=dict(os.environ, CHECK_ROOT=str(self.root)))
+                           env=fixture_env(CHECK_ROOT=str(self.root)))
         self.assertEqual(p.returncode, 2)
+
+
+class HermeticEnvTest(unittest.TestCase):
+    # read with a default, but set by the runner itself before use (TMPDIR / HOME: kept on purpose, see EVAL_ENV)
+    NOT_KNOBS = {"TMPDIR", "HOME", "DEST", "FIRST_ROUTE", "SECONDS_TAKEN"}
+    FILES = ("eval/run-lib.sh", "eval/run-e01.sh", "eval/run-probes.sh", "eval/run-core.sh", "eval/core-set.sh",
+             "eval/check-freeze.sh", "eval/check-arm-diff.sh", "scripts/eval-fixture.sh", "tests/fake_claude.py",
+             "eval/redact_derived.py")
+
+    def test_every_variable_the_runners_read_is_stripped(self):
+        read = set()
+        for rel in self.FILES:
+            text = (ROOT / rel).read_text(encoding="utf-8")
+            read |= set(re.findall(r"\$\{([A-Z_][A-Z0-9_]*):[-=?]", text))
+            read |= set(re.findall(r"os\.environ\.get\(\"([A-Z_][A-Z0-9_]*)\"", text))
+        self.assertFalse(read - self.NOT_KNOBS - set(EVAL_ENV), "add to EVAL_ENV")
+
+    def test_a_callers_knobs_do_not_reach_a_fixture_run(self):
+        junk = {k: "junk-" + k.lower() for k in EVAL_ENV + GIT_REPO_ENV}
+        with unittest.mock.patch.dict(os.environ, junk):
+            env = fixture_env(CHECK_ROOT="/x")
+        self.assertEqual(set(), (set(junk) - {"CHECK_ROOT"}) & set(env))
+        self.assertEqual(env["CHECK_ROOT"], "/x")
+        for kept in ("HOME", "PATH"):
+            if kept in os.environ:
+                self.assertEqual(env[kept], os.environ[kept])
 
 
 class ScenarioDataTest(unittest.TestCase):
@@ -277,7 +788,7 @@ class ScenarioDataTest(unittest.TestCase):
         # E01 is scored from the checkout's core set (eval/core-set.sh, the selector the runners use): at 4.x that is
         # core-4.0's E01, whose must_not_dispatch drops the retired `orchestrator` type; golden.json stays frozen
         sel = dict(l.split("=", 1) for l in subprocess.run(["bash", str(ROOT / "eval/core-set.sh"), str(ROOT)],
-                   capture_output=True, text=True, check=True).stdout.splitlines())
+                   capture_output=True, text=True, check=True, env=fixture_env()).stdout.splitlines())
         e01 = next(s for s in json.loads(Path(sel["CORE_E01"]).read_text(encoding="utf-8"))["scenarios"] if s["id"] == "E01")
         scenarios = [e01 if s["id"] == "E01" else s for s in NEW]
         self.assertEqual(ids, [s["id"] for s in scenarios])

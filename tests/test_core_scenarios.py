@@ -298,7 +298,8 @@ run_one() { mkdir -p "$3"; echo "$1 ${SCENARIOS#$REPO/}" >> "$REPO/calls.txt"; t
         (tmp / ".claude-plugin").mkdir()
         (tmp / ".claude-plugin/plugin.json").write_text(json.dumps({"name": "shode-house", "version": version}))
         for rel in ("eval/scenarios/golden.json", "eval/scenarios/core-3.17.json", "eval/scenarios/core-4.0/core-4.0.json",
-                    "eval/run-core.sh", "eval/run-e01.sh", "eval/core-set.sh"):
+                    "eval/run-core.sh", "eval/run-e01.sh", "eval/core-set.sh",
+                    "eval/redact_derived.py", "eval/evidence_redact.py"):   # run-core.sh stops (exit 4) without its redactor
             (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(ROOT / rel, tmp / rel)
         (tmp / "eval/run-lib.sh").write_text(self.STUB_LIB)

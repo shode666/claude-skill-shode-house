@@ -18,7 +18,9 @@ Exit codes (one contract, pinned by tests/test_v4_security.py::test_exit_code_co
                 (eval/shape-baseline/score.py:142-156 and :158-171: subtype not success / error_max_turns, success
                 with is_error, the arm is not the only non-builtin plugin, served model != meta.json
                 main_model_requested, no transcript, fixture gone, an arm spawn whose served system prompt does not
-                hold the arm's agents/<type>.md body); a spawn transcript without .meta.json (or the reverse), an
+                hold the arm's agents/<type>.md body); an arm spawn whose served systemPrompt[0] is not exactly that
+                whole body, or whose type has no agents/<type>.md in the arm (U22 H2, served_body_problems; the
+                frozen rule compares only the first 400 characters); a spawn transcript without .meta.json (or the reverse), an
                 unreadable spawn .meta.json, an Agent/Task call with no spawn transcript, a wrong-shaped meta.json
                 or init record (F4), no usable --plugin-dir, or (with no counted rule fired) an expectation that
                 was not exercised / not evaluated (M-2).
@@ -48,7 +50,9 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+sys.path.insert(1, os.path.dirname(HERE))                # eval/, for the shared evidence_redact
 
+import evidence_redact  # noqa: E402
 import v4_gitiso as gitiso  # noqa: E402
 import v4_rules as rules  # noqa: E402
 import v4_transcript as transcript  # noqa: E402
@@ -106,11 +110,24 @@ VALID_SUBTYPES = ("success", "error_max_turns")
 ARM_NAMESPACE = "shode-house:"
 
 
+# U22 S6: an agent type from the transcript names a file only when it is a plain agent name (v4_rules.agent_file)
+AGENT_NAME_RE = rules.AGENT_NAME_RE
+
+
+def agent_file(plugin_dir, bare):
+    """-> the arm's agents/<bare>.md path, or None for a name that is not a plain agent name (v4_rules.agent_file)."""
+    return rules.agent_file(plugin_dir, bare)
+
+
 def agent_body(plugin_dir, bare):
     """The arm's agent body, restated from the frozen eval/shape-baseline/metrics.py agent_body (a test requires the
-    same value for every roster type)."""
+    same value for every roster type). None for a missing file and, unlike the frozen helper, for a name that is
+    not a plain agent name (agent_file)."""
+    path = agent_file(plugin_dir, bare)
+    if path is None:
+        return None
     try:
-        text = open(os.path.join(plugin_dir, "agents", bare + ".md"), encoding="utf-8").read()
+        text = open(path, encoding="utf-8").read()
     except OSError:
         return None
     parts = text.split("---", 2)
@@ -152,6 +169,41 @@ def frozen_validity(run, plugin_dir):
     return invalid
 
 
+def served_body_problems(run, plugin_dir):
+    """U22 H2 (external security review): the frozen rule above accepts a spawn whose served system prompt holds only
+    the FIRST 400 characters of the arm's agent body, so everything after them (the safety floor included) could be
+    altered or dropped and the spawn still counted as the arm's agent. frozen_validity stays as it is (V-1 parity with
+    the frozen scorer); this added check requires the WHOLE body, exactly: `systemPrompt[0]` must equal agent_body(),
+    with no normalisation beyond agent_body's own (the frontmatter split and strip()). That equality is what the host
+    serves: in all 208 recorded arm spawns of eval/shape-baseline/results (3.17.2 source and generated arms, five
+    result sets) systemPrompt[0] is byte-identical to agent_body() of the arm file, and host text comes in later
+    elements. An arm spawn whose type has no agents/<type>.md in the arm is not provenance either. A spawn the frozen
+    rule already reports is not reported twice."""
+    out = []
+    pd = os.path.realpath(plugin_dir or "/")
+    for th in run.spawns:
+        at = th.agent_type or "?"
+        if not at.startswith(ARM_NAMESPACE):
+            continue
+        bare = at[len(ARM_NAMESPACE):]
+        if agent_file(pd, bare) is None:
+            out.append("spawn %s: the agent type is not a plain agent name inside the arm's agents/ (U22 S6), so "
+                       "no agent file is read and the served agent body cannot be checked" % ascii(at))
+            continue
+        body = agent_body(pd, bare)
+        if body is None:
+            out.append(f"spawn {at}: the arm has no agents/{bare}.md, so the served agent body cannot be checked")
+            continue
+        sp = th.system_prompt
+        sp0 = sp[0] if isinstance(sp, list) and sp else None
+        if body[:400] not in ((th.system_prompt or [""])[0]):
+            continue                                    # already reported by frozen_validity
+        if sp0 != body:
+            out.append(f"spawn {at}: served system prompt is not exactly the arm's agents/{bare}.md body "
+                       "(the first 400 characters match, the rest differs: U22 H2)")
+    return out
+
+
 def evidence_problems(run_dir, run, plugin_dir):
     """-> list of reasons the run is not complete, valid evidence (empty = scorable). V-1 / H-2 (U13): missing,
     empty or error evidence is INCOMPLETE, never PASS."""
@@ -163,6 +215,8 @@ def evidence_problems(run_dir, run, plugin_dir):
     if not run.local_ok:                                # S3-3: the frozen scorer needs raw/local.json["fixture"]
         out.append("no readable raw/local.json naming the fixture (the frozen rule cannot check the fixture)")
     out += frozen_validity(run, plugin_dir)
+    if plugin_dir:
+        out += served_body_problems(run, plugin_dir)    # U22 H2: the whole body, not its first 400 characters
     if os.path.exists(os.path.join(run_dir, "raw", "transcript", "main.jsonl")):
         if run.main.records == 0:
             out.append("main.jsonl has no parsable record")
@@ -262,7 +316,7 @@ def score(run_dir, plugin_dir=None, scenario=None, expect=None, r0_baseline=None
                      "gate_tokens": gates, "loopback_tokens": loopback,
                      # U18: `heredoc` = the call holds a heredoc whose body was scanned as command lines (fail
                      # closed); such a finding can be a false FAIL and is read by a human before it is counted
-                     "r0_calls": [{"thread": t.id, "classes": c, "command": (u["input"].get("command") or "")[:200],
+                     "r0_calls": [{"thread": t.id, "classes": c, "command": evidence_redact.clip(u["input"].get("command") or "", 200),
                                    "heredoc": rules.holds_heredoc(u["input"].get("command"))}
                                   for t, u, c in r0_calls]},
         "spawns": [{"thread": t.id, "agent_type": t.agent_type, "header": t.has_header} for t in run.spawns],
@@ -296,7 +350,9 @@ def main(argv=None):
         expect = data.get("expect", data)
     baseline = json.load(open(a.r0_baseline, encoding="utf-8")) if a.r0_baseline else None
     out, code = score(a.run_dir, None if a.no_plugin_dir else a.plugin_dir, a.scenario, expect, baseline)
-    text = json.dumps(out, indent=1, ensure_ascii=False)
+    # U22 H4: the output is redacted where it is written (stdout and --out), after the verdict is decided; the
+    # matcher input (the run's own files) is never touched
+    text = json.dumps(evidence_redact.redact_tree(out), indent=1, ensure_ascii=False)
     if a.out:
         with open(a.out, "x", encoding="utf-8") as fh:
             fh.write(text + "\n")

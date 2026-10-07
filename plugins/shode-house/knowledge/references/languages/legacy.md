@@ -1,5 +1,12 @@
 # Legacy: COBOL / PL-SQL / VBA — Best Practices
 
+**Contents**
+
+- [COBOL](#cobol)
+- [PL/SQL (Oracle)](#plsql-oracle)
+- [VBA (Excel / Office automation)](#vba-excel--office-automation)
+- [Universal Legacy Migration Strategy](#universal-legacy-migration-strategy)
+
 > **Use cases**: Banking core, ERP legacy, internal automation, financial system
 > **Why**: ไม่ sexy แต่ "เงินจริง" ใน enterprise; modernize ทำเป็น strangler fig
 

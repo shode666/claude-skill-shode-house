@@ -22,7 +22,7 @@ help:
 # validate = รัน gate ชุดเดียวกับ CI ในเครื่อง (v3.12 — เดิม .pre-commit-config อ้าง target นี้ทั้งที่ไม่มีอยู่)
 # แหล่งความจริงเดียวคือ .github/workflows/ci.yml -> ดึง inline script ออกมารัน ไม่ copy logic ซ้ำ
 validate:
-	@g=$$(mktemp -t shode-gate.XXXXXX) && \
+	@g=$$(mktemp -t shode-gate.XXXXXX) && trap 'rm -f "$$g"' EXIT && trap 'exit 1' HUP INT TERM && \
 	 awk '/^        run: \|/{f=1;next} f&&/^      - name:/{exit} f{sub(/^          /,"");print}' \
 	   .github/workflows/ci.yml > "$$g" && \
 	 test -s "$$g" || { echo "make validate: extract gate script failed (ci.yml layout changed)"; rm -f "$$g"; exit 1; }; \
@@ -33,13 +33,23 @@ validate:
 # Guard: tests/test_pack_allowlist.py (CI gate #26) -- also fails when shipped text points at a path that does not ship.
 # zip เขียน temp archive ไว้ใน cwd เมื่อถูกขัดจังหวะ -> ให้มันไปอยู่ใน temp dir ของตัวเองแทน
 # แล้วย้ายเข้ามาเมื่อสำเร็จ (v3.12: เดิม `make clean` ใช้ glob `zi*` ซึ่งลบไฟล์ผู้ใช้ที่ขึ้นต้น zi ได้ เช่น zig/zip-config)
+# U22 H3: zip -r follows a symlink and stores the file it points to, which can lie outside the repo. An allowlisted
+# path that is, or contains, a symlink (any symlink, wherever it points) is refused: each is listed, the target exits
+# non-zero and no archive is left (the old one was removed above, the temp dir is removed). `-y` (store a link as a
+# link) is defence in depth only; with no symlink in the list it does not change the archive.
+# U22 iter 2 (Sentinel S1): `find` checks only each listed path and what lies below it, so a symlinked PARENT
+# directory (scripts/lib, scripts, .claude-plugin replaced by a link) went unseen and zip read through it. Every
+# ancestor directory of every allowlisted path, up to the repo root, is now tested with `test -L` too.
+# The temp dir is also removed by an EXIT trap, so an interrupt (HUP/INT/TERM) leaves no shode-pack.* behind.
 pack build:
 	@rm -f $(PLUGIN)
-	@d=$$(mktemp -d -t shode-pack.XXXXXX) && \
+	@d=$$(mktemp -d -t shode-pack.XXXXXX) && trap 'rm -rf "$$d"' EXIT && trap 'exit 1' HUP INT TERM && \
 	 list=$$(awk '!/^[[:space:]]*(#|$$)/{print $$1}' .pack-allowlist) && test -n "$$list" && \
-	 miss= && for p in $$list; do test -e "$$p" || { echo "make pack: allowlisted path missing: $$p"; miss=1; }; done && \
+	 miss= && for p in $$list; do test -e "$$p" || test -L "$$p" || { echo "make pack: allowlisted path missing: $$p"; miss=1; }; done && \
 	 test -z "$$miss" && \
-	 zip -rq "$$d/$(PLUGIN)" $$list -x '*.DS_Store' -x '*__pycache__*' -x '*/.git/*' -x '*.fuse_hidden*' && \
+	 links=$$(find $$list -type l && for p in $$(printf '%s\n' $$list | awk -F/ '{p=$$1; for(i=2;i<=NF;i++){if(!s[p]++)print p; p=p"/"$$i}}'); do test ! -L "$$p" || echo "$$p"; done) && \
+	 { test -z "$$links" || { echo 'make pack: refusing to pack -- symlink in an allowlisted path (the archive would get the file it points to, which can lie outside the repo); replace each with the real file or remove it:'; printf '%s\n' "$$links" | sed 's/^/  /'; false; }; } && \
+	 zip -rqy "$$d/$(PLUGIN)" $$list -x '*.DS_Store' -x '*__pycache__*' -x '*/.git/*' -x '*.fuse_hidden*' && \
 	 mv "$$d/$(PLUGIN)" ./ ; rc=$$?; rm -rf "$$d"; exit $$rc
 	@echo "built $(PLUGIN) ($$(du -k $(PLUGIN) | cut -f1)K, $$(unzip -l $(PLUGIN) | tail -1 | awk '{print $$2}') files)"
 

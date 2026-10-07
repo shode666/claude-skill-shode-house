@@ -1,5 +1,20 @@
 # Scope Contract — Pre-implement Gate (v2.4.1)
 
+**Contents**
+
+- [เมื่อใดต้อง post Scope Contract](#เมื่อใดต้อง-post-scope-contract)
+- [Template](#template)
+- [Field rules](#field-rules)
+- [Flow](#flow)
+- [ตัวอย่าง](#ตัวอย่าง)
+- [Enforcement](#enforcement)
+- [Catches (จาก realworld painpoint)](#catches-จาก-realworld-painpoint)
+- [Anti-puppet](#anti-puppet)
+- [ถ้า scope ต้องเปลี่ยนระหว่างทาง](#ถ้า-scope-ต้องเปลี่ยนระหว่างทาง)
+- [ถ้า scope ปิด (task done)](#ถ้า-scope-ปิด-task-done)
+- [Script-checkable enforcement (🆕 bd: shode-house-5cs.4, L2)](#script-checkable-enforcement--bd-shode-house-5cs4-l2)
+- [Enforcement ceiling (🆕 bd: shode-house-5cs.4 iter 2, "C5" — user ruling "option A")](#enforcement-ceiling--bd-shode-house-5cs4-iter-2-c5--user-ruling-option-a)
+
 > Lazy-load reference. ไม่อยู่ใน main context. Agent load เมื่อต้อง post scope ก่อน implement
 > Why: the edit-validation contradiction (validation ที่ทำให้หน้า edit save ไม่ได้เลย) + realworld pain — agent over-scope / misinterpret / overlap
 
@@ -142,7 +157,7 @@ The distributed instruction-only plugin supplies neither these scripts nor hooks
 it must not claim this enforcement or install the runtime implicitly. Without it,
 use the harness's scoped ownership, serialized writes and honest enforcement limits.
 
-ข้างบนคือ **prose protocol** (chat message + router อ่านเอง) — ชั้นที่ **script บังคับจริง**
+ข้างบนคือ **prose protocol** (chat message + router อ่านเอง) — ชั้นที่ **script บังคับจริง** (เมื่อ SessionStart รายงาน `ENFORCED`; ดู § Enforcement ceiling)
 อยู่ที่ `scripts/scope-check.sh` (per-bd manifest `.shode-house/scope/<bd-id>.json`) +
 `hooks/scripts/guard-scope-write.sh` (PreToolUse บน `Write|Edit|Bash`). ความสัมพันธ์กับ
 `references/scope/README.md` เดิมไม่เปลี่ยน (prose ↔ script คนละชั้น ประกอบกัน ไม่ทับกัน)
@@ -189,17 +204,47 @@ use the harness's scoped ownership, serialized writes and honest enforcement lim
 
 **ห้าม doc นี้ implied ว่า enforce มากกว่าที่มีจริง** — ceiling ที่แท้จริงคือ:
 
-- **Write/Edit/NotebookEdit tool = hook-enforced เต็ม** (`guard-scope-write.sh`) — path
+- **ทุกข้อด้านล่างถือเฉพาะเมื่อ SessionStart hook รายงาน `ENFORCED`** (jq รัน test program ได้ + `hooks/scripts/_casefold.sh`
+  โหลดได้ + บน macOS `/usr/bin/perl` กับ `Unicode::Normalize`). `ADVISORY-ONLY` = write guard **ไม่ enforce ตามที่ออกแบบ**:
+  jq ไม่อยู่บน PATH หรือ `_casefold.sh` หาย → fail-open (exit 0 + `.degraded`); jq มีแต่รันไม่ได้หรือไม่มี regex →
+  guard refuse ทุก Write/Edit/NotebookEdit (scope guard refuse Bash ด้วย); perl/NFC ใช้ไม่ได้บน macOS → Write/Edit
+  path non-ASCII ใน project ที่มี engagement ถูก refuse (collision check ทำไม่ได้). Status line = รายงาน ไม่ใช่ control;
+  `ENFORCED` ก็ยังเป็น defence in depth ไม่ใช่ guarantee (hook ถูกปิดได้ด้วย `disableAllHooks`)
+- **Write/Edit/NotebookEdit tool = hook-enforced เต็ม เฉพาะเมื่อ `ENFORCED`** (`guard-scope-write.sh`) — path
   canonicalize (lexnorm + physical-resolve + case-fold, ปิด traversal/dot-slash/case, "C1")
   แล้วเทียบกับ manifest ก่อนตัดสิน ALLOW/DENY/NEEDS_AMENDMENT ทุกครั้ง; symlink leaf ที่ target
   เขียนจริงถูก refuse ทันที ไม่พยายาม resolve-แล้ว-match ("H1")
 - **Shell write (ผ่าน Bash tool) = ADVISORY เท่านั้น** — **ห้าม claim ว่า scope-enforced**
-  ยกเว้น 3 fixed control-plane path: `.shode-house/state/`, `.shode-house/journal/`,
-  `.shode-house/scope/` (scope manifest / binding store) ซึ่ง **DENY ทันทีถ้า Bash command
-  เอ่ยถึง path พวกนี้** ไม่ว่าจะอ่านหรือเขียน (`deny-if-mentioned` over fixed string set — **ไม่ใช่
-  general write-target parser**, ห้าม resolve variable/cwd-trick/shell-indirection — user
-  ตัดสินใจแล้วว่านั่นคือ arms race ที่ไม่คุ้ม) — agent อื่นเขียนไฟล์คนอื่นผ่าน `echo >`/`cp`/`sed -i`/
-  `tee`/heredoc นอก 3 path นี้ **ยังผ่านได้** (advisory only, by design, ไม่ใช่ bug ที่เหลือ)
+  ยกเว้น control-plane path ชุดตายตัวข้างล่าง ซึ่ง **DENY ทันทีถ้า Bash command เอ่ยถึง** ไม่ว่าจะอ่าน
+  หรือเขียน (`deny-if-mentioned` over fixed string set — **ไม่ใช่ general write-target parser**,
+  ห้าม resolve variable/cwd-trick/shell-indirection — user ตัดสินใจแล้วว่านั่นคือ arms race ที่ไม่คุ้ม):
+  - 3 root: `.shode-house/state`, `.shode-house/journal`, `.shode-house/scope` (scope manifest /
+    binding store) — มีหรือไม่มี `/` ท้ายก็ตาม; ชื่อที่ขึ้นต้นด้วยคำเหล่านี้ (เช่น `statefoo`) ก็ DENY
+  - directory `.shode-house` เอง (เก็บทั้ง 3 root): ท้ายบรรทัด หรือตามด้วย `/`, `/.` หรืออักขระที่
+    ต่อ path ไม่ได้ (space, quote, `;`, `)`, `*` ฯลฯ)
+  - segment `..` ใดๆ หลัง `.shode-house/` ใน command เดียวกัน (เช่น `.shode-house/approval/../state`,
+    `chmod -R 0 .shode-house/approval/..`, `.shode-house/a+b/../state`, `'.shode-house/a b/../state'`,
+    `cd .shode-house/approval && chmod -R 0 ..`) — `..` segment = จุดสองตัวที่ไม่มีตัวอักษร ตัวเลข `.`
+    `_` หรือ `-` ติดอยู่ทั้งสองข้าง ไม่ว่า child ก่อนหน้าจะมี byte อะไร (space, quote, `+`, `@`, non-ASCII,
+    ขึ้นบรรทัดใหม่) หรือ `..` จะตามหลัง `/`, space, quote หรือ backslash; fail-closed แม้ปลายทางจะเป็น child
+    ที่อนุญาต และ **over-deny ที่ยอมรับแล้ว**: command ที่เอ่ย `.shode-house/<child>` แล้วใช้ `..` หลังจากนั้น
+    ด้วย (`cat .shode-house/config.yaml && cd ..`, `... src/../x`) ก็ DENY; ชื่อที่มีแค่จุด (`..x`,
+    `a..b`, `...`) ไม่ใช่ `..` segment จึงผ่าน
+  - เทียบหลังแปลงขึ้นบรรทัดใหม่เป็น space, ยุบ `//` เป็น `/` และตัด `/./`, ไม่สน ASCII case, ทั้ง
+    relative และ absolute path; child อื่น (`config.yaml`, `approval/`, `side-effects/`) และชื่อพี่น้อง
+    (`.shode-house-backup`) ยังผ่าน
+- **ขีดจำกัดที่ยอมรับแล้วของ Bash guard** (มองไม่เห็นโดย design ไม่ใช่ bug ที่เหลือ): quote splicing
+  ในชื่อ (`.sho''de-house/state`), glob/brace ในชื่อ (`.shode-house/st*`, `s[t]ate`, `st{a,}te`,
+  `.shode-hous?`), variable (`${D}se/state`), backslash escape ในชื่อ (`st\ate`), ชื่อที่ประกอบด้วย
+  `printf`/`base64`, จุดของ `..` เองที่ถูก splice หรือ escape (`.shode-house/a/.''.`,
+  `.shode-house/a/.\.`) หรือ `..` ที่มาจาก glob/brace/variable (เช่น `.shode-house/a/.{.,x}/state`), `..` ที่เขียน
+  ไว้**ก่อน**ชื่อแต่รันหลัง `cd` ใน command เดียวกัน (เช่น function body, `trap` หรือ loop:
+  `trap 'chmod -R 0 ..' EXIT; cd .shode-house/approval`), symlink ที่วางไว้ใต้ `.shode-house/`
+  (`ln -s .. .shode-house/approval/l`), relative path ใน **Bash call ถัดไป**
+  หลัง `cd .shode-house/approval` (call นั้นไม่มีชื่อ `.shode-house` ให้เห็นแล้ว) และ `git clean -fdX` / `-fdx` ซึ่งลบ `.shode-house` ที่ถูก ignore (`/init` เพิ่มลง `.gitignore`)
+  โดยไม่เอ่ยชื่อเลย
+- agent อื่นเขียนไฟล์คนอื่นผ่าน `echo >`/`cp`/`sed -i`/`tee`/heredoc นอก path ข้างบน **ยังผ่านได้**
+  (advisory only, by design, ไม่ใช่ bug ที่เหลือ)
 - `--bind` canonical shape ยังคง strict shape เดิม (metachar reject + fully-anchored regex);
   iter 2 แก้ separator จาก `[[:space:]]+` (match `\n` ด้วย) เป็น literal space เท่านั้น
   ("C2" — multi-line command เคยหลุดผ่านเป็น "canonical shape เป๊ะๆ" ได้)

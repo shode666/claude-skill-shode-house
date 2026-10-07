@@ -98,7 +98,7 @@ The rules are stated in this file and nowhere else. The linked files add detail,
 
 - README links every skill name to its SKILL.md (CI #11b). CHANGELOG gets an entry for every minor/major bump.
 - Every PR passes the CI gate (`.github/workflows/ci.yml`) before merge.
-- CI #27 (v4 gates) runs A1 tools pin, A8 skill names + spawn forms, A2 safety floor (`scripts/floor.py --check --require`), A16(a)/(b) shipped-text lint, the A15 design-runner suite, the W9 eval suites + `eval/scenarios/core-4.0/check-freeze.sh`, `test_floor`, `test_ci_wiring`, `test_ux_design_runbooks` and `test_eval_runners`; all required from `plugin.json` major ≥ 4 (`SHODE_REQUIRE_V4=1` rehearses it on 3.x).
+- CI #27 (v4 gates) runs A1 tools pin, A8 skill names + spawn forms, A2 safety floor (`scripts/floor.py --check --require`), A16(a)/(b) shipped-text lint, the A15 design-runner suite, the W9 eval suites + `eval/scenarios/core-4.0/check-freeze.sh`, `test_floor`, `test_ci_wiring`, `test_ux_design_runbooks`, `test_eval_runners` and `test_reference_toc` (shipped reference > 100 lines has a TOC matching its headings); all required from `plugin.json` major ≥ 4 (`SHODE_REQUIRE_V4=1` rehearses it on 3.x).
 
 ## Lazy ≠ Negligent
 

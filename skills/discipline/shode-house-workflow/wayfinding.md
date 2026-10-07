@@ -12,6 +12,18 @@ REQUIRED-BEFORE: map_creation
 
 # Wayfinding — Map mode (งานใหญ่เกิน 1 session, ยังมองไม่เห็นทาง)
 
+**Contents**
+
+- [ปัญหาที่มันแก้ (ช่องที่ pipeline เดิมไม่มี)](#ปัญหาที่มันแก้-ช่องที่-pipeline-เดิมไม่มี)
+- [หลักการ](#หลักการ)
+- [โครงสร้างบน tracker ที่ project ยืนยัน (Markdown fallback)](#โครงสร้างบน-tracker-ที่-project-ยืนยัน-markdown-fallback)
+- [Fog of war — แผนที่ไม่สมบูรณ์โดยตั้งใจ](#fog-of-war--แผนที่ไม่สมบูรณ์โดยตั้งใจ)
+- [Out of scope = ที่อยู่ของ Philosophy #4 (SCOPE DRIFT)](#out-of-scope--ที่อยู่ของ-philosophy-4-scope-drift)
+- [Ticket types → agent ของเรา](#ticket-types--agent-ของเรา)
+- [เรียกด้วยชื่อ ห้ามเรียกด้วยเลข](#เรียกด้วยชื่อ-ห้ามเรียกด้วยเลข)
+- [2 โหมด](#2-โหมด)
+- [จบ map แล้วไปไหนต่อ](#จบ-map-แล้วไปไหนต่อ)
+
 > Adapted จาก [mattpocock/skills · wayfinder](https://github.com/mattpocock/skills) (MIT) — port ไป tracker ที่ project ยืนยัน + PEV loop ของเรา
 > **Owner**: router (holds the map) + product-manager (destination + scope) · business-analyst/solution-architect (spec/architecture tickets) · domain expert (domain decisions)
 

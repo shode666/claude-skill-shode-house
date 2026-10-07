@@ -66,43 +66,29 @@ scaffold ต่อ ไม่งั้น approval JSON ที่ script เข�
 (bd:shode-house-5cs.5 iter4 root cause). Leading slash ตั้งใจ — ระบุ dir ที่ ROOT เท่านั้น ไม่ ignore
 ทุก dir ชื่อนี้ทุก depth:
 
-```bash
-RUNTIME_IGNORE_RULE="/.shode-house/"
+Rule line (exact spelling): `/.shode-house/`. ทำด้วย Read + Edit/Write tool เท่านั้น **ห้ามทำผ่าน Bash**
+(ทั้ง script, `printf >>`, `grep`, `cat`): ใน project ที่มี engagement อยู่แล้ว hook ของ scope lock DENY ทุก Bash
+command ที่เอ่ยชื่อ directory นี้ (`references/scope-lock.md` § Enforcement ceiling) — `/init` ซ้ำผ่าน Bash จะถูกปฏิเสธ.
+Idempotent — รันซ้ำกี่ครั้งก็เหลือ rule ที่ effective เดียว; ไม่ทับ/reorder/reformat entry เดิม:
 
-# idempotent -- รันซ้ำกี่ครั้งก็เหลือ rule ที่ effective เดียว; ไม่ทับ/reorder/reformat
-# entry เดิมที่ไม่เกี่ยวข้อง; ไม่ duplicate ถ้ามี rule ที่ "เทียบเท่า" อยู่แล้วคนละ spelling
-# (".shode-house/", ".shode-house", "/.shode-house" -- ต่างแค่ leading/trailing slash)
-ensure_runtime_ignore_rule() {
-  local gi="$1" rule="$2" core line l
-  core="${rule#/}"; core="${core%/}"
-
-  if [ ! -f "$gi" ]; then
-    printf '%s\n' "$rule" > "$gi"
-    return 0
-  fi
-
-  # exact spelling อยู่แล้ว -> no-op
-  grep -qxF "$rule" "$gi" && return 0
-
-  # equivalent spelling อยู่แล้ว (ต่างแค่ leading/trailing slash ของชื่อเดียวกัน) -> no-op,
-  # ไม่ใช่ prefix/glob match แบบ ".shode-house/*" (นั่นคือคนละความหมาย ไม่นับเทียบเท่า)
-  while IFS= read -r line || [ -n "$line" ]; do
-    l="${line%/}"; l="${l#/}"
-    [ "$l" = "$core" ] && return 0
-  done < "$gi"
-
-  # append ต่อท้าย ไม่แตะ entry เดิมเลย; กัน glue กับบรรทัดสุดท้ายถ้าไฟล์ไม่มี trailing newline
-  if [ -s "$gi" ] && [ -n "$(tail -c1 "$gi")" ]; then
-    printf '\n' >> "$gi"
-  fi
-  printf '%s\n' "$rule" >> "$gi"
-}
-
-ensure_runtime_ignore_rule "./.gitignore" "$RUNTIME_IGNORE_RULE"
-```
+1. Read `.gitignore` ที่ project root ด้วย Read tool
+2. มีบรรทัดที่ตัด `/` นำหน้า 1 ตัวและ `/` ท้าย 1 ตัวแล้วเท่ากับ `.shode-house` (exact หรือ equivalent spelling:
+   `/.shode-house/`, `.shode-house/`, `.shode-house`, `/.shode-house`) → no-op, จบ. prefix/glob แบบ `.shode-house/*`
+   คือคนละความหมาย ไม่นับเทียบเท่า
+3. ไม่มีไฟล์ → Write tool สร้าง `.gitignore` ที่ project root = rule นี้บรรทัดเดียว + newline
+4. มีไฟล์ → append rule ที่ท้ายไฟล์จริง (หลังบรรทัดว่างท้ายไฟล์ด้วย) เก็บทุก byte เดิมไว้; ไฟล์ที่ไม่ลงท้ายด้วย
+   newline → ใส่ newline 1 ตัวก่อน rule (ไม่ glue กับบรรทัดสุดท้าย); ไฟล์ลงท้ายด้วย newline หลัง rule เสมอ:
+   - ไฟล์ว่าง หรือมีแต่บรรทัดว่าง → Write tool = เนื้อหาเดิมทุกตัวอักษร (+ newline ถ้าเนื้อหาไม่ว่างและไม่ลงท้ายด้วย
+     newline) + rule นี้ + newline — append ไม่ทับ: บรรทัดว่างเดิมยังอยู่ครบ
+   - ไม่งั้น → Edit tool: `old_string` = ข้อความตั้งแต่บรรทัดสุดท้ายที่ไม่ว่างจนจบไฟล์ (รวมบรรทัดว่างท้ายไฟล์;
+     ขยายขึ้นไปทีละบรรทัดจน unique), `new_string` = ข้อความเดิมนั้นทุกตัวอักษร (+ newline ถ้าไม่ลงท้ายด้วย newline)
+     + rule นี้ + newline — ไม่แตะ entry เดิม
+5. Read `.gitignore` ที่ project root อีกครั้ง → ยืนยันว่ามี effective rule เดียว (ไม่มี duplicate line),
+   rule เป็นบรรทัดสุดท้ายของไฟล์ และไฟล์ลงท้ายด้วย newline
 
 - ไม่มี `.gitignore` → สร้างใหม่ด้วย rule นี้บรรทัดเดียว
-- มี `.gitignore` แต่ไม่มี rule นี้ (exact หรือ equivalent spelling) → append ท้ายไฟล์ เก็บ entry เดิมไว้ครบ ไม่เรียงใหม่ ไม่ format ใหม่
+- มี `.gitignore` แต่ไม่มี rule นี้ (exact หรือ equivalent spelling) — รวมไฟล์ว่างหรือมีแต่บรรทัดว่าง → append
+  ที่ท้ายไฟล์จริง (หลังบรรทัดว่างท้ายไฟล์) เก็บ entry และบรรทัดว่างเดิมไว้ครบ ไม่เรียงใหม่ ไม่ format ใหม่
 - รัน `/init` ซ้ำ (fresh หรือ brownfield) → เหลือ effective rule เดียวเสมอ ไม่มี duplicate line
 - เกิดก่อน Phase 2 scaffold (devops-engineer's `.gitignore` step ด้านล่างเติมรายการอื่นต่อจากที่นี่ ไม่ทับ)
 

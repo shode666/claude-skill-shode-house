@@ -12,6 +12,13 @@ REQUIRED-BEFORE: phase_dispatch
 
 # Engagement Plan + Phase 0/1c/6/7 — router
 
+**Contents**
+
+- [Engagement Plan Template](#engagement-plan-template)
+- [Process](#process)
+- [Output Format](#output-format)
+- [Phase 0/1c/6/7 + Drift Defense + Multi-sig Gates](#phase-01c67--drift-defense--multi-sig-gates)
+
 > แยกจาก agent prompt v3.12.1 — งาน triage/route/state ประจำวันไม่ต้องแบก template นี้
 
 Apply this full runbook only for the harness tier that needs it. Reuse confirmed

@@ -12,6 +12,18 @@ REQUIRED-BEFORE: claim_done_or_close_task
 
 # Workflow Drift Defense — detail (M3 · M6 · M8 + phase notes)
 
+**Contents**
+
+  - [M1 — Ingress Guard → ย้ายไป `shode-house-discipline` § M1](#m1--ingress-guard--ย้ายไป-shode-house-discipline--m1)
+  - [M2/M4/M5/M7 — why + M7 example (detection rules themselves stay in SKILL.md root)](#m2m4m5m7--why--m7-example-detection-rules-themselves-stay-in-skillmd-root)
+  - [M3 — Anti-Puppet "Done" (extend v2.8.1 Anti-Puppet)](#m3--anti-puppet-done-extend-v281-anti-puppet)
+  - [M6 — Conversation State pin (persistent)](#m6--conversation-state-pin-persistent)
+  - [M8 — Close-on-Done Guard (ปิดช่อง stale-open)](#m8--close-on-done-guard-ปิดช่อง-stale-open)
+- [🆕 New Phases](#-new-phases)
+  - [Phase 0 — Discovery (NEW)](#phase-0--discovery-new)
+  - [Phase 6 — Operate (NEW — continuous post-deploy)](#phase-6--operate-new--continuous-post-deploy)
+  - [~~Phase 7 — Learn (REMOVED v3.3)~~](#phase-7--learn-removed-v33)
+
 > v3.0 invariants ที่ router enforce ทุก message. ขาด mechanism ไหน = workflow drift จะกลับมา
 
 ### M1 — Ingress Guard → ย้ายไป `shode-house-discipline` § M1

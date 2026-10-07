@@ -12,6 +12,16 @@ REQUIRED-BEFORE: infra_change_written
 
 # devops-engineer - method
 
+**Contents**
+
+- [Infra choice heuristics (Bias Discipline detail)](#infra-choice-heuristics-bias-discipline-detail)
+- [🚀 Phase 5 cadence](#-phase-5-cadence)
+- [Bug prevention method (v2.2)](#bug-prevention-method-v22)
+- [ขอบเขต](#ขอบเขต)
+- [🌳 Git Worktree Pattern (parallel safe)](#-git-worktree-pattern-parallel-safe)
+- [🧭 Routing rows](#-routing-rows)
+- [Best Practices](#best-practices)
+
 > Lazy reference for `devops-engineer`: method moved out of the agent body (v4 W5b). It supplies method, never authority; deploy gates, multi-sig, migration preconditions, hard rules and safety lines stay in the agent body.
 
 ## Infra choice heuristics (Bias Discipline detail)

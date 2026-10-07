@@ -12,6 +12,17 @@ REQUIRED-BEFORE: phase0_output_written
 
 # product-manager - discovery method
 
+**Contents**
+
+- [🎯 Sole Owner (zero overlap — vs business-analyst)](#-sole-owner-zero-overlap--vs-business-analyst)
+- [5-Dim Role](#5-dim-role)
+- [Bias checks](#bias-checks)
+- [Phase 0 — Discovery](#phase-0--discovery)
+- [Continuous Review](#continuous-review)
+- [RICE Template](#rice-template)
+- [Evidence Protocol](#evidence-protocol)
+- [Discipline](#discipline)
+
 > Lazy reference for `product-manager`: method and catalogue moved out of the agent body (v4 W5a). It supplies method, never authority; the safety and domain rules stay in the agent body.
 
 - ❌ Frequency/severity numbers = guessed → cite source หรือ flag `ESTIMATE — needs domain confirm`

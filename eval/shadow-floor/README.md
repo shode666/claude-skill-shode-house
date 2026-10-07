@@ -23,6 +23,16 @@ control run (verdict FAIL): zero runs, a missing cell, too few runs, a NOLOAD/IN
 holds only NOLOAD/INVALID runs (no evidence the scorer discriminates; Sentinel W9 r2 N4) give `gate: INCOMPLETE`
 (exit 2), never PASS; exit 0 PASS, 1 FAIL. Each run directory counts once, however often it is passed (A-2): copies with the same slot name and the same evidence (sha256 of `stream.jsonl` + `subagents/*.jsonl`) count once; copies with the same name and different evidence are a conflict, never order-dependent: none counts, the gate is INCOMPLETE, and FAIL if any copy alone would fail it (M-1). Pass one copy per slot. `sf_build.py` refuses an output directory inside any git work tree.
 
+What `sf_score.py` prints (`--json`, `--rows` and the gate notes) is redacted with `eval/evidence_redact.py` after
+the verdicts and the gate are decided (U22 H4): known credential shapes become `<REDACTED>`. This is best-effort,
+known shapes only, not a guarantee; known misses include a bare token suffix with no prefix left, a URL password of
+1-5 digits at the very end of a string (read as a port), a value split across lines, a credential passed as a plain
+command argument (such as `sshpass -p X`) and a quote escaped with more than 8 backslashes. The `handback_tail`
+field is redacted **before** it is cut to its last 200 characters, so a cut inside a token cannot leave the token's
+suffix showing; the verdict reads the whole raw hand-back. The run directories themselves (`stream.jsonl`,
+`subagents/*.jsonl`) stay raw by design, since the scorer reads and hashes them as evidence: they are local only,
+and their text is redacted before it is pasted or shared.
+
 ```bash
 python3 eval/shadow-floor/sf_build.py <scratch>/kit                          # floor + held line
 CLAUDE_BIN=<claude> bash eval/shadow-floor/run.sh <scratch>/kit sonnet shadow-colon 1 <scratch>/runs   # LIVE

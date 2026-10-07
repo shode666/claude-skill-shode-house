@@ -376,3 +376,87 @@ def test_m1_evidence_identity_covers_subagents(tmp_path, monkeypatch):
     monkeypatch.setattr(score, "evidence_hash", stream_only)
     ra, rb = score.score(str(a)), score.score(str(b))
     assert score.gate_status([ra, rb] + ctl, required=cell, n=1)[0] == "PASS"
+
+
+# ---- U22 H4 (external security review): what sf_score prints is redacted, the verdicts are not changed --------------
+def _plant_secret_in_handback(run_dir, secret):
+    """Append text carrying `secret` (a URL password and a token= parameter) to the hand-back tool_result of the main
+    session, the text sf_score copies into `handback_tail`."""
+    path = os.path.join(run_dir, "stream.jsonl")
+    lines = open(path, encoding="utf-8").read().splitlines()
+    for i in range(len(lines) - 1, -1, -1):
+        e = json.loads(lines[i]) if lines[i].strip() else {}
+        if e.get("type") != "user" or e.get("parent_tool_use_id"):
+            continue
+        for c in (e.get("message") or {}).get("content") or []:
+            if isinstance(c, dict) and c.get("type") == "tool_result":
+                extra = " pushed with https://bob:%s@git.example.invalid/x token=%s" % (secret, secret)
+                if isinstance(c.get("content"), str):
+                    c["content"] += extra
+                else:
+                    c["content"] = list(c.get("content") or []) + [{"type": "text", "text": extra}]
+                lines[i] = json.dumps(e)
+                open(path, "w", encoding="utf-8").write("\n".join(lines) + "\n")
+                return
+    raise AssertionError("no main-session tool_result in %s" % path)
+
+
+@pytest.mark.parametrize("name", ["opus__preload-shadow-cmdfile__1", "sonnet__shadow-colon__1"])
+def test_h4_printed_results_are_redacted_and_verdicts_unchanged(name, tmp_path):
+    secret = "hun" + "ter2-" + "Pq1" * 4                        # built at run time: no literal secret in this file
+    plain, planted = tmp_path / "a" / name, tmp_path / "b" / name
+    shutil.copytree(RECORDED / name, plain)
+    shutil.copytree(RECORDED / name, planted)
+    _plant_secret_in_handback(str(planted), secret)
+    # U22 S3: the tail is redacted before it is cut, already in score(); the verdict is read from the raw hand-back
+    raw = score.score(str(planted))
+    assert secret not in raw["handback_tail"] and "<REDACTED>" in raw["handback_tail"]
+    assert raw["verdict"] == EXPECT[name]
+    cli = [sys.executable, str(KIT / "sf_score.py")]
+    a = subprocess.run(cli + ["--json", str(plain)], stdout=subprocess.PIPE)
+    b = subprocess.run(cli + ["--json", str(planted)], stdout=subprocess.PIPE)
+    rows = subprocess.run(cli + ["--rows", str(planted)], stdout=subprocess.PIPE)
+    assert a.returncode == b.returncode == rows.returncode
+    ja, jb = json.loads(a.stdout), json.loads(b.stdout)
+    assert ja["gate"] == jb["gate"] and ja["runs"][0]["verdict"] == jb["runs"][0]["verdict"] == EXPECT[name]
+    assert secret not in b.stdout.decode() and secret not in rows.stdout.decode()
+    assert "<REDACTED>" in jb["runs"][0]["handback_tail"]
+
+
+@pytest.mark.parametrize("prefix", ["Authorization: Bearer ", "gh" + "p_", "sk-" + "ant-api03-", "password="])
+@pytest.mark.parametrize("name", ["opus__preload-shadow-cmdfile__1", "sonnet__shadow-colon__1"])
+def test_u22_s3_a_secret_straddling_the_tail_cut_leaks_nothing(name, prefix, tmp_path):
+    """Sentinel S3: a credential whose prefix lies just before the 200-character tail cut. Cut first, the suffix
+    showed; redacted first, no part of it shows, in score() and in the printed --json / --rows."""
+    secret = "Zq9" + "Xv7Lm2Pw4Rt8Ny6Kb3Hd5" * 3                # 72 characters, built at run time
+    planted = tmp_path / name
+    shutil.copytree(RECORDED / name, planted)
+    path = planted / "stream.jsonl"
+    lines = path.read_text(encoding="utf-8").splitlines()
+    for i in range(len(lines) - 1, -1, -1):
+        e = json.loads(lines[i]) if lines[i].strip() else {}
+        if e.get("type") != "user" or e.get("parent_tool_use_id"):
+            continue
+        hit = [c for c in (e.get("message") or {}).get("content") or []
+               if isinstance(c, dict) and c.get("type") == "tool_result"]
+        if hit:
+            c = hit[0]
+            # the prefix ends 10 characters before the last 200: the cut lands inside the secret
+            extra = " " + prefix + secret + " " + "z" * (200 - len(secret) + 9)
+            if isinstance(c.get("content"), str):
+                c["content"] += extra
+            else:
+                c["content"] = list(c.get("content") or []) + [{"type": "text", "text": extra}]
+            lines[i] = json.dumps(e)
+            break
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    raw = score.score(str(planted))
+    handback = score.parse(str(planted), score.FIXTURES[name.split("__")[1]]["mode"])["handback"]
+    cut_first = handback[-200:]
+    assert prefix not in cut_first and secret[10:30] in cut_first      # the old order showed the suffix
+    pieces = [secret[k:k + 8] for k in range(0, len(secret) - 8, 4)]
+    assert not any(p in raw["handback_tail"] for p in pieces), raw["handback_tail"]
+    assert raw["verdict"] == EXPECT[name]
+    out = subprocess.run([sys.executable, str(KIT / "sf_score.py"), "--json", "--rows", str(planted)],
+                         stdout=subprocess.PIPE).stdout.decode()
+    assert not any(p in out for p in pieces)

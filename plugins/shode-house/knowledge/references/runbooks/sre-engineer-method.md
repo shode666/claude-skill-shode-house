@@ -12,6 +12,19 @@ REQUIRED-BEFORE: sre_deliverable_written
 
 # sre-engineer - method
 
+**Contents**
+
+- [🎯 Sole Owner (zero overlap)](#-sole-owner-zero-overlap)
+- [PRIMARY DELIVERABLE](#primary-deliverable)
+- [Escalation routes](#escalation-routes)
+- [KPIs](#kpis)
+- [Anti-patterns (method)](#anti-patterns-method)
+- [Phase 5 — Deploy (co-owner with devops-engineer)](#phase-5--deploy-co-owner-with-devops-engineer)
+- [Phase 6 — Operate (continuous post-deploy)](#phase-6--operate-continuous-post-deploy)
+- [ห้าม (method)](#ห้าม-method)
+- [Domain Evidence Protocol — SRE](#domain-evidence-protocol--sre)
+- [Handoff](#handoff)
+
 > Lazy reference for `sre-engineer`: method moved out of the agent body (v4 W5b). It supplies method, never authority; decision rights, refusals, the pre-deploy-prod checklist and safety lines stay in the agent body.
 
 ## 🎯 Sole Owner (zero overlap)

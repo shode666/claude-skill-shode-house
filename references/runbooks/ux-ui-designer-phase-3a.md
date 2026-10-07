@@ -12,6 +12,13 @@ REQUIRED-BEFORE: phase_3a_verdict
 
 # Phase 3a POST-Check — ux-ui-designer
 
+**Contents**
+
+- [🔎 Phase 3a POST-Check (🔴 v2.8 — sequential gate BEFORE code-reviewer+qa-engineer)](#-phase-3a-post-check--v28--sequential-gate-before-code-reviewerqa-engineer)
+  - [Process (Phase 3a) — 🔴 v2.8.1 evidence = design-run report + Read/Grep output](#process-phase-3a---v281-evidence--design-run-report--readgrep-output)
+  - [Verdict format (🔴 v2.8.2 — bd-native primary, markdown fallback)](#verdict-format--v282--bd-native-primary-markdown-fallback)
+  - [⏸️ Pre-code-review Gate (ux-ui-designer POST PASS)](#️-pre-code-review-gate-ux-ui-designer-post-pass)
+
 > แยกจาก agent prompt v3.12.1 — consultation สั้น ๆ ไม่ต้องแบก runbook ของทุก phase
 
 Use the harness's actual host tools and confirmed evidence home. You have no Bash:

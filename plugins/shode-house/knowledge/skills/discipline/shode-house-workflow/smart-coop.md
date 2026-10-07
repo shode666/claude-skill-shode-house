@@ -12,6 +12,26 @@ REQUIRED-BEFORE: phase_dispatch
 
 # Smart Coop Pattern — reference เต็ม (lazy-load)
 
+**Contents**
+
+  - [Parallel-vs-Sequential Matrix](#parallel-vs-sequential-matrix)
+  - [Phase 1a Pattern (Parallel Foundation)](#phase-1a-pattern-parallel-foundation)
+  - [Phase 1b Pattern (Sequential Expand)](#phase-1b-pattern-sequential-expand)
+  - [Phase 3a Pattern (Sequential Gate)](#phase-3a-pattern-sequential-gate)
+  - [Phase 3b Pattern (Parallel Review)](#phase-3b-pattern-parallel-review)
+  - [❌ Anti-pattern (จะถูก block)](#-anti-pattern-จะถูก-block)
+  - [✅ Correct pattern](#-correct-pattern)
+  - [🗂️ State persistence (pure JSON, no script)](#️-state-persistence-pure-json-no-script)
+  - [🪝 Lifecycle conditions (per phase — automation only when authorized)](#-lifecycle-conditions-per-phase--automation-only-when-authorized)
+  - [📋 Phase 0 scope-clarification flow (when SME flags ambiguity)](#-phase-0-scope-clarification-flow-when-sme-flags-ambiguity)
+  - [📝 Prompt Template Substitution (commands convention)](#-prompt-template-substitution-commands-convention)
+  - [Scope Contract enforcement (router)](#scope-contract-enforcement-router)
+  - [Loop with Exit (developer/qa-engineer)](#loop-with-exit-developerqa-engineer)
+  - [Approval Gates](#approval-gates)
+  - [Worktree Isolation (parallel-safe — devops-engineer pattern)](#worktree-isolation-parallel-safe--devops-engineer-pattern)
+  - [Workflow as Markdown](#workflow-as-markdown)
+- [🧵 Tracker options](#-tracker-options)
+
 > แยกออกจาก `SKILL.md` ใน v3.12: เนื้อหานี้ = 61% ของ skill ทั้งไฟล์ แต่ใช้เฉพาะตอน **รัน pipeline จริง**
 > **โหลดไฟล์นี้เมื่อ**: kickoff pipeline · phase transition · ตั้ง approval gate · เขียน/อ่าน `state.json` · devops-engineer ตั้ง lifecycle hook
 > Handoff Contract ไม่อยู่ที่นี่ — อยู่ใน `shode-house-discipline` (ทุก agent ต้องรู้ ไม่ใช่แค่ตอนรัน pipeline)

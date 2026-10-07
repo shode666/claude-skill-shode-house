@@ -7,6 +7,14 @@ REQUIRED-BEFORE: runner_generate
 
 # Durable agent runtime — contract สำหรับ runner ที่ devops-engineer generate (v3.12)
 
+**Contents**
+
+- [หลักการกลาง — แยก loop ที่ replay ได้ ออกจาก step ที่ replay ไม่ได้](#หลักการกลาง--แยก-loop-ที่-replay-ได้-ออกจาก-step-ที่-replay-ไม่ได้)
+- [6 อย่างที่ runner ต้องมี (ตรวจได้ ห้ามอ้างว่า "มีแล้ว" ลอย ๆ)](#6-อย่างที่-runner-ต้องมี-ตรวจได้-ห้ามอ้างว่า-มีแล้ว-ลอย-ๆ)
+- [Testing ที่บังคับ — crash injection](#testing-ที่บังคับ--crash-injection)
+- [Platform landscape (2026) — เลือกใน ADR ของ solution-architect ไม่ใช่ default](#platform-landscape-2026--เลือกใน-adr-ของ-solution-architect-ไม่ใช่-default)
+- [Mapping กับของเราเอง](#mapping-กับของเราเอง)
+
 > **Audience**: devops-engineer (generate runner ระดับ infra/CI) · solution-architect (ADR ตอนเลือก platform) · developer (app-level idempotency)
 > **โหลดเมื่อ**: target project ต้องการ long-running agent / fan-out cap / retry / checkpoint / human approval ที่กินเวลาเป็นวัน
 > **ห้าม ship engine ใน plugin** (runtime guarantee = generate, don't ship) — ไฟล์นี้คือ *contract ว่า runner ที่ถูกต้องต้องมีอะไร* ไม่ใช่ตัว runner

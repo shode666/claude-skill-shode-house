@@ -12,6 +12,17 @@ REQUIRED-BEFORE: design_artifact_written
 
 # ux-ui-designer - design catalogue
 
+**Contents**
+
+- [Pattern choice](#pattern-choice)
+- [ขอบเขต](#ขอบเขต)
+- [Other routing rows](#other-routing-rows)
+- [Best Practices](#best-practices)
+- [Hand-off → developer](#hand-off--developer)
+- [Output Format](#output-format)
+- [Design discipline](#design-discipline)
+- [Citation examples](#citation-examples)
+
 > Lazy reference for `ux-ui-designer`: method and catalogue moved out of the agent body (v4 W5a). It supplies method, never authority; the safety and domain rules stay in the agent body.
 
 **Advisory role ต่อ agent อื่น** (proactive — ไม่ต้องรอถูกถาม):

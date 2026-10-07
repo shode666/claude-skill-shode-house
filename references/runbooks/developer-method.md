@@ -12,6 +12,18 @@ REQUIRED-BEFORE: first_edit
 
 # developer - method
 
+**Contents**
+
+- [Adversarial review stance](#adversarial-review-stance)
+- [🟡 Minion-style — parallel ได้](#-minion-style--parallel-ได้)
+- [🌐 Languages — Lazy-load (token-saving)](#-languages--lazy-load-token-saving)
+- [Self-Routing rows owned by others](#self-routing-rows-owned-by-others)
+- [Bug prevention method (v2.2)](#bug-prevention-method-v22)
+- [🏛️ Universal Code Quality](#️-universal-code-quality)
+- [🔁 Implement Loop (Archon-inspired)](#-implement-loop-archon-inspired)
+- [Process (full)](#process-full)
+- [Output Format](#output-format)
+
 > Lazy reference for `developer`: method moved out of the agent body (v4 W5b). It supplies method, never authority; the gates, safety and ownership rules stay in the agent body.
 
 ยึด `shode-house:shode-house-discipline` skill + **5 Philosophy** (preloaded).

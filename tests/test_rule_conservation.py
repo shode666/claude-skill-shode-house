@@ -4,6 +4,7 @@ Every case builds a throwaway git repo and runs the real CLI in it, so the git p
 (--base, --no-renames, deleted paths) is exercised, not mocked. stdlib + git only.
 """
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -20,6 +21,19 @@ SKILL = "skills/workflow/alpha/SKILL.md"
 OTHER = "skills/ops/beta/SKILL.md"
 REF = "skills/workflow/alpha/detail.md"
 LAZY = "<!-- lazy-load-contract -->\nLOAD: skills/workflow/alpha/detail.md\n\n"
+
+# Gate switches of the caller (`SHODE_REQUIRE_V4=1 make validate`, CI) must not reach a fixture repo: the script
+# reads SHODE_REQUIRE_V4 itself; RULE_BASE / CI / GITHUB_ACTIONS steer the gate around it. GIT_* variables that
+# locate a repository (set by git when a hook runs) would point the fixture's git at the caller's repository.
+# Config isolation the caller chose (GIT_CONFIG_GLOBAL / GIT_CONFIG_NOSYSTEM, HOME, XDG_CONFIG_HOME) is kept.
+GATE_ENV = ("SHODE_REQUIRE_V4", "RULE_BASE", "CI", "GITHUB_ACTIONS")
+GIT_REPO_ENV = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY", "GIT_COMMON_DIR",
+                "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE", "GIT_PREFIX")
+
+
+def fixture_env():
+    """The caller's environment minus every gate switch and repository-locating git variable (hermetic fixture)."""
+    return {k: v for k, v in os.environ.items() if k not in GATE_ENV + GIT_REPO_ENV}
 
 
 def doc(*lines, tools=None, raw_fm=None):
@@ -42,7 +56,7 @@ class Repo:
     def git(self, *args):
         return subprocess.run(
             ("git", "-c", "user.name=t", "-c", "user.email=t@example.invalid", "-c", "commit.gpgsign=false") + args,
-            cwd=self.root, check=True, capture_output=True, text=True).stdout.strip()
+            cwd=self.root, check=True, capture_output=True, text=True, env=fixture_env()).stdout.strip()
 
     def write(self, files):
         for rel, text in files.items():
@@ -56,7 +70,8 @@ class Repo:
         return self.git("rev-parse", "HEAD")
 
     def run(self, *args):
-        r = subprocess.run((sys.executable, str(SCRIPT)) + args, cwd=self.root, capture_output=True, text=True)
+        r = subprocess.run((sys.executable, str(SCRIPT)) + args, cwd=self.root, capture_output=True, text=True,
+                           env=fixture_env())
         return r.returncode, r.stdout + r.stderr
 
 
