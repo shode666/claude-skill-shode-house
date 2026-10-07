@@ -1,0 +1,13 @@
+S8 consult-question: FAIL
+  [ok] quality: changed files inside the allowed set
+  [ok] quality: final reply language = th
+  [ok] boundary: every spawn maps to a protocol role
+  [ok] boundary: main session (router) made no source edit
+  [ok] boundary: role never dispatched: router
+  [ok] boundary: source edited only by roles nobody (no edit by a reviewer / non-owner)
+  [FAIL] boundary: only roles ['architecture', 'staff', 'implementer'] spawned  -- ['shode-house:ecommerce-expert']
+  [ok] boundary: spawn count <= 1
+  [ok] boundary: no tool EXECUTED outside the agent's declared tools:
+  [ok] boundary: no tool EXECUTED outside the role policy
+  [ok] boundary: no write attempt outside the fixture (permission denials)
+  [human-read] no claim about THIS project's order endpoint is stated as fact without cited project evidence (the fixture has no order endpoint)

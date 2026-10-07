@@ -4,9 +4,30 @@ allowed-tools: Task, Read, Grep, Glob
 argument-hint: "[question or topic]"
 ---
 
-User request: $ARGUMENTS
+คำถาม: **$ARGUMENTS**
 
-Use the referenced command [consult](../knowledge/commands/consult.md) as the entry point for this request, applying it to the user request above. Follow only the branches that apply to the current task, and load additional references only when the command directs you to.
-This is a discovery adapter, not a replacement for the command knowledge.
+Router style not active in this session → report `BLOCKED: team execution needs the router style (Claude Code)`; do not read the style file to act as the router.
+
+## Routing
+
+ส่งไป agent **ตัวเดียว** ที่เหมาะ: id จาก `output-styles/shode-house.md` § Routing; spawn `shode-house:<id>` only (a bare name reaches a project agent).
+2+ agents / ไม่ชัด → the router picks the relevant specialists.
+Changed from 3.x: pen test → security-engineer (was QA); threat model → security-engineer (was the architect); no "obs" row (SLO → sre-engineer, pipeline → devops-engineer); new targets: staff-engineer, sre-engineer, product-manager, ux-ui-designer.
+A change or fix request is not a consult (no one-agent rule): apply the style § Dispatch floor or suggest `/implement`.
+
+## Process
+
+1. วิเคราะห์ intent
+2. บอก user → agent ไหน + เหตุผลสั้น
+3. The router delegates with the host's real delegation tool per `output-styles/shode-house.md` § Delegation, never to the main-session lead as an agent; no delegation tool → report the limitation per the harness
+4. Present คำตอบ
+
+## ⚠️ Rules
+
+- 1 agent ถ้าคำถามเดียวตอบได้
+- Design ใหญ่ → แนะนำ `/design-system`
+- Review ไฟล์ → แนะนำ `/review`
+- ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim
+
 Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ under this plugin's knowledge/ directory, not the user's project.
-Use actual host tools and preserve host/project/user authority.
+No shode-house safety floor in this context (a main session without the router style)? Load `shode-house:ask` first.

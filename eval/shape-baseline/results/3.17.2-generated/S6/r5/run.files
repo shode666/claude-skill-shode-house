@@ -1,0 +1,7 @@
+ M outputs/SPEC-bd-101.md
+ M src/ledger.py
+ M tests/test_ledger.py
+?? outputs/bd-104/01-security-engineer-phase-1c.md
+?? outputs/bd-104/02-developer-phase-2.md
+?? outputs/bd-104/03-code-reviewer-phase-3b.md
+?? outputs/bd-104/04-code-reviewer-phase-3b-iter2.md

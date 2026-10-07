@@ -14,7 +14,7 @@
 # No framework dependency (same style as tests/test-workflow-state.sh + tests/test-registry.sh)
 # -- plain bash test functions + a tiny assert library. Each test runs inside a
 # mktemp -d sandbox via SCOPECHECK_ROOT so tests never touch the real repo state. Wired
-# into ci.yml as exactly ONE step (CLAUDE.md rule: this milestone may add no more than 1
+# into ci.yml as exactly ONE step (milestone constraint: this milestone may add no more than 1
 # CI step total; this bd extends the SAME step, no new ci.yml step needed).
 #
 # Usage: bash tests/test-scope-check.sh
@@ -33,6 +33,11 @@ CUR_TEST=""
 t_start() { CUR_TEST="$1"; printf -- '-- %s\n' "$1"; }
 t_ok()    { PASS=$((PASS + 1)); printf '   ok\n'; }
 t_fail()  { FAIL=$((FAIL + 1)); printf '   FAIL (%s): %s\n' "$CUR_TEST" "$1"; }
+t_skip()  { printf '   SKIP: %s\n' "$1"; }
+
+# The Shift_JIS locale's own name on this host, or empty: macOS lists "ja_JP.SJIS", glibc
+# the normalised "ja_JP.sjis" (Chris pre-release C8). No -q / head under pipefail.
+SJIS_LOCALE=$(locale -a 2>/dev/null | grep -ix 'ja_jp\.sjis' | sed -n 1p)
 
 assert_eq() {
   if [ "$1" = "$2" ]; then t_ok; else t_fail "$3 -- got '$1' want '$2'"; fi
@@ -46,11 +51,49 @@ assert_rc()    { if [ "$1" -eq "$2" ]; then t_ok; else t_fail "$3 -- exit code $
 
 sandbox() { local d; d=$(mktemp -d -t scopecheck-test.XXXXXX); printf '%s' "$d"; }
 
+# wd <seconds> <command...> -- the suite's watchdog: the command runs in its own process
+# group, and at the deadline the WHOLE group is killed (status 142), so no child outlives it
+# holding the $(...) pipe (Chris U21 I-3). Same helper as in test-hooks.sh.
+wd() {
+  perl -e '
+    my $t = shift; my $pid = fork; defined $pid or exit 126;
+    if ($pid == 0) { setpgrp(0, 0); exec { $ARGV[0] } @ARGV; exit 127 }
+    setpgrp($pid, $pid);
+    $SIG{ALRM} = sub { kill "KILL", -$pid; waitpid($pid, 0); exit 142 };
+    alarm $t; waitpid($pid, 0); alarm 0;
+    exit(($? & 127) ? 128 + ($? & 127) : $? >> 8)' "$@"
+}
+
+# sc_tree <dir> [<case-fold helper>] -- a scratch copy of the tree for scope-check.sh: the
+# script, its lock library and (when given) a case-fold helper, at the paths the script
+# always loads them from. No variable of the environment chooses code scope-check.sh sources
+# (UD U21; Chris U21 I-2), so a test that needs another helper runs such a copy. Prints the
+# copy's scope-check.sh.
+sc_tree() {
+  mkdir -p "$1/scripts/lib" "$1/hooks/scripts"
+  cp -p "$SCRIPT" "$1/scripts/scope-check.sh"; cp -p "$REPO_ROOT/scripts/lib/lock.sh" "$1/scripts/lib/lock.sh"
+  if [ -n "${2:-}" ]; then cp "$2" "$1/hooks/scripts/_casefold.sh"; fi
+  printf '%s' "$1/scripts/scope-check.sh"
+}
+
 write_manifest() {
   # $1=root $2=bd-id-filename(already encoded) $3=heredoc content on stdin
   mkdir -p "$1/.shode-house/scope"
   cat > "$1/.shode-house/scope/$2.json"
 }
+
+# ---------------------------------------------------------------------------
+# This suite's own copy of wd (Chris final I-5): the same self-test as test-hooks.sh, so a
+# regression in this copy (killing only the command, not its group) is caught here too.
+t_start "watchdog (Chris U21 I-3, final I-5): this suite's wd kills the command's whole process group -- a command whose children hold the output pipe for 6 s ends at its 1 s deadline with status 142, and the capture returns within 4 s; a command that ends in time keeps its status and output"
+wd_t0=$(date +%s)
+wd_out=$(wd 1 bash -c 'sleep 6 & sleep 6; echo late'); wd_rc=$?
+wd_t1=$(date +%s)
+assert_eq "$wd_rc" 142 "status at the deadline"
+[ $((wd_t1 - wd_t0)) -le 4 ] && t_ok || t_fail "the capture took $((wd_t1 - wd_t0)) s: a child outlived the watchdog"
+assert_eq "$wd_out" "" "no output after the deadline"
+wd_out=$(wd 5 bash -c 'echo in-time; exit 3'); wd_rc=$?
+assert_eq "$wd_rc:$wd_out" "3:in-time" "a command that ends in time"
 
 # ---------------------------------------------------------------------------
 t_start "schema + example: both are valid JSON, example validates against the schema's basic shape"
@@ -150,6 +193,638 @@ out=$("$SCRIPT" bd-canon Dave#1 'src/./payments/handler.py' 2>&1); rc=$?
 assert_rc "$rc" 1 "dot-slash-obfuscated CROSS-owner path still DENYs"
 out=$("$SCRIPT" bd-canon Dave#1 'SRC/PAYMENTS/handler.py' 2>&1); rc=$?
 assert_rc "$rc" 1 "case-obfuscated CROSS-owner path still DENYs"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+t_start "NF2 (router R74, bd: shode-house-v7u.4.34): path_matches uses the shared fold -- long s, Kelvin sign (under LC_ALL=C too), a multibyte locale, Thai patterns"
+D=$(sandbox); export SCOPECHECK_ROOT="$D"
+write_manifest "$D" "bd-fold" <<'EOF'
+{
+  "schema_version": 1,
+  "bd_id": "bd-fold",
+  "agents": [
+    {"agent": "Dave#1", "allowed_roots": ["docs/**"], "owns": ["docs/a.md"]},
+    {"agent": "Dave#2", "allowed_roots": ["src/orders/**", "src/kernel/**", "src/*sales/**", "src/ไทย/**"], "owns": ["src/orders/**"]}
+  ]
+}
+EOF
+mkdir -p "$D/src/orders"
+nf2_ls=$(printf '\305\277'); nf2_kv=$(printf '\342\204\252')
+out=$("$SCRIPT" bd-fold "${nf2_ls}rc/orders/x.ts" --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "<U+017F>rc/orders/x.ts collides with Dave#2's src/orders/** (APFS writes src/orders/x.ts)"
+out=$("$SCRIPT" bd-fold Dave#1 "src/order${nf2_ls}/x.ts" 2>&1); rc=$?
+assert_rc "$rc" 1 "src/order<U+017F>/x.ts is Dave#2's file, not Dave#1's"
+assert_contains "$out" "Dave#2" "the long-s DENY names the real owner"
+out=$(env LC_ALL=C "$SCRIPT" bd-fold "src/${nf2_kv}ernel/x.ts" --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "Kelvin sign under LC_ALL=C (macOS tr folds it only in a UTF-8 locale)"
+out=$("$SCRIPT" bd-fold "src/ไทย/x.ts" --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "a Thai allowed_roots pattern still matches its own path byte for byte"
+out=$("$SCRIPT" bd-fold "src/ไท/x.ts" --main-check 2>&1); rc=$?
+assert_rc "$rc" 0 "a different Thai name does not match (no over-match)"
+out=$("$SCRIPT" bd-fold "docs/b.md" --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "control: plain ASCII collision unchanged"
+jq '.agents[1].allowed_roots += ["src/files/**", "src/strasse/**"]' "$D/.shode-house/scope/bd-fold.json" > "$D/m.tmp" && mv -f "$D/m.tmp" "$D/.shode-house/scope/bd-fold.json"
+# Sentinel pre-release B2: the ligatures and the sharp s are part of the deterministic fold.
+out=$("$SCRIPT" bd-fold "src/$(printf '\357\254\201')les/x.ts" --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "src/<U+FB01>les/x.ts collides with src/files/** (APFS writes src/files/x.ts)"
+out=$("$SCRIPT" bd-fold "src/stra$(printf '\303\237')e/x.ts" --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "src/stra<U+00DF>e/x.ts collides with src/strasse/**"
+out=$("$SCRIPT" bd-fold "src/STRA$(printf '\341\272\236')E/x.ts" --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "src/STRA<U+1E9E>E/x.ts collides with src/strasse/**"
+if [ -n "$SJIS_LOCALE" ]; then
+  out=$(env LC_ALL="$SJIS_LOCALE" "$SCRIPT" bd-fold "src/$(printf '\343\201\202')sales/x.ts" --main-check 2>&1); rc=$?
+  assert_rc "$rc" 1 "LC_ALL=$SJIS_LOCALE: src/<U+3042>sales/x.ts still matches src/*sales/** (the last byte of U+3042 must not swallow the s)"
+else
+  t_skip "no Shift_JIS locale (ja_JP.SJIS / ja_JP.sjis) installed -- SJIS case not exercised here"
+fi
+rm -rf "$D"
+
+# Router R78 (amends R77): a match that DENIES an outsider uses the deny-side fold, which
+# adds the platform's Unicode lower-casing (U+00DC -> U+00FC on macOS, where APFS treats the
+# two spellings as one directory); a match that GRANTS keeps the deterministic fold.
+t_start "R78: an outsider collision uses the deny-side fold (src/<U+00DC>ber/x.ts collides with Dave#1's src/über/**; docs/<U+00E4>rger.md with the shared key docs/<U+00C4>rger.md), an owner grant does not"
+D=$(sandbox); export SCOPECHECK_ROOT="$D"
+write_manifest "$D" "bd-r78" <<'EOF'
+{
+  "schema_version": 1,
+  "bd_id": "bd-r78",
+  "agents": [
+    {"agent": "Dave#1", "allowed_roots": ["src/über/**"], "owns": ["src/über/**"]},
+    {"agent": "Dave#2", "allowed_roots": ["src/**", "docs/**"], "owns": []}
+  ],
+  "shared_files": {"docs/Ärger.md": {"mode": "exclusive", "owner": "Dave#1"},
+                   "shared/Ärger.md": {"mode": "exclusive", "owner": "Dave#1"}}
+}
+EOF
+r78_U=$(printf 'src/\303\234ber/x.ts'); r78_ae=$(printf 'docs/\303\244rger.md'); r78_sh=$(printf 'shared/\303\244rger.md')
+out=$("$SCRIPT" bd-r78 Dave#1 "src/über/x.ts" 2>&1); rc=$?
+assert_rc "$rc" 0 "control: the owner's own spelling is granted"
+out=$("$SCRIPT" bd-r78 "lib/x.ts" --main-check 2>&1); rc=$?
+assert_rc "$rc" 0 "control: a path outside every pattern does not collide"
+for r78_loc in C en_US.UTF-8; do
+  out=$(env LC_ALL="$r78_loc" "$SCRIPT" bd-r78 Dave#1 "$r78_U" 2>&1); rc=$?
+  assert_rc "$rc" 1 "LC_ALL=$r78_loc: the owner's pattern does NOT grant src/<U+00DC>ber/x.ts (the grant side keeps the deterministic fold)"
+  out=$(env LC_ALL="$r78_loc" "$SCRIPT" bd-r78 Dave#1 "$r78_ae" 2>&1); rc=$?
+  assert_rc "$rc" 1 "LC_ALL=$r78_loc: a shared key matched only through the deny-side fold never grants its owner"
+done
+if [ "$(printf '\303\234' | env LC_ALL=en_US.UTF-8 tr '[:upper:]' '[:lower:]' 2>/dev/null)" = "$(printf '\303\274')" ]; then
+  for r78_loc in C en_US.UTF-8; do
+    out=$(env LC_ALL="$r78_loc" "$SCRIPT" bd-r78 "$r78_U" --main-check 2>&1); rc=$?
+    assert_rc "$rc" 1 "LC_ALL=$r78_loc: main session src/<U+00DC>ber/x.ts collides with src/über/**"
+    assert_contains "$out" 'agent "Dave#1"' "LC_ALL=$r78_loc: the main-session collision is Dave#1's src/über/** (listed before Dave#2's src/**)"
+    out=$(env LC_ALL="$r78_loc" "$SCRIPT" bd-r78 "$r78_sh" --main-check 2>&1); rc=$?
+    assert_rc "$rc" 1 "LC_ALL=$r78_loc: main session shared/<U+00E4>rger.md collides with the shared key shared/<U+00C4>rger.md (no agent pattern covers shared/)"
+    assert_contains "$out" 'shared_files' "LC_ALL=$r78_loc: the collision names the shared key"
+    out=$(env LC_ALL="$r78_loc" "$SCRIPT" bd-r78 Dave#2 "$r78_U" 2>&1); rc=$?
+    assert_rc "$rc" 1 "LC_ALL=$r78_loc: Dave#2 src/<U+00DC>ber/x.ts is Dave#1's file (was NEEDS_AMENDMENT 4 under R77)"
+    assert_contains "$out" 'owned by "Dave#1"' "the R78 DENY names the real owner"
+    out=$(env LC_ALL="$r78_loc" "$SCRIPT" bd-r78 "$r78_ae" --main-check 2>&1); rc=$?
+    assert_rc "$rc" 1 "LC_ALL=$r78_loc: main session docs/<U+00E4>rger.md collides with the shared key docs/<U+00C4>rger.md"
+    out=$(env LC_ALL="$r78_loc" "$SCRIPT" bd-r78 Dave#2 "$r78_ae" 2>&1); rc=$?
+    assert_rc "$rc" 1 "LC_ALL=$r78_loc: Dave#2 docs/<U+00E4>rger.md is refused by the exclusive shared key (was NEEDS_AMENDMENT 4)"
+  done
+  out=$("$SCRIPT" bd-r78 Dave#2 "$r78_U" --amend 2>&1); rc=$?
+  assert_rc "$rc" 1 "Dave#2 cannot self-amend src/<U+00DC>ber/x.ts into its owns[]"
+  [ "$(jq -r '.agents[1].owns | length' "$D/.shode-house/scope/bd-r78.json")" = 0 ] && t_ok || t_fail "the refused amend changed the manifest"
+else
+  t_skip "this platform's tr does not lower U+00DC (byte-based tr): the deny-side fold equals the deterministic fold here"
+fi
+rm -rf "$D"
+
+# Chris pre-release r3 R3-3: the two candidate-fold memos (D5) must stay separate. Here another
+# agent's pattern is listed FIRST, so path_matches_deny folds the candidate (and fills its
+# memo) before the owner's own pattern is matched with path_matches. A shared memo would hand
+# the deny-side fold to the grant side and grant src/<U+00DC>ber/x.ts to its owner.
+t_start "R78 / R3-3: another agent listed before the owner -- the deny-fold memo never reaches the owner's grant: Dave#1 src/<U+00DC>ber/x.ts -> 1 (not ALLOW self)"
+if [ "$(printf '\303\234' | env LC_ALL=en_US.UTF-8 tr '[:upper:]' '[:lower:]' 2>/dev/null)" = "$(printf '\303\274')" ]; then
+  D=$(sandbox); export SCOPECHECK_ROOT="$D"
+  write_manifest "$D" "bd-r33" <<'EOF'
+{
+  "schema_version": 1,
+  "bd_id": "bd-r33",
+  "agents": [
+    {"agent": "B", "allowed_roots": ["lib/**"], "owns": ["lib/**"]},
+    {"agent": "Dave#1", "allowed_roots": ["src/über/**"], "owns": ["src/über/**"]}
+  ]
+}
+EOF
+  for r33_loc in C en_US.UTF-8; do
+    out=$(env LC_ALL="$r33_loc" "$SCRIPT" bd-r33 Dave#1 "$(printf 'src/\303\234ber/x.ts')" 2>&1); rc=$?
+    assert_rc "$rc" 1 "LC_ALL=$r33_loc: Dave#1 is not granted src/<U+00DC>ber/x.ts after a deny-side match against B's lib/**"
+    case "$out" in *"(self)"*) t_fail "LC_ALL=$r33_loc: a self grant was reported: $out" ;; *) t_ok ;; esac
+  done
+  out=$("$SCRIPT" bd-r33 Dave#1 "src/über/x.ts" 2>&1); rc=$?
+  assert_rc "$rc" 0 "control: Dave#1's own spelling is granted with B listed first"
+  rm -rf "$D"
+else
+  t_skip "this platform's tr does not lower U+00DC (byte-based tr): both folds are equal here, so a shared memo cannot widen a grant"
+fi
+
+# F-6 (UD U12, Sentinel pre-release r3): on macOS an outsider collision ALSO compares the
+# Unicode NFC spelling (deny side only), because APFS treats canonically equivalent spellings
+# as one name: the NFD "src/u<U+0308>ber/x.ts" IS src/über/x.ts there, and so is a Thai name
+# with its marks typed in another order. Never on the grant side (R77/R78), and never off
+# macOS: Linux keeps the spellings apart, so its behaviour must not change. Each block runs
+# twice: natively, and as on Linux (the non-macOS branch). The platform signal is the
+# kernel's name from /usr/bin/uname (or /bin/uname), never $OSTYPE (Sentinel r7 F7-4), so the
+# Linux pass runs a scratch copy of the tree (sc_tree) whose case-fold helper names a stand-in
+# uname that prints the given name.
+# f6_mklib <dir> <uname output, empty = no uname at all> -- writes <dir>/_casefold.sh and a
+# tree copy under <dir>/tree whose scope-check.sh loads it (<dir>/tree/scripts/scope-check.sh).
+f6_mklib() {
+  mkdir -p "$1"
+  sed -e "s#/usr/bin/uname#$1/uname#g" -e "s#/bin/uname#$1/uname#g" "$REPO_ROOT/hooks/scripts/_casefold.sh" > "$1/_casefold.sh"
+  if [ -n "$2" ]; then printf '#!/bin/sh\necho %s\n' "$2" > "$1/uname"; chmod 755 "$1/uname"; fi
+  sc_tree "$1/tree" "$1/_casefold.sh" >/dev/null
+}
+f6_lin=$(mktemp -d -t scope-uname-lin.XXXXXX); f6_mklib "$f6_lin" Linux
+f6_mac_lib=$(mktemp -d -t scope-uname-mac.XXXXXX); f6_mklib "$f6_mac_lib" Darwin
+f6_unk=$(mktemp -d -t scope-uname-unk.XXXXXX); f6_mklib "$f6_unk" ""
+t_start "F7-4 premise: the stand-in helper copies replace every uname path (and only those lines differ from the real helper)"
+for f6_l in "$f6_lin" "$f6_mac_lib" "$f6_unk"; do
+  [ "$(grep -c '/usr/bin/uname\|[^a-z]/bin/uname' "$f6_l/_casefold.sh")" = 0 ] && [ "$(grep -c "$f6_l/uname" "$f6_l/_casefold.sh")" -ge 2 ] && t_ok || t_fail "$f6_l: uname paths not replaced"
+done
+f6_nfd_u=$(printf 'src/u\314\210ber/x.ts'); f6_nfd_uu=$(printf 'src/U\314\210ber/x.ts'); f6_nfd_a=$(printf 'docs/A\314\210rger.md')
+f6_nfc_n=$(printf 'nfd/\303\274ber/x.ts'); f6_th_swap=$(printf 'th/\340\270\227\340\271\210\340\270\270\340\270\207/x.md')
+f6_th_other=$(printf 'th/\340\271\204\340\270\227\340\270\242/x.md'); f6_bad=$(printf 'zz/\377.ts'); f6_bad_src=$(printf 'src/\377.ts')
+for f6_os in native linux; do
+  # fresh manifests per pass: a refused or accepted --amend in one pass never reaches the next
+  f6_D=$(sandbox)
+  write_manifest "$f6_D" "bd-f6m" <<'EOF'
+{
+  "schema_version": 1,
+  "bd_id": "bd-f6m",
+  "agents": [
+    {"agent": "Dave#1", "allowed_roots": ["src/über/**"], "owns": ["src/über/**", "nfd/über/**", "th/ทุ่ง/**", "docs/design-run-order*"]},
+    {"agent": "Dave#2", "allowed_roots": ["lib/**"], "owns": []}
+  ],
+  "shared_files": {"docs/Ärger.md": {"mode": "exclusive", "owner": "Dave#1"}}
+}
+EOF
+  write_manifest "$f6_D" "bd-f6s" <<'EOF'
+{
+  "schema_version": 1,
+  "bd_id": "bd-f6s",
+  "agents": [
+    {"agent": "Dave#1", "allowed_roots": ["src/über/**"], "owns": ["src/über/**", "docs/design-run-order*"]},
+    {"agent": "Dave#2", "allowed_roots": ["src/**", "docs/**"], "owns": []}
+  ],
+  "shared_files": {"docs/Ärger.md": {"mode": "exclusive", "owner": "Dave#1"}}
+}
+EOF
+  if [ "$f6_os" = native ]; then f6_baselib="$REPO_ROOT/hooks/scripts/_casefold.sh" f6_sc="$SCRIPT"; else f6_baselib="$f6_lin/_casefold.sh" f6_sc="$f6_lin/tree/scripts/scope-check.sh"; fi
+  case "$f6_os:$OSTYPE" in native:darwin*) f6_mac=1 ;; *) f6_mac=0 ;; esac
+  if [ "$f6_mac" -eq 1 ]; then f6_hit=1 f6_amend=1; else f6_hit=0 f6_amend=4; fi
+  export SCOPECHECK_ROOT="$f6_D"
+  t_start "F-6 [$f6_os] main session: NFD src/u<U+0308>ber/x.ts and src/U<U+0308>ber/x.ts vs src/über/**, NFD docs/A<U+0308>rger.md vs the shared key docs/Ärger.md, NFC nfd/über/x.ts vs the NFD pattern nfd/u<U+0308>ber/**, Thai th/<marks swapped>/x.md vs th/<U+0E17 U+0E38 U+0E48 U+0E07>/** -> $f6_hit (1 = DENY on macOS, 0 = unchanged elsewhere)"
+  for f6_p in "$f6_nfd_u" "$f6_nfd_uu" "$f6_nfd_a" "$f6_nfc_n" "$f6_th_swap"; do
+    out=$("$f6_sc" bd-f6m "$f6_p" --main-check 2>&1); rc=$?
+    assert_rc "$rc" "$f6_hit" "[$f6_os] main session $(printf '%q' "$f6_p")"
+    if [ "$f6_mac" -eq 1 ]; then assert_contains "$out" "DENY: main-session write" "[$f6_os] $(printf '%q' "$f6_p") is a collision"; fi
+  done
+  t_start "F-6 [$f6_os] controls: a different Thai name th/<U+0E44 U+0E17 U+0E22>/x.md, an unrelated non-ASCII zz/<U+00FC>.ts and zz/x.ts -> 0; the owner's own spelling src/über/x.ts -> 1 (a collision, as before)"
+  for f6_p in "$f6_th_other" "$(printf 'zz/\303\274.ts')" zz/x.ts; do
+    out=$("$f6_sc" bd-f6m "$f6_p" --main-check 2>&1); rc=$?
+    assert_rc "$rc" 0 "[$f6_os] control $(printf '%q' "$f6_p")"
+  done
+  out=$("$f6_sc" bd-f6m "src/über/x.ts" --main-check 2>&1); rc=$?
+  assert_rc "$rc" 1 "[$f6_os] src/über/x.ts collides"
+  # Chris r7 F2 (UD U20): the NFC compare only ADDS denies. The raw NFD spelling
+  # docs/design-run-order<U+0301>.md matches Dave#1's docs/design-run-order*; its NFC form ends
+  # in ...orde<U+0155>.md and does not, so an NFC compare that REPLACED the raw one would allow it.
+  t_start "F-6 [$f6_os] NFC only adds denies (Chris r7 F2): main session NFD docs/design-run-order<U+0301>.md vs Dave#1's docs/design-run-order* -> 1; Dave#2 (docs/** in its allowed_roots) the same path -> 1, owned by Dave#1, never NEEDS_AMENDMENT"
+  f6_dro=$(printf 'docs/design-run-order\314\201.md')
+  if [ "$f6_mac" -eq 1 ]; then
+    f6_dro_nfc=$(printf '' | bash -c '. "$1"; _scope_os=Darwin; _scope_nfc_batch_deny "$2"' _ "$REPO_ROOT/hooks/scripts/_casefold.sh" "$f6_dro" | LC_ALL=C tr '\0' '|')
+    case "$f6_dro_nfc" in
+      "C$(printf 'docs/design-run-orde\305\225.md')|E|") t_ok ;;
+      *) t_fail "[$f6_os] premise: the NFC form of the fixture is docs/design-run-orde<U+0155>.md, got $(printf '%q' "$f6_dro_nfc")" ;;
+    esac
+  fi
+  out=$("$f6_sc" bd-f6m "$f6_dro" --main-check 2>&1); rc=$?
+  assert_rc "$rc" 1 "[$f6_os] main session $(printf '%q' "$f6_dro")"
+  assert_contains "$out" 'pattern "docs/design-run-order*"' "[$f6_os] the collision names the raw pattern"
+  out=$("$f6_sc" bd-f6s Dave#2 "$f6_dro" 2>&1); rc=$?
+  assert_rc "$rc" 1 "[$f6_os] Dave#2 $(printf '%q' "$f6_dro")"
+  assert_contains "$out" 'owned by "Dave#1"' "[$f6_os] Dave#2: the deny names the owner"
+  t_start "F-6 [$f6_os] a non-ASCII path that cannot be normalised (zz/<0xFF>.ts, not UTF-8; outside every pattern) -> DENY with the NFC message on macOS; 0 elsewhere (no normalisation)"
+  out=$("$f6_sc" bd-f6m "$f6_bad" --main-check 2>&1); rc=$?
+  if [ "$f6_mac" -eq 1 ]; then
+    assert_rc "$rc" 1 "[$f6_os] main session zz/<0xFF>.ts"
+    assert_contains "$out" "could not be Unicode-normalised (NFC)" "[$f6_os] the deny names the normalisation failure"
+    out=$("$f6_sc" bd-f6s Dave#2 "$f6_bad_src" 2>&1); rc=$?
+    assert_rc "$rc" 1 "[$f6_os] Dave#2 src/<0xFF>.ts (inside its allowed_roots) is denied, not NEEDS_AMENDMENT"
+    assert_contains "$out" "could not be Unicode-normalised (NFC)" "[$f6_os] the subagent deny names the normalisation failure"
+  else
+    assert_rc "$rc" 0 "[$f6_os] main session zz/<0xFF>.ts (no normalisation)"
+    out=$("$f6_sc" bd-f6s Dave#2 "$f6_bad_src" 2>&1); rc=$?
+    assert_rc "$rc" 4 "[$f6_os] Dave#2 src/<0xFF>.ts (no normalisation): NEEDS_AMENDMENT as before"
+  fi
+  t_start "F-6 [$f6_os] subagent outsider: Dave#2 NFD src/u<U+0308>ber/x.ts and NFD docs/A<U+0308>rger.md -> $f6_amend (1 = Dave#1's file on macOS; 4 = NEEDS_AMENDMENT as before elsewhere)"
+  for f6_p in "$f6_nfd_u" "$f6_nfd_a"; do
+    out=$("$f6_sc" bd-f6s Dave#2 "$f6_p" 2>&1); rc=$?
+    assert_rc "$rc" "$f6_amend" "[$f6_os] Dave#2 $(printf '%q' "$f6_p")"
+  done
+  if [ "$f6_mac" -eq 1 ]; then
+    out=$("$f6_sc" bd-f6s Dave#2 "$f6_nfd_u" 2>&1)
+    assert_contains "$out" 'owned by "Dave#1"' "[$f6_os] the deny names the real owner"
+    out=$("$f6_sc" bd-f6s Dave#2 "$f6_nfd_u" --amend 2>&1); rc=$?
+    assert_rc "$rc" 1 "[$f6_os] Dave#2 cannot self-amend the NFD spelling of Dave#1's file"
+    [ "$(jq -r '.agents[1].owns | length' "$f6_D/.shode-house/scope/bd-f6s.json")" = 0 ] && t_ok || t_fail "[$f6_os] the refused amend changed the manifest"
+  fi
+  # The grant side never normalises (R77/R78; UD U12 "never for owner/grant matching"): the
+  # owner's NFD spelling of its own pattern, and the NFD spelling of a shared key it owns, are
+  # NOT granted -- a grant through NFC would turn both into ALLOW.
+  t_start "F-6 [$f6_os] grant side: Dave#1 NFD src/u<U+0308>ber/x.ts and NFD docs/A<U+0308>rger.md -> 1 (not ALLOW: owner matching keeps the deterministic fold); Dave#1 src/über/x.ts and docs/Ärger.md -> 0"
+  for f6_p in "$f6_nfd_u" "$f6_nfd_a"; do
+    out=$("$f6_sc" bd-f6s Dave#1 "$f6_p" 2>&1); rc=$?
+    assert_rc "$rc" 1 "[$f6_os] Dave#1 $(printf '%q' "$f6_p") is not granted"
+    case "$out" in ALLOW*) t_fail "[$f6_os] Dave#1 $(printf '%q' "$f6_p") was granted: $out" ;; *) t_ok ;; esac
+  done
+  for f6_p in "src/über/x.ts" "docs/Ärger.md"; do
+    out=$("$f6_sc" bd-f6s Dave#1 "$f6_p" 2>&1); rc=$?
+    assert_rc "$rc" 0 "[$f6_os] control: Dave#1 $f6_p"
+  done
+  # F7-1 (UD U20, Sentinel r7 F7-1, Chris r7 F1): ONE normaliser process per check, however many
+  # non-ASCII patterns the check compares. The perl calls are counted through a tree copy
+  # (sc_tree) whose case-fold helper calls a counting wrapper in place of /usr/bin/perl, which
+  # runs the real one.
+  if [ "$f6_mac" -eq 1 ]; then f6_one=1; else f6_one=0; fi
+  t_start "F7-1 [$f6_os] one normaliser process per check: a manifest with 60 non-ASCII owns entries -- main session NFD miss, NFD collision, subagent non-ASCII ownership check -> $f6_one perl call each (1 on macOS, 0 elsewhere), verdicts unchanged; an ASCII candidate -> 0 perl calls"
+  f6_lib=$(mktemp -d -t scope-nfc-lib.XXXXXX)
+  sed "s#/usr/bin/perl -T #$f6_lib/perl -T #" "$f6_baselib" > "$f6_lib/_casefold.sh"
+  [ "$(grep -c "perl -T " "$f6_lib/_casefold.sh")" = 1 ] && [ "$(grep -c "$f6_lib/perl -T " "$f6_lib/_casefold.sh")" = 1 ] && t_ok || t_fail "[$f6_os] the counting copy must replace the one perl call"
+  printf '#!/bin/sh\nprintf x >> "%s/count"\nexec /usr/bin/perl "$@"\n' "$f6_lib" > "$f6_lib/perl"; chmod 755 "$f6_lib/perl"
+  f6_csc=$(sc_tree "$f6_lib/tree" "$f6_lib/_casefold.sh")
+  jq -n '{schema_version:1, bd_id:"bd-f6n", agents:[
+    {agent:"Dave#3", allowed_roots:["n3/**"], owns:[range(60) | "n3/f\(.)-\u00fcber.ts"]},
+    {agent:"Dave#1", allowed_roots:["src/\u00fcber/**"], owns:["src/\u00fcber/**"]},
+    {agent:"Dave#2", allowed_roots:["lib/**"], owns:[]}]}' > "$f6_D/.shode-house/scope/bd-f6n.json"
+  for f6_case in "$(printf 'zz/u\314\210.ts')|--main-check|0|$f6_one" "$f6_nfd_u|--main-check|$f6_hit|$f6_one" \
+                 "$(printf 'lib/\303\274.ts')|Dave#2|4|$f6_one" "zz/x.ts|--main-check|0|0"; do
+    IFS='|' read -r f6_p f6_who f6_want f6_calls <<EOF
+$f6_case
+EOF
+    : > "$f6_lib/count"
+    if [ "$f6_who" = --main-check ]; then
+      out=$("$f6_csc" bd-f6n "$f6_p" --main-check 2>&1); rc=$?
+    else
+      out=$("$f6_csc" bd-f6n "$f6_who" "$f6_p" 2>&1); rc=$?
+    fi
+    assert_rc "$rc" "$f6_want" "[$f6_os] $f6_who $(printf '%q' "$f6_p")"
+    assert_eq "$(wc -c < "$f6_lib/count" | tr -d ' ')" "$f6_calls" "[$f6_os] $f6_who $(printf '%q' "$f6_p"): perl calls"
+  done
+  rm -rf "$f6_lib" "$f6_D"
+done
+
+# F7-4 (Sentinel r7): the platform signal is the kernel's name (uname(2) through /usr/bin/uname
+# or /bin/uname), never $OSTYPE or any other variable the hook's environment can set. A
+# platform that cannot be determined counts as macOS (fail closed: the NFC compare runs, and a
+# path it cannot normalise is denied).
+f74_D=$(sandbox); export SCOPECHECK_ROOT="$f74_D"
+write_manifest "$f74_D" "bd-f74" <<'EOF'
+{
+  "schema_version": 1,
+  "bd_id": "bd-f74",
+  "agents": [
+    {"agent": "Dave#1", "allowed_roots": ["src/über/**"], "owns": ["src/über/**", "src/ä/**", "src/ö/**"]}
+  ]
+}
+EOF
+case "$OSTYPE" in darwin*) f74_want=1 f74_other=linux-gnu f74_un=Linux ;; *) f74_want=0 f74_other=darwin23 f74_un=Darwin ;; esac
+t_start "F7-4: OSTYPE=$f74_other, _scope_os=Linux, _scope_os=Darwin, UNAME_s=$f74_un or UNAME_SYSNAME=$f74_un (macOS's uname prints these in place of the kernel's name; Sentinel U21 F7-4-R) in the environment never changes the platform -- main session NFD src/u<U+0308>ber/x.ts -> $f74_want, as natively ($([ "$f74_want" = 1 ] && echo macOS || echo not macOS)); premise: bash takes OSTYPE from the environment"
+[ "$(env OSTYPE="$f74_other" bash -c 'printf %s "$OSTYPE"')" = "$f74_other" ] && t_ok || t_fail "premise: bash did not take OSTYPE from the environment, so this test proves nothing"
+out=$("$SCRIPT" bd-f74 "$f6_nfd_u" --main-check 2>&1); rc=$?
+assert_rc "$rc" "$f74_want" "native"
+for f74_e in "OSTYPE=$f74_other" "_scope_os=Linux" "_scope_os=Darwin" "UNAME_s=$f74_un" "UNAME_SYSNAME=$f74_un"; do
+  out=$(env "$f74_e" "$SCRIPT" bd-f74 "$f6_nfd_u" --main-check 2>&1); rc=$?
+  assert_rc "$rc" "$f74_want" "$f74_e in the environment"
+done
+t_start "F7-4: no uname at /usr/bin or /bin -> the platform counts as macOS (fail closed): NFD src/u<U+0308>ber/x.ts -> 1 on every host (the NFC collision, or the normalisation deny); a stand-in uname that says Darwin -> 1, one that says Linux -> 0"
+out=$("$f6_unk/tree/scripts/scope-check.sh" bd-f74 "$f6_nfd_u" --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "no uname"
+out=$("$f6_mac_lib/tree/scripts/scope-check.sh" bd-f74 "$f6_nfd_u" --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "uname says Darwin"
+out=$("$f6_lin/tree/scripts/scope-check.sh" bd-f74 "$f6_nfd_u" --main-check 2>&1); rc=$?
+assert_rc "$rc" 0 "uname says Linux"
+t_start "F7-4: uname runs at most once per scope-check process, and never for an ASCII path: a non-ASCII main-session check (three non-ASCII patterns) -> 1 uname call; an ASCII path -> 0"
+f74_cl=$(mktemp -d -t scope-uname-cnt.XXXXXX)
+sed -e "s#/usr/bin/uname#$f74_cl/uname#g" -e "s#/bin/uname#$f74_cl/uname#g" "$REPO_ROOT/hooks/scripts/_casefold.sh" > "$f74_cl/_casefold.sh"
+f74_real=$(command -v uname)   # an absolute path: the helper runs uname with an empty environment
+printf '#!/bin/sh\nprintf x >> "%s/count"\nexec %s "$@"\n' "$f74_cl" "$f74_real" > "$f74_cl/uname"; chmod 755 "$f74_cl/uname"
+f74_csc=$(sc_tree "$f74_cl/tree" "$f74_cl/_casefold.sh")
+: > "$f74_cl/count"; "$f74_csc" bd-f74 "$(printf 'zz/u\314\210.ts')" --main-check >/dev/null 2>&1
+assert_eq "$(wc -c < "$f74_cl/count" | tr -d ' ')" 1 "non-ASCII path: uname calls"
+: > "$f74_cl/count"; "$f74_csc" bd-f74 zz/x.ts --main-check >/dev/null 2>&1
+assert_eq "$(wc -c < "$f74_cl/count" | tr -d ' ')" 0 "ASCII path: uname calls"
+rm -rf "$f74_cl" "$f74_D"
+
+# Sentinel U20 F8-1, Chris U20 N-1: jq -r writes a JSON "\u0000" in a shared_files key as a raw
+# NUL byte; inside the helper's NUL-terminated records that forged records (a second "C", an
+# "N" out of step) and could cancel the F-6 deny. The helper drops every line that holds a NUL
+# (the string then counts as a collision), and the reader takes the records only in the
+# helper's order. Owner Dave#1 owns src/ü/**; a NUL-poisoned manifest must give exactly the
+# verdict of the same manifest without the poison (on macOS: DENY for the NFD spelling).
+t_start "F8-1/N-1: a NUL in a manifest string (shared_files keys x/ü<NUL>Czz/zz, src/u<U+0308>/**<NUL>Nzzz, src/ü/**<NUL>Nzzz, docs/é<NUL>Cnothing; an owns entry and an allowed_roots entry of Dave#7) never changes a verdict: main session and Dave#9 (src/** in its allowed_roots) writing NFD src/u<U+0308>/a.ts -> the unpoisoned verdict (macOS: 1, DENY)"
+n1_D=$(sandbox); export SCOPECHECK_ROOT="$n1_D"
+n1_mk() {   # <bd> <shared_files json> <Dave#7 owns json> <Dave#7 roots json>
+  mkdir -p "$n1_D/.shode-house/scope"
+  printf '{"schema_version":1,"bd_id":"%s","shared_files":%s,"agents":[{"agent":"Dave#1","allowed_roots":["src/\\u00fc/**"],"owns":["src/\\u00fc/**"]},{"agent":"Dave#7","allowed_roots":%s,"owns":%s},{"agent":"Dave#9","allowed_roots":["src/**"],"owns":[]}]}\n' \
+    "$1" "$2" "$4" "$3" > "$n1_D/.shode-house/scope/$1.json"
+  jq empty "$n1_D/.shode-house/scope/$1.json" 2>/dev/null && t_ok || t_fail "fixture $1 is not valid JSON"
+}
+n1_mk bd-n1c '{}' '[]' '["lib/**"]'
+n1_mk bd-n1a '{"x/ü\u0000Czz/zz":{"mode":"exclusive","owner":"Dave#1"}}' '[]' '["lib/**"]'
+n1_mk bd-n1b '{"src/u\u0308/**\u0000Nzzz":{"mode":"exclusive","owner":"Dave#1"},"src/ü/**\u0000Nzzz":{"mode":"exclusive","owner":"Dave#1"},"docs/é\u0000Cnothing":{"mode":"exclusive","owner":"Dave#1"}}' '[]' '["lib/**"]'
+n1_mk bd-n1d '{}' '["q/ü\u0000Czz/zz", "src/ü/**\u0000Nzzz"]' '["lib/ü\u0000Cq/**", "lib/**"]'
+[ "$(jq -r '.shared_files | keys[]' "$n1_D/.shode-house/scope/bd-n1a.json" | LC_ALL=C tr -d '\n' | LC_ALL=C tr '\0' '|')" = "x/$(printf '\303\274')|Czz/zz" ] && t_ok || t_fail "premise: jq -r does not write the NUL raw here, so the fixture proves nothing"
+n1_p=$(printf 'src/u\314\210/a.ts')
+n1_cm=$("$SCRIPT" bd-n1c "$n1_p" --main-check >/dev/null 2>&1; echo $?)
+n1_c9=$("$SCRIPT" bd-n1c Dave#9 "$n1_p" >/dev/null 2>&1; echo $?)
+case "$OSTYPE" in
+  darwin*) assert_eq "$n1_cm:$n1_c9" "1:1" "premise: on macOS the unpoisoned manifest denies the NFD spelling (main session, Dave#9)" ;;
+esac
+for n1_b in bd-n1a bd-n1b bd-n1d; do
+  out=$("$SCRIPT" "$n1_b" "$n1_p" --main-check 2>&1); rc=$?
+  assert_rc "$rc" "$n1_cm" "$n1_b: main session $(printf '%q' "$n1_p")"
+  out=$("$SCRIPT" "$n1_b" Dave#9 "$n1_p" 2>&1); rc=$?
+  assert_rc "$rc" "$n1_c9" "$n1_b: Dave#9 $(printf '%q' "$n1_p")"
+  case "$OSTYPE" in darwin*) assert_contains "$out" 'DENY: ' "$n1_b: Dave#9: a deny (a poisoned string that is not in the batch counts as a collision)" ;; esac
+done
+
+# The reader of the helper's records (nfc_batch_load) takes them only in the helper's order: one
+# C, then R/N pairs, then E, then nothing. Any other stream is a failure (deny with the NFC
+# message). Stand-in helpers that write such streams; the stand-in uname says Darwin, so this
+# runs on every host.
+t_start "F8-1/N-1: nfc_batch_load accepts only C, R/N pairs, E -- a second C, an R without N, an N without R, a record after E, or a stream without C -> DENY with the NFC message; the well-formed stream -> the normal verdict (0)"
+write_manifest "$n1_D" "bd-n1s" <<'EOF'
+{
+  "schema_version": 1,
+  "bd_id": "bd-n1s",
+  "agents": [
+    {"agent": "Dave#1", "allowed_roots": ["src/a/**"], "owns": ["src/a/**"]}
+  ]
+}
+EOF
+n1_zp=$(printf 'zz/u\314\210.ts')
+for n1_s in 'C%s\0E\0|0' 'C%s\0Cforged\0E\0|1' 'C%s\0Rq/x\0E\0|1' 'C%s\0Nq/x\0E\0|1' 'C%s\0E\0Rq/x\0Nq/x\0|1' 'C%s\0Rq/x\0Nq/x\0Rq/y\0Nq/y\0E\0|0' 'Rq/x\0Nq/x\0E\0|1' 'C%s\0E\0E\0|1'; do
+  n1_fmt=${n1_s%|*}; n1_want=${n1_s##*|}
+  n1_lib=$(mktemp -d -t scope-nb-stream.XXXXXX)
+  { cat "$f6_mac_lib/_casefold.sh"; printf '_scope_nfc_batch_deny() { cat >/dev/null; printf %q "$1"; }\n' "$n1_fmt"; } > "$n1_lib/_casefold.sh"
+  out=$("$(sc_tree "$n1_lib/tree" "$n1_lib/_casefold.sh")" bd-n1s "$n1_zp" --main-check 2>&1); rc=$?
+  assert_rc "$rc" "$n1_want" "stream $n1_fmt"
+  [ "$n1_want" = 1 ] && assert_contains "$out" "could not be Unicode-normalised (NFC)" "stream $n1_fmt: the deny is the NFC message"
+  rm -rf "$n1_lib"
+done
+rm -rf "$n1_D"
+
+# Chris U20 D7: the batch splits a shared_files key on newlines, as find_shared_key's line read
+# does, so each part is normalised and found. Without the split, the non-ASCII second part of
+# "x/y.md<LF>sk/über/**" would be missing from the batch and count as a collision for every
+# non-ASCII write (over-deny).
+t_start "D7: a shared_files key holding a newline (x/y.md<LF>sk/über/**) is two patterns -- main session NFD zz/u<U+0308>.ts -> 0 (not an over-deny); x/y.md -> 1; NFD sk/u<U+0308>ber/x.ts -> 1 on macOS (NFC collision with the second part), 0 elsewhere"
+d7_D=$(sandbox); export SCOPECHECK_ROOT="$d7_D"
+mkdir -p "$d7_D/.shode-house/scope"
+printf '{"schema_version":1,"bd_id":"bd-d7","shared_files":{"x/y.md\\nsk/\\u00fcber/**":{"mode":"exclusive","owner":"Dave#1"}},"agents":[{"agent":"Dave#1","allowed_roots":["src/a/**"],"owns":["src/a/**"]}]}\n' > "$d7_D/.shode-house/scope/bd-d7.json"
+out=$("$SCRIPT" bd-d7 "$(printf 'zz/u\314\210.ts')" --main-check 2>&1); rc=$?
+assert_rc "$rc" 0 "NFD zz/u<U+0308>.ts"
+out=$("$SCRIPT" bd-d7 x/y.md --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "x/y.md (the first part)"
+case "$OSTYPE" in darwin*) d7_want=1 ;; *) d7_want=0 ;; esac
+out=$("$SCRIPT" bd-d7 "$(printf 'sk/u\314\210ber/x.ts')" --main-check 2>&1); rc=$?
+assert_rc "$rc" "$d7_want" "NFD sk/u<U+0308>ber/x.ts (the second part)"
+rm -rf "$d7_D"
+rm -rf "$f6_lin" "$f6_mac_lib" "$f6_unk"
+
+# F7-2 (UD U20, Sentinel r7 F7-2): the time budget of an evaluation. SCOPECHECK_BUDGET_MS can only
+# shorten it (the scope guard passes what is left of its scope phase); 0 = no time left, so the
+# first manifest entry compared is over budget: a deterministic stand-in for a check that ran
+# out of time. Over budget -> DENY (exit 1) with a static message that never names the path.
+t_start "F7-2: SCOPECHECK_BUDGET_MS=0 -> a main-session check, a subagent check (own pattern, allowed_roots, a shared key) and --amend each DENY with the static (scope-budget) message, the path never echoed, the manifest unchanged; without it the same calls give their normal verdicts"
+D=$(sandbox); export SCOPECHECK_ROOT="$D"
+write_manifest "$D" "bd-bud" <<'EOF'
+{
+  "schema_version": 1,
+  "bd_id": "bd-bud",
+  "agents": [
+    {"agent": "Dave#1", "allowed_roots": ["src/**"], "owns": ["src/a/**"]},
+    {"agent": "Dave#2", "allowed_roots": ["lib/**"], "owns": []}
+  ],
+  "shared_files": {"docs/shared.md": {"mode": "exclusive", "owner": "Dave#1"}}
+}
+EOF
+bud_before=$(shasum -a 256 "$D/.shode-house/scope/bd-bud.json")
+for bud_case in "zz/budget-probe.ts|--main-check|0" "src/a/budget-probe.ts|Dave#1|0" "lib/budget-probe.ts|Dave#2|4" "docs/shared.md|Dave#1|0"; do
+  IFS='|' read -r bud_p bud_who bud_want <<EOF
+$bud_case
+EOF
+  if [ "$bud_who" = --main-check ]; then bud_args=(bd-bud "$bud_p" --main-check); else bud_args=(bd-bud "$bud_who" "$bud_p"); fi
+  out=$(SCOPECHECK_BUDGET_MS=0 "$SCRIPT" "${bud_args[@]}" 2>&1); rc=$?
+  assert_rc "$rc" 1 "budget 0: $bud_who $bud_p"
+  assert_contains "$out" "(scope-budget)" "budget 0: $bud_who $bud_p: the budget reason"
+  assert_not_contains "$out" "$bud_p" "budget 0: $bud_who $bud_p: the path is never echoed"
+  out=$("$SCRIPT" "${bud_args[@]}" 2>&1); rc=$?
+  assert_rc "$rc" "$bud_want" "control, no budget variable: $bud_who $bud_p"
+done
+out=$(SCOPECHECK_BUDGET_MS=0 "$SCRIPT" bd-bud Dave#2 lib/new.ts --amend 2>&1); rc=$?
+assert_rc "$rc" 1 "budget 0: --amend is refused"
+assert_contains "$out" "(scope-budget)" "budget 0: --amend names the budget"
+assert_eq "$(shasum -a 256 "$D/.shode-house/scope/bd-bud.json")" "$bud_before" "budget 0: the manifest is unchanged"
+
+t_start "F7-2: SCOPECHECK_BUDGET_MS can only shorten the budget -- values that are not plain decimal milliseconds ('abc', '-1', '1.5', '1e3', ' 5'), a 7-digit number, and values above 3000 are ignored; '2000' and '02000' (no octal reading) are valid shorter budgets -> the normal verdict; --snapshot and --verify run no evaluation and are not affected by a budget of 0"
+for bud_v in abc -1 1.5 1e3 ' 5' 1000000 5000 2000 02000; do
+  out=$(SCOPECHECK_BUDGET_MS="$bud_v" "$SCRIPT" bd-bud zz/x.ts --main-check 2>&1); rc=$?
+  assert_rc "$rc" 0 "SCOPECHECK_BUDGET_MS='$bud_v': main session zz/x.ts"
+done
+mkdir -p "$D/src/a"; printf 'v1\n' > "$D/src/a/s.ts"
+out=$(SCOPECHECK_BUDGET_MS=0 "$SCRIPT" bd-bud Dave#1 src/a/s.ts --snapshot 2>&1); rc=$?
+assert_rc "$rc" 0 "budget 0: --snapshot"
+out=$(SCOPECHECK_BUDGET_MS=0 "$SCRIPT" bd-bud Dave#1 src/a/s.ts --verify 2>&1); rc=$?
+assert_rc "$rc" 0 "budget 0: --verify"
+rm -rf "$D"
+
+# Chris U20 N-2: the bash 3.2 clock of the budget (whole seconds) pinned on any bash. The two
+# budget functions are taken from the script and run with the whole-second clock forced;
+# assigning SECONDS sets the counter. A budget of B ms stops once MORE than B/1000 whole
+# seconds have passed: never sooner than the budget's whole seconds, so an ordinary check is
+# not cut short at the next second tick.
+t_start "N-2: the whole-second budget clock (bash 3.2) -- budget 1000: 1 s passed -> not over, 2 s -> over; budget 2000: 2 s -> not over, 3 s -> over; budget 999: 1 s -> over; budget 0 -> over at once; with SCOPECHECK_BUDGET_MS unset, _sc_budget_start picks the 3000 ms default and this bash's clock"
+sc_fn() { ( eval "$(sed -n -e '/^SC_MAX_MS=/p' -e '/^_sc_budget_start() {/,/^}/p' -e '/^_sc_over() {/,/^}/p' "$SCRIPT")"; eval "$1" ) 2>&1; }
+assert_eq "$(sc_fn 'for c in 1000:1 1000:2 2000:2 2000:3 999:0 999:1 0:0; do _sc_clock=s; _sc_ms=${c%:*}; SECONDS=0; _sc_t0=$SECONDS; SECONDS=${c#*:}; if _sc_over; then echo "$c:over"; else echo "$c:ok"; fi; done')" \
+  "1000:1:ok"$'\n'"1000:2:over"$'\n'"2000:2:ok"$'\n'"2000:3:over"$'\n'"999:0:ok"$'\n'"999:1:over"$'\n'"0:0:over" "whole-second edges"
+sc_want=s; [ "${BASH_VERSINFO[0]}" -ge 5 ] && sc_want=us
+assert_eq "$(sc_fn 'unset SCOPECHECK_BUDGET_MS; _sc_budget_start; echo "$_sc_ms:$_sc_clock"')" "3000:$sc_want" "default budget and clock"
+
+# Sentinel U20 F8-2 (regression pin): bash takes SECONDS from the environment. scope-check.sh's
+# bash 3.2 clock only takes the difference of two SECONDS readings, which an inherited value
+# cannot move, even one that wraps past the top of its range while it counts (the 64-bit
+# difference wraps back). 4000 upper-case entries cost far more than the 1000 ms budget given.
+t_start "F8-2: SECONDS=9223372036854775806 or -100000 in the environment, SCOPECHECK_BUDGET_MS=1000, 4000 upper-case owns entries before the match -> main session zz/x.ts is DENIED (scope-budget), each in <= 4000 ms"
+f82_D=$(sandbox); export SCOPECHECK_ROOT="$f82_D"
+mkdir -p "$f82_D/.shode-house/scope"
+jq -n '{schema_version:1, bd_id:"bd-f82", agents:[{agent:"Dave#3", allowed_roots:["src/d3/**"], owns:[range(4000) | "src/D3/F\(.).ts"]}]}' > "$f82_D/.shode-house/scope/bd-f82.json"
+for f82_s in 9223372036854775806 -100000; do
+  f82_t0=$(date -u +%s%N)
+  out=$(wd 30 env SECONDS="$f82_s" SCOPECHECK_BUDGET_MS=1000 "$SCRIPT" bd-f82 zz/x.ts --main-check 2>&1); rc=$?
+  f82_ms=$(( ($(date -u +%s%N) - f82_t0) / 1000000 ))
+  printf '   SECONDS=%s: rc=%s %s ms\n' "$f82_s" "$rc" "$f82_ms"
+  assert_rc "$rc" 1 "SECONDS=$f82_s: zz/x.ts"
+  assert_contains "$out" "(scope-budget)" "SECONDS=$f82_s: the budget reason"
+  [ "$f82_ms" -le 4000 ] && t_ok || t_fail "SECONDS=$f82_s: took $f82_ms ms (ceiling 4000 ms)"
+done
+rm -rf "$f82_D"
+
+# Router R78 / Sentinel pre-release r2 F-1: the project root spelled in another case is still
+# the project root. A byte-exact prefix strip left such a path absolute, so it matched no
+# manifest pattern ("outside the project") and the main session passed the outsider policy.
+t_start "F-1: an absolute path whose project-root prefix is spelled in another case is stripped (case-insensitive volume) and matched; a different directory on a case-sensitive volume is not"
+D=$(sandbox); export SCOPECHECK_ROOT="$D"
+write_manifest "$D" "bd-f1" <<'EOF'
+{
+  "schema_version": 1,
+  "bd_id": "bd-f1",
+  "agents": [
+    {"agent": "Dave#1", "allowed_roots": ["src/orders/**"], "owns": ["src/orders/**"]}
+  ]
+}
+EOF
+mkdir -p "$D/src/orders"
+f1_phys=$(cd "$D" && pwd -P)
+f1_up="${f1_phys%/*}/$(printf '%s' "${f1_phys##*/}" | tr 'a-z' 'A-Z')"
+if [ -n "$f1_phys" ] && [ "$f1_up" != "$f1_phys" ] && [ -d "$f1_up" ] && [ "$f1_up" -ef "$f1_phys" ]; then
+  out=$("$SCRIPT" bd-f1 "$f1_up/src/orders/x.ts" --main-check 2>&1); rc=$?
+  assert_rc "$rc" 1 "main session <ROOT-IN-UPPER-CASE>/src/orders/x.ts collides with Dave#1's src/orders/**"
+  assert_contains "$out" '"src/orders/x.ts"' "the path is reported project-relative"
+  out=$("$SCRIPT" bd-f1 Dave#1 "$f1_up/src/orders/x.ts" 2>&1); rc=$?
+  assert_rc "$rc" 0 "the owner writing through the upper-case root is granted its own file"
+  out=$("$SCRIPT" bd-f1 "$f1_up/docs/x.md" --main-check 2>&1); rc=$?
+  assert_rc "$rc" 0 "control: an unclaimed file through the upper-case root does not collide"
+else
+  t_skip "case-sensitive volume: the upper-case spelling of the sandbox is another directory here"
+fi
+# A case-sensitive volume keeps "Proj" and "proj" apart: the root must not be stripped from
+# a directory that only folds to it.
+F1CS=$(sandbox)
+mkdir -p "$F1CS/proj/.shode-house/scope" "$F1CS/Proj/src/orders"
+if [ ! "$F1CS/Proj" -ef "$F1CS/proj" ]; then
+  cp -f "$D/.shode-house/scope/bd-f1.json" "$F1CS/proj/.shode-house/scope/bd-f1.json"
+  out=$(SCOPECHECK_ROOT="$F1CS/proj" "$SCRIPT" bd-f1 Dave#1 "$F1CS/Proj/src/orders/x.ts" 2>&1); rc=$?
+  assert_rc "$rc" 1 "case-sensitive volume: Proj/src/orders/x.ts is outside the project proj, never granted as src/orders/x.ts"
+else
+  t_skip "case-insensitive volume: Proj and proj are one directory here"
+fi
+rm -rf "$D" "$F1CS"
+
+# Chris pre-release C7: the PATTERN side is folded too (a Scope Contract typed in any case).
+t_start "NF2: a manifest pattern authored in upper case or with a long s (SRC/Orders/**, docs/<U+017F>pec.md) matches the lower-case path"
+D=$(sandbox); export SCOPECHECK_ROOT="$D"
+write_manifest "$D" "bd-pat" <<'EOF'
+{
+  "schema_version": 1,
+  "bd_id": "bd-pat",
+  "agents": [
+    {"agent": "Dave#1", "allowed_roots": ["SRC/Orders/**"], "owns": ["SRC/Orders/**", "docs/ſpec.md"]}
+  ]
+}
+EOF
+out=$("$SCRIPT" bd-pat "src/orders/x.ts" --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "src/orders/x.ts collides with SRC/Orders/**"
+out=$("$SCRIPT" bd-pat "docs/spec.md" --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "docs/spec.md collides with docs/<U+017F>pec.md"
+out=$("$SCRIPT" bd-pat "src/other/x.ts" --main-check 2>&1); rc=$?
+assert_rc "$rc" 0 "control: src/other/x.ts matches nothing"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+t_start "NF2: a missing case-fold helper is a dependency error (exit 64), never a silent match miss"
+D=$(sandbox); export SCOPECHECK_ROOT="$D"
+mkdir -p "$D/.shode-house/scope"
+out=$("$(sc_tree "$D/tree")" bd-x "src/x.ts" --main-check 2>&1); rc=$?   # a tree copy without the helper
+assert_rc "$rc" 64 "missing helper -> 64"
+assert_contains "$out" "case-fold helper not found" "message names the missing helper"
+rm -rf "$D"
+
+# ---------------------------------------------------------------------------
+# UD U21 (Chris U21 I-2, Sentinel U21): no variable of the environment chooses code this script
+# sources, or lengthens a check. SCOPECHECK_CASEFOLD_LIB and SCOPECHECK_LOCK_LIB used to name the
+# helper and the lock library (a file that ends with exit 0 then turned a deny into an allow);
+# SCOPECHECK_LOCK_MAX_ATTEMPTS could raise the bounded lock retry, and lock.sh's test hooks
+# (LOCK_*_SYNC) could pause a lock wait for up to 10 s, which the 5 s hook timeout turns into
+# an allow. A variable may only shorten a budget (SCOPECHECK_BUDGET_MS) or add a deny; the one
+# exception, SCOPECHECK_ROOT, names the project, not code (UD R86).
+t_start "environment overrides (UD U21): SCOPECHECK_CASEFOLD_LIB or SCOPECHECK_LOCK_LIB naming a file that ends with exit 0 never runs -- the main session's src/a/x.ts against Dave#1's src/a/** stays 1"
+D=$(sandbox); export SCOPECHECK_ROOT="$D"
+write_manifest "$D" "bd-eo" <<'EOF'
+{"schema_version": 1, "bd_id": "bd-eo", "agents": [{"agent": "Dave#1", "allowed_roots": ["src/a/**"], "owns": ["src/a/**"]}]}
+EOF
+printf 'printf x >> "%s/ran"\nexit 0\n' "$D" > "$D/evil.sh"
+out=$("$SCRIPT" bd-eo src/a/x.ts --main-check 2>&1); rc=$?
+assert_rc "$rc" 1 "premise: without the variable"
+for eo_v in SCOPECHECK_CASEFOLD_LIB SCOPECHECK_LOCK_LIB; do
+  out=$(env "$eo_v=$D/evil.sh" "$SCRIPT" bd-eo src/a/x.ts --main-check 2>&1); rc=$?
+  assert_rc "$rc" 1 "$eo_v=<a file ending in exit 0>"
+  [ ! -e "$D/ran" ] && t_ok || t_fail "$eo_v: the named file was run"
+  rm -f "$D/ran"
+done
+rm -rf "$D"
+
+t_start "environment overrides (UD U21): with the lock held, SCOPECHECK_LOCK_MAX_ATTEMPTS=4 and every LOCK_*_SYNC test hook of lock.sh in the environment, --amend still gives up after 2 attempts (exit 64, LOCK_BUSY) and no test hook runs (no .ready file is touched)"
+D=$(sandbox); export SCOPECHECK_ROOT="$D"
+write_manifest "$D" "bd-eol" <<'EOF'
+{"schema_version": 1, "bd_id": "bd-eol", "agents": [{"agent": "Dave#1", "allowed_roots": ["src/w2/**"], "owns": []}]}
+EOF
+mkdir -p "$D/.shode-house/scope/.lock-bd-eol" "$D/sync"
+eol_env=(SCOPECHECK_LOCK_MAX_ATTEMPTS=4)
+for eol_h in LOCK_CLASSIFY_HOLDER_SYNC LOCK_DISAMBIGUATE_SYNC LOCK_RECOVER_MARKER_SETTLE_SYNC LOCK_RECOVER_STEP1_READABLE_SYNC LOCK_RECOVER_SYNC_PREMV LOCK_RECOVER_SYNC_POSTMV; do
+  eol_env+=("$eol_h=$D/sync/$eol_h"); : > "$D/sync/$eol_h.go"   # a hook that runs touches .ready and finds .go at once
+done
+out=$(wd 30 env "${eol_env[@]}" "$SCRIPT" bd-eol Dave#1 src/w2/x.ts --amend 2>&1); rc=$?
+assert_rc "$rc" 64 "lock held: exit 64"
+assert_contains "$out" "after 2 attempt(s) -- LOCK_BUSY" "the bounded retry stays at 2 attempts"
+assert_eq "$(cd "$D/sync" && ls | grep -c '\.ready$')" "0" "no lock.sh test hook ran"
+rm -rf "$D"
+
+# UD R88 (Sentinel final ENV-R): ordinary variables of the environment that bash or jq read and
+# that turned a deny into an allow (or a check into an error): HOME (jq sources $HOME/.jq, which
+# can redefine a builtin -- here keys, so the shared_files collision was missed), FUNCNEST
+# (bash >= 4.2: a low limit ended a check early, exit 0 for a collision) and TMOUT (bash 5: a
+# value below one tick timed out every read of piped data, so a collision was missed). The
+# script clears them at its start; on bash 3.2 the FUNCNEST and TMOUT rows are regression rows.
+# UD R89: the shell options errexit, keyword, noglob and xtrace (Sentinel env XT-1: an arithmetic
+# PS4 is expanded in the script's own shell before each traced command and can assign a variable
+# a check reads), which SHELLOPTS can turn on, are turned off on the script's first command.
+# noglob changes no CLI result: a regression row here. UD R90 (Dave xt1 XT-2): that one PS4
+# expansion at the trace of the first command can also assign a variable with ${NAME:=value} or
+# $((NAME=n)), and the environment can set some of them directly, so the ENV-R line also resets
+# GLOBIGNORE, EXECIGNORE (bash 5: jq was not found), CDPATH, POSIXLY_CORRECT, BASH_COMPAT and
+# IFS: one row per variable through PS4, and the environment rows for the ones bash takes from
+# the environment; rows that no bash here turns red are regression rows. A value list entry may
+# hold several NAME=value assignments separated by '|'. Never a PS4 with a command substitution
+# here: it runs in every traced shell, children included, and recurses.
+t_start "environment (UD R88, Sentinel final ENV-R): HOME naming a directory whose .jq redefines jq builtins, FUNCNEST=1/2/3, TMOUT=0.000001, the shell options errexit, keyword and noglob through SHELLOPTS (UD R89) and SHELLOPTS=xtrace with an arithmetic PS4 \$((tool_name=0)), \$((path=0)) or \$((rc=0,rb_rc=0)) (Sentinel env XT-1), and GLOBIGNORE, EXECIGNORE, CDPATH, POSIXLY_CORRECT, BASH_COMPAT and IFS set through such a PS4 or the environment (UD R90) never change a result -- --main-check docs/shared.md (shared_files) 1, --main-check src/a/x.ts (Dave#1's) 1, Dave#2 on src/a/x.ts 1, --main-check zz/ok.ts 0, Dave#2 on its own src/b/ok.ts 0"
+D=$(sandbox); export SCOPECHECK_ROOT="$D"
+write_manifest "$D" "bd-ev" <<'MF'
+{"schema_version": 1, "bd_id": "bd-ev", "shared_files": {"docs/shared.md": {"strategy": "sequential", "owner_order": ["Dave#1"]}},
+ "agents": [{"agent": "Dave#1", "allowed_roots": ["src/a/**"], "owns": ["src/a/**"]}, {"agent": "Dave#2", "allowed_roots": ["src/b/**"], "owns": ["src/b/**"]}]}
+MF
+mkdir -p "$D/jh"; printf 'def tostring: "Read";\ndef keys: [];\n' > "$D/jh/.jq"
+assert_eq "$(HOME="$D/jh" jq -c -n '{a: 1} | keys')" "[]" "premise: this jq sources \$HOME/.jq, and a definition there replaces a builtin"
+ev_rc() {   # <NAME=value[|NAME=value...]> <scope-check.sh args...> -> its exit code
+  local ev_a; IFS='|' read -r -a ev_a <<<"$1"
+  wd 30 env "${ev_a[@]}" "$SCRIPT" "${@:2}" >/dev/null 2>&1; printf '%s' "$?"
+}
+for ev_e in "HOME=$D/jh" FUNCNEST=1 FUNCNEST=2 FUNCNEST=3 TMOUT=0.000001 SHELLOPTS=errexit SHELLOPTS=keyword SHELLOPTS=noglob \
+    'SHELLOPTS=xtrace|PS4=$((tool_name=0))' 'SHELLOPTS=xtrace|PS4=$((path=0))' 'SHELLOPTS=xtrace|PS4=$((rc=0,rb_rc=0))' \
+    'SHELLOPTS=xtrace|PS4=${GLOBIGNORE:=*}' 'SHELLOPTS=xtrace|PS4=${EXECIGNORE:=*}' 'SHELLOPTS=xtrace|PS4=${CDPATH:=/}' CDPATH=/ \
+    'SHELLOPTS=xtrace|PS4=${POSIXLY_CORRECT:=1}' POSIXLY_CORRECT=1 'SHELLOPTS=xtrace|PS4=${BASH_COMPAT:=31}' BASH_COMPAT=31 \
+    'SHELLOPTS=xtrace|PS4=$((IFS=0))'; do
+  ev_n=${ev_e%%=*}; [ "$ev_n" = HOME ] && ev_n="HOME=<.jq>" || ev_n=$ev_e
+  assert_eq "$(ev_rc "$ev_e" bd-ev docs/shared.md --main-check)" 1 "$ev_n: --main-check docs/shared.md"
+  assert_eq "$(ev_rc "$ev_e" bd-ev src/a/x.ts --main-check)" 1 "$ev_n: --main-check src/a/x.ts"
+  assert_eq "$(ev_rc "$ev_e" bd-ev Dave#2 src/a/x.ts)" 1 "$ev_n: Dave#2 on src/a/x.ts"
+  assert_eq "$(ev_rc "$ev_e" bd-ev zz/ok.ts --main-check)" 0 "$ev_n: --main-check zz/ok.ts"
+  assert_eq "$(ev_rc "$ev_e" bd-ev Dave#2 src/b/ok.ts)" 0 "$ev_n: Dave#2 on src/b/ok.ts"
+done
 rm -rf "$D"
 
 # ---------------------------------------------------------------------------

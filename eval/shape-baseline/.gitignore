@@ -1,0 +1,3 @@
+# Raw traces stay local (size, session ids, local paths); summaries/scores are tracked.
+results/*/*/*/raw/
+results/*/controls/raw/

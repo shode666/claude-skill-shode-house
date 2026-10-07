@@ -1,0 +1,1 @@
+Rename the RETRY constant in src/notification.py to MAX_RETRIES and update its use.

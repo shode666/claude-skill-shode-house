@@ -1,0 +1,25 @@
+diff --git a/src/duration.py b/src/duration.py
+index ccbc6ea..103b60f 100644
+--- a/src/duration.py
++++ b/src/duration.py
+@@ -11,5 +11,5 @@ def parse_duration(text):
+         raise ValueError(f"bad duration: {text!r}")
+     total = 0
+     for number, unit in parts:
+-        total = int(number) * _SECONDS[unit]
++        total += int(number) * _SECONDS[unit]
+     return total
+diff --git a/tests/test_duration.py b/tests/test_duration.py
+index 3966cda..8db7bb3 100644
+--- a/tests/test_duration.py
++++ b/tests/test_duration.py
+@@ -10,6 +10,9 @@ class ParseDurationTest(unittest.TestCase):
+     def test_hours_and_minutes(self):
+         self.assertEqual(parse_duration("1h30m"), 5400)
+ 
++    def test_minutes_and_seconds(self):
++        self.assertEqual(parse_duration("1m1s"), 61)
++
+     def test_malformed_raises(self):
+         with self.assertRaises(ValueError):
+             parse_duration("soon")

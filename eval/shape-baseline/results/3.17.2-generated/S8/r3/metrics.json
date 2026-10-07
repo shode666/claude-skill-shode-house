@@ -1,0 +1,213 @@
+{
+ "run": "S8/r3",
+ "scenario": "S8",
+ "arm": "3.17.2",
+ "distribution": "generated",
+ "served": {
+  "cli_version": "2.1.286",
+  "main_model": "claude-sonnet-5-5",
+  "models": [
+   "claude-sonnet-5-5"
+  ],
+  "non_builtin_plugins": [
+   {
+    "name": "shode-house",
+    "path": "<ARM>",
+    "source": "shode-house@inline",
+    "version": "3.17.2"
+   }
+  ],
+  "plugin_is_arm_only": true,
+  "mcp_servers": 0,
+  "permission_mode": "acceptEdits",
+  "output_style_bytes": 12421
+ },
+ "totals": {
+  "tokens": {
+   "input": 18,
+   "cache_read": 192865,
+   "cache_creation": 43437,
+   "cache_creation_5m": 19625,
+   "cache_creation_1h": 23812,
+   "output": 5269
+  },
+  "tokens_all": 241589,
+  "cost_usd_host": 0.2356095,
+  "cost_usd_allocated": 0.235609,
+  "wall_seconds": 64,
+  "duration_ms_last_result": 8914,
+  "duration_api_ms": 45800,
+  "num_turns": 1,
+  "result_subtype": "success",
+  "result_events": 2,
+  "spawn_count": 1,
+  "spawn_types": {
+   "shode-house:solution-architect": 1
+  },
+  "permission_denials": []
+ },
+ "cost_drivers_usd": {
+  "main_session_usd": 0.148014,
+  "spawn_host_static_usd": 0.011922,
+  "spawn_plugin_static_usd": 0.043607,
+  "spawn_work_usd": 0.032066,
+  "main_plugin_static_usd": 0.047942,
+  "main_host_static_usd": 0.051464,
+  "main_work_usd": 0.048608
+ },
+ "controls": {
+  "host_static_tokens_main": 19140,
+  "host_static_tokens_spawn": {
+   "claude-fable-5|bash": 9707,
+   "claude-fable-5|nobash": 7015,
+   "claude-opus-5-5|bash": 9710,
+   "claude-opus-5-5|nobash": 7016,
+   "claude-sonnet-5-5|bash": 9623,
+   "claude-sonnet-5-5|nobash": 6927
+  },
+  "with_plugin_tokens_spawn": {
+   "claude-fable-5|bash": 11778,
+   "claude-fable-5|nobash": 9088,
+   "claude-opus-5-5|bash": 11781,
+   "claude-opus-5-5|nobash": 9089,
+   "claude-sonnet-5-5|bash": 11694,
+   "claude-sonnet-5-5|nobash": 9000
+  }
+ },
+ "reconcile": {
+  "claude-sonnet-5-5": {
+   "transcript": {
+    "input": 18,
+    "cache_read": 192865,
+    "cache_creation": 43437,
+    "output": 5269
+   },
+   "host_modelUsage": {
+    "input": 18,
+    "cache_read": 192865,
+    "cache_creation": 43437,
+    "output": 5269,
+    "costUSD": 0.2356095
+   },
+   "base_rate_usd_per_mtok": 2.0
+  }
+ },
+ "models_in_host_usage_but_not_in_transcripts": [],
+ "threads": [
+  {
+   "thread": "main",
+   "agent_type": "(main session)",
+   "roles": [
+    "router-main"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 5,
+   "tokens": {
+    "input": 10,
+    "cache_read": 132430,
+    "cache_creation": 23812,
+    "cache_creation_5m": 0,
+    "cache_creation_1h": 23812,
+    "output": 2626
+   },
+   "ctx_first_call": 29185,
+   "ctx_last_call": 34447,
+   "static_tokens": {
+    "host_static": 19140,
+    "plugin_static": 9988,
+    "delegation": 58
+   },
+   "first_user_bytes": 286,
+   "cost_usd": 0.148014,
+   "cost_by_class_usd": {
+    "host_static": 0.051464,
+    "plugin_static": 0.047942,
+    "plugin_load": 0.0,
+    "delegation": 0.00028,
+    "work_input": 0.022068,
+    "output": 0.02626
+   },
+   "tool_calls": {
+    "Bash": 2,
+    "Read": 1,
+    "Agent": 1
+   },
+   "plugin_load_calls": [],
+   "t_start": "2026-10-02T21:08:29.237Z",
+   "t_end": "2026-10-02T21:09:31.870Z",
+   "attribution_degraded": false
+  },
+  {
+   "thread": "agent-a63adc18b06db4e39",
+   "agent_type": "shode-house:solution-architect",
+   "roles": [
+    "architecture"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 4,
+   "tokens": {
+    "input": 8,
+    "cache_read": 60435,
+    "cache_creation": 19625,
+    "cache_creation_5m": 19625,
+    "cache_creation_1h": 0,
+    "output": 2643
+   },
+   "ctx_first_call": 10437,
+   "ctx_last_call": 23780,
+   "static_tokens": {
+    "host_static": 6927,
+    "plugin_static": 3090,
+    "delegation": 420
+   },
+   "first_user_bytes": 1261,
+   "cost_usd": 0.087595,
+   "cost_by_class_usd": {
+    "host_static": 0.011922,
+    "plugin_static": 0.009578,
+    "plugin_load": 0.034029,
+    "delegation": 0.001307,
+    "work_input": 0.00433,
+    "output": 0.02643
+   },
+   "tool_calls": {
+    "Read": 3,
+    "Grep": 2
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/solution-architect.md",
+    "knowledge/skills/discipline/shode-house-discipline/SKILL.md",
+    "knowledge/skills/discipline/shode-house-deliverable/SKILL.md"
+   ],
+   "t_start": "2026-10-02T21:08:58.816Z",
+   "t_end": "2026-10-02T21:09:22.871Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Skill",
+    "Grep",
+    "Glob"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    455,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "d4418a651cc9e11a",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 1261,
+   "subagent_type_requested": "shode-house:solution-architect",
+   "model_override": null,
+   "request_shape": "background",
+   "tool_use_id": "toolu_01LMq71T2kZCwc9kq6DyNapr"
+  }
+ ]
+}

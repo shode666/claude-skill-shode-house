@@ -1,6 +1,6 @@
 {
   "name": "shode-house",
-  "version": "3.17.2",
+  "version": "4.0.0",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"
@@ -8,7 +8,7 @@
   "homepage": "https://github.com/shode666/claude-skill-shode-house",
   "repository": "https://github.com/shode666/claude-skill-shode-house",
   "license": "MIT",
-  "description": "Shode House: full expert team, scoped delivery, independent verification and resumable work.",
+  "description": "Shode House: full expert team on Claude Code; skills-only, single session on Codex, Cursor and Antigravity.",
   "skills": "./skills/",
   "commands": [
     "./commands/ask.md",

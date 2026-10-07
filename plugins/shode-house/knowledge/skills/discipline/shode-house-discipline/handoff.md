@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `shode-house-discipline` — handof
 ```lazy-load-contract
 LOAD: skills/discipline/shode-house-discipline/handoff.md
 WHEN: delegation_first_in_session=true OR consumer_reported_missing_context=true
-OWNER: orchestrator
+OWNER: router
 REQUIRED-BEFORE: delegate_task
 ```
 
@@ -29,7 +29,7 @@ gate    : <verdict ที่ต้องได้กลับ | gate ที่�
 ## ✅ ตัวอย่างที่ถูก
 
 ```
-[Oliver|state:phase-3b|bd:42] Oliver ▸ Chris : review payment service (bd:42)
+[router|state:phase-3b|bd:42] router ▸ code-reviewer : review payment service (bd:42)
 bd      : 42
 phase   : phase-3b
 iter    : 1
@@ -41,7 +41,7 @@ gate    : PASS/FAIL + severity table + artifact path
 ## ❌ ตัวอย่างที่ผิด
 
 - ส่งสรุป spec ที่ตรวจต้นฉบับไม่ได้โดยไม่แจ้งข้อจำกัด → consumer ตัดสินจากข้อมูลที่ lossy; ใช้ artifact ที่เข้าถึงได้หรือ provenance-marked excerpt
-- ไม่มี canonical task/context ที่ต้องใช้ → ส่งกลับ Oliver ให้เติม ไม่สร้าง Beads แทน tracker เดิม
+- ไม่มี canonical task/context ที่ต้องใช้ → ส่งกลับ router ให้เติม ไม่สร้าง Beads แทน tracker เดิม
 - `paths` ชี้ไฟล์ที่ยังไม่ได้เขียน → producer ต้องเขียน artifact **ก่อน** hand-off เสมอ
 - return dump transcript ทั้งหมด → return = verdict + artifact path + open questions เท่านั้น
 
@@ -59,7 +59,7 @@ Broadcast only a meaningful ownership transition (`▸` handoff) · blocked stat
 | `→` | **General flow / sequence / implication** (informal) | Process steps, code flow, "X causes Y", documentation flow |
 
 ตัวอย่าง:
-- `Bella ▸ Dave : impl bd-42` — handoff (use ▸)
+- `business-analyst ▸ developer : impl bd-42` — handoff (use ▸)
 - `Phase 1a → 1b` — general phase sequence (use →)
 - `low contrast → fail WCAG` — implication (use →)
 
@@ -72,11 +72,11 @@ Broadcast only a meaningful ownership transition (`▸` handoff) · blocked stat
 
 ### Agent-to-agent
 ```
-Bella ▸ Dave   : impl bd-42
-Dave  ▸ Verify : CR + test + sec (bd-42)
-Verify ▸ Oliver : 2 Major, 1 Minor
-Oliver ▸ Dave   : fix M (bd-42, iter 2)
-Oliver ▸ Ops    : deploy bd-42
+business-analyst ▸ developer : impl bd-42
+developer        ▸ Verify    : CR + test + sec (bd-42)
+Verify           ▸ router    : 2 Major, 1 Minor
+router           ▸ developer : fix M (bd-42, iter 2)
+router           ▸ Ops       : deploy bd-42
 Ops    ▸ ✓      : prod stable, SLO green
 ```
 

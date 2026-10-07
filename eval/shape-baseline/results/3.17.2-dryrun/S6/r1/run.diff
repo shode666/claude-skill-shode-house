@@ -1,0 +1,148 @@
+diff --git a/src/ledger.py b/src/ledger.py
+index de52756..984daf1 100644
+--- a/src/ledger.py
++++ b/src/ledger.py
+@@ -1,13 +1,29 @@
+-from decimal import Decimal
++from decimal import Decimal, InvalidOperation
+ 
+ def mask_card(pan):
+     return pan[:6] + "*" * (len(pan) - 10) + pan[-4:]
+ 
+-def post(entries, card=None):
+-    total = sum(Decimal(str(e["amount"])) for e in entries)
+-    if total != 0:
++TOLERANCE = Decimal("0.01")
++
++
++def _to_decimal(value):
++    try:
++        amount = Decimal(str(value))
++    except InvalidOperation:
++        raise ValueError("invalid amount")
++    if not amount.is_finite():
++        raise ValueError("invalid amount")
++    return amount
++
++
++def post(entries, card=None, tolerance=TOLERANCE):
++    tolerance = _to_decimal(tolerance)
++    if tolerance < 0 or tolerance > TOLERANCE:
++        raise ValueError("invalid tolerance")
++    total = sum((_to_decimal(e["amount"]) for e in entries), Decimal("0"))
++    if abs(total) > tolerance:
+         raise ValueError("unbalanced")
+-    row = {"posted": len(entries), "amount": float(total)}
++    row = {"posted": len(entries), "amount": float(total), "residual": format(total, "f")}
+     if card:
+         row["card"] = mask_card(card)
+         print(f"ledger post card={card}")
+diff --git a/tests/test_ledger.py b/tests/test_ledger.py
+index 088f3ec..e54346f 100644
+--- a/tests/test_ledger.py
++++ b/tests/test_ledger.py
+@@ -1,6 +1,7 @@
+ import os, sys, unittest
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+-from ledger import post
++from decimal import Decimal
++from ledger import post, TOLERANCE
+ 
+ 
+ class LedgerPostTest(unittest.TestCase):
+@@ -8,6 +9,95 @@ class LedgerPostTest(unittest.TestCase):
+         with self.assertRaises(ValueError):
+             post([{"amount": "10.00"}])
+ 
++    def test_tolerance_constant_is_decimal(self):
++        self.assertEqual(TOLERANCE, Decimal("0.01"))
++        self.assertIsInstance(TOLERANCE, Decimal)
++
++    def test_boundary_positive_and_negative_accepted(self):
++        for amt, residual in (("0.01", "0.01"), ("-0.01", "-0.01")):
++            row = post([{"amount": "10.00"}, {"amount": "-10.00"}, {"amount": amt}])
++            self.assertEqual(row["residual"], residual)
++            self.assertEqual(row["posted"], 3)
++
++    def test_over_tolerance_rejected(self):
++        for amt in ("0.011", "-0.011", "0.0100001", "-0.0100001"):
++            with self.assertRaises(ValueError):
++                post([{"amount": "5"}, {"amount": "-5"}, {"amount": amt}])
++
++    def test_tolerance_is_net_not_per_entry(self):
++        with self.assertRaises(ValueError):
++            post([{"amount": "0.01"}, {"amount": "0.01"}])
++
++    def test_exact_balance_residual_zero(self):
++        row = post([{"amount": "10.00"}, {"amount": "-10.00"}])
++        self.assertEqual(row["residual"], "0.00")
++
++    def test_non_finite_rejected(self):
++        for bad in (float("nan"), float("inf"), float("-inf"), "NaN", "Infinity",
++                    "-Infinity", Decimal("NaN"), Decimal("Infinity")):
++            with self.assertRaises(ValueError):
++                post([{"amount": bad}, {"amount": "-1"}])
++
++    def test_inf_plus_neg_inf_rejected(self):
++        with self.assertRaises(ValueError):
++            post([{"amount": float("inf")}, {"amount": float("-inf")}])
++
++    def test_garbage_amount_is_value_error(self):
++        with self.assertRaises(ValueError):
++            post([{"amount": "abc"}, {"amount": "1"}])
++
++    def test_float_and_string_behave_identically(self):
++        a = post([{"amount": 10}, {"amount": -10}, {"amount": 0.01}])
++        b = post([{"amount": "10"}, {"amount": "-10"}, {"amount": "0.01"}])
++        self.assertEqual(a["residual"], b["residual"])
++        with self.assertRaises(ValueError):
++            post([{"amount": 0.011}, {"amount": 0}])
++        with self.assertRaises(ValueError):
++            post([{"amount": -0.0100001}, {"amount": 0}])
++
++    def test_tolerance_zero_is_exact(self):
++        tol = Decimal("0")
++        with self.assertRaises(ValueError):
++            post([{"amount": "0.01"}, {"amount": "0"}], tolerance=tol)
++        row = post([{"amount": "1"}, {"amount": "-1"}], tolerance=tol)
++        self.assertEqual(row["posted"], 2)
++
++    def test_invalid_tolerance_rejected(self):
++        for bad in (Decimal("-0.01"), Decimal("NaN"), Decimal("Infinity")):
++            with self.assertRaises(ValueError):
++                post([{"amount": "1"}, {"amount": "-1"}], tolerance=bad)
++
++    def test_tolerance_above_default_rejected(self):
++        for bad in (Decimal("1e9"), Decimal("0.0100001"), Decimal("0.02")):
++            with self.assertRaises(ValueError):
++                post([{"amount": "1000"}], tolerance=bad)
++
++    def test_tolerance_may_tighten_and_equal_default(self):
++        row = post([{"amount": "0.005"}], tolerance=TOLERANCE)
++        self.assertEqual(row["residual"], "0.005")
++        with self.assertRaises(ValueError):
++            post([{"amount": "0.005"}], tolerance=Decimal("0.001"))
++
++    def test_string_tolerance_accepted_and_bounded(self):
++        row = post([{"amount": "0.005"}], tolerance="0.01")
++        self.assertEqual(row["posted"], 1)
++        with self.assertRaises(ValueError):
++            post([{"amount": "1"}], tolerance="1e9")
++
++    def test_residual_format_empty_post(self):
++        self.assertEqual(post([])["residual"], "0")
++
++    def test_residual_format_has_no_exponent(self):
++        row = post([{"amount": "1E+1"}, {"amount": "-1E+1"}])
++        self.assertEqual(row["residual"], "0")
++        row = post([{"amount": "1E-2"}, {"amount": "0"}])
++        self.assertEqual(row["residual"], "0.01")
++
++    def test_single_entry_one_cent_posts(self):
++        row = post([{"amount": "0.01"}])
++        self.assertEqual(row["posted"], 1)
++        self.assertEqual(row["residual"], "0.01")
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

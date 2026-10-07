@@ -5,7 +5,7 @@
 # Extracted from THREE byte-near-identical copies (scripts/side-effect.sh,
 # scripts/workflow-state.sh, scripts/scope-check.sh) after the SAME bootstrap race was
 # independently measured in all three (10/20, 7/20, 4-7-3-of-40 lost writes -- see
-# tests/test-reliability.sh / tests/test-scope-check.sh for the reproductions). Root
+# the maintainer suites test-reliability.sh / test-scope-check.sh for the reproductions). Root
 # cause was never `mkdir` -- mkdir is genuinely atomic on POSIX. Every one of the three
 # copies tried to be clever about a *held* lock: it read the recorded pid/ts, GUESSED
 # the holder had died, and reclaimed the lock on that guess. Three successive fixes
@@ -280,7 +280,7 @@ _lock_log() { printf 'lock.sh: %s\n' "$*" >&2; }
 # no forked subprocess (no `ls`/`stat`/`dirname`/`basename`). This is a genuinely hot
 # path: _lock_read and _lock_classify_holder call it on every metadata read, including
 # inside _lock_classify_holder's settle-wait retry loop, across every concurrent
-# acquire/recover in this file's own stress suites (tests/test-lock.sh's N=15/N=5x8/N=15
+# acquire/recover in this file's own stress suites (maintainer suite test-lock.sh's N=15/N=5x8/N=15
 # trials). An earlier version of this probe shelled out to `ls -ld` per call and was
 # observed to flake THAT suite under concurrent load purely from fork/exec pressure
 # (transient errors unrelated to any real permission problem) -- unacceptable for a
@@ -964,7 +964,7 @@ _lock_recover_marker_settle() {
   # 3 (3x the measured need, ceiling ~1.4s), not the 10 an earlier draft carried on
   # taste. The default is deliberately small: a cap that is never exercised is untested
   # headroom, and the loop's own multi-iteration behaviour is covered deterministically
-  # in tests/test-lock.sh with a stubbed classifier instead.
+  # in the maintainer suite test-lock.sh with a stubbed classifier instead.
   # GUARD: a non-numeric or out-of-range override must never become an unbounded (or
   # absurdly long) wait -- anything that is not all digits falls back to the default,
   # and the value is clamped to LOCK_RECOVER_MARKER_SETTLE_MAX (20 iterations, ~9s).
@@ -1023,7 +1023,7 @@ lock_recover() {
     # microseconds ago and is writing its pid right now" apart from "a recovery died
     # between mkdir and its pid write". Before that ambiguity is allowed to become the
     # non-retryable RECOVERY_REQUIRED (a *false* "stuck marker" claim about a live
-    # recovery -- measured red in 3 of 5 two-core runs of tests/test-lock.sh's
+    # recovery -- measured red in 3 of 5 two-core runs of the maintainer suite test-lock.sh's
     # `RACE recover||recover` case), re-observe the marker, bounded, and act only on
     # positive evidence. See _lock_recover_marker_settle's own header.
     #   * ONLY the UNKNOWN classification enters this. DEAD and AMBIGUOUS do not: the

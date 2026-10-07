@@ -1,0 +1,99 @@
+diff --git a/outputs/SPEC-bd-105.md b/outputs/SPEC-bd-105.md
+index c6e1b4f..11d190f 100644
+--- a/outputs/SPEC-bd-105.md
++++ b/outputs/SPEC-bd-105.md
+@@ -1,10 +1,93 @@
+ # SPEC bd-105 — password reset by e-mail OTP
+ 
++**Current revision: r2 (phase 1c, iter 1)** — status: DRAFT, pending user sign-off on the items in "Pending sign-off" below.
++
++## Revision history
++
++| Rev | Date | Author | Change | Status |
++|-----|------|--------|--------|--------|
++| r1 | (phase 1a) | Bella | AC-1..AC-4 as originally written | APPROVED (phase-1a sign-off, `outputs/bd-105/00-run-stamp.md`) |
++| r2 | 2026-10-03 | Bella (merging Sentinel `outputs/bd-105/02-security-engineer-phase-1c.md`) | Added AC-S1..AC-S15 (security AC). AC-1..AC-3 text unchanged. AC-4 text unchanged but its interpretation is CHANGED/pinned (see "CHANGE to approved AC-4"). | NOT APPROVED. AC-S* are proposed by Sentinel; the AC-4 change needs user sign-off. |
++
++Change note: `outputs/bd-105/04-business-analyst-phase-1c.md`.
++
+ ## Scope
+ ผู้ใช้ที่ลืมรหัสผ่านขอ OTP 6 หลักทาง e-mail แล้วตั้งรหัสผ่านใหม่
+ 
+-## Acceptance criteria
++## Acceptance criteria — approved (r1, text unchanged)
+ - AC-1 `POST /password-reset/request {email}` ตอบ `202` เสมอ (ไม่บอกว่ามี account หรือไม่)
+ - AC-2 OTP อายุ 10 นาที ใช้ได้ครั้งเดียว
+ - AC-3 `POST /password-reset/confirm {email, otp, new_password}` สำเร็จ → session เดิมทั้งหมดถูกยกเลิก
+ - AC-4 ผิด 5 ครั้ง → lock 15 นาที
++  **[CHANGE PROPOSED in r2 — see below. This original wording remains the only approved text until the user signs off. Do not treat the pinned interpretation as approved.]**
++
++## CHANGE to approved AC-4 — NEEDS USER SIGN-OFF (not approved)
++
++Why: AC-4 as approved is ambiguous on four points: (a) what is locked (reset flow only, or the account/login too), (b) what happens to the current OTP, (c) per whom the count is keyed (e-mail, IP, both), (d) what the locked response reveals. Sentinel (threat T1, T4) found that the readings differ materially: a lock that also blocks login lets an anonymous attacker deny service to a victim with 5 wrong guesses every 15 minutes.
++
++Proposed interpretation (Sentinel AC-S4 + AC-S5), to replace the open reading of AC-4 if approved:
++1. Scope: the lock applies to the reset-confirm flow (`/password-reset/confirm`) for that e-mail only. It never blocks normal login.
++2. Effect on OTP: on the 5th failed confirm, the current OTP is invalidated (not only locked). After the lock the user must request a new OTP.
++3. Keying: the per-e-mail lock is independent of a per-IP cap on `/confirm` (AC-S5).
++4. Lock response is identical for existing and non-existing accounts.
++
++Behaviour differences versus a plain reading of the approved text:
++- Plain reading: "5 wrong → locked 15 min", OTP possibly still valid after the lock. Proposed: OTP is dead after 5 wrong attempts.
++- Plain reading does not say login is unaffected. Proposed: login is explicitly unaffected.
++- New constraint not present in AC-4: per-IP cap (AC-S5).
++
++Sign-off needed from: user (product owner). Status: **PENDING — NOT APPROVED**.
++
++Inconsistency to confirm with Sentinel (not decided here): threat T4 suggests keying the lock on the (email, IP) pair with a separate global per-e-mail ceiling, while AC-S4 says per e-mail. This record carries AC-S4's wording.
++
++## Security acceptance criteria — added in r2 (source: Sentinel, phase 1c iter 1)
++
++All AC-S* are **PROPOSED, not yet approved by the user**. "Verification owner" is exactly as Sentinel gave it. Implementation owner: Dave.
++
++| ID | Requirement | Relates to | Verification owner (as given by Sentinel) |
++|----|-------------|-----------|-------------------------------------------|
++| AC-S1 | OTP generated with CSPRNG (`secrets` module), uniform over 000000–999999, zero-padded 6 chars. No use of `random`. | AC-2 | Chris: code cite; Semgrep rule banning `random` in auth path |
++| AC-S2 | At most one active OTP per e-mail; issuing a new one invalidates the previous. Consume is atomic: exactly one of N concurrent `/confirm` calls with the same OTP succeeds. | AC-2 | Quinn: concurrency test (2+ parallel confirms → 1x success, rest 4xx) |
++| AC-S3 | OTP verification uses constant-time comparison (`hmac.compare_digest`) against stored hash. | AC-4 | Chris: code cite |
++| AC-S4 | AC-4 lock: ≥5 failed confirms per e-mail → that e-mail's reset-confirm locked 15 min AND current OTP invalidated. Lock never blocks normal login. Identical lock response for existing/non-existing accounts. | AC-4 (**CHANGE**) | Quinn: tests — 6th attempt rejected even with correct OTP; login still works while locked |
++| AC-S5 | Per-IP limit on `/confirm` (e.g. ≤15 attempts / 15 min / IP) independent of per-e-mail lock; global per-e-mail attempt ceiling monitored/alerted. | AC-4 (**CHANGE**) | Quinn: rate-limit integration test |
++| AC-S6 | OTP TTL exactly 10 min server-side (AC-2); expired OTP rejected with same response as wrong OTP. | AC-2 | Quinn: time-travel/clock-injection test |
++| AC-S7 | `/request` returns identical status (202), identical body, and statistically indistinguishable timing for existing vs non-existing e-mails; e-mail send is async (off request path); validator errors on unknown users never surface as non-202. | AC-1 | Quinn: timing test (100 samples each, median delta < agreed threshold, threshold open Q5); body byte-equality test |
++| AC-S8 | OTP stored only as (peppered) HMAC-SHA-256 or SHA-256 hash; plaintext OTP never persisted; no MD5/SHA-1. | AC-2 | Chris: code cite; Quinn: datastore inspection in integration test |
++| AC-S9 | `/request` issuance limits: ≤3 e-mails / e-mail / 15 min and daily cap; per-IP cap; throttled response indistinguishable re account existence. | AC-1 | Quinn: flood test |
++| AC-S10 | Successful `/confirm` revokes ALL sessions + refresh tokens of the account server-side; a pre-reset session token must fail auth (401) afterwards; outstanding OTPs invalidated. | AC-3 | Quinn: E2E — login on device A, reset via device B, device A's token rejected |
++| AC-S11 | Production SMTP uses TLS + authentication (not plaintext `localhost` smtplib as in src/notification.py:10, dev-only); OTP e-mail contains code + expiry + "ignore if not requested"; no clickable URL embedding email+otp. | AC-1, AC-2 | Chris: config cite; Aaron: env config review |
++| AC-S12 | No OTP, password, or raw e-mail body in any log at any level; e-mail addresses masked in app logs; the `print` at src/notification.py:14 is not reused as-is. | all | Chris: code review; Quinn: log-capture assertion in tests; gitleaks/Semgrep log-sink rule |
++| AC-S13 | `new_password`: length ≥12, ≤64+ accepted without truncation, checked against breached-password list, stored with modern KDF (argon2id/bcrypt per Q4). | AC-3 | Quinn: boundary tests; Chris: KDF cite |
++| AC-S14 | Audit events (no secrets) for: otp-issued, confirm-success, confirm-fail, lock, sessions-revoked; "password changed" notification e-mail on success. | AC-3, AC-4 | Quinn: event assertions |
++| AC-S15 | Lock/attempt counters live in shared store with TTL, surviving process restart and shared across replicas (or single-instance constraint documented in ADR). | AC-4 | Quinn: restart test or Sara ADR cite |
++
++Other points where an AC-S narrows or touches approved wording (flagged, not decided):
++- AC-S7 says validator errors on unknown users never surface as non-202, and the threat model also suggests rejecting syntactically invalid e-mails identically for all. AC-1 says "202 always". Whether a malformed e-mail may get a 4xx needs user confirmation.
++- AC-S9 allows either 202 or an identical 429 when throttled (threat model T7). AC-1 says 202 always. Which to use is open.
++- AC-S10 extends AC-3 "all sessions" to refresh tokens and API/remember-me tokens. Treated as a clarification of AC-3; confirm with the user.
++- Numeric parameters given as examples ("e.g." ≤15/IP, ≤3 e-mails/15 min, daily cap value unspecified) are not final values. The daily cap has no number yet.
++
++## Pending sign-off (summary)
++1. User: change to AC-4 (AC-S4/AC-S5 interpretation).
++2. User: adoption of AC-S1..AC-S15 into the acceptance set.
++3. User: the AC-1 interplay points above.
++
++Until these are signed off, only AC-1..AC-4 (original text) are approved.
++
++## Open questions (not decided by Bella)
++
++Numbering follows Sentinel's Q list.
++
++| ID | Question | Who answers | Note |
++|----|----------|-------------|------|
++| Q3 | Is e-mail the accepted recovery channel of record (vs SMS/TOTP)? Residual risk T9 (OTP interception) is accepted only with explicit business sign-off. | User / business owner | BUSINESS decision — open, not decided here |
++| Q6 | Regulation scope: PDPA/GDPR applicability for e-mail PII and audit retention (affects AC-S12, AC-S14). | User / business owner (Felix if TH banking context) | BUSINESS/legal decision — open, not decided here |
++| Q1 | Confirm derived trust boundaries and where OTP/counters/sessions are stored. Blocks STRIDE sign-off. | Sara via Oliver | Technical |
++| Q2 | Is deployment multi-replica? Decides shape of AC-S15. | User / Sara | Technical/ops |
++| Q4 | Existing password hashing scheme (not found in src/). AC-S13 must match or upgrade. | Sara / Dave | Technical |
++| Q5 | Timing-indistinguishability threshold for AC-S7 (Sentinel proposal: median delta < 50 ms over 100 samples; needs Quinn agreement). | Quinn / Sentinel | Test parameter |
++| Q7 | Adopted OWASP ASVS version/level (Sentinel proposal: 4.0.3 L2). | Sentinel / Oliver | Verification mapping |
++
++## Traceability note
++Each AC-S links to an approved AC (column "Relates to"); no orphan requirement. AC-S12 applies across all.

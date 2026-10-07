@@ -274,11 +274,21 @@ class ScenarioDataTest(unittest.TestCase):
         trc = importlib.import_module("team-run-check")
         ids = [s["id"] for s in NEW]
         self.assertEqual(len(ids), len(set(ids)))
+        # E01 is scored from the checkout's core set (eval/core-set.sh, the selector the runners use): at 4.x that is
+        # core-4.0's E01, whose must_not_dispatch drops the retired `orchestrator` type; golden.json stays frozen
+        sel = dict(l.split("=", 1) for l in subprocess.run(["bash", str(ROOT / "eval/core-set.sh"), str(ROOT)],
+                   capture_output=True, text=True, check=True).stdout.splitlines())
+        e01 = next(s for s in json.loads(Path(sel["CORE_E01"]).read_text(encoding="utf-8"))["scenarios"] if s["id"] == "E01")
+        scenarios = [e01 if s["id"] == "E01" else s for s in NEW]
+        self.assertEqual(ids, [s["id"] for s in scenarios])
         self.assertTrue({"E01"} | {f"P{n:02d}" for n in range(1, 16)} <= set(ids))
         skills = {p.parent.name for p in ROOT.glob("skills/*/*/SKILL.md")}
         agents = {p.stem for p in ROOT.glob("agents/*.md")}
+        sys.path.insert(0, str(ROOT / "tests"))
+        from test_team_package import RETIRED
+        retired = {Path(k).stem for k in RETIRED if k.startswith("agents/")}
         workflow_ops_ui = {p.parent.name for g in ("workflow", "ops", "ui") for p in ROOT.glob(f"skills/{g}/*/SKILL.md")}
-        for s in NEW:
+        for s in scenarios:
             self.assertFalse(set(s["expected"]) - trc.EXPECTED_FIELDS, s["id"])
             self.assertIn("## Prompt", (ROOT / s["prompt"]).read_text(encoding="utf-8"), s["id"])
             for name in s["expected"].get("skills", []) + s["expected"].get("must_not_load", []):
@@ -309,7 +319,10 @@ class ScenarioDataTest(unittest.TestCase):
             for name in s["expected"].get("agents", []) + [r[6:] for r in routes if r.startswith("agent:")]:
                 self.assertIn(name, agents, f'{s["id"]}: unknown agent {name}')
             for glob in s["expected"].get("must_not_dispatch", []):
-                self.assertTrue(any(__import__("fnmatch").fnmatchcase(a, glob) for a in agents), f'{s["id"]}: {glob}')
+                # a retired agent type (tests/test_team_package.py RETIRED, e.g. `orchestrator` at 4.0.0) stays a valid
+                # must-not-dispatch name in the frozen 3.17 probe files: it names a type, not a typo
+                self.assertTrue(any(__import__("fnmatch").fnmatchcase(a, glob) for a in agents) or glob in retired,
+                                f'{s["id"]}: {glob}')
 
 
 if __name__ == "__main__":

@@ -25,6 +25,19 @@
 #                                             machine-checkable half of "agent output
 #                                             cannot elevate the trust of its source"
 #
+# claim_trust path classes (F-13, W8): every class in trust-levels.json names its root.
+#   root "plugin"  -- the shipped directories (agents/ skills/ output-styles/ references/
+#                     scripts/ hooks/). Matched against the path relative to the PLUGIN
+#                     root, taken from CLAUDE_PLUGIN_ROOT and resolved physically. The same
+#                     relative path under the project root is NOT in the class. An unset,
+#                     empty, relative or nonexistent CLAUDE_PLUGIN_ROOT puts no path in a
+#                     plugin class (it falls to the default, `untrusted`); there is never a
+#                     fallback to $PWD or to the project root.
+#   root "project" -- matched against the path relative to the project root (ROOT).
+#   A class without a valid root is a corrupt registry (exit 64), never a default.
+# The path is lexically normalised (no `..` escape) and its existing ancestors resolved
+# physically; a symlink leaf is in no class at all (default `untrusted`).
+#
 # exit codes (distinct on purpose -- the brief asks for allow / deny / unknown-agent as
 # different signals a caller can branch on, same philosophy as scope-check.sh):
 #   0   ALLOW
@@ -87,7 +100,7 @@ profile_flag() {
 require_known_agent() {
   local agent="$1"
   if ! jq -e --arg a "$agent" '.profiles | has($a)' "$PROFILES" >/dev/null; then
-    unknown "agent \"$agent\" is not in references/security/tool-profiles.json -- not one of the 19 registered agents (typo? new agent not yet profiled?)"
+    unknown "agent \"$agent\" is not in references/security/tool-profiles.json -- not one of the 18 registered agents (typo? new agent not yet profiled? retired, like orchestrator?)"
   fi
 }
 
@@ -129,7 +142,7 @@ check_spawn() {
   case "$cs" in
     '*')   allow "\"$agent\" can_spawn \"*\" (delegation.json -- backed by the Task tool grant in its frontmatter)" ;;
     null)  deny  "\"$agent\" has no delegation entry -- deny-by-default, no spawn rights" ;;
-    "")    deny  "\"$agent\" can_spawn [] -- no Task tool in its frontmatter; only the orchestrator delegates (anti recursive fan-out, ROADMAP SS 11.3)" ;;
+    "")    deny  "\"$agent\" can_spawn [] -- no Task tool in its frontmatter; only the main session (the router output style, not a registered agent) delegates (anti recursive fan-out, ROADMAP SS 11.3)" ;;
     *)
       case ",$cs," in
         *",$target,"*) allow "\"$agent\" can_spawn explicitly lists \"$target\" (delegation.json)" ;;
@@ -137,6 +150,50 @@ check_spawn() {
       esac
       ;;
   esac
+}
+
+# lexnorm <abs-path> -- resolve `.`/`..`/empty segments lexically (same technique as
+# hooks/scripts/guard-scope-write.sh), so a `..` can never walk a path out of a class.
+lexnorm() {
+  local p="$1" seg out="" oldifs="$IFS" had_noglob=0
+  case $- in *f*) had_noglob=1 ;; esac
+  IFS=/
+  set -f
+  # shellcheck disable=SC2086
+  set -- $p
+  [ "$had_noglob" -eq 1 ] || set +f   # restore the caller's globbing state (Chris W8 S3)
+  IFS="$oldifs"
+  for seg in "$@"; do
+    case "$seg" in
+      ""|".") continue ;;
+      "..") out="${out%/*}" ;;
+      *)     out="$out/$seg" ;;
+    esac
+  done
+  if [ -n "$out" ]; then printf '%s' "$out"; else printf '/'; fi
+}
+
+# physical_path <normalised-abs-path> -- resolve the longest existing ancestor with
+# `pwd -P` (follows symlinked ancestors, never the leaf) and re-append the rest.
+physical_path() {
+  local abs="$1" dir rest depth=0 real_dir
+  dir=$(dirname "$abs"); rest=$(basename "$abs")
+  while [ ! -d "$dir" ] && [ "$dir" != "/" ] && [ "$depth" -lt 64 ]; do
+    rest="$(basename "$dir")/$rest"
+    dir=$(dirname "$dir")
+    depth=$((depth + 1))
+  done
+  real_dir=$(cd "$dir" 2>/dev/null && pwd -P) || real_dir="$dir"
+  printf '%s/%s' "${real_dir%/}" "$rest"
+}
+
+# plugin_root_physical -- the physical plugin root, or return 1 when CLAUDE_PLUGIN_ROOT is
+# unset, empty, relative or not a directory (F-13 V5: no fallback of any kind).
+plugin_root_physical() {
+  local raw
+  raw=$(printenv CLAUDE_PLUGIN_ROOT 2>/dev/null) || return 1
+  case "$raw" in /*) : ;; *) return 1 ;; esac
+  (cd "$raw" 2>/dev/null && pwd -P) || return 1
 }
 
 check_claim_trust() {
@@ -153,25 +210,50 @@ check_claim_trust() {
     unknown "trust level \"$level\" is not one of $(jq -r '.levels | keys_unsorted | join("/")' "$TRUST") (trust-levels.json)"
   fi
 
-  # normalize: strip engagement-root prefix + leading ./ so class patterns (repo-relative)
-  # match paths given either way
-  local rel="$path"
-  case "$rel" in "$ROOT"/*) rel="${rel#"$ROOT"/}" ;; esac
-  case "$rel" in ./*) rel="${rel#./}" ;; esac
+  # F-13: one absolute, lexically normalised, physically resolved path; then its place
+  # relative to the plugin root and to the project root (see the header).
+  local abs phys prel="" rel="" proot groot is_link=0
+  case "$path" in
+    /*) abs="$path" ;;
+    *)  abs="$ROOT/$path" ;;
+  esac
+  abs=$(lexnorm "$abs")
+  [ -L "$abs" ] && is_link=1
+  phys=$(physical_path "$abs")
+  if [ "$is_link" -eq 0 ]; then
+    if proot=$(plugin_root_physical); then
+      case "$phys" in "$proot"/*) prel="${phys#"$proot"/}" ;; esac
+    fi
+    groot=$(cd "$ROOT" 2>/dev/null && pwd -P) || groot="$ROOT"
+    case "$phys" in "$groot"/*) rel="${phys#"$groot"/}" ;; esac
+  fi
+  local shown="${prel:-${rel:-$path}}"
+
+  # A class without a valid root is a corrupt registry. Checked for EVERY class before the
+  # loop, so the answer never depends on whether an earlier class matched first (Chris W8 F2).
+  jq -e '(.path_classes | type == "array") and all(.path_classes[]; .root == "plugin" or .root == "project")' "$TRUST" >/dev/null 2>&1 \
+    || die "trust-levels.json has a path class without a valid root (plugin|project) -- corrupt registry, refusing to guess"
 
   # first matching path class wins; unclassified content defaults to `untrusted`
   # (SS 11.2: README/issue/web/source comment/log/fixture in a target repo = untrusted)
-  local class="" pat tr
-  while IFS=$'\t' read -r pat tr; do
+  local class="" pat tr root cand
+  while IFS=$'\t' read -r pat tr root; do
     [ -z "$pat" ] && continue
+    case "$root" in
+      plugin)  cand="$prel" ;;
+      project) cand="$rel" ;;
+      *)       die "trust-levels.json path class \"$pat\" has no valid root (plugin|project) -- corrupt registry, refusing to guess" ;;
+    esac
+    [ -n "$cand" ] || continue
     # unquoted $pat is the point: registry patterns are shell case-globs, same
     # dialect as scope-check.sh path_matches
     # shellcheck disable=SC2254
-    case "$rel" in
+    case "$cand" in
       $pat) class="$tr"; break ;;
     esac
-  done < <(jq -r '.path_classes[] | [.pattern, .trust] | @tsv' "$TRUST")
+  done < <(jq -r '.path_classes[] | [.pattern, .trust, (.root // "")] | @tsv' "$TRUST")
   [ -n "$class" ] || class=$(jq -r '.default_class' "$TRUST")
+  rel="$shown"
 
   local crank
   crank=$(jq -r --arg l "$class" '.levels[$l] // "null"' "$TRUST")

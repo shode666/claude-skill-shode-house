@@ -5,6 +5,39 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ## [Unreleased]
 
+## [4.0.0] — unreleased (switch commit; release pending the review pack, the Cowork manual test (U7), the W11 live eval and the user's release decision)
+
+### Changed — the router is an output style; 18 agents; agent ids
+
+- **The main session is the router.** `output-styles/shode-house.md` (forced by the plugin, `force-for-plugin: true`) routes, gates, relays and closes; it never edits code or config, runs checks or issues a verdict. It replaces the 3.x `orchestrator` agent and the `oliver` style, both **deleted** (no stub; `tests/test_team_package.py` RETIRED, `tests/test-permission-check.sh` asserts no retired agent file). Spawns are `shode-house:<id>` only; skill loads are `shode-house:<skill>` (A8).
+- **18 agents, named by agent id.** Persona names are replaced by agent ids in shipped text (3.x name → id table: `skills/discipline/shode-house-routing/ownership.md` § Formerly). Model tiers are unchanged.
+- **One safety floor.** `.safety-floor/body.md` (1,852 B) is copied byte-identical into every agent body and `.safety-floor/style.md` (1,615 B) into the router style (`scripts/floor.py --check --require`, marker = first non-blank line after the frontmatter). R0, redaction, input trust and no-skip-security moved out of `shode-house-discipline` into the floor. **Stricter:** the floor has no local/disposable carve-out — every listed R0 action needs the user's confirmation of that exact action, quoted in the router's headed delegation, even on a target evidenced as local (decision R29). A worker without the router header (`router: shode-house@<version> task:… phase:… iter:…`) writes nothing outside the evidence home and returns `BLOCKED: unrouted`.
+- **`ux-ui-designer` has no Bash.** Design scripts run as a request file that the router turns into an order for a separately dispatched executor running `references/design-intel/scripts/design_run.py` (contract `RUNNER_VERSION` **2.0.0**: MAJOR because the user-confirmed preview-origin order keys were removed, R69; design runs target loopback origins only). The 1b/3a runbooks are renamed `ux-ui-designer-phase-1b.md` / `-3a.md` and rewritten to the request format; `oliver-engagement.md` / `oliver-clarify-estimate.md` became `router-engagement.md` / `router-clarify-estimate.md`.
+- **Style-less sessions fail closed.** `/consult`, `/design-system`, `/implement` and `/review` report `BLOCKED: team execution needs the router style (Claude Code)` when the router style is not active (the same literal as the `ask` skill), instead of reading the style file to act as the router (R60, R73).
+- **Review: the spec axis is always dispatched.** No spec → `BLOCKED: no-spec`, never a SKIP or a silent pass (R57/R62); `review-checklist`, `spec-axis.md`, `intake.md` and `harness.md` aligned.
+- **Map mode.** The PM Map-mode entry criteria moved verbatim into `skills/discipline/shode-house-workflow/wayfinding.md` beside "No fog" (R72).
+- **Closing a task is the router's.** Shipped text that read as a worker closing a task now names the router as the closer (Sentinel A16(b) table: TP #31 #37 #45 and ten reword-before-pin units); scope approval never covers an R0 action.
+- **Generated tree** (`plugins/shode-house`): verbatim sources with plugin-root and relative references re-pointed to `knowledge/`, plus a resolution footer (no thin adapters).
+
+### Added — gates
+
+- **CI #27 (v4 gates), required from 4.0.0:** A1 per-type tools pin, A8 namespaced skill names and spawn forms, A2 safety floor, A16(a) plugin-root fallback ban, A16(b) outside-the-floor relaxation lint (every finding pinned by sha after security review; 49 units), A15 design-runner suite, the W9 v4-security scorer and shadow-floor suites + the core-4.0 freeze, `test_floor`, `test_ci_wiring`, `test_ux_design_runbooks` (loopback-only ux runbooks), `test_eval_runners`. Wired in 3.17.x as advisory; the version bump makes them required. CI installs pytest from the hash-pinned `.github/requirements-ci.txt` with a read-only token.
+- **A16(a) and A16(b) are static heuristics, a best-effort tripwire, never a guarantee** (decisions R84, R87): held-out recall of A16(b) was about 15 % (12/80) before the FU-7 word classes; further misses are recorded known limits. The primary controls are the runtime floor line and security-axis review of every shipped-text change.
+- CI #21 root-only floor 123 → 190; `eval/core-set.sh` selects `core-4.0` for a 4.x checkout (core-3.17 stays frozen).
+
+### Security notes (hooks; Claude Code `.plugin` distribution only — the marketplace tree ships no hooks)
+
+- Hooks are a control only where hooks execute; `disableAllHooks`, control of the hook's environment before its first command (PATH-chosen bash/jq/python3, `BASH_ENV`, `SHELLOPTS` with `noexec` or `onecmd`, `SHELLOPTS` with `xtrace` and a `PS4` that runs a command substitution or assigns a variable the scripts do not reset, exported functions, `DYLD_*`/`LD_PRELOAD`; `BASHOPTS` is listed with them) and a crashing hook are equivalent full bypasses; see README § Security notes. Both write guards and `scripts/scope-check.sh` turn `errexit`, `keyword`, `noglob` and `xtrace` off on their first command, and at their start clear `HOME`, `FUNCNEST`, `TMOUT`, `GLOBIGNORE`, `EXECIGNORE`, `CDPATH`, `POSIXLY_CORRECT` and `BASH_COMPAT` and reset `IFS` (the state guard does this before its jq check). Writes into `.git`, `.git/**` and pointed git dirs are denied where hooks run; for protection wherever Claude Code enforces permissions, add the five `permissions.deny` forms in README (`Edit(/.git)`, `Edit(/.git/**)`, `Edit(**/.git)`, `Edit(**/.git/**)`, `Edit(//<common git dir>/**)`; the two single-file forms are inferred from the documented gitignore semantics, and the hooks deny those files regardless).
+- **Design runs: post-run detection is best-effort.** A payload that runs during a design run and then erases its own trace may go undetected; while a design run is running the router dispatches no other writer. This is a risk the user accepted for 4.0.0 (decision U3), not a security certification; a private-snapshot run is planned after 4.0.0.
+
+### Known limitations
+
+- **Team execution is Claude Code only** (decision R37): on Codex, Cursor and Antigravity skills run in one session, agent spawns return `BLOCKED: unrouted`, and the host's approval/sandbox is the only enforced R0 control there.
+- The amended base-directory floor line (F-8c) is **not** in the 4.0.0 floor (its full P2 re-run, shode-house-v7u.14, is open).
+- No G9 R0 number is published (R80/R81); published W9 counts are lower bounds.
+- No 4.0.0 live eval yet (W11 pending); Cowork drag-drop of the 4.0.0 artifact is a manual release blocker (U7).
+- **The router's never-edit rule and the worker router-header rule are prompt rules, not mechanically enforced** (accepted risk, decision 29 / F16): the main session keeps all its tools, and the header check is a floor instruction, not a host control; only the per-agent `tools:` lists are host-enforced. A main-thread router without Edit/Write/Bash is probed before 4.1.
+
 ## [3.17.2] — 2026-09-29
 
 ### Changed

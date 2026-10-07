@@ -1,7 +1,7 @@
 {
   "name": "shode-house",
-  "version": "3.17.2",
-  "description": "Multi-agent software house team v3.17.2: 19 agents + 20 skills (ask = entry). Full knowledge preserved; instruction-only runtime for Claude Code, Codex, Cursor and Antigravity.",
+  "version": "4.0.0",
+  "description": "Multi-agent software house team v4.0.0: 18 agents + 20 skills (ask = entry). Team execution on Claude Code; on Codex, Cursor and Antigravity skills run in one session.",
   "author": {
     "name": "shode666",
     "url": "https://github.com/shode666"

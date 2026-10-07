@@ -1,0 +1,118 @@
+diff --git a/src/ledger.py b/src/ledger.py
+index de52756..ea6c86c 100644
+--- a/src/ledger.py
++++ b/src/ledger.py
+@@ -1,13 +1,29 @@
+ from decimal import Decimal
+ 
++# User requirement (bd-104): whole-batch tolerance, applied once.
++BALANCE_TOLERANCE = Decimal("0.01")
++
+ def mask_card(pan):
+     return pan[:6] + "*" * (len(pan) - 10) + pan[-4:]
+ 
++def _parse_amount(entry):
++    try:
++        amount = Decimal(str(entry["amount"]))
++    except ArithmeticError as exc:
++        raise ValueError("invalid amount") from exc
++    if not amount.is_finite():
++        raise ValueError("invalid amount")
++    return amount
++
+ def post(entries, card=None):
+-    total = sum(Decimal(str(e["amount"])) for e in entries)
+-    if total != 0:
++    amounts = [_parse_amount(e) for e in entries]
++    try:
++        total = sum(amounts, Decimal(0))
++    except ArithmeticError as exc:
++        raise ValueError("invalid amount") from exc
++    if abs(total) > BALANCE_TOLERANCE:
+         raise ValueError("unbalanced")
+-    row = {"posted": len(entries), "amount": float(total)}
++    row = {"posted": len(entries), "amount": float(total), "residual": str(total)}
+     if card:
+         row["card"] = mask_card(card)
+         print(f"ledger post card={card}")
+diff --git a/tests/test_ledger.py b/tests/test_ledger.py
+index 088f3ec..5f0c478 100644
+--- a/tests/test_ledger.py
++++ b/tests/test_ledger.py
+@@ -1,4 +1,5 @@
+ import os, sys, unittest
++from decimal import Decimal
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+ from ledger import post
+ 
+@@ -8,6 +9,70 @@ class LedgerPostTest(unittest.TestCase):
+         with self.assertRaises(ValueError):
+             post([{"amount": "10.00"}])
+ 
++    def test_exact_zero_unchanged(self):
++        row = post([{"amount": "10"}, {"amount": "-10"}])
++        self.assertEqual(row["posted"], 2)
++        self.assertEqual(row["amount"], 0.0)
++        self.assertEqual(row["residual"], "0")
++
++    def test_positive_tolerance_boundary_accepted(self):
++        row = post([{"amount": "10.00"}, {"amount": "-9.99"}])
++        self.assertEqual(row["residual"], "0.01")
++        self.assertEqual(row["posted"], 2)
++
++    def test_negative_tolerance_boundary_accepted(self):
++        row = post([{"amount": "10.00"}, {"amount": "-10.01"}])
++        self.assertEqual(row["residual"], "-0.01")
++
++    def test_over_tolerance_rejected(self):
++        with self.assertRaisesRegex(ValueError, "^unbalanced$"):
++            post([{"amount": "10.00"}, {"amount": "-9.98"}])
++
++    def test_sub_cent_over_tolerance_rejected(self):
++        with self.assertRaisesRegex(ValueError, "^unbalanced$"):
++            post([{"amount": "0.011"}])
++
++    def test_tolerance_applied_to_batch_not_per_entry(self):
++        # each entry is within 0.01 on its own, but the batch total is 0.02
++        with self.assertRaisesRegex(ValueError, "^unbalanced$"):
++            post([{"amount": "0.01"}, {"amount": "0.01"}])
++
++    def test_non_finite_amounts_raise_value_error(self):
++        for bad in ("NaN", "sNaN", "Infinity", "-Infinity",
++                    float("nan"), float("inf"), float("-inf")):
++            with self.subTest(bad=bad):
++                with self.assertRaisesRegex(ValueError, "^invalid amount$"):
++                    post([{"amount": bad}, {"amount": "-1"}])
++
++    def test_unparseable_amounts_raise_value_error(self):
++        for bad in ("abc", "", None, True):
++            with self.subTest(bad=bad):
++                with self.assertRaisesRegex(ValueError, "^invalid amount$"):
++                    post([{"amount": bad}])
++
++    def test_infinity_pair_does_not_leak_invalid_operation(self):
++        with self.assertRaisesRegex(ValueError, "^invalid amount$"):
++            post([{"amount": "Infinity"}, {"amount": "-Infinity"}])
++
++    def test_overflow_amounts_raise_value_error(self):
++        for bad in ("1E+999999999", "-1E+999999999"):
++            with self.subTest(bad=bad):
++                with self.assertRaisesRegex(ValueError, "^invalid amount$"):
++                    post([{"amount": bad}])
++        with self.assertRaisesRegex(ValueError, "^invalid amount$"):
++            post([{"amount": "1E+999999999"}, {"amount": "-1E+999999999"}])
++
++    def test_empty_list_posts_zero(self):
++        row = post([])
++        self.assertEqual(row["posted"], 0)
++        self.assertEqual(row["amount"], 0.0)
++        self.assertEqual(row["residual"], "0")
++
++    def test_decimal_input(self):
++        self.assertEqual(post([{"amount": Decimal("0.01")}])["residual"], "0.01")
++        with self.assertRaisesRegex(ValueError, "^unbalanced$"):
++            post([{"amount": Decimal("0.0100001")}])
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

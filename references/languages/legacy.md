@@ -140,4 +140,4 @@ Phase 3 (high risk)
   → Final cutover + decommission
 ```
 
-> Sara กำหนด strategy + Aaron implement infra. Felix/Elena consult ถ้า financial/accounting impact.
+> solution-architect กำหนด strategy + devops-engineer implement infra. fintech-expert/erp-expert consult ถ้า financial/accounting impact.

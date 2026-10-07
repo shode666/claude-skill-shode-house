@@ -10,7 +10,7 @@ description: Switch to an ultra-compressed reply style that drops filler but kee
 ## เปิดเมื่อไหร่
 
 - User สั่ง "caveman" / "พูดสั้น" / "compress" / "terse"
-- Oliver status broadcasts and long-task progress updates stay concise; they do
+- router status broadcasts and long-task progress updates stay concise; they do
   not activate a persistent compression mode without the user's request.
 
 ## ปิดเมื่อไหร่

@@ -3,7 +3,264 @@ name: web-q
 description: Audit and improve a public-facing website across Core Web Vitals, performance budgets, SEO, structured data and security headers against agreed measured thresholds. Not for internal or API-only services, nor for functional or accessibility testing of one changed screen.
 ---
 
-Use the referenced skill [web-q](../../knowledge/skills/ui/web-q/SKILL.md) as the workflow entry point. Follow only the branches that apply to the current task, and load additional references only when the root skill directs you to.
-This is a discovery adapter, not a replacement for the role or skill knowledge.
+# Web-Q (Web Quality discipline — CWV + SEO + Sec headers)
+
+> Port + adapt จาก [`addyosmani/web-quality-skills`](https://github.com/addyosmani/web-quality-skills) (MIT)
+> **Owners cross-cutting**: ux-ui-designer (Phase 1b AC + 3a Lighthouse) + developer (impl) + qa-engineer (Phase 3b CI gate) + devops-engineer + **security-engineer** (security headers)
+
+## When NOT to use
+
+- Internal tool / admin ที่ไม่ public-facing และไม่มี SEO/CWV requirement
+- Backend-only หรือ API-only service
+- Prototype ที่ยังไม่ deploy
+
+## Required inputs — for the measurement being claimed
+
+- [ ] Reachable URL for lab checks (local/staging/prod); production telemetry for field claims. A deployed lab run is not itself field data.
+- [ ] Threshold ที่ตกลงกันแล้ว (LCP/INP/CLS budget) — ไม่มี = ไม่มีเส้นแบ่ง pass/fail
+- [ ] Device/network profile ที่จะวัด (mobile 4G เป็น default)
+
+Continue authorized local checks before deployment. Missing field telemetry blocks
+field/p75 attainment claims, not lab verification or implementation preparation.
+Apply SEO, structured data and security-header rollout gates to the actual page,
+hosting environment and project requirements; examples do not authorize deployment
+or require unrelated infrastructure changes.
+
+## 🎯 4 Axes (ผ่านทั้งหมด ก่อน prod)
+
+| Axis | Metric | Target (p75) | Tool |
+|------|--------|--------------|------|
+| **CWV** | LCP / INP / CLS | ≤ 2.5s / ≤ 200ms / ≤ 0.1 | Lighthouse + web-vitals |
+| **Budget** | JS/CSS/IMG/FONT/3P bytes | ดู table | Lighthouse `budget.json` |
+| **SEO** | title/canonical/structured data | 100% must-have | Lighthouse SEO + Schema.org validator |
+| **Sec headers** | CSP/HSTS/SRI/Trusted Types | enforce mode | mozilla-observatory + securityheaders.com |
+
+ห้าม "perf=92" — ต้อง breakdown 4 axes พร้อม Lighthouse JSON path
+
+---
+
+## 1. Core Web Vitals
+
+### LCP fix (developer/ux-ui-designer audit)
+
+```html
+<!-- ✅ Preload + fetchpriority -->
+<link rel="preload" href="/hero.webp" as="image" fetchpriority="high">
+<img src="/hero.webp" alt="..." fetchpriority="high" width="1200" height="600">
+
+<!-- ✅ Critical CSS inlined (< 14KB) -->
+<style>/* above-fold */</style>
+<link rel="preload" href="/styles.css" as="style"
+      onload="this.onload=null;this.rel='stylesheet'">
+
+<!-- ✅ Speculation Rules — prerender next-likely (moderate eagerness) -->
+<script type="speculationrules">
+{"prerender":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}
+</script>
+```
+
+### INP fix
+
+```javascript
+// ❌ Long task blocks
+items.forEach(item => heavy(item))  // 800ms
+
+// ✅ Break with scheduler.yield (Chrome 129+)
+for (const item of items) {
+  heavy(item)
+  if (navigator.scheduling?.isInputPending()) await scheduler.yield()
+}
+
+// ✅ React 18 useTransition for non-urgent
+const [pending, startTransition] = useTransition()
+startTransition(() => setFilter(newFilter))
+```
+
+### CLS fix
+
+```html
+<img src="..." width="800" height="400" alt="..."> <!-- explicit dim -->
+@font-face { font-display: optional; }              <!-- no swap = no CLS -->
+<div class="ad-slot" style="min-height: 250px"></div> <!-- reserve space -->
+```
+
+### Measure (Bash mandatory — ux-ui-designer 3a + devops-engineer 5)
+
+```bash
+# Lab (per-build CI)
+npx lhci collect --url=http://localhost:3000/checkout --numberOfRuns=3
+npx lhci assert --preset=lighthouse:recommended
+
+# Field (production p75 RUM)
+import {onLCP, onINP, onCLS} from 'web-vitals'
+onLCP(m => sendBeacon('/metrics/lcp', m.value))
+```
+
+---
+
+## 2. Performance Budget
+
+`lighthouse-budget.json`:
+
+```json
+[{
+  "path": "/*",
+  "resourceSizes": [
+    {"resourceType": "script", "budget": 300},
+    {"resourceType": "stylesheet", "budget": 100},
+    {"resourceType": "image", "budget": 500},
+    {"resourceType": "font", "budget": 100},
+    {"resourceType": "third-party", "budget": 200},
+    {"resourceType": "total", "budget": 1500}
+  ],
+  "timings": [
+    {"metric": "largest-contentful-paint", "budget": 2500}
+  ]
+}]
+```
+
+devops-engineer CI (`.lighthouserc.json`):
+```json
+{"ci": {
+  "collect": {"numberOfRuns": 3, "settings": {"budgetPath": "./lighthouse-budget.json"}},
+  "assert": {"preset": "lighthouse:recommended"}
+}}
+```
+
+Validate budget keys against the installed Lighthouse version. Track INP from real interactions/field data and CLS as a unitless value (target 0.1), not a 100ms timing budget. A navigation lab run does not establish field p75 INP.
+
+---
+
+## 3. SEO (ecommerce-expert + booking-expert + ux-ui-designer public-facing)
+
+### Must-have
+```html
+<title>... 50-60 char</title>
+<meta name="description" content="... 150-160 char">
+<link rel="canonical" href="...">
+<meta property="og:title" content="..."> <meta property="og:image" content="...">
+<meta name="twitter:card" content="summary_large_image">
+<html lang="th">
+<h1>... single h1 ...</h1>
+```
+
+### JSON-LD per domain (mandatory)
+| Domain | Schema |
+|--------|--------|
+| ecommerce-expert product page | `Product` + `Offer` + `AggregateRating` + `BreadcrumbList` |
+| ecommerce-expert category | `BreadcrumbList` + `ItemList` |
+| booking-expert property | `LodgingBusiness` / `Hotel` + `aggregateRating` |
+| booking-expert confirmation | `Reservation` |
+| Org-wide | `Organization` + `WebSite` + `SearchAction` |
+| Article/blog | `Article` + `Author` |
+
+```html
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Product","name":"...","offers":{"@type":"Offer","price":"1234.56","priceCurrency":"THB"}}
+</script>
+```
+
+### Crawl infra
+- `/robots.txt` — allow + `Sitemap:` line
+- `/sitemap.xml` — auto-gen, < 50K URLs/file, `<lastmod>` ทุก URL
+- Mobile-friendly: tap target ≥ 48×48px
+
+---
+
+## 4. Security Headers (security-engineer + devops-engineer)
+
+```nginx
+# Example for self-hosted external scripts/styles; adapt and test report-only first
+add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; require-trusted-types-for 'script'; trusted-types default" always;
+
+# HSTS preload-ready
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+# Other
+add_header X-Frame-Options "DENY" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Permissions-Policy "camera=(), microphone=(), geolocation=(self)" always;
+
+# ❌ ห้าม X-XSS-Protection (deprecated, มี vuln เอง)
+```
+
+Inline scripts/styles need hashes or a fresh cryptographic nonce shared by the response header and authorized HTML elements; a request-ID variable alone is not nonce integration. Inline event handlers require refactoring. HSTS subdomain/preload rollout requires authority and verified HTTPS coverage. See [OWASP CSP](https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html).
+
+### Trusted Types (DOM XSS — Baseline 2026)
+```javascript
+const escape = trustedTypes.createPolicy('default', {
+  createHTML: (s) => DOMPurify.sanitize(s, {RETURN_TRUSTED_TYPE: false})
+})
+element.innerHTML = escape.createHTML(userInput)  // ✅
+```
+The policy callback returns a sanitized string; the browser policy produces
+TrustedHTML ([DOMPurify guidance](https://github.com/cure53/DOMPurify#what-about-dompurify-and-trusted-types)). Verify the installed sanitizer and CSP policy allowlist together before enforcing.
+
+Rollout: `Content-Security-Policy-Report-Only` ก่อน → flip enforce
+
+### SRI for external CDN script (mandatory)
+```html
+<script src="https://cdn.example.com/lib@1.2.3/dist/lib.js"
+        integrity="sha384-..."
+        crossorigin="anonymous"></script>
+```
+Generate: `openssl dgst -sha384 -binary file.js | openssl base64 -A`
+
+### Verify (Bash)
+```bash
+curl -sI https://example.com | grep -iE "csp|hsts|x-content|x-frame|referrer"
+npx observatory-cli example.com           # grade ≥ A
+```
+
+---
+
+## Universal Web-Q Rules (บังคับทุก agent)
+
+1. ห้าม "perf ok" — paste Lighthouse JSON path + 4-axis breakdown
+2. ทุก image > 50KB ต้องมี `width` + `height` (CLS prevent)
+3. ทุก LCP candidate ต้อง `fetchpriority="high"` + preload
+4. ทุก non-critical script → `defer` หรือ dynamic import
+5. ทุก @font-face ต้อง `font-display: swap` (optional ดีกว่า)
+6. ทุก 3rd-party script add → budget check (≤ 200KB total)
+7. ทุก public page → canonical + meta desc + h1 เดียว
+8. ทุก domain entity → JSON-LD per table ข้างบน
+9. ทุก prod deploy → CSP enforce + HSTS preload-ready
+10. ทุก external CDN script → SRI `integrity` + `crossorigin`
+
+---
+
+## Phase wiring (where this skill activates)
+
+- **Phase 1a business-analyst**: AC template เพิ่ม CWV target + SEO must-have row
+- **Phase 1a solution-architect**: ADR เพิ่ม "Performance budget" + CSP rollout date
+- **Phase 1b ux-ui-designer**: Lighthouse target ใน AC + Structured Data spec per page
+- **Phase 1c security-engineer**: CSP/Trusted Types/SRI policy + headers spec
+- **Phase 2 developer**: implement ตาม Universal Rules + smoke `npx lhci collect`
+- **Phase 3a ux-ui-designer POST**: Lighthouse Bash + paste JSON + 4-axis breakdown
+- **Phase 3b qa-engineer**: Lighthouse CI perf ≥ 90 + budget pass gate
+- **Phase 3b security-engineer**: mozilla-observatory grade ≥ A + securityheaders ≥ A
+- **Phase 5 devops-engineer**: prod Lighthouse (mobile+desktop) + observatory pre-deploy gate
+- **Phase 6 sre-engineer**: web-vitals RUM live + p75 alarm
+
+---
+
+## Evidence format
+
+```
+✅ "[Lighthouse: .lighthouseci/lhr-mobile.json] LCP=1.8s INP=120ms CLS=0.05 perf=94 seo=98 → PASS"
+✅ "[budget: lighthouse-budget.json] script=287KB/300 total=1.42MB/1.5 → PASS"
+✅ "[Observatory: api.com] grade=A+, score=115/100"
+✅ "[Schema validator: validator.schema.org] Product valid, 0 error"
+❌ "Lighthouse ผ่าน" (no path, no breakdown)
+```
+
+## Reference
+- [Addy Osmani web-quality-skills](https://github.com/addyosmani/web-quality-skills) (MIT, port source)
+- [Google web.dev Vitals](https://web.dev/articles/vitals)
+- [Mozilla Observatory](https://observatory.mozilla.org/)
+
 Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ under this plugin's knowledge/ directory, not the user's project.
+Resolve paths beginning ./ or ../ from this file's own directory; resolve other relative file names in this skill under this plugin's knowledge/skills/ui/web-q/ directory.
 Use actual host tools and preserve host/project/user authority.
+No shode-house safety floor in this context (a main session without the router style)? Load `shode-house:ask` first.

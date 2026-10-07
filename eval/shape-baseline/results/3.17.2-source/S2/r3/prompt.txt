@@ -1,0 +1,1 @@
+test_hours_and_minutes ใน tests/test_duration.py fail อยู่ ช่วยหาสาเหตุแล้วแก้ให้หน่อย

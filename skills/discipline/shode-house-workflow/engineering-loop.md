@@ -5,8 +5,8 @@ This refines existing role ownership, not a second workflow or replacement team.
 
 ## Resolve uncertainty before expanding work
 
-Bella records observable acceptance and shared business vocabulary. Inspect project
-facts first. Oliver routes technical uncertainty to Sara/Stan or the relevant domain
+business-analyst records observable acceptance and shared business vocabulary. Inspect project
+facts first. The router routes technical uncertainty to solution-architect/staff-engineer or the relevant domain
 expert; only unresolved policy, scope or authority goes to the user. Ask the current
 decision frontier together, with alternatives and a recommendation. Do not ask a
 dependent question before its prerequisite is settled. Reuse recorded decisions;
@@ -14,13 +14,13 @@ do not turn every continuation into another approval ceremony.
 
 ## Deliver vertical, testable increments
 
-Sara and Dave choose a thin end-to-end slice that exercises the risky boundary,
+solution-architect and developer choose a thin end-to-end slice that exercises the risky boundary,
 then decompose remaining work by dependency and verifiable outcome. Each slice has
 one owner, acceptance and a test seam. Do not split by arbitrary file counts or
 build every abstraction before a working behavior exists. Domain experts preserve
-business invariants; Sentinel preserves security and transaction boundaries.
+business invariants; security-engineer preserves security and transaction boundaries.
 
-Dave uses red-green-refactor for changed behavior: establish an intended failure,
+developer uses red-green-refactor for changed behavior: establish an intended failure,
 make the smallest correct implementation, then refactor with checks green. Read
 existing tests first. A recorded matching reproduction can establish the red step;
 do not rerun merely to manufacture ceremony. Expected results must come from the
@@ -38,12 +38,12 @@ or a full pipeline reset. Record environmental limits as BLOCKED, never green.
 
 ## Review without overlap or overengineering
 
-Bella verifies requirement conformity; Chris checks internal behavior, invariants,
-error paths and maintainability; Quinn checks integration and user journeys. Link
+business-analyst verifies requirement conformity; code-reviewer checks internal behavior, invariants,
+error paths and maintainability; qa-engineer checks integration and user journeys. Link
 the same defect under one finding ID across axes. Keep independent review contexts
 and preserve dissent rather than counting duplicate findings as extra assurance.
 
-Chris and Sara challenge each new abstraction: what current responsibility or
+code-reviewer and solution-architect challenge each new abstraction: what current responsibility or
 variation requires it, and what simpler application-layer design satisfies the
 same contract? Prefer cohesive modules with small interfaces. Apply SRP by reason
 to change, not one class per line of logic. Reject speculative frameworks, empty
@@ -52,8 +52,8 @@ required authorization, transaction, audit or isolation boundaries for simplicit
 
 ## Spend context on decisions
 
-For bounded work, use one task record with linked sections: Bella's acceptance,
-Sara's consequential decisions, Dave's implementation and each reviewer's evidence.
+For bounded work, use one task record with linked sections: business-analyst's acceptance,
+solution-architect's consequential decisions, developer's implementation and each reviewer's evidence.
 An existing approved contract can be linked instead of rewritten. Full BRD/ADR
 documents are warranted by unresolved scope or consequential design, not phase
 labels. Sharing an artifact does not combine authorship or independent verdicts;
@@ -61,9 +61,9 @@ serialize edits to shared files and preserve disagreements.
 
 Each verification records the finding/criterion ID, source revision or content
 hash, affected contract/dependencies, test command/environment, result and owner.
-After a fix, the finding owner rechecks it; Oliver routes affected boundaries to
+After a fix, the finding owner rechecks it; the router routes affected boundaries to
 their reviewers. Unchanged evidence is reusable only when those inputs still match.
-Changed acceptance goes to Bella; changed security/domain constraints go to their
+Changed acceptance goes to business-analyst; changed security/domain constraints go to their
 owners. Unknown impact requires investigation, not blanket reuse or a full reset.
 
 Keep shared terms and consequential ADRs in the confirmed record home. Load only

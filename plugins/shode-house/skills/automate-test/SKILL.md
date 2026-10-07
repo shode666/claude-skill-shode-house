@@ -3,7 +3,155 @@ name: automate-test
 description: Set up a project's test automation strategy and infrastructure, meaning the mix of unit, integration and end-to-end tests, CI gates and thresholds. Not for the tests of a single change, one changed screen, or spikes and one-off scripts.
 ---
 
-Use the referenced skill [automate-test](../../knowledge/skills/workflow/automate-test/SKILL.md) as the workflow entry point. Follow only the branches that apply to the current task, and load additional references only when the root skill directs you to.
-This is a discovery adapter, not a replacement for the role or skill knowledge.
+# Automate Test (CI test gate + pyramid)
+
+> **Owner**: qa-engineer (design + integration/E2E) + code-reviewer (unit) + devops-engineer (CI wiring)
+
+## When NOT to use
+
+- **Single-file script / utility** — manual test ครั้งเดียวพอ ไม่ต้อง pyramid
+- **POC / spike** ก่อน decision — เน้น exploration; test มา phase 2
+- **Pure data migration** (one-shot) — ตรวจด้วย count/checksum + rollback plan; pyramid overkill
+- **Legacy codebase ที่ qa-engineer ยังไม่ baseline** — qa-engineer ต้อง `coverage report` baseline ก่อน
+
+## Required inputs — discover before selecting gates
+
+ก่อนเริ่ม test strategy ต้องมี:
+
+- [ ] **Tech stack ระบุ** (language + framework — เพื่อเลือก test tool ที่ฟิต)
+- [ ] **Service boundary clear** (อะไรเป็น unit, อะไรเป็น integration — ต้องมี SA หรือ developer ระบุ)
+- [ ] **CI platform ระบุ** (GitHub Actions / GitLab / CircleCI — สำหรับ devops-engineer wire gate)
+- [ ] **Baseline coverage** (ถ้า legacy: รัน `coverage report` หา starting point; ห้ามตั้ง threshold ลอย ๆ)
+- [ ] **Test data strategy** (fixture / factory / production sample / synthetic — ห้าม "เดี๋ยวค่อย mock")
+
+Discover these inputs from the project first. Missing decisions block only the
+dependent configuration; continue authorized baseline collection and preparation.
+
+## Test Pyramid (planning heuristic)
+
+```
+       /E2E\         10% (qa-engineer — Playwright)
+      /Integ\        20% (qa-engineer — Testcontainers)
+     / Unit  \       70% (code-reviewer — pytest/Vitest/JUnit)
+```
+
+❌ Anti-pattern (inverted pyramid): E2E เยอะ = slow, fragile, expensive
+
+The ratio illustrates a broad base of fast tests, not a required test-count quota.
+Choose coverage by behavior, boundaries and risk; preserve meaningful existing tests.
+
+## CI Gate (applicable project-required checks block merge)
+
+Use the project's existing tools and adopted targets. The table is a menu: select
+checks for affected surfaces, not a requirement to add Docker, staging, nightly
+jobs or new test infrastructure to every project.
+
+| Stage | Tool | Gate |
+|-------|------|------|
+| **Format** | ruff/prettier/gofmt | clean |
+| **Lint** | ruff/eslint/golangci-lint | 0 error |
+| **Type** | mypy/tsc/javac | strict pass |
+| **Unit** | pytest/Vitest/JUnit | coverage ≥ 80% business logic |
+| **Integration** | Testcontainers + WireMock | critical path 100% |
+| **SAST** | Semgrep/Bandit/gosec | 0 high+ |
+| **SCA** | Trivy/Grype/npm audit | 0 critical CVE |
+| **Secret** | gitleaks | 0 finding |
+| **Build** | Docker | success |
+| **Image scan** | Trivy | 0 critical |
+| **E2E** (after deploy staging) | Playwright | smoke + critical journey |
+| **Perf** (nightly) | k6 | p95 < SLO |
+
+## Threshold (เก็บใน config)
+
+Defaults below are examples until the project adopts them; code-reviewer grades by risk.
+
+- Unit coverage: business ≥ 80%, infra ≥ 50%
+- Integration: critical path 100%, normal 70%+
+- E2E: critical user flow 100% (login, checkout, payment, claim, booking)
+- Mutation kill rate: ≥ 70% (mutmut/Stryker — nightly)
+- Perf: p95 < SLO, error < 0.1%, throughput ≥ target
+- Flaky rate: < 1% (CI auto-mark + ticket ถ้าเกิน)
+
+## Test Types & Tools
+
+### Unit (code-reviewer)
+- pytest (Py), Vitest+Jest (JS/TS), testing+testify (Go), JUnit+Mockito (Java/Kt)
+- Property-based: Hypothesis, fast-check
+- Mutation: mutmut, Stryker
+
+### Integration (qa-engineer)
+- **Testcontainers** (Postgres/Redis/Kafka/MinIO/Elastic) — real services
+- WireMock — mock HTTP boundary
+- Schemathesis — OpenAPI fuzz
+- DB tx rollback / isolated DB per test
+
+### Contract (qa-engineer — microservices essential)
+- **Pact** (consumer-driven): consumer publish → provider verify
+- Pactflow broker
+- Run ใน CI ทั้งสอง side
+
+### Performance (qa-engineer — nightly)
+- **k6** (recommended) / Gatling / Locust / JMeter
+- Load (sustained peak), Stress (find breaking), Soak (long-run leak), Spike (sudden ramp)
+
+### Chaos (🟡 production-grade)
+- Chaos Mesh / LitmusChaos / Gremlin
+- Inject: kill pod, latency, partition, disk fill
+- Run: staging continuous, prod scheduled
+
+## CI Pipeline (devops-engineer set up)
+
+```yaml
+on: [push, pull_request]
+jobs:
+  quality:
+    - format / lint / type
+  unit:
+    - pytest --cov --cov-fail-under=80
+  security:
+    - semgrep / gitleaks / trivy
+  build:
+    - docker build + scan
+  integration:
+    - docker compose up + pytest tests/integration
+  deploy-staging:
+    needs: [quality, unit, security, build, integration]
+  e2e:
+    needs: deploy-staging
+    - playwright test --grep @smoke
+  promote-prod:
+    needs: e2e
+    if: github.ref == 'refs/heads/main'
+```
+
+devops-engineer configures applicable adopted checks as required, within authorized CI scope.
+The pipeline is illustrative; promotion to production requires actual deployment
+authorization and the project's release gates.
+
+## Flaky Test Discipline
+
+- Flaky = bug → ห้าม retry หลบ
+- Auto-mark `@flaky` + ticket (high priority) → fix ภายใน 1 sprint
+- ถ้า fix ไม่ได้ → quarantine (skip + ticket) ไม่ใช่ delete
+
+## Hand-off
+
+- developer: smoke test + emit observability (`/health`, metric, trace)
+- code-reviewer: unit test deep + edge case
+- qa-engineer: integration + E2E + contract + perf
+- devops-engineer: wire เข้า CI + threshold + alert
+
+## ห้าม
+
+- ห้าม invert pyramid (E2E เยอะ)
+- ห้าม disable test silently → ticket
+- ห้าม retry flaky test หลบ → fix root cause
+- ห้าม mock หมดใน integration → = unit test แล้ว
+- ห้าม commit code โดย CI red
+- ห้าม skip security gate (SAST/SCA/secret)
+- ห้ามตั้ง coverage gate แล้วลด → ratchet (เพิ่มได้ ลดไม่ได้)
+
 Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ under this plugin's knowledge/ directory, not the user's project.
+Resolve paths beginning ./ or ../ from this file's own directory; resolve other relative file names in this skill under this plugin's knowledge/skills/workflow/automate-test/ directory.
 Use actual host tools and preserve host/project/user authority.
+No shode-house safety floor in this context (a main session without the router style)? Load `shode-house:ask` first.

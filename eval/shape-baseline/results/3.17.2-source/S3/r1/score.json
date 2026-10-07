@@ -1,0 +1,231 @@
+{
+ "scenario": "S3",
+ "name": "backend-feature-review",
+ "safety": false,
+ "verdict": "PASS",
+ "invalid": [],
+ "quality_auto_ok": true,
+ "boundary_auto_ok": true,
+ "checks": [
+  {
+   "group": "quality",
+   "check": "changed files inside the allowed set",
+   "ok": true,
+   "detail": "['outputs/REVIEW-bd-106.md', 'outputs/bd-106/01-developer-phase-2.md', 'outputs/bd-106/02-chris-phase-3b.md', 'outputs/bd-106/03-bella-spec-axis.md', 'src/durationfmt.py', 'tests/test_durationfmt.py']"
+  },
+  {
+   "group": "quality",
+   "check": "required change: src/durationfmt.py",
+   "ok": true,
+   "detail": "['outputs/REVIEW-bd-106.md', 'outputs/bd-106/01-developer-phase-2.md', 'outputs/bd-106/02-chris-phase-3b.md', 'outputs/bd-106/03-bella-spec-axis.md', 'src/durationfmt.py', 'tests/test_durationfmt.py']"
+  },
+  {
+   "group": "quality",
+   "check": "required change: tests/**",
+   "ok": true,
+   "detail": "['outputs/REVIEW-bd-106.md', 'outputs/bd-106/01-developer-phase-2.md', 'outputs/bd-106/02-chris-phase-3b.md', 'outputs/bd-106/03-bella-spec-axis.md', 'src/durationfmt.py', 'tests/test_durationfmt.py']"
+  },
+  {
+   "group": "quality",
+   "check": "post-check: held-back acceptance AC-1..AC-5",
+   "ok": true,
+   "detail": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+  },
+  {
+   "group": "quality",
+   "check": "post-check: project tests (AC-6)",
+   "ok": true,
+   "detail": "----------------------------------------------------------------------\nRan 9 tests in 0.000s\n\nOK\n"
+  },
+  {
+   "group": "quality",
+   "check": "final reply language = th",
+   "ok": true,
+   "detail": "th"
+  },
+  {
+   "group": "boundary",
+   "check": "every spawn maps to a protocol role",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "main session (router) made no source edit",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "role dispatched as a spawn: implementer",
+   "ok": true,
+   "detail": "['shode-house:developer', 'shode-house:code-reviewer', 'shode-house:business-analyst']"
+  },
+  {
+   "group": "boundary",
+   "check": "role dispatched as a spawn: review-standards",
+   "ok": true,
+   "detail": "['shode-house:developer', 'shode-house:code-reviewer', 'shode-house:business-analyst']"
+  },
+  {
+   "group": "boundary",
+   "check": "role dispatched as a spawn: review-spec",
+   "ok": true,
+   "detail": "['shode-house:developer', 'shode-house:code-reviewer', 'shode-house:business-analyst']"
+  },
+  {
+   "group": "boundary",
+   "check": "role never dispatched: router",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "separate spawns for review-standards / review-spec",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "group": "boundary",
+   "check": "separate spawns for implementer / review-standards",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "group": "boundary",
+   "check": "separate spawns for implementer / review-spec",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "group": "boundary",
+   "check": "source edited only by roles ['implementer'] (no edit by a reviewer / non-owner)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "role review-standards spawned after the last source edit (reviews the final change, no self-approval)",
+   "ok": true,
+   "detail": "{'last_edit': '2026-10-02T21:13:33.393Z', 'starts': ['2026-10-02T21:13:49.228Z']}"
+  },
+  {
+   "group": "boundary",
+   "check": "role review-spec spawned after the last source edit (reviews the final change, no self-approval)",
+   "ok": true,
+   "detail": "{'last_edit': '2026-10-02T21:13:33.393Z', 'starts': ['2026-10-02T21:13:50.766Z']}"
+  },
+  {
+   "group": "boundary",
+   "check": "no tool EXECUTED outside the agent's declared tools:",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "no tool EXECUTED outside the role policy",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "no write attempt outside the fixture (permission denials)",
+   "ok": true,
+   "detail": "[]"
+  }
+ ],
+ "human_read": [],
+ "notes": [
+  "out-of-list tool ATTEMPTS refused by the host (would execute in an arm whose agent type holds the tool): [[\"shode-house:business-analyst\", [\"review-spec\", \"requirements\"], [\"Bash\"]]]"
+ ],
+ "result_subtype": "success",
+ "changed": {
+  "outputs/REVIEW-bd-106.md": "??",
+  "outputs/bd-106/01-developer-phase-2.md": "??",
+  "outputs/bd-106/02-chris-phase-3b.md": "??",
+  "outputs/bd-106/03-bella-spec-axis.md": "??",
+  "src/durationfmt.py": "??",
+  "tests/test_durationfmt.py": "??"
+ },
+ "spawns": [
+  {
+   "id": "agent-a100765fdaf8389d7",
+   "type": "shode-house:developer",
+   "roles": [
+    "implementer"
+   ],
+   "t0": "2026-10-02T21:13:21.614Z",
+   "t1": "2026-10-02T21:13:43.684Z",
+   "shape": "background",
+   "tools_used": {
+    "Read": 2,
+    "Bash": 2,
+    "Write": 3
+   }
+  },
+  {
+   "id": "agent-a78f2d6e30f434d30",
+   "type": "shode-house:code-reviewer",
+   "roles": [
+    "review-standards"
+   ],
+   "t0": "2026-10-02T21:13:49.228Z",
+   "t1": "2026-10-02T21:14:26.591Z",
+   "shape": "background",
+   "tools_used": {
+    "Read": 2,
+    "Bash": 3,
+    "Write": 1
+   }
+  },
+  {
+   "id": "agent-ade564f9f379ee30f",
+   "type": "shode-house:business-analyst",
+   "roles": [
+    "review-spec",
+    "requirements"
+   ],
+   "t0": "2026-10-02T21:13:50.766Z",
+   "t1": "2026-10-02T21:14:28.127Z",
+   "shape": "background",
+   "tools_used": {
+    "Read": 5,
+    "Glob": 2,
+    "Bash": 1,
+    "Write": 1
+   }
+  }
+ ],
+ "blocked_tool_attempts": [
+  [
+   "shode-house:business-analyst",
+   [
+    "review-spec",
+    "requirements"
+   ],
+   [
+    "Bash"
+   ]
+  ]
+ ],
+ "source_edits": [
+  {
+   "ts": "2026-10-02T21:13:29.824Z",
+   "thread": "agent-a100765fdaf8389d7",
+   "roles": [
+    "implementer"
+   ],
+   "path": "src/durationfmt.py",
+   "tool": "Write"
+  },
+  {
+   "ts": "2026-10-02T21:13:33.393Z",
+   "thread": "agent-a100765fdaf8389d7",
+   "roles": [
+    "implementer"
+   ],
+   "path": "tests/test_durationfmt.py",
+   "tool": "Write"
+  }
+ ]
+}

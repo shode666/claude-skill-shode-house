@@ -6,30 +6,20 @@ argument-hint: "[question or topic]"
 
 คำถาม: **$ARGUMENTS**
 
+Router style not active in this session → report `BLOCKED: team execution needs the router style (Claude Code)`; do not read the style file to act as the router.
+
 ## Routing
 
-ส่งไป agent **ตัวเดียว** ที่เหมาะ:
-
-| ลักษณะคำถาม | Agent |
-|------------|-------|
-| Architecture, tech stack, ADR, threat model | Sara |
-| Requirement, user story, BRD, Event Storming | Bella |
-| Payment, ledger, banking, KYC/AML | Felix |
-| GL, AR/AP, inventory, MRP, payroll | Elena |
-| Trading, OMS, matching, FIX | Tara |
-| Insurance, policy, claim, actuarial | Iris |
-| Booking, reservation, yield | Brooke |
-| E-commerce, cart, promo, marketplace | Emma |
-| Code quality, SOLID, unit test | Chris |
-| Integration/E2E/pen test | Quinn |
-| Docker, CI/CD, deploy, obs | Aaron |
-| 2+ agents / ไม่ชัด | Oliver ใน main session วิเคราะห์และเลือก specialist ที่เกี่ยวข้อง |
+ส่งไป agent **ตัวเดียว** ที่เหมาะ: id จาก `output-styles/shode-house.md` § Routing; spawn `shode-house:<id>` only (a bare name reaches a project agent).
+2+ agents / ไม่ชัด → the router picks the relevant specialists.
+Changed from 3.x: pen test → security-engineer (was QA); threat model → security-engineer (was the architect); no "obs" row (SLO → sre-engineer, pipeline → devops-engineer); new targets: staff-engineer, sre-engineer, product-manager, ux-ui-designer.
+A change or fix request is not a consult (no one-agent rule): apply the style § Dispatch floor or suggest `/implement`.
 
 ## Process
 
 1. วิเคราะห์ intent
 2. บอก user → agent ไหน + เหตุผลสั้น
-3. Oliver เรียก specialist ผ่าน delegation tool ที่ host มีจริง; ไม่ delegate กลับไป Oliver อีก context ถ้า host ไม่มี delegation ให้รายงานข้อจำกัดตาม harness
+3. The router delegates with the host's real delegation tool per `output-styles/shode-house.md` § Delegation, never to the main-session lead as an agent; no delegation tool → report the limitation per the harness
 4. Present คำตอบ
 
 ## ⚠️ Rules

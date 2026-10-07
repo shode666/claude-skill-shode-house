@@ -5,15 +5,15 @@ description: Batch-drain ready tickets with isolated workers, independent review
 
 # Drain (verified backlog → parallel worktree → serial merge → close-on-done)
 
-> **Owner**: Oliver (route + own the run). Impl/verify: Dave · Chris · Quinn · Aaron · Uma; security item → Sentinel
-> Before dispatch/resume, read `skills/discipline/shode-house-workflow/harness.md`. Its authority, reviewer triggers and recovery contract apply to each item. Use the project's confirmed tracker, including Markdown (harness § Source of truth); tracker verbs here are neutral — find ready / read / note / close / link — and Beads commands in `harness.md` are an example, not a prerequisite. Oliver owns tracker writes; unavailable updates remain pending sync, never claimed CLOSED.
+> **Owner**: router (route + own the run). Impl/verify: developer · code-reviewer · qa-engineer · devops-engineer · ux-ui-designer; security item → security-engineer
+> Before dispatch/resume, read `skills/discipline/shode-house-workflow/harness.md`. Its authority, reviewer triggers and recovery contract apply to each item. Use the project's confirmed tracker, including Markdown (harness § Source of truth); tracker verbs here are neutral — find ready / read / note / close / link — and Beads commands in `harness.md` are an example, not a prerequisite. router owns tracker writes; unavailable updates remain pending sync, never claimed CLOSED.
 > แก้ 2 failure mode: **stale-open task** · **git race / tree collision**
 
 ## When NOT to use
 
 - **Item interdependent** — ถ้า B ต้องใช้ output ของ A = ไม่ parallel-safe → sequence หรือรวมเป็น agent เดียว
 - **Item แตะไฟล์เดียวกัน** — รวมเป็น **1 agent** (parallel worktree แก้ไฟล์เดียวกัน → conflict ตอน cherry-pick). Group by file-locality ก่อนเสมอ
-- **Design / architecture / feature shape ใหม่** — route ไป Phase 1a/1b (`design-system`: Bella/Sara/Uma) ก่อน; drain implement เฉพาะ item ที่ fix **concrete แล้ว** (file:line + direction)
+- **Design / architecture / feature shape ใหม่** — route ไป Phase 1a/1b (`design-system`: business-analyst/solution-architect/ux-ui-designer) ก่อน; drain implement เฉพาะ item ที่ fix **concrete แล้ว** (file:line + direction)
 - **Owner / counsel / billing decision** — agent ทำเสร็จเองไม่ได้ → เอาออกจาก run
 - **> ~20 item** — แตกเป็นรอบ (report + close ระหว่างรอบ) ห้าม fan-out ไม่จำกัด
 - **มีแค่ list/count ของ tracker เป็นหลักฐาน** — ดู § Stop and return: verify set ก่อน, list โกหกได้
@@ -21,7 +21,7 @@ description: Batch-drain ready tickets with isolated workers, independent review
 
 ## Inputs and decision boundaries
 
-Derive first: item facts (open state, blockers, acceptance revision, `file:line`) come from each authoritative task record and the repo — read them, do not ask or assume. Still missing → return the question to Oliver.
+Derive first: item facts (open state, blockers, acceptance revision, `file:line`) come from each authoritative task record and the repo — read them, do not ask or assume. Still missing → return the question to router.
 When to ask → `shode-house-discipline` § Ask vs derive
 
 ### Stop and return
@@ -32,7 +32,7 @@ When to ask → `shode-house-discipline` § Ask vs derive
 - [ ] **Verified-open set** — read each candidate's authoritative task record and acceptance revision; list counts and passive exports alone do not prove readiness.
 - [ ] **Per-item concrete scope** — `file:line` + fix direction ฝังใน brief ของแต่ละ item.
       Pass canonical ID, acceptance IDs/revision, relevant paths and non-goals. Verify worker access; send only necessary excerpts with provenance when paths are inaccessible. Do not copy the whole backlog/chat or assume tracker access from a worktree.
-- [ ] **Routing** — Oliver assign owner agent ต่อ item + ยืนยัน parallel-safe / file-disjoint
+- [ ] **Routing** — router assign owner agent ต่อ item + ยืนยัน parallel-safe / file-disjoint
 - [ ] **Owner greenlight + scope** — subset ไหน (security / code-gap / test) หรือทั้งหมด; full drain = multi-agent token spend ก้อนใหญ่ → ต้อง opt-in
 
 ## 9 Invariants (map เข้า 5 Philosophy)
@@ -54,7 +54,7 @@ When to ask → `shode-house-discipline` § Ask vs derive
 ```
 verify set (read each task record)
    ↓
-Oliver route + group by file-locality
+router route + group by file-locality
    ↓
 FAN-OUT  (isolated writers — TDD, authorized commit or patch, NO push)
    ↓
@@ -75,9 +75,9 @@ Tracker command examples (Beads) → `harness.md` § Beads example.
 ยืนยันต่อ item: **สถานะจริง = open** · scope concrete (`file:line`) · ไม่มี dep ค้าง
 ตัวไหน confirm ไม่ได้ → เอาออกจาก run (ห้ามเดา)
 
-## Step 2 — Route + group by file-locality (Oliver)
+## Step 2 — Route + group by file-locality (router)
 
-1. Map item → owner agent (`shode-house-routing`): code → Dave · test/unit → Chris · integration/E2E → Quinn · infra/CI → Aaron · UI → Uma · security → Sentinel
+1. Map item → owner agent (`shode-house-routing`): code → developer · test/unit → code-reviewer · integration/E2E → qa-engineer · infra/CI → devops-engineer · UI → ux-ui-designer · security → security-engineer
 2. **Group by file** — item ที่แตะไฟล์ชุดเดียวกัน = รวมเป็น **1 agent 1 branch**
 3. ยืนยัน disjoint จริงก่อน fan-out:
 
@@ -126,10 +126,10 @@ Close each accepted item in the confirmed tracker with reason `<verdict> <commit
 
 | Situation | Next skill | Reason |
 |---|---|---|
-| ยังไม่มี item list / ไม่รู้ใครรับ | → `shode-house-routing` | Oliver produce item list + owner ต่อ item ก่อน drain |
+| ยังไม่มี item list / ไม่รู้ใครรับ | → `shode-house-routing` | router produce item list + owner ต่อ item ก่อน drain |
 | Item ยัง abstract (ไม่มี file:line) | → `diagnose` แล้วค่อยกลับมา | ต้อง root cause ก่อน |
 | ต้องการ spec/design ก่อน | → `design-system` | — |
 | TDD discipline ต่อ item | → `dev-gate` | red-green-refactor + quality gate ภายใน agent แต่ละตัว |
-| Reviewer lens ตอน verify | → `review-checklist` | Chris 7-dim / Quinn matrix สำหรับ item ที่ต้อง review ลึก |
+| Reviewer lens ตอน verify | → `review-checklist` | code-reviewer 7-dim / qa-engineer matrix สำหรับ item ที่ต้อง review ลึก |
 | Definition of Done | → `shode-house-deliverable` | acceptance + authorized closure/read-back in confirmed tracker; unavailable sync remains pending, not CLOSED |
 | ปิดไม่ครบ / อ้างว่าปิดแล้ว | → `shode-house-workflow/drift.md` § M8 | Close-on-Done Guard (anti-puppet บน close step) |

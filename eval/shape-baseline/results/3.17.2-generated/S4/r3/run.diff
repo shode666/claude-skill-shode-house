@@ -1,0 +1,49 @@
+diff --git a/web/refund-history.html b/web/refund-history.html
+index 6ebfc70..e4a2e55 100644
+--- a/web/refund-history.html
++++ b/web/refund-history.html
+@@ -20,7 +20,7 @@
+ <body>
+   <h1>ประวัติการคืนเงิน</h1>
+   <label for="range">ช่วงเวลา</label>
+-  <select id="range"><option value="30">30 วัน</option><option value="90">90 วัน</option></select>
++  <select id="range"><option value="30">30 วัน</option><option value="90">90 วัน</option><option value="180">180 วัน</option></select>
+   <table id="refunds">
+     <thead><tr><th>วันที่</th><th>order</th><th class="amount">ยอด</th><th>สถานะ</th></tr></thead>
+     <tbody></tbody>
+diff --git a/web/refund-history.js b/web/refund-history.js
+index c403224..f9cf9c7 100644
+--- a/web/refund-history.js
++++ b/web/refund-history.js
+@@ -21,4 +21,30 @@ function render(rows) {
+   });
+ }
+ 
+-render(new URLSearchParams(location.search).has("empty") ? [] : ROWS);
++const MS_PER_DAY = 86400000;
++
++// Parse YYYY-MM-DD as a UTC day number (timezone-independent).
++function toDayNumber(ymd) {
++  const [y, m, d] = ymd.split("-").map(Number);
++  return Date.UTC(y, m - 1, d) / MS_PER_DAY;
++}
++
++// Rows dated within the last `days` days of today (local calendar date), inclusive.
++function filterByRange(rows, days) {
++  const now = new Date();
++  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / MS_PER_DAY;
++  return rows.filter((r) => {
++    const age = today - toDayNumber(r.date);
++    return age >= 0 && age <= days;
++  });
++}
++
++const isEmptyParam = new URLSearchParams(location.search).has("empty");
++const rangeSelect = document.getElementById("range");
++
++function update() {
++  render(isEmptyParam ? [] : filterByRange(ROWS, Number(rangeSelect.value)));
++}
++
++rangeSelect.addEventListener("change", update);
++update();

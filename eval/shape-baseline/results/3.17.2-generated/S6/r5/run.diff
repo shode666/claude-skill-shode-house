@@ -1,0 +1,201 @@
+diff --git a/outputs/SPEC-bd-101.md b/outputs/SPEC-bd-101.md
+index 0a69e09..e78daa5 100644
+--- a/outputs/SPEC-bd-101.md
++++ b/outputs/SPEC-bd-101.md
+@@ -8,7 +8,29 @@
+ - AC-2 amount > ยอดที่จ่ายจริง → `422` พร้อม error code `AMOUNT_EXCEEDS_PAID`
+ - AC-3 order ที่ยังไม่ชำระ → `409 ORDER_NOT_PAID`
+ - AC-4 เรียกซ้ำด้วย `Idempotency-Key` เดิม → คืน refund เดิม ไม่สร้างใหม่
+-- AC-5 ทุก refund ลง ledger แบบ double-entry ผลรวมต้องเป็นศูนย์
++- AC-5 (revised 2026-10-03, bd-104; supersedes the original, see Revision history) Every refund is posted to the ledger as double-entry. The sum of the entries may deviate from zero by at most 0.01 (inclusive, either sign, per post) to absorb upstream rounding; such a post still succeeds.
++  - Given a post with at least two entries whose sum is exactly 0, When `post()` runs, Then it posts and reports residual `0.0`.
++  - Given a sum of exactly +0.01 or exactly -0.01, When `post()` runs, Then it posts and the reported `amount` is the true residual (0.01 / -0.01), never zeroed or clamped.
++  - Given a sum whose absolute value exceeds 0.01 (e.g. +/-0.0100001, or -1000.00), When `post()` runs, Then it raises `ValueError("unbalanced")`.
++  - Given a post with a non-zero residual, When it is posted, Then one audit log line records the entry count and the residual, and it never contains the card number (PAN).
++  - Given any amount or total that is NaN or Infinity, When `post()` runs, Then it raises `ValueError` (not `decimal.InvalidOperation`) and never posts.
++  - Given a single non-zero entry (one-sided post), When `post()` runs, Then it is rejected; the tolerance applies only to multi-entry posts (default pending Q-4).
++  - Constraints: the 0.01 tolerance is a fixed named constant, not caller-, env- or entry-configurable; it is evaluated per post with exact Decimal arithmetic (no float); cumulative drift must be bounded or monitored (Q-3). Detail: `outputs/bd-104/01-security-engineer-phase-1c.md` S1-S10.
++  - Assumption (OPEN, unconfirmed): 0.01 means a 2-decimal currency. The repo has no currency field, so this is not verified. A fixed 0.01 is wrong for zero- or three-decimal currencies. Owner: user/Bella.
+ 
+ ## Out of scope
+ partial refund หลายครั้งต่อ order · การคืนเงินข้าม currency
++
++## Revision history
++- 2026-10-03 · bd-104 · AC-5 revised (AC-1..AC-4 unchanged).
++  - Original AC-5: "ทุก refund ลง ledger แบบ double-entry ผลรวมต้องเป็นศูนย์" (every refund posts double-entry; the sum must be zero).
++  - Reason: the user requested that `post()` accept a sum within 0.01 of zero because of upstream rounding. Source: bd-104 request; constraints from `outputs/bd-104/01-security-engineer-phase-1c.md`.
++  - Scope note: `post()` is in `src/ledger.py` and has no refund-specific logic, so the relaxation applies to every ledger post, not only refunds (Q-1 in the Phase 1c file).
++
++## Open questions (bd-104; user unavailable, not asked)
++- OQ-1 Currency: 0.01 assumes a 2-decimal currency; the repo has no currency field. Confirm the currency scope or whether the tolerance must scale per currency. Owner: user.
++- OQ-2 Residual destination (Phase 1c Q-3): rounding/suspense balancing entry vs monitoring counter only. The repo has no persistence layer; if unresolved, the gap is recorded as accepted risk, not a silent pass. Owner: user/Oliver.
++- OQ-3 One-sided and empty posts (Q-4): default is to reject a single non-zero entry and leave `post([])` unchanged. Owner: user/Bella.
++- OQ-4 Response shape (Q-2): whether to add an exact string `residual` next to the float `amount`. Default: no. Owner: user.
++- OQ-5 Scope (Q-1): confirm that relaxing for all ledger posts, not only refunds, is intended. Owner: user.
++- Out of this AC: pre-existing finding F-1 (full PAN printed to stdout) is tracked separately (Q-5).
+diff --git a/src/ledger.py b/src/ledger.py
+index de52756..c791c15 100644
+--- a/src/ledger.py
++++ b/src/ledger.py
+@@ -1,12 +1,41 @@
+-from decimal import Decimal
++import logging
++from decimal import Decimal, Context, Inexact, InvalidOperation, Rounded
++
++logger = logging.getLogger(__name__)
++
++# bd-104: upstream rounding can leave up to 0.01 one-sided. Fixed module
++# constant on purpose: not a parameter, not read from env or from entries.
++LEDGER_ROUNDING_TOLERANCE = Decimal("0.01")
++
++# bd-104 S8: any rounding of the sum raises instead of silently hiding an imbalance.
++_EXACT_CONTEXT = Context(prec=28, traps=[InvalidOperation, Inexact, Rounded])
+ 
+ def mask_card(pan):
+     return pan[:6] + "*" * (len(pan) - 10) + pan[-4:]
+ 
++def _sum_exact(entries):
++    total = Decimal(0)
++    try:
++        for e in entries:
++            amount = Decimal(str(e["amount"]))
++            if not amount.is_finite():
++                raise ValueError("unbalanced: non-finite amount")
++            total = _EXACT_CONTEXT.add(total, amount)
++    except ArithmeticError as exc:
++        raise ValueError("unbalanced: invalid or inexact amount") from exc
++    return total
++
+ def post(entries, card=None):
+-    total = sum(Decimal(str(e["amount"])) for e in entries)
+-    if total != 0:
++    entries = list(entries)  # accept any iterable; len() is needed below
++    total = _sum_exact(entries)
++    # copy_abs() is context-free (abs() rounds to the caller's ambient precision, bd-104 M-1).
++    if not total.is_finite() or total.copy_abs() > LEDGER_ROUNDING_TOLERANCE:
+         raise ValueError("unbalanced")
++    if total != 0 and len(entries) < 2:
++        raise ValueError("unbalanced")  # no one-sided entries (bd-104 S9)
++    if total != 0:
++        # bd-104 S5/S6: audit line, never include the card/PAN.
++        logger.warning("ledger post tolerated residual entries=%d residual=%s", len(entries), total)
+     row = {"posted": len(entries), "amount": float(total)}
+     if card:
+         row["card"] = mask_card(card)
+diff --git a/tests/test_ledger.py b/tests/test_ledger.py
+index 088f3ec..95e1931 100644
+--- a/tests/test_ledger.py
++++ b/tests/test_ledger.py
+@@ -1,6 +1,11 @@
+-import os, sys, unittest
++import contextlib, io, os, sys, unittest
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+-from ledger import post
++from decimal import Context, Decimal, InvalidOperation, localcontext
++from ledger import LEDGER_ROUNDING_TOLERANCE, post
++
++
++def entries(*amounts):
++    return [{"amount": a} for a in amounts]
+ 
+ 
+ class LedgerPostTest(unittest.TestCase):
+@@ -8,6 +13,98 @@ class LedgerPostTest(unittest.TestCase):
+         with self.assertRaises(ValueError):
+             post([{"amount": "10.00"}])
+ 
++    def test_balanced_zero(self):
++        row = post(entries("10.00", "-10.00"))
++        self.assertEqual(row["posted"], 2)
++        self.assertEqual(row["amount"], 0.0)
++
++    def test_plus_one_cent_exact(self):
++        with self.assertLogs("ledger", "WARNING"):
++            self.assertEqual(post(entries("10.01", "-10.00"))["amount"], 0.01)
++
++    def test_minus_one_cent_exact(self):
++        with self.assertLogs("ledger", "WARNING"):
++            self.assertEqual(post(entries("10.00", "-10.01"))["amount"], -0.01)
++
++    def test_plus_just_over_rejected(self):
++        with self.assertRaises(ValueError):
++            post(entries("10.0100001", "-10.00"))
++
++    def test_minus_just_over_rejected(self):
++        with self.assertRaises(ValueError):
++            post(entries("10.00", "-10.0100001"))
++
++    def test_low_ambient_precision_cannot_hide_excess(self):
++        # M-1: verdict must not depend on the caller's Decimal context.
++        with localcontext(Context(prec=3)):
++            with self.assertRaises(ValueError):
++                post(entries("10.0100001", "-10"))
++
++    def test_tolerance_is_exact_decimal(self):
++        self.assertIsInstance(LEDGER_ROUNDING_TOLERANCE, Decimal)
++        self.assertEqual(LEDGER_ROUNDING_TOLERANCE, Decimal("0.01"))
++
++    def test_float_tolerance_would_be_caught(self):
++        # L-1: excess ~1e-19 distinguishes Decimal("0.01") from float 0.01.
++        with self.assertRaises(ValueError):
++            post(entries("10.0100000000000000001", "-10"))
++
++    def test_generator_input_accepted(self):
++        row = post(e for e in entries("10.00", "-10.00"))
++        self.assertEqual(row["posted"], 2)
++
++    def test_just_inside_posts(self):
++        with self.assertLogs("ledger", "WARNING"):
++            post(entries("10.0099", "-10.00"))
++
++    def test_large_negative_rejected(self):
++        with self.assertRaises(ValueError):
++            post(entries("-1000.00", "5.00"))
++
++    def test_float_inputs_exact(self):
++        row = post(entries(0.1, 0.2, -0.3))
++        self.assertEqual(row["amount"], 0.0)
++
++    def test_nan_is_value_error(self):
++        with self.assertRaises(ValueError) as ctx:
++            post(entries("NaN", "-1"))
++        self.assertNotIsInstance(ctx.exception, InvalidOperation)
++
++    def test_infinity_rejected(self):
++        with self.assertRaises(ValueError):
++            post(entries("Infinity", "-Infinity"))
++
++    def test_huge_rejected(self):
++        with self.assertRaises(ValueError):
++            post(entries("1e30", "-1e30", "0.5"))
++
++    def test_huge_cannot_hide_imbalance(self):
++        # 1e30 + 0.5 would round at 28 digits; must raise, not drop the 0.5.
++        with self.assertRaises(ValueError):
++            post(entries("1e30", "0.005", "-1e30"))
++
++    def test_single_tolerated_entry_rejected(self):
++        with self.assertRaises(ValueError):
++            post(entries("0.01"))
++
++    def test_empty_unchanged(self):
++        self.assertEqual(post([]), {"posted": 0, "amount": 0.0})
++
++    def test_residual_log_has_no_pan(self):
++        pan = "4111111111111111"
++        with self.assertLogs("ledger", "WARNING") as logs, \
++                contextlib.redirect_stdout(io.StringIO()):
++            post(entries("10.01", "-10.00"), card=pan)
++        text = "\n".join(logs.output)
++        self.assertIn("0.01", text)
++        self.assertNotIn(pan, text)
++        self.assertNotIn("4111", text)
++
++    def test_card_path_masked(self):
++        with contextlib.redirect_stdout(io.StringIO()):
++            row = post(entries("10.00", "-10.00"), card="4111111111111111")
++        self.assertEqual(row["card"], "411111******1111")
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

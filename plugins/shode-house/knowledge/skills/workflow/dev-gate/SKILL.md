@@ -5,7 +5,7 @@ description: Apply test-first development and quality gates during implementatio
 
 # Dev Gate (TDD + Quality Gates)
 
-> **Owner**: Dave (implement) + Chris (verify). เปิด skill นี้ตอนเขียน production code
+> **Owner**: developer (implement) + code-reviewer (verify). เปิด skill นี้ตอนเขียน production code
 
 Purpose: implement, fix or refactor production code test-first and hand it off with quality-gate
 evidence.
@@ -21,20 +21,20 @@ evidence.
 - **Spike / prototype / throwaway script** — TDD overhead ไม่คุ้ม. ใช้ `diagnose` แทนถ้าเป็น exploration
 - **Generated code** (codegen, OpenAPI client, ORM model) — gen tool ดูแล quality, dev-gate ไม่ฟิต
 - **Pure config change** (yaml/json/env tweak) — review + smoke test พอ ไม่ต้อง TDD
-- **Production hot-fix P0/P1** — ใช้ `incident` skill ก่อน; dev-gate ตามมาตอน follow-up fix
+- **Production hot-fix P0/P1** — ใช้ `shode-house:incident` skill ก่อน; dev-gate ตามมาตอน follow-up fix
 
 ## Inputs and decision boundaries
 
-Derive first + cite: acceptance + design decisions → task record + linked spec/ADR · gate commands/thresholds → project config (Makefile · package scripts · CI). Not found → return the question to Oliver; never guess, never ask the user directly.
+Derive first + cite: acceptance + design decisions → task record + linked spec/ADR · gate commands/thresholds → project config (Makefile · package scripts · CI). Not found → return the question to router; never guess, never ask the user directly.
 When to ask → `shode-house-discipline` § Ask vs derive
 
 ### Stop and return
 
-ขาดข้อใด → **list สิ่งที่ขาด แล้วหยุด** ส่งกลับ Oliver:
+ขาดข้อใด → **list สิ่งที่ขาด แล้วหยุด** ส่งกลับ router:
 
 - [ ] Approved acceptance + affected design decisions, linked from the task record; bounded work needs no new BRD/ADR ceremony.
-- Required check รันไม่ได้ → BLOCKED ส่งกลับ Oliver; ห้าม install dependency เองโดยไม่มี authority
-- จะ suppress security warning → Sentinel ก่อน (§ ห้าม)
+- Required check รันไม่ได้ → BLOCKED ส่งกลับ router; ห้าม install dependency เองโดยไม่มี authority
+- จะ suppress security warning → security-engineer ก่อน (§ ห้าม)
 
 ### Hand-off evidence (Phase 2 → 3) — ขาดข้อใด = ยังไม่ done, ห้าม claim "done"
 
@@ -55,8 +55,8 @@ YAGNI/compression ตัดได้เฉพาะ "ความซับซ้
 - Trust-boundary validation (input/HTTP/queue/env — Zod/Pydantic)
 - Data-loss handling (transaction, idempotency, money R0)
 - Security control (auth, crypto, secret, injection guard)
-- Accessibility (WCAG — Uma's gate)
-- Regulation/compliance (Felix BOT/PCI · Iris OIC · domain rule)
+- Accessibility (WCAG — ux-ui-designer's gate)
+- Regulation/compliance (fintech-expert BOT/PCI · insurance-expert OIC · domain rule)
 
 ตัดของเหล่านี้ = Philosophy violation, ไม่ใช่ "lazy"
 
@@ -68,11 +68,11 @@ YAGNI/compression ตัดได้เฉพาะ "ความซับซ้
 |---|---|---|
 | New behaviour or bug-fix regression test | → [tdd.md](tdd.md) before writing the first test | seams, worked example, test anti-patterns |
 | Refactor (behaviour unchanged) | stay in this root: § 3 Refactor + § ห้าม; add [quality-gates.md](quality-gates.md) when a module/interface is reshaped | tests stay green |
-| Quality validation: a gate fails, its criterion is unclear, a new module/interface/abstraction appears, a suppression/skip/shortcut is considered, or Chris verifies gates | → [quality-gates.md](quality-gates.md) before hand-off | gate detail, smells, pre-push sequence |
-| Touch security control (auth/crypto/PII) | → `secure` | Sentinel threat model + abuse case (dev-gate ไม่ classify threat) |
+| Quality validation: a gate fails, its criterion is unclear, a new module/interface/abstraction appears, a suppression/skip/shortcut is considered, or code-reviewer verifies gates | → [quality-gates.md](quality-gates.md) before hand-off | gate detail, smells, pre-push sequence |
+| Touch security control (auth/crypto/PII) | → `secure` | security-engineer threat model + abuse case (dev-gate ไม่ classify threat) |
 | Language-specific conventions | → only the active language's file `references/languages/<lang>.md` | — |
 
-Dave/Chris: reuse the project's verified gate commands. When a gate lacks a known
+developer/code-reviewer: reuse the project's verified gate commands. When a gate lacks a known
 command or tooling is being configured, read [tool-matrix.md](tool-matrix.md) before
 selecting tools; use only the relevant stack row. Missing required checks remain
 BLOCKED. The reference is guidance, not permission to install dependencies.
@@ -124,7 +124,7 @@ Every gate applies to every hand-off; this table is the pass criterion.
 
 | # | Gate | Read/Write | ตรวจอะไร | บล็อก hand-off ถ้า fail |
 |---|---|---|---|---|
-| 0 | **Architecture self-check** | Read (judgment) | SOLID + cohesion + human-readable | 🟠 (Dave judge; Chris verify) |
+| 0 | **Architecture self-check** | Read (judgment) | SOLID + cohesion + human-readable | 🟠 (developer judge; code-reviewer verify) |
 | 1 | **Format** | Write (rewrite style) | indent/space/quote/line-length | 🔴 |
 | 2 | **Organize Imports** | Write (sort+group) | stdlib/3rd-party/local + alpha sort | 🔴 |
 | 3 | **Remove Unused** | Write (delete) | unused import/var/function/parameter | 🔴 |
@@ -155,7 +155,7 @@ Complete = no open § Stop and return condition, every § Hand-off evidence item
 - ห้ามใช้ `any` (TS) / `Any` (Py) เป็นทางลัด
 - ห้าม PR ที่ลด coverage (CI ตั้ง gate, ratchet)
 - ห้าม merge code ที่ build แดง
-- ห้าม ignore/suppress security warning (SAST · secret scan · dependency audit) โดยไม่ Sentinel approve — secret/critical-high vuln = block commit (detail → quality-gates.md Gate 9)
+- ห้าม ignore/suppress security warning (SAST · secret scan · dependency audit) โดยไม่ security-engineer approve — secret/critical-high vuln = block commit (detail → quality-gates.md Gate 9)
 
 ## Skill composition (where to go next)
 
@@ -164,4 +164,4 @@ Complete = no open § Stop and return condition, every § Hand-off evidence item
 | Test pass แต่ยังไม่มี CI gate | → `automate-test` | Pyramid ratio + CI threshold + contract test |
 | Code touches frontend | → `ui-test` | E2E + visual + a11y automation |
 | Frontend public-facing (perf/SEO/security) | → `web-q` | CWV + Lighthouse + security headers budget |
-| Hand-off Phase 2 → 3b review | → `review-checklist` skill | Chris 7-dim + Quinn integration matrix
+| Hand-off Phase 2 → 3b review | → `shode-house:review-checklist` skill | code-reviewer 7-dim + qa-engineer integration matrix

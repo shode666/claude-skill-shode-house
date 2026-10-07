@@ -1,12 +1,167 @@
 ---
-description: "[shode-house] Code review + security (Chris + Quinn + Domain) — รับ path, Jira ID, หรือ bug description (+ screenshot)"
+description: "[shode-house] Code review + security (review axes: standards, spec, runtime, security, domain, ui) — รับ path, Jira ID, หรือ bug description (+ screenshot)"
 allowed-tools: Task, Read, Grep, Glob, Bash, Skill, mcp__atlassian__getJiraIssue, mcp__atlassian__searchJiraIssuesUsingJql, mcp__atlassian__getJiraIssueRemoteIssueLinks, mcp__atlassian__addCommentToJiraIssue
 argument-hint: "[path | KJERP-402 | คำอธิบายบั๊กภาษาไทย (+ screenshot ได้) | --debt]"
 ---
 
-User request: $ARGUMENTS
+Review target: **$ARGUMENTS**
 
-Use the referenced command [review](../knowledge/commands/review.md) as the entry point for this request, applying it to the user request above. Follow only the branches that apply to the current task, and load additional references only when the command directs you to.
-This is a discovery adapter, not a replacement for the command knowledge.
+In the unified distribution this file is a private scope/review reference reached
+from ask, not another required command. Use actual host tools and confirmed records;
+the frontmatter lists legacy Claude tool names, not authority to post externally.
+
+## Mode: `--debt` (จาก ponytail — deferred-shortcut harvest)
+
+ถ้า `$ARGUMENTS` = `--debt`:
+1. รัน (no Python) `grep -rnoE 'shortcut\(bd:[0-9]+\):[^"]*' . --include='*.*' | grep -v '/\.git/'` → รวบ `shortcut(bd:N):` comment ทั้ง repo (group ตาม bd id ด้วย `sort`/`awk`)
+2. Store findings in the confirmed evidence home, Markdown fallback. Update linked
+   task records only with project/request authority; otherwise return proposed
+   updates. The legacy shortcut scan is not proof that every debt format was found.
+3. present สรุป (bd ids หรือ md path)
+4. ไม่รัน 7-dim review (mode นี้เก็บ debt อย่างเดียว) → จบ
+
+ไม่ใช่ `--debt` → ทำต่อ Step 0 ปกติ
+
+## Step 0 — Resolve Argument (router)
+
+The router ตัดสินประเภท input แล้ว route:
+
+### Pattern A — Jira issue key `[A-Z]+-\d+` (เช่น `KJERP-402`)
+
+1. `getJiraIssue(issueIdOrKey="$ARGUMENTS")` → summary, description, status, assignee, labels, AC
+2. `getJiraIssueRemoteIssueLinks` → linked PR / branch / commit
+3. Parse description หา branch/PR URL/file path
+4. มี PR → `gh pr diff` / `gh pr view --json files` ได้ changed files
+5. ไม่มี PR → `git log --all --grep="$KEY" --oneline` หา commit
+6. ระบุ PR และ files ที่ resolve ได้แล้วดำเนิน read-only review ใน scope ที่ขอ; ถ้ายังมีหลาย target ที่เลือกไม่ได้จึงถาม
+
+### Pattern B — File/Directory path (มี `/` หรือ `.` และตรงกับไฟล์จริง)
+
+Review ตาม path ตรงๆ
+
+### Pattern C — Natural language bug description (+ optional screenshot) 🆕
+
+ตัวอย่าง: `/review การคำนวนหน้านี้ผิด` (+ screenshot แนบหรือไม่ก็ได้)
+
+**Router triage bug:**
+
+1. **Extract intent** จาก description:
+   - Domain keywords: `คำนวน/คำนวณ` → calculation, `ราคา/ยอด` → price/total, `จอง` → booking, `ชำระ/จ่าย` → payment, `สต็อก` → inventory, `รายงาน` → report
+   - UI hint: `หน้านี้/หน้าจอ` → frontend page, `API` → endpoint, `batch/cron` → job
+   - Severity hint: `ผิด/พัง/error` → 🔴, `ช้า/slow` → 🟠, `ไม่สวย/ui` → 🟡
+
+2. **ถ้ามี screenshot แนบ** → วิเคราะห์ภาพ:
+   - อ่าน text/number บนภาพ (URL bar, page title, labels, values, error message)
+   - ระบุ expected vs actual value (ถ้าผู้ใช้ไฮไลต์ / mark)
+   - หา UI element ระบุ page/route (เช่น `/booking/summary`, `/invoice/preview`)
+
+3. **Locate suspect code** — ใช้ keyword + UI clue:
+   ```bash
+   # ตัวอย่าง "การคำนวนหน้านี้ผิด" + screenshot หน้า invoice
+   grep -rn "calculateTotal\|computeAmount\|sumPrice" --include="*.ts" --include="*.py"
+   glob "**/invoice/**/*.{ts,vue,py}"
+   ```
+
+4. **Present candidate files** และตรวจหลักฐานเพื่อยืนยันเส้นทาง bug:
+   ```
+   จาก description + screenshot ผมสงสัยไฟล์:
+   - src/services/invoice/calculator.ts (logic หลัก)
+   - src/pages/invoice/summary.vue (render)
+   - src/utils/money.ts (format)
+   เริ่มตรวจ 3 ไฟล์นี้ตามเส้นทาง bug; ถ้าหลักฐานยังแยก target ไม่ได้จึงถาม user
+   ```
+
+5. Link findings to the confirmed canonical task. Creating a new tracker issue
+   requires workflow authority; otherwise return a proposed issue or Markdown
+   report in the agreed evidence home. Do not require Beads.
+
+### Pattern D — Ambiguous → ถาม user
+
+"`$ARGUMENTS` ตีความได้หลายแบบ — หมาย Jira key, path, หรือคำอธิบายบั๊ก?"
+
+## Step 0.5 — Scope resolution (pin ก่อน fan-out เสมอ)
+
+pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง command ที่รันได้จริงไปกับ delegation:
+      ```bash
+      git rev-parse <fixed-point>            # ref ใช้ได้จริงไหม (commit/branch/tag/main/HEAD~5)
+      git diff <fixed-point>...HEAD          # 🔴 three-dot = เทียบกับ merge-base
+      git log <fixed-point>..HEAD --oneline  # commit list ส่งเข้า sub-agent
+      ```
+      **user ไม่ระบุ → ไล่ fallback ตามลำดับ อย่าถามทันที** (`/review path` และ `/review <bug>` เป็น contract ที่โฆษณาไว้ การบังคับ git fixed point ทุกกรณีทำให้ path ปกติหยุดเปล่า ๆ):
+      1. มี branch ต้นทาง (`git rev-parse --abbrev-ref @{u}` หรือ `main`/`master`) → ใช้เป็น fixed point
+      2. ไม่มี upstream แต่มี staged/working change → review **`git diff --cached`** แล้ว **`git diff`** (ระบุใน report ว่าขอบเขตคือ uncommitted)
+      3. **ไม่ใช่ repo git / เป็นไฟล์เดี่ยว / เป็น snippet-screenshot ที่ user แปะมา** → ขอบเขต = **ไฟล์/เนื้อหานั้นทั้งชิ้น** (บันทึกใน report ว่า "no diff range — full-file review")
+      4. ทุกทางไม่ได้ผลและงานเป็นชนิดที่ต้องมี diff จริง ๆ → ค่อยถาม
+      ref ที่ user ระบุมาแล้วพัง หรือ diff ว่างทั้งที่ควรมี → **fail ตรงนี้** ไม่ใช่ไปตายใน sub-agent
+
+ผลลัพธ์ก่อนไป Step 1: verified diff command สำหรับ diff review หรือ accessible file/snippet scope สำหรับ full-content review + ประโยคเดียวบอกขอบเขตใน report ไม่บังคับ diff ในกรณีที่ไม่มี git
+
+## Step 1 — Invoke review-checklist skill
+
+> review checklist รวบศูนย์ใน `skills/discipline/review-checklist/SKILL.md` — โหลด `shode-house:review-checklist` ด้วย `Skill`. Command นี้ = scope + context-aware invoke; axis plan อยู่ที่ router style
+
+Router style not active in this session → report `BLOCKED: team execution needs the router style (Claude Code)`; do not read the style file to act as the router.
+
+Before dispatch, record the axis plan as the `[REVIEW DISPATCH CARD]` using the canonical task ID:
+one line per axis from `output-styles/shode-house.md` § Review card: standards, spec, runtime, security,
+domain, ui; each DISPATCH or SKIP("<reason>"); spec is always DISPATCH. Missing Beads or a ceremonial
+printout is not a blocker; missing scope/required ownership is.
+
+กติกาที่ command นี้เพิ่มจาก card (บังคับทั้ง 4 ข้อ):
+1. An explicitly requested full review dispatches runtime too. Otherwise runtime is DISPATCH when the
+   harness risk tier includes qa-engineer (`skills/discipline/shode-house-workflow/harness.md`: every
+   Standard feature), when the change crosses a process/network/storage boundary, or when project
+   requirements ask for it. Record any omission.
+2. security SKIP ได้ **เหตุผลเดียว**: SKIP("no trigger keyword") — ต้อง scan keyword list ตาม
+   `skills/discipline/review-checklist/security-sentinel.md` บรรทัด `WHEN: diff_touches in {auth,money,PII,crypto,
+   secrets} OR secure_skill_triggered=true` (lazy-load-contract block — canonical, ห้าม fork list
+   ที่นี่) และ Phase 1c list ของ card กับ prompt+diff ก่อน; เจอ = DISPATCH บังคับ. domain ใช้ SKIP("no trigger keyword") เช่นกัน.
+   A security or domain DISPATCH records the matched keywords on its card line: DISPATCH(trigger:<keywords>)
+3. Each DISPATCH needs a real separate worker with full role knowledge. Serialize
+   when capacity/dependencies require it; role-play and renamed self-review do not count.
+4. Compare actual reviewer returns against the axis plan; missing required review
+   remains BLOCKED. The plan may be in the checkpoint rather than repeated in chat.
+
+Kickoff: pin fixed point ก่อน (Step 0.5, `skills/discipline/review-checklist/intake.md`) แล้ว dispatch ตาม card; method ต่อแกน:
+- standards → `shode-house:code-reviewer` — 7 มิติ (Correctness/Security/SOLID/Perf/Maintain/Test/Observ)
+- runtime → `shode-house:qa-engineer` — Security scan section (SAST/SCA/secret/OWASP manual) + integration
+- security → `shode-house:security-engineer` — `skills/discipline/review-checklist/security-sentinel.md`
+- domain → matching domain type — `skills/discipline/review-checklist/domain-validation.md`
+- ui → `shode-house:ux-ui-designer` — rendered change; in `/implement` Phase 3b a Phase 3a ux verdict that covers the
+  current revision is the ui verdict — dispatch again only if UI files changed after 3a
+- spec → `shode-house:business-analyst` — Spec axis, `skills/discipline/review-checklist/spec-axis.md`;
+  spec source ตามลำดับ: Jira/task description → path ที่ user ส่ง → outputs/SPEC-*.md → ถาม user;
+  ไม่มี spec (รวม Pattern C bug description) → spec spawn รายงาน `BLOCKED: no-spec` ("no spec available")
+  พร้อม sources ที่ตรวจแล้ว = missing acceptance ที่ router relay ให้ user — ไม่ใช่ spec PASS และไม่ใช่เหตุผลให้ SKIP spec
+
+🔴 aggregate แยกหัวข้อ `## Standards` / `## Spec` — **ห้าม merge/rerank ข้ามแกน**
+
+**Context-aware focus**:
+- Pattern A (Jira) → cross-check code vs AC ใน description; link findings through the confirmed record home with existing update authority, otherwise return proposed updates
+- Pattern C (bug description) → focus 7-dim เฉพาะ "เส้นทาง bug" ก่อน (calc logic / edge / expected vs actual); มิติอื่นเป็น secondary
+- Pattern B (path) → full 7-dim + integration matrix
+
+## Step 2 — Consolidated Report
+
+Format + storage rules + severity grading + loop routing — **ทั้งหมดอยู่ใน `shode-house:review-checklist` skill**:
+- § Severity Grading (🔴/🟠/🟡/🔵/💡)
+- § REVIEW Report Format (bd-native primary, markdown fallback)
+- § Loop Routing Recommendation
+- § Anti-Puppet Gate (paste tool output)
+
+**Storage rule**: use the confirmed evidence home per `skills/discipline/review-checklist/report-format.md`.
+Keep one canonical report and links from task records, not competing copies. Preserve
+existing artifacts. External comments/updates need authority and actual available
+tools; missing service access remains pending sync, never claimed posted.
+
+## ⚠️ Rules
+
+- Security Critical/High = **block merge**
+- Domain-sensitive = บังคับผ่าน matching domain type
+- อ่านโค้ดจริงทุกไฟล์ (prefer `Grep` > `Read` full file)
+- Run static analysis ถ้ามี (Bash)
+- A Jira key alone does not authorize posting; return proposed updates to the router if authority is missing.
+- ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim
+
 Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ under this plugin's knowledge/ directory, not the user's project.
-Use actual host tools and preserve host/project/user authority.
+No shode-house safety floor in this context (a main session without the router style)? Load `shode-house:ask` first.

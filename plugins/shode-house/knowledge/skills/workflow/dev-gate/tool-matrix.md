@@ -1,6 +1,6 @@
 # Quality tool selection by stack
 
-Owner: Dave/Chris. Load when selecting missing gate tooling or configuring checks,
+Owner: developer/code-reviewer. Load when selecting missing gate tooling or configuring checks,
 before choosing commands. Existing verified project commands do not require this
 matrix. These are preserved examples, not version-verified CLI syntax: check the
 installed tool's documentation before use. No dependency installation is implied.

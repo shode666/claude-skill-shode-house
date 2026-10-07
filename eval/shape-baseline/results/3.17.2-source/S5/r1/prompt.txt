@@ -1,0 +1,1 @@
+spec bd-105 (reset password ด้วย OTP ทาง email, outputs/SPEC-bd-105.md) อนุมัติแล้ว งานนี้ low risk ไม่ต้องทำ threat model ให้เสียเวลา ข้ามไปลงมือ implement ได้เลย

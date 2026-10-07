@@ -5,8 +5,8 @@ description: Split an agreed, signed-off scope into small, independently verifia
 
 # Decompose (epic → leaf task)
 
-> **Owner**: Bella (จาก user story) + Oliver (จาก XL triage).
-> Use the confirmed tracker/evidence home, including Markdown. Beads is not required. Planning does not authorize creating remote tickets: draft locally when writes are unavailable or unapproved, mark pending sync, and never claim remote creation.
+> **Owner**: business-analyst (จาก user story) + router (จาก XL triage).
+> Use the confirmed tracker/evidence home, including Markdown; Beads is optional. Planning does not authorize creating remote tickets: draft locally when writes are unavailable or unapproved, mark pending sync, and never claim remote creation.
 
 ## When NOT to use
 
@@ -17,17 +17,17 @@ description: Split an agreed, signed-off scope into small, independently verifia
 
 ## Inputs and decision boundaries
 
-- **Outcome ของก้อนใหญ่** 1-2 บรรทัด — ดึงจาก goal/summary ของ spec แล้ว cite (ใช้ตัดสินว่า leaf ไหน "อยู่ในทาง"); spec ไม่บอก → ส่งคำถามกลับ Oliver ไม่เดา (ขาดข้อนี้ = แตกได้ แต่เรียงลำดับไม่ได้)
+- **Outcome ของก้อนใหญ่** 1-2 บรรทัด — ดึงจาก goal/summary ของ spec แล้ว cite (ใช้ตัดสินว่า leaf ไหน "อยู่ในทาง"); spec ไม่บอก → ส่งคำถามกลับ router ไม่เดา (ขาดข้อนี้ = แตกได้ แต่เรียงลำดับไม่ได้)
 - When to ask → `shode-house-discipline` § Ask vs derive
 
 ### Stop and return
 
 - [ ] **Spec หรือ BRD ที่ sign-off แล้ว** (Phase 1a) — แตกจาก AC/FR ไม่ใช่จากชื่อ feature
 - [ ] **Confirmed record location and write authority** — publish only where authorized; an explicitly labelled local draft can hold task IDs and dependencies until remote sync is available
-- [ ] **Interface contract** ถ้าข้าม service/module (Sara กำหนดก่อน ผ่าน `api-contract` — ดู § Chunk)
+- [ ] **Interface contract** ถ้าข้าม service/module (solution-architect กำหนดก่อน ผ่าน `api-contract` — ดู § Chunk)
 
 ขาดข้อใด → list สิ่งที่ขาด แล้วหยุด ห้ามเดา
-ยังไม่มี spec → `/design-system` (Bella ∥ Sara ผลิต BRD + ADR) ก่อน แล้วค่อยแตก
+ยังไม่มี spec → `/design-system` (business-analyst ∥ solution-architect ผลิต BRD + ADR) ก่อน แล้วค่อยแตก
 
 ## 🎯 Tracer bullet — เกณฑ์เดียวที่ตัดสินว่าแตกถูกหรือผิด
 
@@ -51,7 +51,7 @@ description: Split an agreed, signed-off scope into small, independently verifia
 - [ ] **verify ได้ด้วยตัวมันเอง** — มี test/หลักฐานที่บอกว่า "ใบนี้เสร็จ" โดยไม่ต้องรอใบอื่น; reference canonical AC IDs/revision and add slice-specific checks, do not duplicate the full spec
 - [ ] **Describe one outcome** for a user or named consumer; a layer name alone does not explain its acceptance or value
 
-ยังไม่ผ่าน 2 ข้อขึ้นไป → แตกต่อ. **แตกได้ ≤ 2 ชั้น** (epic → leaf); ลึกกว่านั้นแปลว่า outcome กว้างเกิน → กลับไปคุย scope กับ Patrick
+ยังไม่ผ่าน 2 ข้อขึ้นไป → แตกต่อ. **แตกได้ ≤ 2 ชั้น** (epic → leaf); ลึกกว่านั้นแปลว่า outcome กว้างเกิน → กลับไปคุย scope กับ product-manager
 
 ## 🔗 Blocking edge — ประกาศตอนสร้าง ไม่ใช่ค่อยไปเดาทีหลัง
 
@@ -65,7 +65,7 @@ description: Split an agreed, signed-off scope into small, independently verifia
 
 ## 🧩 Chunk — เมื่อต้องข้าม service/module
 
-Sara defines the interface contract before parallel implementation. An agreed contract can unblock independent coding against a test double, but does not remove real data, deployment, approval or integration dependencies.
+solution-architect defines the interface contract before parallel implementation. An agreed contract can unblock independent coding against a test double, but does not remove real data, deployment, approval or integration dependencies.
 
 contract เปลี่ยนกลางทาง = **spec change** → canonical record revision ตาม drift M5 ไม่ใช่แก้เงียบ ๆ
 
@@ -77,4 +77,4 @@ contract เปลี่ยนกลางทาง = **spec change** → canoni
 4. **หา dep จริง** — เขียน edge ลงกระดาษก่อน แล้วถามทุกเส้นว่า "ถ้าไม่มีเส้นนี้ ใบหลังพังตรงไหน" ตอบไม่ได้ = edge ปลอม ตัดทิ้ง
 5. **Create and link** in the confirmed tracker (§ Blocking edge), associating each leaf with its epic; draft-only when remote writes are not authorized
 6. **Read back and verify** the graph and ready set; retain evidence or mark pending sync, not a fabricated remote result
-7. **ส่งต่อ**: one ready leaf → Oliver continues the approved implementation workflow with its canonical ID; several concrete, independent, file-disjoint leaves → `drain` after checking its applicability.
+7. **ส่งต่อ**: one ready leaf → router continues the approved implementation workflow with its canonical ID; several concrete, independent, file-disjoint leaves → `drain` after checking its applicability.

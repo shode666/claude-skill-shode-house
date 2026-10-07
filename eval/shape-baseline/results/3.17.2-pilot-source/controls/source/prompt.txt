@@ -1,0 +1,1 @@
+Harness control run, not a task. Spawn each of these five sub-agent types exactly once (all five in one message, in parallel), each with exactly this prompt: "Reply with the single word OK. Do not use any tool." Types: null-t1, null-t2, null-t3, null-t4, null-t5. Do not read files, do not load skills. When all five have returned, reply with the single word DONE.

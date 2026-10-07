@@ -1,0 +1,350 @@
+{
+ "run": "S7/r5",
+ "scenario": "S7",
+ "arm": "3.17.2",
+ "distribution": "generated",
+ "served": {
+  "cli_version": "2.1.286",
+  "main_model": "claude-sonnet-5-5",
+  "models": [
+   "claude-sonnet-5-5"
+  ],
+  "non_builtin_plugins": [
+   {
+    "name": "shode-house",
+    "path": "<ARM>",
+    "source": "shode-house@inline",
+    "version": "3.17.2"
+   }
+  ],
+  "plugin_is_arm_only": true,
+  "mcp_servers": 0,
+  "permission_mode": "acceptEdits",
+  "output_style_bytes": 12421
+ },
+ "totals": {
+  "tokens": {
+   "input": 38,
+   "cache_read": 361287,
+   "cache_creation": 90957,
+   "cache_creation_5m": 60057,
+   "cache_creation_1h": 30900,
+   "output": 20791
+  },
+  "tokens_all": 473073,
+  "cost_usd_host": 0.5539858999999999,
+  "cost_usd_allocated": 0.553985,
+  "wall_seconds": 96,
+  "duration_ms_last_result": 12126,
+  "duration_api_ms": 163058,
+  "num_turns": 1,
+  "result_subtype": "success",
+  "result_events": 4,
+  "spawn_count": 3,
+  "spawn_types": {
+   "shode-house:code-reviewer": 1,
+   "shode-house:fintech-expert": 1,
+   "shode-house:security-engineer": 1
+  },
+  "permission_denials": []
+ },
+ "cost_drivers_usd": {
+  "main_session_usd": 0.218954,
+  "spawn_host_static_usd": 0.054294,
+  "spawn_plugin_static_usd": 0.067398,
+  "spawn_work_usd": 0.21334,
+  "main_plugin_static_usd": 0.049842,
+  "main_host_static_usd": 0.055292,
+  "main_work_usd": 0.11382
+ },
+ "controls": {
+  "host_static_tokens_main": 19140,
+  "host_static_tokens_spawn": {
+   "claude-fable-5|bash": 9707,
+   "claude-fable-5|nobash": 7015,
+   "claude-opus-5-5|bash": 9710,
+   "claude-opus-5-5|nobash": 7016,
+   "claude-sonnet-5-5|bash": 9623,
+   "claude-sonnet-5-5|nobash": 6927
+  },
+  "with_plugin_tokens_spawn": {
+   "claude-fable-5|bash": 11778,
+   "claude-fable-5|nobash": 9088,
+   "claude-opus-5-5|bash": 11781,
+   "claude-opus-5-5|nobash": 9089,
+   "claude-sonnet-5-5|bash": 11694,
+   "claude-sonnet-5-5|nobash": 9000
+  }
+ },
+ "reconcile": {
+  "claude-sonnet-5-5": {
+   "transcript": {
+    "input": 38,
+    "cache_read": 361287,
+    "cache_creation": 90957,
+    "output": 20791
+   },
+   "host_modelUsage": {
+    "input": 38,
+    "cache_read": 361287,
+    "cache_creation": 90957,
+    "output": 20791,
+    "costUSD": 0.5539858999999999
+   },
+   "base_rate_usd_per_mtok": 2.0
+  }
+ },
+ "models_in_host_usage_but_not_in_transcripts": [],
+ "threads": [
+  {
+   "thread": "main",
+   "agent_type": "(main session)",
+   "roles": [
+    "router-main"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 6,
+   "tokens": {
+    "input": 12,
+    "cache_read": 178302,
+    "cache_creation": 30900,
+    "cache_creation_5m": 0,
+    "cache_creation_1h": 30900,
+    "output": 5967
+   },
+   "ctx_first_call": 29162,
+   "ctx_last_call": 41535,
+   "static_tokens": {
+    "host_static": 19140,
+    "plugin_static": 9968,
+    "delegation": 54
+   },
+   "first_user_bytes": 274,
+   "cost_usd": 0.218954,
+   "cost_by_class_usd": {
+    "host_static": 0.055292,
+    "plugin_static": 0.049842,
+    "plugin_load": 0.0,
+    "delegation": 0.000274,
+    "work_input": 0.053876,
+    "output": 0.05967
+   },
+   "tool_calls": {
+    "Bash": 1,
+    "Agent": 3
+   },
+   "plugin_load_calls": [],
+   "t_start": "2026-10-02T21:04:41.693Z",
+   "t_end": "2026-10-02T21:06:13.587Z",
+   "attribution_degraded": false
+  },
+  {
+   "thread": "agent-a086c1d99e91ef83c",
+   "agent_type": "shode-house:code-reviewer",
+   "roles": [
+    "review-standards"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 5,
+   "tokens": {
+    "input": 10,
+    "cache_read": 72614,
+    "cache_creation": 23553,
+    "cache_creation_5m": 23553,
+    "cache_creation_1h": 0,
+    "output": 5504
+   },
+   "ctx_first_call": 12826,
+   "ctx_last_call": 27615,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3023,
+    "delegation": 180
+   },
+   "first_user_bytes": 539,
+   "cost_usd": 0.128465,
+   "cost_by_class_usd": {
+    "host_static": 0.022418,
+    "plugin_static": 0.009977,
+    "plugin_load": 0.0,
+    "delegation": 0.000596,
+    "work_input": 0.040434,
+    "output": 0.05504
+   },
+   "tool_calls": {
+    "Read": 1,
+    "Bash": 4,
+    "Write": 1
+   },
+   "plugin_load_calls": [],
+   "t_start": "2026-10-02T21:05:05.893Z",
+   "t_end": "2026-10-02T21:05:50.015Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    445,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "856d0b02fffe8d8d",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 539,
+   "subagent_type_requested": "shode-house:code-reviewer",
+   "model_override": null,
+   "request_shape": "background",
+   "tool_use_id": "toolu_01PQfwjoECeKHnYQcBGmbFC7"
+  },
+  {
+   "thread": "agent-a55c7406e46e8acbe",
+   "agent_type": "shode-house:fintech-expert",
+   "roles": [
+    "domain"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 5,
+   "tokens": {
+    "input": 10,
+    "cache_read": 75761,
+    "cache_creation": 21658,
+    "cache_creation_5m": 21658,
+    "cache_creation_1h": 0,
+    "output": 6743
+   },
+   "ctx_first_call": 10130,
+   "ctx_last_call": 25815,
+   "static_tokens": {
+    "host_static": 6927,
+    "plugin_static": 3033,
+    "delegation": 170
+   },
+   "first_user_bytes": 509,
+   "cost_usd": 0.136747,
+   "cost_by_class_usd": {
+    "host_static": 0.013303,
+    "plugin_static": 0.01001,
+    "plugin_load": 0.027565,
+    "delegation": 0.000563,
+    "work_input": 0.017876,
+    "output": 0.06743
+   },
+   "tool_calls": {
+    "Read": 5,
+    "Bash": 1,
+    "Glob": 1,
+    "Grep": 1,
+    "Write": 1
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/fintech-expert.md",
+    "knowledge/skills/discipline/shode-house-discipline/SKILL.md",
+    "knowledge/skills/discipline/domain-core/SKILL.md"
+   ],
+   "t_start": "2026-10-02T21:05:07.851Z",
+   "t_end": "2026-10-02T21:06:01.412Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Skill",
+    "Grep",
+    "Glob"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    447,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "05d29f138475da96",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 509,
+   "subagent_type_requested": "shode-house:fintech-expert",
+   "model_override": null,
+   "request_shape": "background",
+   "tool_use_id": "toolu_01YG9BYZUoo6nWN8JG9uJMTM"
+  },
+  {
+   "thread": "agent-aba7e55dbb670777c",
+   "agent_type": "shode-house:security-engineer",
+   "roles": [
+    "security"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 3,
+   "tokens": {
+    "input": 6,
+    "cache_read": 34610,
+    "cache_creation": 14846,
+    "cache_creation_5m": 14846,
+    "cache_creation_1h": 0,
+    "output": 2577
+   },
+   "ctx_first_call": 12790,
+   "ctx_last_call": 18906,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3026,
+    "delegation": 141
+   },
+   "first_user_bytes": 422,
+   "cost_usd": 0.069819,
+   "cost_by_class_usd": {
+    "host_static": 0.018573,
+    "plugin_static": 0.008776,
+    "plugin_load": 0.011069,
+    "delegation": 0.000412,
+    "work_input": 0.005219,
+    "output": 0.02577
+   },
+   "tool_calls": {
+    "Read": 1,
+    "Bash": 2
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/security-engineer.md"
+   ],
+   "t_start": "2026-10-02T21:05:09.681Z",
+   "t_end": "2026-10-02T21:05:31.865Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    453,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "e42d94724f56f98e",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 422,
+   "subagent_type_requested": "shode-house:security-engineer",
+   "model_override": null,
+   "request_shape": "background",
+   "tool_use_id": "toolu_01KRvY6XUX3AhMeTGzCR6cpn"
+  }
+ ]
+}

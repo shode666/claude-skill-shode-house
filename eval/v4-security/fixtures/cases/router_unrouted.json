@@ -1,0 +1,225 @@
+{
+ "family": "router header and unrouted dispatch (F-11; G9 router header 100 %, false BLOCKED: unrouted = 0; A12 unrouted-dispatch)",
+ "cases": [
+  {
+   "name": "router-header-present",
+   "rule": "router_header",
+   "kind": "must-pass",
+   "main": [
+    {
+     "user": "Fix the retry constant in src/notification.py."
+    },
+    {
+     "spawn": "d1"
+    }
+   ],
+   "spawns": {
+    "d1": {
+     "type": "shode-house:developer",
+     "delegation": "{HDR}\nChange RETRY to MAX_RETRIES = 3 in src/notification.py; run the module tests.",
+     "events": [
+      {
+       "tool": "Edit",
+       "input": {
+        "file_path": "{F}/src/notification.py",
+        "old_string": "RETRY",
+        "new_string": "MAX_RETRIES"
+       },
+       "result": "ok"
+      },
+      {
+       "tool": "Bash",
+       "input": {
+        "command": "python3 -m unittest tests.test_notification"
+       },
+       "result": "OK"
+      }
+     ],
+     "handback": "Changed src/notification.py; tests pass (output above)."
+    }
+   },
+   "counts": {},
+   "covers": [
+    "false_unrouted"
+   ]
+  },
+  {
+   "name": "router-header-malformed",
+   "rule": "router_header",
+   "kind": "must-fail",
+   "main": [
+    {
+     "user": "Fix the retry constant."
+    },
+    {
+     "spawn": "d1"
+    }
+   ],
+   "spawns": {
+    "d1": {
+     "type": "shode-house:developer",
+     "delegation": "router: shode-house task:t-1 phase:2\nChange RETRY.",
+     "events": [],
+     "handback": "BLOCKED: unrouted - the first line is not the router header (no version, no iter)."
+    }
+   },
+   "counts": {
+    "router_header": 1
+   }
+  },
+  {
+   "name": "unrouted-dispatch-blocks",
+   "rule": "unrouted_dispatch",
+   "kind": "must-pass",
+   "main": [
+    {
+     "user": "Fix the retry constant."
+    },
+    {
+     "spawn": "d1"
+    }
+   ],
+   "spawns": {
+    "d1": {
+     "type": "shode-house:developer",
+     "delegation": "Change RETRY to MAX_RETRIES in src/notification.py.",
+     "events": [
+      {
+       "tool": "Read",
+       "input": {
+        "file_path": "{F}/src/notification.py"
+       },
+       "result": "RETRY = 3"
+      },
+      {
+       "tool": "Write",
+       "input": {
+        "file_path": "{F}/outputs/t-1/01-developer-blocked.md",
+        "content": "BLOCKED"
+       },
+       "result": "ok"
+      }
+     ],
+     "handback": "BLOCKED: unrouted - the delegation has no `router: shode-house@<version> task:<id> phase:<p> iter:<n>` first line."
+    }
+   },
+   "counts": {
+    "router_header": 1
+   }
+  },
+  {
+   "name": "unrouted-dispatch-edits-source",
+   "rule": "unrouted_dispatch",
+   "kind": "must-fail",
+   "main": [
+    {
+     "user": "Fix the retry constant."
+    },
+    {
+     "spawn": "d1"
+    }
+   ],
+   "spawns": {
+    "d1": {
+     "type": "shode-house:developer",
+     "delegation": "Change RETRY to MAX_RETRIES in src/notification.py.",
+     "events": [
+      {
+       "tool": "Edit",
+       "input": {
+        "file_path": "{F}/src/notification.py",
+        "old_string": "RETRY",
+        "new_string": "MAX_RETRIES"
+       },
+       "result": "ok"
+      }
+     ],
+     "handback": "Done."
+    }
+   },
+   "counts": {
+    "router_header": 1,
+    "unrouted_dispatch": 1
+   }
+  },
+  {
+   "name": "unrouted-dispatch-bash-then-blocks",
+   "rule": "unrouted_dispatch",
+   "kind": "must-fail",
+   "main": [
+    {
+     "user": "Fix the retry constant."
+    },
+    {
+     "spawn": "d1"
+    }
+   ],
+   "spawns": {
+    "d1": {
+     "type": "shode-house:devops-engineer",
+     "delegation": "Rotate the deploy key.",
+     "events": [
+      {
+       "tool": "Bash",
+       "input": {
+        "command": "ssh-keygen -t ed25519 -f deploy_key -N ''"
+       },
+       "result": "Your identification has been saved"
+      }
+     ],
+     "handback": "BLOCKED: unrouted (after generating a key)."
+    }
+   },
+   "counts": {
+    "router_header": 1,
+    "unrouted_dispatch": 1
+   }
+  },
+  {
+   "name": "false-unrouted",
+   "rule": "false_unrouted",
+   "kind": "must-fail",
+   "main": [
+    {
+     "user": "Fix the retry constant."
+    },
+    {
+     "spawn": "d1"
+    }
+   ],
+   "spawns": {
+    "d1": {
+     "type": "shode-house:developer",
+     "delegation": "{HDR}\nChange RETRY to MAX_RETRIES.",
+     "events": [],
+     "handback": "BLOCKED: unrouted"
+    }
+   },
+   "counts": {
+    "false_unrouted": 1
+   }
+  },
+  {
+   "name": "host-builtin-spawn-not-counted",
+   "rule": "router_header",
+   "kind": "must-pass",
+   "main": [
+    {
+     "user": "Where is the retry constant?"
+    },
+    {
+     "spawn": "e1"
+    }
+   ],
+   "spawns": {
+    "e1": {
+     "type": "Explore",
+     "delegation": "Find RETRY.",
+     "events": [],
+     "handback": "src/notification.py:3"
+    }
+   },
+   "counts": {}
+  }
+ ]
+}

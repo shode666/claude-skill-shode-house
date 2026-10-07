@@ -6,8 +6,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start.sh\"",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/collision-scan.sh\"",
+            "timeout": 5
           }
         ]
       }
@@ -18,12 +23,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard-state-write.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard-state-write.sh\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard-scope-write.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard-scope-write.sh\"",
             "timeout": 5
           }
         ]
@@ -33,7 +38,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard-scope-write.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard-scope-write.sh\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task|Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/collision-scan.sh\"",
             "timeout": 5
           }
         ]
@@ -44,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop-integrity.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop-integrity.sh\"",
             "timeout": 5
           }
         ]
@@ -55,7 +70,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop-integrity.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop-integrity.sh\"",
             "timeout": 5
           }
         ]

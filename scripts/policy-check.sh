@@ -17,7 +17,7 @@
 #      -> outputs/<bd-id>/<NN>-<agent>-<phase>.md")
 #        - anti-puppet : shode-house-deliverable/SKILL.md's Output contract point 3
 #          ("No placeholder" -- TBD / <fill this> without an OPEN QUESTION mark)
-#        - redact      : CLAUDE.md SS Agents "Redact ก่อน paste" (secret-shaped
+#        - redact      : shode-house-discipline SS Universal Rules "Redact ... ก่อน paste" (secret-shaped
 #          token pasted into an artifact without <REDACTED>)
 #   2. .shode-house/state/<bd-id>.json (Milestone A workflow state, scripts/
 #      workflow-state.sh's schema) -- did not exist when C-B1 first wrote this
@@ -101,7 +101,7 @@ check_placeholder() {
   [ "$hit" -eq 0 ]
 }
 
-# redact real check -- CLAUDE.md SS Agents "Redact ก่อน paste": secret-shaped
+# redact real check -- shode-house-discipline SS Universal Rules "Redact ... ก่อน paste": secret-shaped
 # token ที่ paste ลง artifact ต้องเป็น <REDACTED>
 check_redact() {
   local f hit=0
@@ -140,8 +140,8 @@ report() {
 # invents a bd-specific signal that doesn't actually exist
 skip_reason_for() {
   case "$1" in
-    *ci:*)              printf 'verification="%s" is a CI job step (.github/workflows/ci.yml) -- not reproducible from a single bd'"'"'s local artifact' "$1" ;;
-    *fixture*)          printf 'verification="%s" needs the recorded-transcript scorer harness (eval/) -- no such fixture is wired to bd artifact yet' "$1" ;;
+    *ci:*)              printf 'verification="%s" is a CI job step of the plugin repository -- not reproducible from a single bd'"'"'s local artifact' "$1" ;;
+    *fixture*)          printf 'verification="%s" needs the recorded-transcript scorer harness of the plugin repository -- no such fixture is wired to bd artifact yet' "$1" ;;
     mutation)           printf 'verification="mutation" needs a live mutation-testing run (Chris kill-rate) -- not derivable from a static bd artifact' ;;
     close-gate)         printf 'verification="close-gate" is a phase-exit sign-off judgement call -- not mechanically derivable from artifact presence alone' ;;
     output-style-test)  printf 'verification="output-style-test" needs a live main-session transcript -- no bd-scoped artifact carries this' ;;
@@ -167,7 +167,7 @@ while IFS=$'\t' read -r id verification; do
       elif check_redact; then
         report PASS "$id"
       else
-        report FAIL "$id" "found an unredacted secret-shaped token in outputs/$BD (see CLAUDE.md SS Agents Redact)"
+        report FAIL "$id" "found an unredacted secret-shaped token in outputs/$BD (see shode-house-discipline SS Universal Rules: Redact)"
       fi
       ;;
     dod)

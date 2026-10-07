@@ -1,0 +1,9 @@
+id	class	k_pass/N	n_fail	n_unscorable_or_incomplete	channels	terminals	mean_distinct_skills	uninformative_0_of_N
+P40	control-agent-table	4/5	1	0	agent:4,none:1	asked:1,completed:3,max_turns:1	0.00	no
+P41	control-agent-table	0/5	5	0	none:5	asked:5	0.00	yes
+P42	control-agent-table	5/5	0	0	agent:5	asked:1,completed:4	0.00	no
+P43	control-agent-table	5/5	0	0	agent:5	asked:2,completed:3	0.00	no
+P44	control-agent-table	5/5	0	0	agent:5	asked:5	0.00	no
+P45	control-agent-table	5/5	0	0	agent:5	asked:3,completed:2	0.00	no
+P46	negative	0/5	5	0	none:5	asked:4,max_turns:1	0.40	yes
+P47	negative	0/5	5	0	none:5	asked:5	0.00	yes

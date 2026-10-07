@@ -1,0 +1,16 @@
+id	run	exit	class	route	channel	terminal	distinct_skills	first_skill	first_agent	seconds	cost_usd
+P41	r1	0	control-agent-table	agent:staff-engineer	agent	asked	0	-	shode-house:staff-engineer	39	0.19288779999999997
+P41	r2	0	control-agent-table	agent:staff-engineer	agent	asked	0	-	shode-house:staff-engineer	59	0.2405352
+P41	r3	0	control-agent-table	agent:staff-engineer	agent	asked	0	-	shode-house:staff-engineer	41	0.2033636
+P41	r4	0	control-agent-table	agent:staff-engineer	agent	asked	0	-	shode-house:staff-engineer	32	0.1816956
+P41	r5	0	control-agent-table	agent:staff-engineer	agent	asked	0	-	shode-house:staff-engineer	39	0.1762244
+P46	r1	0	negative	agent:developer	agent	asked	0	-	shode-house:developer	23	0.16841720000000002
+P46	r2	0	negative	agent:developer	agent	completed	0	-	shode-house:developer	20	0.1664812
+P46	r3	0	negative	agent:developer	agent	completed	0	-	shode-house:developer	19	0.1657238
+P46	r4	0	negative	agent:developer	agent	asked	0	-	shode-house:developer	28	0.16881359999999998
+P46	r5	0	negative	agent:developer	agent	asked	0	-	shode-house:developer	18	0.1666398
+P47	r1	0	negative	agent:developer	agent	completed	0	-	shode-house:developer	34	0.1749452
+P47	r2	0	negative	agent:developer	agent	completed	0	-	shode-house:developer	22	0.1725216
+P47	r3	0	negative	agent:developer	agent	completed	0	-	shode-house:developer	23	0.174188
+P47	r4	0	negative	agent:developer	agent	completed	0	-	shode-house:developer	33	0.1742338
+P47	r5	0	negative	agent:developer	agent	completed	0	-	shode-house:developer	25	0.1866032

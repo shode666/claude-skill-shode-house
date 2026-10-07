@@ -98,7 +98,7 @@
 # platform-neutral in iter 1, "C1") ----
 #
 # This CORE script never names a platform -- no host-product name anywhere in this file
-# (grep-enforced by tests/test-scope-check.sh, the invariant C1 exists to protect: see
+# (grep-enforced by the maintainer suite test-scope-check.sh, the invariant C1 exists to protect: see
 # that test for the exact forbidden-string list). It knows exactly three identity
 # concepts:
 #   instance_id -- an opaque, harness-issued string identifying ONE running agent process
@@ -173,7 +173,7 @@
 # `agents[].allowed_roots` (plan-approved boundary, Part 1) and top-level `bindings`
 # (instance_id -> {platform, role, label} record map, Part 2, reshaped platform-neutral in
 # iter 1 "C1" -- see "bind design" above). Those two reference files sit outside this bd's
-# declared Files boundary (see outputs/shode-house-5cs/00-oliver-plan.md's track table; the
+# declared Files boundary (see the track table of the maintainer plan for bd shode-house-5cs; the
 # follow-up is tracked as bd shode-house-mri) and are not touched by this change --
 # scope-check.sh never schema-validates the manifest against manifest.schema.json at
 # runtime (only `jq empty` for syntax, see check_manifest_or_bail), so this is a
@@ -185,16 +185,65 @@
 # capability agents invoke through Bash, not through reading).
 #
 # ROOT can be overridden with SCOPECHECK_ROOT (used by the test suite to run inside an
-# isolated tmp dir instead of the real repo cwd -- mirrors WFSTATE_ROOT).
+# isolated tmp dir instead of the real repo cwd -- mirrors WFSTATE_ROOT). It names the project,
+# not code: the scope guard always sets it to the project it judges, so a value from the
+# hook's environment never reaches a hook call.
 
-set -u -o pipefail
+# The first command also turns off the shell options that SHELLOPTS in the environment can turn
+# on, that loosened a verdict, and that script code can undo (UD R89): errexit (a failing test
+# ended the run with exit 1, or a collision check that ended early with exit 0), keyword (an
+# assignment-shaped argument went into a command's environment instead of its arguments),
+# noglob (in the scope guard, the scan of the state directory found no file; no result of this
+# script changed, and it is turned off here so the three scripts follow one rule) and xtrace
+# (bash expands PS4 in this shell before each traced command, so an arithmetic PS4 can assign
+# the variables a check branches on, as it did in both guards: Sentinel env XT-1). noexec and
+# onecmd act before this command and cannot be undone here, and a PS4 is still expanded once,
+# at the trace of this command itself, so a command substitution in it runs once (an
+# assignment in it to a variable the ENV-R line below resets is undone there, UD R90): with the
+# variables of that line, they are control of the hook's environment, for a hook call
+# disclosed as equal to disableAllHooks. verbose, which only adds denies, is left alone (UD
+# R89, D1 of R88); posix, which only added denies too, is turned off as a side effect of the
+# ENV-R line's unset of POSIXLY_CORRECT (UD R90).
+set -u -o pipefail +o errexit +o noglob +o keyword +o xtrace
+# Byte semantics for every path operation in this script (Sentinel W8 r3 FU-R3a): the hooks
+# already run it under LC_ALL=C; a direct call inherits the caller's locale, and under a
+# multibyte locale such as glibc's ja_JP.sjis the canonicaliser's prefix strip read the
+# last byte of U+3042 as a lead byte and returned the absolute path, so "src/<U+3042>sales"
+# missed "src/*sales/**" (measured on Ubuntu 24.04, bash 5.2.21). Messages are ASCII plus
+# the real path bytes, so nothing user-visible depends on the locale.
+export LC_ALL=C
+# Ordinary variables of the environment that bash or jq read and that loosened this check are
+# cleared here, as in both guards (UD R88, Sentinel final ENV-R): jq sources $HOME/.jq, which
+# can redefine a jq builtin (a shared_files collision was missed); bash 4.2 and later stop at a
+# FUNCNEST nesting limit (a collision ended with exit 0); bash 5 times out every read of piped
+# data under a TMOUT below one tick (a collision was missed). Nothing here or in lock.sh reads
+# HOME, and no git command runs. What acts before this line (BASH_ENV, SHELLOPTS noexec or
+# onecmd, a PS4 command substitution at the trace of the first command, exported functions, the
+# bash and jq that PATH finds, DYLD_* or LD_PRELOAD) cannot be cleared by script code: for a
+# hook call that is control of the hook's environment, disclosed as equal to disableAllHooks.
+# BASHOPTS is disclosed with it (UD R86), but no shopt option it can turn on changed a result
+# (one that did would be turned off in code). The shell-behaviour variables that the environment,
+# or an assignment in that one PS4 expansion, can set are reset here too, as in both guards
+# (UD R90, Dave xt1 XT-2): GLOBIGNORE, EXECIGNORE (bash 5: command -v no longer found jq),
+# CDPATH, POSIXLY_CORRECT and BASH_COMPAT, and IFS is set back to space, tab and newline.
+# Unsetting POSIXLY_CORRECT also turns posix mode off, and unsetting GLOBIGNORE turns dotglob
+# off; neither this script nor lock.sh uses them.
+unset TMOUT FUNCNEST GLOBIGNORE EXECIGNORE CDPATH POSIXLY_CORRECT BASH_COMPAT; IFS=$' \t\n'; export HOME=/dev/null
 
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Overridable for the same reason workflow-state.sh's WFSTATE_LOCK_LIB is -- a mutated
-# COPY of this script moved outside scripts/ would otherwise fail to find its sibling.
-SCOPECHECK_LOCK_LIB="${SCOPECHECK_LOCK_LIB:-$SELF_DIR/lib/lock.sh}"
+# The lock library and the case-fold helper (below) are always the files next to this script:
+# no variable of the environment chooses code this script sources (UD U21; Chris U21 I-2). A
+# variable of the environment may only shorten a budget (SCOPECHECK_BUDGET_MS) or add a deny.
+# So lock.sh's test hooks (LOCK_*_SYNC pauses of up to 10 s, LOCK_RECOVER_TOKEN_OVERRIDE, the
+# marker-settle poll count), which through this script could only pause or lengthen a check
+# that the 5 s hook timeout then turns into an allow, are cleared before it is loaded. The one
+# exception to the rule is SCOPECHECK_ROOT (see the header): it names the project, not code;
+# the scope guard sets it on every call, and a direct call's default, $PWD, is the caller's
+# choice anyway, so it adds no capability (UD R86, Bella final S-F1). A test that needs another
+# helper or library runs a scratch copy of the tree.
+for _sc_v in ${!LOCK_@}; do unset "$_sc_v"; done; unset _sc_v
 # shellcheck source=lib/lock.sh
-source "$SCOPECHECK_LOCK_LIB"
+source "$SELF_DIR/lib/lock.sh"
 
 ROOT="${SCOPECHECK_ROOT:-$PWD}"
 SHODE_DIR="$ROOT/.shode-house"
@@ -202,6 +251,14 @@ SCOPE_DIR="$SHODE_DIR/scope"
 
 log_err() { printf 'scope-check.sh: %s\n' "$*" >&2; }
 die()     { log_err "$*"; exit 64; }
+
+# The one case fold shared with the hooks (bd: shode-house-v7u.4.34, router R74 NF2): see
+# path_matches below. Always the file next to the hooks (see the lock library above). Missing =
+# dependency error (64), which every hook caller treats as DENY, never as a match miss.
+# shellcheck source=../hooks/scripts/_casefold.sh
+. "$SELF_DIR/../hooks/scripts/_casefold.sh" 2>/dev/null || die "case-fold helper not found: $SELF_DIR/../hooks/scripts/_casefold.sh"
+_scope_folded=""   # set by _scope_fold / _scope_fold_deny (the helper above)
+_scope_rel=""      # set by _scope_strip_root (the helper above)
 
 engagement_active() { [ -d "$SHODE_DIR" ]; }
 
@@ -266,10 +323,10 @@ canon_path() {
   real="$real_dir/$rest"
 
   root_phys=$(cd "$ROOT" 2>/dev/null && pwd -P) || root_phys="$ROOT"
-  case "$real" in
-    "$root_phys"/*) real="${real#"$root_phys"/}" ;;
-    "$root_phys")   real="." ;;
-  esac
+  # Router R78 / Sentinel pre-release r2 F-1: ROOT spelled in another case (or any spelling
+  # the filesystem treats as the same directory) still strips, so a case-variant absolute
+  # path is matched against the manifest instead of passing as "outside the project".
+  _scope_strip_root "$real" "$root_phys"; real=$_scope_rel
   # NOTE: case-fold (phase C) is deliberately NOT applied here -- it happens once, at
   # comparison time, inside path_matches() below. Folding the string this function RETURNS
   # would permanently lowercase every path used in a DENY/ALLOW message, an --amend
@@ -290,10 +347,33 @@ canon_path() {
 # value -- see that function's own note) so a canon_path'd candidate always compares
 # correctly against a manifest pattern authored in whatever case the Scope Contract
 # happened to be typed in, on ANY filesystem (not just a case-insensitive one).
+# bd: shode-house-v7u.4.34 (router R74 NF2, R77): both sides go through the shared
+# DETERMINISTIC fold _scope_fold (long s, Kelvin sign, Latin ligatures U+FB00-FB06 and
+# sharp s U+00DF/U+1E9E mapped to their ASCII spelling, then ASCII lower-case), and the
+# fold AND the match run under LC_ALL=C. An ASCII-only `tr` let "ſrc/orders/x.ts" miss
+# "src/orders/**" while APFS writes src/orders/x.ts; in a multibyte locale (ja_JP.SJIS) a
+# non-ASCII byte could swallow the next letter of the candidate; and whether the Kelvin
+# sign folded depended on the caller's locale. The platform's Unicode lower-casing (the
+# guards' deny-side fold) is deliberately NOT used here: this function decides owner
+# matches, and a platform-dependent widening could grant a write (router R77). Nor is the
+# deny side's Unicode NFC step (F-6, UD U12: never for owner/grant matching). A fold of
+# the manifest pattern is the same fold, so a pattern authored in any case still compares
+# equal. A brace body with a local LC_ALL and `return` (no subshell), and _scope_fold sets
+# a variable, so an all-lower-case ASCII pair costs no process at all: this runs once per
+# pattern per active bd on every engaged Write (Chris pre-release C1).
+# The candidate is the same string for every pattern of a loop, so its fold is kept from the
+# previous call (one fold per loop instead of one per pattern: Chris pre-release r2 S1).
+# One memo per fold; never share them: the deny fold must never reach a grant (r3 R3-3).
+_pm_in="" _pm_out="" _pm_set=0 _pmd_in="" _pmd_out="" _pmd_set=0
 path_matches() {
-  local candidate pattern
-  candidate=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
-  pattern=$(printf '%s' "$2" | tr '[:upper:]' '[:lower:]')
+  local LC_ALL=C candidate pattern
+  if [ "$_pm_set" -eq 1 ] && [ "$1" = "$_pm_in" ]; then
+    candidate=$_pm_out
+  else
+    _scope_fold "$1"; candidate=$_scope_folded
+    _pm_in=$1 _pm_out=$candidate _pm_set=1
+  fi
+  _scope_fold "$2"; pattern=$_scope_folded
   # $pattern is DELIBERATELY unquoted below: it is meant to be matched as a shell glob
   # (the manifest's "src/orders/**" pattern dialect), not a literal string. Pre-existing
   # design, unchanged by this bd.
@@ -302,6 +382,143 @@ path_matches() {
     $pattern) return 0 ;;
     *)        return 1 ;;
   esac
+}
+
+# path_matches_deny <candidate> <pattern> -- the same match through the DENY-side fold
+# _scope_fold_deny (the deterministic fold, then the platform's Unicode lower-casing). Router
+# R78 (amends R77): used ONLY where a match DENIES an outsider -- --main-check, and a
+# collision with ANOTHER agent's owns[] or a shared_files key that would refuse this agent
+# -- so "src/<U+00DC>ber/x.ts" collides with an owner's "src/über/**" on APFS, where the two
+# spellings are one directory. Never used where a match grants (owner match, allowed_roots,
+# a shared_files key that would allow): a wider fold there could grant a write. For an
+# ASCII-only pair it is exactly path_matches.
+# F-6 (UD U12, Sentinel pre-release r3): on macOS a NON-ASCII candidate is ALSO compared in
+# Unicode NFC (then the same deny-side fold, on both sides), so the NFD spelling
+# "src/u<U+0308>ber/x.ts" collides with an owner's "src/über/**" (one directory on APFS), and
+# the reverse. The NFC comparison is an extra way to match, never a replacement: the raw
+# comparison above it runs first and a pair that matched before still matches (Chris r7 F2:
+# the name "design-run-order<U+0301>.md" matches the pattern "design-run-order*" raw, but its
+# NFC form ends in U+0155 and does not). Off macOS nothing changes (Linux keeps NFC and NFD
+# apart).
+# F7-1 (UD U20, Sentinel r7 F7-1, Chris r7 F1): ONE normaliser process per check. The caller
+# runs nfc_batch_load first; it normalises the candidate and every non-ASCII manifest string
+# the deny-side loops of this check can compare in one call (_scope_nfc_batch_deny), and
+# path_matches_deny finds a pattern's NFC by binary search in that sorted list (no process per
+# pattern; an NFC-stable pattern keeps its fold, so it costs no second fold either). A path
+# that cannot be normalised is denied by the caller with its own message; a non-ASCII
+# pattern that is not in the list (perl could not decode it, or the manifest changed between
+# the two reads) counts as a collision (deny side). An ASCII candidate is not normalised (no
+# process on the ordinary path): it differs from its NFC form only through a pattern holding
+# U+037E or U+1FEF, which NFC maps to ";" and "`".
+_nb_set=0 _nb_cand="" _nb_cfold="" _nb_n=0
+_nb_raw=() _nb_nfc=()
+# nfc_batch_load <mf> <candidate> -- returns 1 when <candidate> cannot be normalised (the
+# caller denies); 0 otherwise. A no-op for an ASCII candidate and off macOS (_scope_is_macos,
+# _casefold.sh: the kernel's name, never $OSTYPE; Sentinel r7 F7-4). The records are taken
+# only in the order the helper writes them -- one C, then R/N pairs, then E, then nothing --
+# and any other stream counts as a failure (deny), so no string inside a record can shift
+# the R/N lists or replace the candidate (Sentinel U20 F8-1, Chris U20 N-1; the helper
+# also drops every manifest line that holds a NUL byte).
+nfc_batch_load() {
+  local LC_ALL=C rec ok=0 st=0
+  _nb_set=0 _nb_cand=$2 _nb_cfold="" _nb_n=0
+  case "$2" in *[$'\x80'-$'\xff']*) : ;; *) return 0 ;; esac
+  _scope_is_macos || return 0
+  while IFS= read -r -d '' rec; do
+    case "$st:$rec" in
+      0:C*) _scope_fold_deny "${rec#C}"; _nb_cfold=$_scope_folded; st=1 ;;
+      1:R*) _nb_raw[_nb_n]=${rec#R}; st=2 ;;
+      2:N*) _nb_nfc[_nb_n]=${rec#N}; _nb_n=$((_nb_n + 1)); st=1 ;;
+      1:E)  ok=1; st=3 ;;
+      *)    ok=0; st=4 ;;
+    esac
+  done < <(jq -r '(.shared_files // {} | keys[] | split("\n")[] | "K" + .),
+      (.agents[]? | .agent as $a | ((.owns[]?, .allowed_roots[]?)) | "T" + ([$a, .] | @tsv))' \
+      "$1" 2>/dev/null | _scope_nfc_batch_deny "$2")
+  [ "$ok" -eq 1 ] || return 1
+  _nb_set=1
+}
+# _nb_find <raw> -- sets _scope_nfc to the NFC of a non-ASCII manifest string of the loaded
+# batch and returns 0; returns 1 when the batch does not hold it.
+_nb_find() {
+  local LC_ALL=C lo=0 hi=$((_nb_n - 1)) mid
+  while [ "$lo" -le "$hi" ]; do
+    mid=$(( (lo + hi) / 2 ))
+    if [[ "$1" == "${_nb_raw[mid]}" ]]; then _scope_nfc=${_nb_nfc[mid]}; return 0; fi
+    if [[ "$1" < "${_nb_raw[mid]}" ]]; then hi=$((mid - 1)); else lo=$((mid + 1)); fi
+  done
+  return 1
+}
+_scope_nfc=""      # set by _nb_find
+NFC_DENY_REASON='could not be Unicode-normalised (NFC) for the collision check on macOS (it is not valid UTF-8, or /usr/bin/perl with Unicode::Normalize could not run) -- refusing rather than comparing an unnormalised spelling (F-6, UD U12)'
+path_matches_deny() {
+  local LC_ALL=C candidate pattern
+  if [ "$_pmd_set" -eq 1 ] && [ "$1" = "$_pmd_in" ]; then
+    candidate=$_pmd_out
+  else
+    _scope_fold_deny "$1"; candidate=$_scope_folded
+    _pmd_in=$1 _pmd_out=$candidate _pmd_set=1
+  fi
+  _scope_fold_deny "$2"; pattern=$_scope_folded
+  # shellcheck disable=SC2254
+  case "$candidate" in
+    $pattern) return 0 ;;
+  esac
+  case "$1" in *[$'\x80'-$'\xff']*) : ;; *) return 1 ;; esac
+  _scope_is_macos || return 1
+  [ "$_nb_set" -eq 1 ] && [ "$1" = "$_nb_cand" ] || return 0
+  case "$2" in
+    *[$'\x80'-$'\xff']*)
+      _nb_find "$2" || return 0
+      if [ "$_scope_nfc" != "$2" ]; then _scope_fold_deny "$_scope_nfc"; pattern=$_scope_folded; fi ;;
+  esac
+  # shellcheck disable=SC2254
+  case "$_nb_cfold" in
+    $pattern) return 0 ;;
+    *)        return 1 ;;
+  esac
+}
+
+# F7-2 (UD U20, Sentinel r7 F7-2): the time budget of one evaluation -- an ownership check
+# (also each of --amend's two checks) or a --main-check. The hook that runs this has 5 s, and
+# a hook cut off by its timeout lets the write through; the cost of a check grows with the
+# manifest (a non-ASCII or upper-case pattern costs fold processes, about 3-9 ms each on
+# macOS), so an evaluation that runs past its budget stops and DENIES (exit 1) with the
+# static SC_BUDGET_REASON, never the path. The budget is SC_MAX_MS, or less when the caller
+# passes SCOPECHECK_BUDGET_MS (decimal milliseconds; the scope guard passes what is left of
+# its scope phase; any other value is ignored, so it can only shorten the budget). The clock is
+# read before every manifest entry compared, so a stop comes at most one entry late. bash 5:
+# microsecond clock. bash 3.2 has whole seconds only: it stops once more than the budget's
+# whole seconds have passed, so between 1 and 2 s after the start for a budget of 1000-1999
+# ms (never sooner than the budget's whole seconds, so an ordinary check is never cut short).
+SC_MAX_MS=3000
+SC_BUDGET_REASON='(scope-budget) the scope check of this write ran past its time budget (3 seconds, or what was left of the scope guard'"'"'s 3-second scope phase) -- refused rather than allowed, because a check cut off by the 5 s hook timeout would let the write through (F7-2, UD U20)'
+_sc_t0="" _sc_ms=0 _sc_clock=s
+_sc_budget_start() {
+  _sc_ms=$SC_MAX_MS
+  case "${SCOPECHECK_BUDGET_MS:-}" in
+    ''|*[!0-9]*) : ;;
+    *) if [ "${#SCOPECHECK_BUDGET_MS}" -le 6 ] && [ $((10#$SCOPECHECK_BUDGET_MS)) -lt "$_sc_ms" ]; then
+         _sc_ms=$((10#$SCOPECHECK_BUDGET_MS))
+       fi ;;
+  esac
+  if [ "${BASH_VERSINFO[0]}" -ge 5 ]; then
+    _sc_clock=us; _sc_t0=${EPOCHREALTIME/./}
+  else
+    _sc_clock=s; _sc_t0=$SECONDS
+  fi
+}
+# _sc_over -- returns 0 once the evaluation has run past its budget (at once for a budget of
+# 0 ms); 1 otherwise, and always 1 when no budget was started (--snapshot and --verify run no
+# evaluation).
+_sc_over() {
+  [ -n "$_sc_t0" ] || return 1
+  [ "$_sc_ms" -gt 0 ] || return 0
+  if [ "$_sc_clock" = us ]; then
+    [ $(( ${EPOCHREALTIME/./} - _sc_t0 )) -gt $(( _sc_ms * 1000 )) ]
+  else
+    [ $(( SECONDS - _sc_t0 )) -gt $(( _sc_ms / 1000 )) ]
+  fi
 }
 
 sha256_of() {
@@ -342,7 +559,7 @@ bindings_shape_ok_or_die() {
   case "$first_type" in
     object|empty) return 0 ;;
     string)
-      die "manifest $mf has a \`bindings\` map in the pre-C1 flat shape (\"<instance_id>\": \"<label>\") -- this version of scope-check.sh only reads the platform-neutral record shape (\"<instance_id>\": {\"platform\": ..., \"role\": ..., \"label\": ...}). Ask Oliver to regenerate this bd's scope manifest under a fresh Scope Contract (fresh binds), or hand-migrate every bindings entry to the object form before retrying."
+      die "manifest $mf has a \`bindings\` map in the pre-C1 flat shape (\"<instance_id>\": \"<label>\") -- this version of scope-check.sh only reads the platform-neutral record shape (\"<instance_id>\": {\"platform\": ..., \"role\": ..., \"label\": ...}). Ask the router to regenerate this bd's scope manifest under a fresh Scope Contract (fresh binds), or hand-migrate every bindings entry to the object form before retrying."
       ;;
     *) die "manifest $mf has a \`bindings\` map with an unrecognised value shape ($first_type)" ;;
   esac
@@ -351,11 +568,15 @@ bindings_shape_ok_or_die() {
 # ---- find the shared_files key (if any) whose pattern matches $path. Prints the key
 # on stdout, or nothing if unmatched. Shared-file strategy is checked BEFORE agents[]
 # owns[] -- an explicit strategy always wins over an implicit ownership glob.
+# $3 = "deny" selects path_matches_deny (router R78: only where the key then DENIES).
+# Returns 2 when the evaluation's time budget runs out (F7-2): the caller denies.
 find_shared_key() {
-  local mf="$1" path="$2" k
+  local mf="$1" path="$2" k matcher=path_matches
+  [ "${3:-}" = deny ] && matcher=path_matches_deny
   while IFS= read -r k; do
     [ -z "$k" ] && continue
-    if path_matches "$path" "$k"; then printf '%s' "$k"; return 0; fi
+    _sc_over && return 2
+    if "$matcher" "$path" "$k"; then printf '%s' "$k"; return 0; fi
   done < <(jq -r '.shared_files // {} | keys[]' "$mf")
   return 1
 }
@@ -408,7 +629,8 @@ coupled_paths_of() {
 # this (its own TOCTOU-close re-evaluate_ownership call, unchanged by this edit); cmd_snapshot
 # is restructured (see below) to do all of its manifest reads AFTER this call succeeds, for
 # the identical reason.
-SCOPECHECK_LOCK_MAX_ATTEMPTS="${SCOPECHECK_LOCK_MAX_ATTEMPTS:-2}"
+# Two attempts, fixed: a variable of the environment may not lengthen a check (UD U21).
+SCOPECHECK_LOCK_MAX_ATTEMPTS=2
 SCOPECHECK_LOCK_TOKEN=""
 scopecheck_acquire_lock() {
   local bd="$1" label="$2" lockd="$3"
@@ -442,59 +664,101 @@ scopecheck_acquire_lock() {
 EVAL_CODE=1
 EVAL_MSG=""
 
+# ---- eval_shared_key <bd> <mf> <agent> <path> <key>: sets EVAL_CODE/EVAL_MSG for a path
+# that matched shared_files[<key>] (the mode decides; never touches the manifest).
+eval_shared_key() {
+  local bd="$1" mf="$2" agent="$3" path="$4" matched_shared="$5"
+  EVAL_CODE=1
+  EVAL_MSG=""
+  local sf_mode sf_owner
+  sf_mode=$(jq -r --arg k "$matched_shared" '.shared_files[$k].mode' "$mf")
+  sf_owner=$(jq -r --arg k "$matched_shared" '.shared_files[$k].owner // ""' "$mf")
+  case "$sf_mode" in
+    exclusive|merge-owner)
+      if [ -z "$sf_owner" ]; then
+        EVAL_MSG=$(printf 'DENY: shared_files["%s"] mode=%s has no declared owner (manifest error) -- fail-safe locked, fix the manifest' "$matched_shared" "$sf_mode")
+        return
+      fi
+      if [ "$agent" = "$sf_owner" ]; then
+        EVAL_CODE=0
+        EVAL_MSG=$(printf 'ALLOW: "%s" matches shared_files["%s"] mode=%s, agent "%s" is the owner' "$path" "$matched_shared" "$sf_mode" "$agent")
+        return
+      fi
+      EVAL_MSG=$(printf 'DENY: "%s" matches shared_files["%s"] mode=%s, owned by "%s" (not "%s") -- ask "%s" to merge your change, do not write directly' "$path" "$matched_shared" "$sf_mode" "$sf_owner" "$agent" "$sf_owner")
+      return
+      ;;
+    append-only)
+      if jq -e --arg a "$agent" '.agents // [] | any(.agent == $a)' "$mf" >/dev/null 2>&1; then
+        EVAL_CODE=0
+        EVAL_MSG=$(printf 'ALLOW: "%s" matches shared_files["%s"] mode=append-only, "%s" is a registered agent for this bd' "$path" "$matched_shared" "$agent")
+        return
+      fi
+      EVAL_MSG=$(printf 'DENY: "%s" matches shared_files["%s"] mode=append-only, but "%s" is not a registered agent for bd "%s"' "$path" "$matched_shared" "$agent" "$bd")
+      return
+      ;;
+    generated)
+      local regen
+      regen=$(jq -r --arg k "$matched_shared" '.shared_files[$k].regenerate_via // "(no regenerate_via declared in manifest)"' "$mf")
+      EVAL_MSG=$(printf 'DENY: "%s" matches shared_files["%s"] mode=generated -- nobody hand-writes this; regenerate via: %s' "$path" "$matched_shared" "$regen")
+      return
+      ;;
+    *)
+      EVAL_MSG=$(printf 'DENY: "%s" matches shared_files["%s"] with unknown mode "%s" -- fail-safe locked, fix the manifest' "$path" "$matched_shared" "$sf_mode")
+      return
+      ;;
+  esac
+}
+
 evaluate_ownership() {
   local bd="$1" mf="$2" agent="$3" path="$4"
   EVAL_CODE=1
   EVAL_MSG=""
-
-  local matched_shared
-  matched_shared=$(find_shared_key "$mf" "$path") || matched_shared=""
-
-  if [ -n "$matched_shared" ]; then
-    local sf_mode sf_owner
-    sf_mode=$(jq -r --arg k "$matched_shared" '.shared_files[$k].mode' "$mf")
-    sf_owner=$(jq -r --arg k "$matched_shared" '.shared_files[$k].owner // ""' "$mf")
-    case "$sf_mode" in
-      exclusive|merge-owner)
-        if [ -z "$sf_owner" ]; then
-          EVAL_MSG=$(printf 'DENY: shared_files["%s"] mode=%s has no declared owner (manifest error) -- fail-safe locked, fix the manifest' "$matched_shared" "$sf_mode")
-          return
-        fi
-        if [ "$agent" = "$sf_owner" ]; then
-          EVAL_CODE=0
-          EVAL_MSG=$(printf 'ALLOW: "%s" matches shared_files["%s"] mode=%s, agent "%s" is the owner' "$path" "$matched_shared" "$sf_mode" "$agent")
-          return
-        fi
-        EVAL_MSG=$(printf 'DENY: "%s" matches shared_files["%s"] mode=%s, owned by "%s" (not "%s") -- ask "%s" to merge your change, do not write directly' "$path" "$matched_shared" "$sf_mode" "$sf_owner" "$agent" "$sf_owner")
-        return
-        ;;
-      append-only)
-        if jq -e --arg a "$agent" '.agents // [] | any(.agent == $a)' "$mf" >/dev/null 2>&1; then
-          EVAL_CODE=0
-          EVAL_MSG=$(printf 'ALLOW: "%s" matches shared_files["%s"] mode=append-only, "%s" is a registered agent for this bd' "$path" "$matched_shared" "$agent")
-          return
-        fi
-        EVAL_MSG=$(printf 'DENY: "%s" matches shared_files["%s"] mode=append-only, but "%s" is not a registered agent for bd "%s"' "$path" "$matched_shared" "$agent" "$bd")
-        return
-        ;;
-      generated)
-        local regen
-        regen=$(jq -r --arg k "$matched_shared" '.shared_files[$k].regenerate_via // "(no regenerate_via declared in manifest)"' "$mf")
-        EVAL_MSG=$(printf 'DENY: "%s" matches shared_files["%s"] mode=generated -- nobody hand-writes this; regenerate via: %s' "$path" "$matched_shared" "$regen")
-        return
-        ;;
-      *)
-        EVAL_MSG=$(printf 'DENY: "%s" matches shared_files["%s"] with unknown mode "%s" -- fail-safe locked, fix the manifest' "$path" "$matched_shared" "$sf_mode")
-        return
-        ;;
-    esac
+  _sc_budget_start
+  # F-6 (UD U12): a non-ASCII path that cannot be normalised on macOS is denied before any
+  # match, with its own message (no silent fallback to the unnormalised spelling).
+  if ! nfc_batch_load "$mf" "$path"; then
+    EVAL_MSG=$(printf 'DENY: "%s" %s' "$path" "$NFC_DENY_REASON")
+    return
   fi
+
+  local matched_shared fsk_rc
+  matched_shared=$(find_shared_key "$mf" "$path"); fsk_rc=$?
+  if [ "$fsk_rc" -eq 2 ]; then EVAL_MSG="DENY: $SC_BUDGET_REASON"; return; fi
+  if [ -n "$matched_shared" ]; then
+    eval_shared_key "$bd" "$mf" "$agent" "$path" "$matched_shared"
+    return
+  fi
+  # Router R78: a key that only the deny-side fold matches (a spelling the platform alone
+  # treats as the same name, e.g. U+00DC / U+00FC on APFS) still refuses an agent the key
+  # would refuse; it never grants. Run for a non-ASCII path only (one jq process saved per
+  # ordinary write): for an ASCII path the deny-side fold differs only through a pattern the
+  # platform lowers to ASCII (U+0130), an over-deny APFS does not share (Sentinel FU-5).
+  case "$path" in
+    *[$'\x80'-$'\xff']*)
+      matched_shared=$(find_shared_key "$mf" "$path" deny); fsk_rc=$?
+      if [ "$fsk_rc" -eq 2 ]; then EVAL_MSG="DENY: $SC_BUDGET_REASON"; return; fi
+      if [ -n "$matched_shared" ]; then
+        eval_shared_key "$bd" "$mf" "$agent" "$path" "$matched_shared"
+        [ "$EVAL_CODE" -eq 0 ] || return
+        EVAL_CODE=1
+        EVAL_MSG=""
+      fi
+      ;;
+  esac
 
   # not a shared file -- fall through to agents[].owns[]
   local ow_agent ow_pattern found_owner=""
+  # Router R78: the requesting agent's own pattern grants only through the deterministic
+  # fold (path_matches); another agent's pattern refuses through the deny-side fold
+  # (path_matches_deny), so a spelling that only the platform folds still collides.
   while IFS=$'\t' read -r ow_agent ow_pattern; do
     [ -z "$ow_agent" ] && continue
-    if path_matches "$path" "$ow_pattern"; then found_owner="$ow_agent"; break; fi
+    if _sc_over; then EVAL_MSG="DENY: $SC_BUDGET_REASON"; return; fi
+    if [ "$ow_agent" = "$agent" ]; then
+      if path_matches "$path" "$ow_pattern"; then found_owner="$ow_agent"; break; fi
+    elif path_matches_deny "$path" "$ow_pattern"; then
+      found_owner="$ow_agent"; break
+    fi
   done < <(jq -r '.agents[]? | .agent as $a | .owns[]? | [$a, .] | @tsv' "$mf")
 
   if [ -n "$found_owner" ]; then
@@ -516,6 +780,7 @@ evaluate_ownership() {
   local ar_pattern matched_root=""
   while IFS= read -r ar_pattern; do
     [ -z "$ar_pattern" ] && continue
+    if _sc_over; then EVAL_MSG="DENY: $SC_BUDGET_REASON"; return; fi
     if path_matches "$path" "$ar_pattern"; then matched_root="$ar_pattern"; break; fi
   done < <(jq -r --arg a "$agent" '.agents[]? | select(.agent == $a) | .allowed_roots[]? // empty' "$mf")
 
@@ -526,7 +791,7 @@ evaluate_ownership() {
     return
   fi
 
-  EVAL_MSG=$(printf 'DENY: "%s" is unclaimed and outside agent "%s"'"'"'s allowed_roots for bd "%s" -- escalate to Oliver for a scope amendment, never self-amend outside your plan-approved boundary' "$path" "$agent" "$bd")
+  EVAL_MSG=$(printf 'DENY: "%s" is unclaimed and outside agent "%s"'"'"'s allowed_roots for bd "%s" -- escalate to the router for a scope amendment, never self-amend outside your plan-approved boundary' "$path" "$agent" "$bd")
 }
 
 # =============================================================================
@@ -773,9 +1038,17 @@ cmd_main_check() {
     exit 0
   fi
   jq empty "$mf" >/dev/null 2>&1 || die "manifest $mf is not valid JSON"
+  _sc_budget_start
+  # F-6 (UD U12): as in evaluate_ownership, a path that cannot be normalised is denied.
+  if ! nfc_batch_load "$mf" "$path"; then
+    printf 'DENY: main-session write to "%s" %s\n' "$path" "$NFC_DENY_REASON"
+    exit 1
+  fi
 
-  local matched_shared
-  matched_shared=$(find_shared_key "$mf" "$path") || matched_shared=""
+  local matched_shared fsk_rc
+  # Router R78: every match here DENIES the outsider, so the deny-side fold is used.
+  matched_shared=$(find_shared_key "$mf" "$path" deny); fsk_rc=$?
+  if [ "$fsk_rc" -eq 2 ]; then printf 'DENY: %s\n' "$SC_BUDGET_REASON"; exit 1; fi
   if [ -n "$matched_shared" ]; then
     printf 'DENY: main-session write to "%s" collides with active shared_files["%s"] for bd "%s" -- this path is under active scope lock, the write must come from the owning agent, not the main session\n' "$path" "$matched_shared" "$bd"
     exit 1
@@ -784,7 +1057,8 @@ cmd_main_check() {
   local ag pat
   while IFS=$'\t' read -r ag pat; do
     [ -z "$ag" ] && continue
-    if path_matches "$path" "$pat"; then
+    if _sc_over; then printf 'DENY: %s\n' "$SC_BUDGET_REASON"; exit 1; fi
+    if path_matches_deny "$path" "$pat"; then
       printf 'DENY: main-session write to "%s" collides with agent "%s"'"'"'s active scope (pattern "%s") for bd "%s" -- otherwise a subagent'"'"'s scope lock is trivially bypassed by writing from the main session\n' "$path" "$ag" "$pat" "$bd"
       exit 1
     fi

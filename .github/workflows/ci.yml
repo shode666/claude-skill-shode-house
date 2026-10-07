@@ -12,6 +12,11 @@ name: ci
 on:
   workflow_dispatch:
 
+# Least privilege for the job token (Sentinel W1 follow-up F6): the job reads the repository and uploads an
+# artifact; it writes nothing back. Without this block the token's scope is whatever the repo default is.
+permissions:
+  contents: read
+
 jobs:
   gate:
     runs-on: ubuntu-latest
@@ -19,6 +24,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Frozen 3.15 knowledge inventory must be available to regression tests.
+
+      # A15 (gate #27) needs pytest. The runner's system python3 is externally managed (PEP 668), so a
+      # `pip install --user` there can be refused (Chris W1 r2 R2-3): use a setup-python interpreter instead.
+      # Keep these steps single-line `run:` -- `make validate` runs the FIRST `run: |` block as the gate.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Hash-pinned (Sentinel W1 follow-up F6, Chris C-7): pytest and every transitive dependency, sha256 per file.
+      - name: Install pytest (A15 design-runner suite + W9 eval suites, gate 27)
+        run: 'python3 -m pip install --quiet --require-hashes --only-binary :all: -r .github/requirements-ci.txt'
 
       - name: Invariant + lint gate (inline bash + jq)
         shell: bash
@@ -32,10 +47,23 @@ jobs:
           sec(){ printf '\n== %s ==\n' "$*"; }
           PJ=.claude-plugin/plugin.json
           MK=.claude-plugin/marketplace.json
-          SHIP="workflow ops ui style discipline"
+          command -v jq >/dev/null || { echo "FATAL: jq required"; exit 2; }
+          # shipped buckets = plugin.json `skills` (one source with context-budget.py and A8)
+          SHIP=$(jq -r '.skills[]' "$PJ" | sed -e 's:^\./skills/::' -e 's:/$::' | tr '\n' ' ')
+          [ -n "${SHIP// /}" ] || { echo "FATAL: no skill buckets in $PJ"; exit 2; }
           EXCL="in-progress deprecated"
           F5="staff-engineer solution-architect security-engineer ux-ui-designer"
-          command -v jq >/dev/null || { echo "FATAL: jq required"; exit 2; }
+          # v4 ADR §7 W1: names and switches come from data, not from counts. PLUGIN = the namespace of a
+          # preload/load (`<plugin>:<skill>`); REQ4 = 1 from plugin.json major 4 (the W10 switch commit) or
+          # SHODE_REQUIRE_V4=1 (rehearsal) -> the gates wired in 3.17.x (#27) become required.
+          PLUGIN=$(jq -r '.name' "$PJ")
+          VMAJ=$(jq -r '.version' "$PJ" | cut -d. -f1)
+          REQ4=0; { [ "${SHODE_REQUIRE_V4:-0}" = 1 ] || [ "${VMAJ:-0}" -ge 4 ] 2>/dev/null; } && REQ4=1
+          # preload names of one agent, one per line, `<plugin>:` stripped (bare and namespaced resolve alike)
+          preloads(){ awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "$1" \
+                        | tr -d '[]",' | tr ' ' '\n' | sed -e "s/^$PLUGIN://" -e '/^$/d'; }
+          # SKILL.md of a shipped skill (shipped buckets only; in-progress/deprecated never resolve)
+          skill_md(){ for b in $SHIP; do [ -f "skills/$b/$1/SKILL.md" ] && { echo "skills/$b/$1/SKILL.md"; return; }; done; }
 
           sec "1. skill size <= 300 (no exceptions)"
           # v3.17 P4: dev-gate root is a thin router (167 lines) -> its 400-line exception is gone
@@ -52,7 +80,10 @@ jobs:
             done < <(find "skills/$b" -mindepth 2 -name SKILL.md 2>/dev/null); done
 
           sec "3. shippable bucket paths listed"
-          for b in $SHIP; do grep -q "\"./skills/$b/\"" "$PJ" || err "bucket '$b' not listed"; done
+          # SHIP is read from plugin.json, so the guard compares it with the bucket folders on disk (minus EXCL)
+          for d in skills/*/; do b=$(basename "$d"); case " $EXCL " in *" $b "*) continue ;; esac
+            case " $SHIP " in *" $b "*) : ;; *) err "bucket '$b' not listed" ;; esac; done
+          for b in $SHIP; do [ -d "skills/$b" ] || err "plugin.json lists bucket '$b' with no skills/$b folder"; done
 
           sec "4. Cowork caps (length + ASCII + no em-dash)"
           chk(){ local L="$1" t="$2" lim="$3"
@@ -100,10 +131,10 @@ jobs:
           # v3.17 FR-P10-1: shipped skill description cap -- it sits in discovery context on every turn (measured max 309 chars)
           for b in $SHIP; do for f in skills/$b/*/SKILL.md; do [ -f "$f" ] || continue
             d9=$(awk '/^---$/{c++;next} c==1&&/^description:/{sub(/^description:[ \t]*/,"");print;exit}' "$f")
-            [ "${#d9}" -le 320 ] || err "$f: description ${#d9} chars > 320 -- 1-2 sentences: capability + decision boundary (CLAUDE.md)"
+            [ "${#d9}" -le 320 ] || err "$f: description ${#d9} chars > 320 -- 1-2 sentences: capability + decision boundary (AGENTS.md)"
           done; done
-          # v3.17 FR-P10-3: CLAUDE.md header names the released version (single source = plugin.json)
-          v9=$(jq -r '.version' "$PJ"); head -1 CLAUDE.md | grep -qF "(v$v9)" || err "CLAUDE.md header version != plugin.json version (v$v9)"
+          # v3.17 FR-P10-3: the Repo Invariants heading names the released version (single source = plugin.json; canonical file = AGENTS.md)
+          v9=$(jq -r '.version' "$PJ"); grep -m1 '^## Repo Invariants' AGENTS.md | grep -qF "(v$v9)" || err "AGENTS.md '## Repo Invariants' heading version != plugin.json version (v$v9)"
           [ $fail -eq 0 ] && ok "frontmatter ok"
 
           sec "10. SKILL name == folder"
@@ -119,7 +150,7 @@ jobs:
           # "ดูเหมือนชื่อ skill" = token `shode-house-<word>` (bare หรือใน backtick; ไม่นับส่วนกลางของ path/URL และ
           # bd id แบบ shode-house-8ss) ที่ไม่ใช่ shipped dir -> FAIL. in-progress/deprecated ไม่นับว่า resolve.
           ships=$(for b in $SHIP; do for d in skills/$b/*/; do [ -d "$d" ] && basename "$d"; done; done | sort -u)
-          SCAN11="agents commands output-styles references eval/fixtures eval/scenarios README.md CLAUDE.md"
+          SCAN11="agents commands output-styles references eval/fixtures eval/scenarios README.md CLAUDE.md AGENTS.md docs/cowork-validator-history.md docs/repo-invariants"
           for b in $SHIP; do SCAN11="$SCAN11 skills/$b"; done
           s11=""; for x in $SCAN11; do [ -e "$x" ] && s11="$s11 $x"; done
           refs=$(grep -rIhoE '(^|[^A-Za-z0-9_/.-])shode-house-[a-z0-9-]*[a-z0-9]' $s11 2>/dev/null \
@@ -152,13 +183,13 @@ jobs:
           done < <(find skills/workflow skills/ops skills/ui skills/style skills/discipline -mindepth 1 -maxdepth 1 -type d)
           [ $fail -eq 0 ] && ok "all shipped skills linked in README"
 
-          sec "12. path refs resolve (README + CLAUDE + agents + skills + commands — v3.12)"
+          sec "12. path refs resolve (README + CLAUDE + AGENTS + repo-invariant docs + agents + skills + commands — v3.12)"
           # เดิมตรวจแค่ README/CLAUDE -> broken link ใน agents/ skills/ ผ่านมาตลอด
           while IFS= read -r src; do
             while read -r p; do [ -e "$p" ] || err "$src: broken ref '$p'"
             done < <(grep -oE '`(skills|commands|agents|references|output-styles|docs)/[^`]+`' "$src" | tr -d '`' \
                      | grep -vE '[<>*?{}]' | sed 's:/$::' | sort -u)
-          done < <(printf '%s\n' README.md CLAUDE.md agents/*.md commands/*.md; find skills -name '*.md' -not -path '*/deprecated/*')
+          done < <(printf '%s\n' README.md CLAUDE.md AGENTS.md docs/cowork-validator-history.md docs/repo-invariants/*.md agents/*.md commands/*.md; find skills -name '*.md' -not -path '*/deprecated/*')
           [ $fail -eq 0 ] && ok "path refs resolve"
 
           sec "13. agent skills: preload resolves to a shipped skill"
@@ -170,8 +201,8 @@ jobs:
             line=$(awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "$f")
             [ -z "$line" ] && { err "$n: missing 'skills:' frontmatter (discipline will not reach subagent)"; continue; }
             n_pre=$(echo "$line" | tr -d '[]"' | tr ',' '\n' | grep -c '[a-z]')
-            [ "$n_pre" -le 3 ] || err "$n: preload $n_pre skills -- cap คือ 3 (CLAUDE.md)"
-            for s in $(echo "$line" | tr -d '[]",' ); do
+            [ "$n_pre" -le 3 ] || err "$n: preload $n_pre skills -- cap คือ 3 (AGENTS.md)"
+            for s in $(preloads "$f"); do
               echo "$shipped" | grep -qx "$s" || err "$n: skills: '$s' not a shipped skill"
               # in-progress/ + deprecated/ are not packaged -> would silently no-op
               [ -d "skills/in-progress/$s" ] && err "$n: skills: '$s' lives in in-progress/ (not shipped)"
@@ -214,11 +245,10 @@ jobs:
           GRACE=0               # v3.17 P10: 600 -> 0. keys == measured; เพิ่ม byte ใน preloaded skill = ตัดที่อื่นใน change เดียวกัน หรือแก้ .preload-budget พร้อมเหตุผลใน PR
           BASELINE_FILE=.preload-budget
           for f in agents/*.md; do n=$(basename "$f" .md)
-            line=$(awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "$f")
             total=0
-            for s in $(echo "$line" | tr -d '[]",' ); do
-              sf=$(find skills -mindepth 3 -name SKILL.md -path "*/$s/*" | head -1)
-              [ -n "$sf" ] && total=$((total + $(wc -c < "$sf")))
+            for s in $(preloads "$f"); do
+              sf=$(skill_md "$s")
+              [ -n "$sf" ] && total=$((total + $(wc -c < "$sf")))   # unresolved name = red in #13, never silently cheap
             done
             [ "$total" -gt "$BUDGET" ] && err "$n: preload ${total}B > ${BUDGET}B hard cap -- move role-specific sections into the agent file, or let it load the skill at runtime"
             base=$(grep -E "^$n=" "$BASELINE_FILE" 2>/dev/null | cut -d= -f2)
@@ -317,14 +347,28 @@ jobs:
           else err "review-checklist lost spec-axis.md"; fi
 
           # v3.14 (bd:B3): REVIEW DISPATCH CARD -- mandatory pre-fan-out block (mutation-testable:
-          # deleting any one literal below must fail this gate)
-          RC=commands/review.md
+          # deleting any one literal below must fail this gate). v4 W6 (ADR F-2): the per-axis card lives in the
+          # router style; the commands record it as [REVIEW DISPATCH CARD] and point at it.
+          RC=commands/review.md; ST=output-styles/shode-house.md
           grep -qF '[REVIEW DISPATCH CARD]' "$RC" || err "$RC: missing literal '[REVIEW DISPATCH CARD]' header"
-          for axis in Chris Quinn Bella Sentinel Domain; do
-            grep -q "$axis" "$RC" || err "$RC: REVIEW DISPATCH CARD missing axis line '$axis'"
+          for c in "$RC" commands/implement.md; do
+            grep -qF '`output-styles/shode-house.md` § Review card' "$c" || err "$c: missing pointer to the router style § Review card"
           done
-          grep -qF 'SKIP("no spec available' "$RC" || err "$RC: missing literal Bella SKIP reason 'SKIP(\"no spec available'"
-          grep -qF 'SKIP("no trigger keyword")' "$RC" || err "$RC: missing literal Sentinel/Domain SKIP reason 'SKIP(\"no trigger keyword\")'"
+          for axis in standards spec runtime security domain ui; do
+            grep -q "^- axis=$axis: DISPATCH" "$ST" || err "$ST: Review card missing axis line 'axis=$axis'"
+          done
+          # standards and spec never offer SKIP ("Review has 2 axes"): one exact line each, no other line for either axis
+          SD='- axis=standards: DISPATCH `shode-house:code-reviewer`'
+          SP='- axis=spec: DISPATCH `shode-house:business-analyst` (always; no SKIP)'
+          grep -qxF -- "$SD" "$ST" || err "$ST: standards axis must be exactly: $SD"
+          grep -qxF -- "$SP" "$ST" || err "$ST: spec axis must be exactly: $SP"
+          ! grep -E '^- axis=(standards|spec):' "$ST" | grep -vxF -e "$SD" -e "$SP" | grep -q . \
+            || err "$ST: standards/spec axis must never offer SKIP (an extra or changed axis line)"
+          for c in "$RC" commands/implement.md; do
+            grep -qF 'spec is always DISPATCH' "$c" || err "$c: missing 'spec is always DISPATCH'"
+          done
+          grep -qF 'BLOCKED: no-spec' "$RC" || err "$RC: missing literal 'BLOCKED: no-spec' (no spec = missing acceptance, never a spec PASS)"
+          grep -qF 'SKIP("no trigger keyword")' "$RC" || err "$RC: missing literal security/domain SKIP reason 'SKIP(\"no trigger keyword\")'"
           grep -qF 'when capacity/dependencies require it; role-play and renamed self-review do not count.' "$RC" || err "$RC: missing independent-worker/serial-capacity constraint"
           grep -qF '[REVIEW DISPATCH CARD]' skills/discipline/review-checklist/intake.md \
             || err "review-checklist/intake.md: missing pointer to [REVIEW DISPATCH CARD]"
@@ -334,10 +378,9 @@ jobs:
           # #16 นับเฉพาะ skill -> Oliver/Uma โตได้ไม่จำกัดใน agent file. อันนี้นับรวมของจริง
           TOTAL_BUDGET=50000   # v3.12.1 ratchet: Oliver 48,856 B
           for f in agents/*.md; do n=$(basename "$f" .md)
-            line=$(awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "$f")
             t=$(wc -c < "$f")
-            for s in $(echo "$line" | tr -d '[]",' ); do
-              sf=$(find skills -mindepth 3 -name SKILL.md -path "*/$s/*" | head -1)
+            for s in $(preloads "$f"); do
+              sf=$(skill_md "$s")
               [ -n "$sf" ] && t=$((t + $(wc -c < "$sf")))
             done
             [ "$t" -gt "$TOTAL_BUDGET" ] && err "$n: agent+preload ${t}B > ${TOTAL_BUDGET}B -- trim the agent prompt, not just the skills"
@@ -355,17 +398,23 @@ jobs:
               esac
             done < <(jq -r '.rules[].source_of_truth' .enforcement-map.json)
             # v3.13: ไฟล์มีอยู่ไม่พอ -- ต้องพิสูจน์ว่ากฎ 'อยู่ในไฟล์นั้นจริง' ด้วย anchor
-            while IFS=$'\t' read -r id p anchor; do
+            # Fields are joined with U+001F, never `@tsv`: @tsv writes '\' as '\\' (and tab/newline as \t/\n), so an
+            # anchor holding a backslash was never found (W5b). A field holding U+001F or a line break cannot be read
+            # back exactly (and grep -F would split it into several patterns): it is red, never matched loosely.
+            while IFS=$'\x1f' read -r id p anchor; do
+              [ "$id" != "!" ] || { err "enforcement-map: rule '$p' มี field ที่มี line break หรือ U+001F -- อ่าน anchor ไม่ได้ตรงตัว"; continue; }
               [ -n "$anchor" ] || { err "enforcement-map: rule '$id' ไม่มี anchor (กฎอาจถูกย้ายออกโดยไม่มีใครรู้)"; continue; }
               [ ${#anchor} -ge 12 ] || err "enforcement-map: rule '$id' anchor '$anchor' สั้นเกินไป (<12 ตัวอักษร = กว้างจนไม่พิสูจน์อะไร)"
               case "$p" in *"*"*) grep -q -- "$anchor" $p 2>/dev/null || err "enforcement-map: rule '$id' anchor '$anchor' ไม่พบใน $p" ;;
                             *) grep -q -F -- "$anchor" "$p" 2>/dev/null || err "enforcement-map: rule '$id' anchor '$anchor' ไม่พบใน $p" ;; esac
-            done < <(jq -r '.rules[] | [.id, .source_of_truth, (.anchor // "")] | @tsv' .enforcement-map.json)
+            done < <(jq -r '.rules[] | [.id, .source_of_truth, (.anchor // "")] | map(tostring)
+                            | if any(.[]; test("[\u001f\n\r]")) then "!\u001f" + (.[0] | gsub("[\u001f\n\r]"; " ")) + "\u001f"
+                              else join("\u001f") end' .enforcement-map.json)
             # preload:true = ต้องมี agent preload skill ที่เป็นเจ้าของกฎจริง (ไม่ใช่ 1 ตัว)
             while IFS=$'\t' read -r id p; do
               case "$p" in skills/*/*/SKILL.md)
                 sk=$(echo "$p" | cut -d/ -f3)
-                c=$(grep -l "\"$sk\"" agents/*.md 2>/dev/null | wc -l)
+                c=$(grep -lE "^skills:.*\"($PLUGIN:)?$sk\"" agents/*.md 2>/dev/null | wc -l)
                 [ "$c" -ge 7 ] || err "enforcement-map: rule '$id' ประกาศ preload:true แต่มีแค่ $c agent ที่ preload '$sk'" ;;
               esac
             done < <(jq -r '.rules[] | select(.preload==true) | [.id, .source_of_truth] | @tsv' .enforcement-map.json)
@@ -383,7 +432,9 @@ jobs:
               grep -q '^LOAD:' "$p" 2>/dev/null && err "enforcement-map: root_only rule '$id' ชี้ '$p' ซึ่งเป็น lazy reference (มี LOAD: block) -- กฎ safety ต้องอยู่ root tier"
             done < <(jq -r '.rules[] | select(.root_only==true) | "\(.id)|\(.source_of_truth)"' .enforcement-map.json)
             n_ro=$(jq '[.rules[]|select(.root_only==true)]|length' .enforcement-map.json)
-            [ "$n_ro" -ge 123 ] || err "enforcement-map: only $n_ro root_only rules (floor 123) -- safety anchor ถูกถอดออก?"
+            # v4.0.0 switch (W10b): floor raised 123 -> 190 = the measured S3 count (W3 router style +23, W4 floor +16,
+            # W5a +12, W5b +16, re-sourced ids keep their count); it only goes up with new root_only anchors
+            [ "$n_ro" -ge 190 ] || err "enforcement-map: only $n_ro root_only rules (floor 190) -- safety anchor ถูกถอดออก?"
             n=$(jq '.rules|length' .enforcement-map.json)
             [ "$n" -ge 15 ] || err "enforcement-map: only $n rules -- inventory looks incomplete"
             [ $fail -eq 0 ] && ok "enforcement map resolves + anchor ครบ ($n rules, $n_ro root_only)"
@@ -433,21 +484,30 @@ jobs:
             [ "$L" = "$ref" ] || err "$ref: LOAD path '$L' ไม่ตรงกับตำแหน่งไฟล์จริง"
             [ -n "$W" ] || err "$ref: ไม่มี WHEN trigger"
             [ -n "$B" ] || err "$ref: ไม่มี REQUIRED-BEFORE gate"
-            [ -f "agents/$O.md" ] || err "$ref: OWNER '$O' ไม่ใช่ agent ที่มีอยู่"
-            t=$(awk '/^---$/{c++;next} c==1&&/^tools:/{print;exit}' "agents/$O.md")
-            [ -z "$t" ] || echo "$t" | grep -q '"Read"' || err "$ref: OWNER $O ไม่มี Read tool จึงโหลด reference นี้ไม่ได้"
             # ต้องมีคนอ้างถึง (ไม่นับตัวเอง) ไม่งั้นคือ reference กำพร้า
             n_ref=$(grep -rl "$(basename "$ref")" agents skills commands references 2>/dev/null | grep -v "^$ref$" | wc -l)
             [ "$n_ref" -ge 1 ] || err "$ref: ไม่มี caller อ้างถึงเลย (orphan lazy reference)"
-            # v3.13: OWNER ต้อง 'เอื้อมถึง' จริง -- pointer ต้องอยู่ใน agent body ของ OWNER
-            # หรือใน skill ที่ OWNER preload (ไม่ใช่แค่มีใครสักคนพิมพ์ชื่อไฟล์ไว้ที่ไหนก็ได้)
-            closure="agents/$O.md"
-            pre=$(awk '/^---$/{c++;next} c==1&&/^skills:/{sub(/^skills:[ \t]*/,"");print;exit}' "agents/$O.md")
-            for sk in $(echo "$pre" | tr -d '[]",'); do
-              for d in workflow ops ui style discipline; do
-                [ -d "skills/$d/$sk" ] && closure="$closure skills/$d/$sk"
+            if [ "$O" = router ]; then
+              # Router owner form (v4 ADR §5.10; ledger W3 "CI #23 lazy-load OWNER"): the router is the main session,
+              # i.e. the router style output-styles/<plugin>.md plus the skill roots it loads as `<plugin>:<skill>`.
+              # The main session can Read, so there is no tools: check. Accepted next to agent owners (3.x and 4.x).
+              rs="output-styles/$PLUGIN.md"
+              [ -f "$rs" ] || { err "$ref: OWNER router แต่ไม่มี router style $rs"; continue; }
+              closure="$rs"
+              for sk in $(grep -o "$PLUGIN:[a-z0-9-]*" "$rs" | sed "s/^$PLUGIN://" | sort -u); do
+                sd=$(skill_md "$sk"); [ -n "$sd" ] && closure="$closure ${sd%/SKILL.md}"
               done
-            done
+            else
+              [ -f "agents/$O.md" ] || err "$ref: OWNER '$O' ไม่ใช่ agent ที่มีอยู่"
+              t=$(awk '/^---$/{c++;next} c==1&&/^tools:/{print;exit}' "agents/$O.md")
+              [ -z "$t" ] || echo "$t" | grep -q '"Read"' || err "$ref: OWNER $O ไม่มี Read tool จึงโหลด reference นี้ไม่ได้"
+              # v3.13: OWNER ต้อง 'เอื้อมถึง' จริง -- pointer ต้องอยู่ใน agent body ของ OWNER
+              # หรือใน skill ที่ OWNER preload (ไม่ใช่แค่มีใครสักคนพิมพ์ชื่อไฟล์ไว้ที่ไหนก็ได้)
+              closure="agents/$O.md"
+              for sk in $(preloads "agents/$O.md"); do
+                sd=$(skill_md "$sk"); [ -n "$sd" ] && closure="$closure ${sd%/SKILL.md}"
+              done
+            fi
             grep -rq "$(basename "$ref")" $closure 2>/dev/null \
               || err "$ref: OWNER $O ไม่มี pointer ไปไฟล์นี้เลยใน body หรือ preload closure ของตัวเอง (กฎย้ายไปที่ที่เจ้าของโหลดไม่ถึง)"
             # ต้องถูก pack
@@ -459,14 +519,20 @@ jobs:
 
           sec "24. section refs + repo invariants + rule conservation (v3.13)"
           # 24a. `X` § Y  -> heading Y ต้องมีจริงใน X (dead section ref คือวิธีที่กฎหายแบบเงียบ ๆ)
-          # รองรับ 3 รูปแบบ: repo path · skill-relative (dir/file.md) · ชื่อ skill เปล่า
+          # รองรับ 4 รูปแบบ: repo path · skill-relative (dir/file.md) · ชื่อ skill เปล่า · `<plugin>:<skill>` (namespaced load,
+          # v4 ADR §5.10; Bella W10a S-1: checked like a bare skill name, never skipped; another namespace = red)
           while IFS= read -r line; do
             f=${line%%:*}; rest=${line#*:}
             case "$f" in skills/in-progress/*|skills/deprecated/*|CHANGELOG.md) continue ;; esac
-            tgt=$(echo "$rest" | sed -n 's/.*`\([A-Za-z0-9/_.-]*\)` § \([^·`|(),;:]*\).*/\1|\2/p')
+            tgt=$(echo "$rest" | sed -n 's/.*`\([A-Za-z0-9/_.:-]*\)` § \([^·`|(),;:]*\).*/\1|\2/p')
             [ -z "$tgt" ] && continue
             file=${tgt%%|*}; secn=$(echo "${tgt#*|}" | sed 's/[[:space:]]*$//' | cut -c1-18)
             [ ${#secn} -lt 4 ] && continue
+            case "$file" in
+              "$PLUGIN":*) file=${file#"$PLUGIN":}
+                case "$file" in ""|*[!a-z0-9-]*) err "$f: อ้าง '$PLUGIN:$file § $secn' แต่ '$file' ไม่ใช่ชื่อ skill (<plugin>:<skill>)"; continue ;; esac ;;
+              *:*) err "$f: อ้าง '$file § $secn' ด้วย namespace ที่ไม่ใช่ '$PLUGIN:' -- resolve ในรีโปนี้ไม่ได้"; continue ;;
+            esac
             cand=""
             case "$file" in skills/deprecated/*|skills/in-progress/*) err "$f: อ้าง '$file' ซึ่งอยู่ใน bucket ที่ไม่ ship"; continue ;; esac
             if [ -f "$file" ]; then cand="$file"
@@ -480,7 +546,7 @@ jobs:
             fi
             [ -n "$cand" ] || { err "$f: อ้าง '$file § $secn' แต่หาไฟล์ '$file' ไม่เจอในรีโป"; continue; }
             grep -qi "^#.*$secn" "$cand" || err "$f: อ้าง '$file § $secn' แต่ไม่พบ heading นั้นใน $cand"
-          done < <(grep -rn '` § ' agents skills commands output-styles references README.md CLAUDE.md 2>/dev/null)
+          done < <(grep -rn '` § ' agents skills commands output-styles references README.md CLAUDE.md AGENTS.md docs/cowork-validator-history.md docs/repo-invariants 2>/dev/null)
 
           # 24b. relative *.md pointer ในไฟล์ skill ต้อง resolve ได้ (sibling ก่อน, ไม่งั้นต้องมีในรีโปจริง)
           while IFS= read -r line; do
@@ -493,12 +559,12 @@ jobs:
             done
           done < <(grep -rn '`[a-z0-9-]*\.md`' skills 2>/dev/null | grep -av '^[^:]*:[0-9]*:LOAD:')
 
-          # 24c. CLAUDE.md invariant: skill ที่ผลิต deliverable ต้องมี 2 gate heading
+          # 24c. AGENTS.md invariant: skill ที่ผลิต deliverable ต้องมี 2 gate heading
           # ยกเว้นเฉพาะ style skill ที่ไม่ผลิต artifact (v3.17: entry skill `ask` ไม่มี exception แล้ว)
           for f in skills/workflow/*/SKILL.md skills/ops/*/SKILL.md skills/ui/*/SKILL.md \
                    skills/discipline/review-checklist/SKILL.md; do
-            grep -q '^## When NOT to use' "$f" || err "$f: ขาด '## When NOT to use' (CLAUDE.md invariant)"
-            grep -Eq '^## (Required inputs|Inputs and decision boundaries)' "$f" || err "$f: ขาด '## Inputs and decision boundaries' (CLAUDE.md invariant)"
+            grep -q '^## When NOT to use' "$f" || err "$f: ขาด '## When NOT to use' (AGENTS.md invariant)"
+            grep -Eq '^## (Required inputs|Inputs and decision boundaries)' "$f" || err "$f: ขาด '## Inputs and decision boundaries' (AGENTS.md invariant)"
             ! grep -q '^## .*refuse without' "$f" || err "$f: heading 'refuse without' เป็น legacy (SPEC §19) -- ใช้ '## Inputs and decision boundaries' + '### Stop and return'"
           done
           # v3.17 P5-C2: the 6 roots with A/B/C stops must carry them in a NON-EMPTY '### Stop and return'
@@ -531,22 +597,110 @@ jobs:
           fi
           python3 tests/test_rule_migrations.py || fail=1
           python3 -m unittest tests/test_rule_conservation.py || fail=1
+          # 24e. one source per rule: a rule line of AGENTS.md § Repo Invariants must not be copied into any file under docs/
+          #   (matching rule + negative tests live in tests/test_docs_no_rule_copy.py; this is NOT a two-copy sync gate)
+          python3 tests/test_docs_no_rule_copy.py >/dev/null 2>&1 || { err "docs restate a rule of AGENTS.md (or negative test broken) -- keep the rule in AGENTS.md only:"; python3 tests/test_docs_no_rule_copy.py --scan | head -20; }
 
           [ $fail -eq 0 ] && ok "section refs + invariants + rule conservation"
 
           sec "25. full-team preservation and discovery adapters (structural, not live acceptance)"
           python3 scripts/pack-team.py --check plugins/shode-house || fail=1
-          # 25b. skill adapters are thin entry points: no unconditional read-in-full (SPEC 12/95, ADR-4); agent adapters exempt
-          if grep -rIniE '\bin full\b|read (this|the) (skill|full)' plugins/shode-house/skills/*/SKILL.md plugins/shode-house/commands/ask.md; then
-            err "skill adapter forces a full read -- edit scripts/pack-team.py and regenerate"
-          fi
-          [ "$(ls plugins/shode-house/skills/*/SKILL.md | wc -l)" -ge 20 ] || err "no skill adapters scanned"
+          # 25b retired (v4 R42/R48, S2 integration v7u.4.12): generated entries are source verbatim + a resolution footer,
+          #   no longer thin adapters; the parity audit above (--check) is the gate for the generated tree
           python3 tests/test_team_entry.py || fail=1
           python3 tests/test_team_candidate.py || fail=1
           python3 tests/test_team_run_check.py || fail=1
           python3 tests/test_context_budget.py || fail=1
           python3 tests/test_root_safety_anchors.py || fail=1   # v3.17 FR-G-3 AC4: static root-safety anchors
           python3 -m unittest tests.test_core_scenarios >/dev/null 2>&1 || { fail=1; python3 -m unittest tests.test_core_scenarios 2>&1 | tail -15; }   # v3.17 E-6: core scenario shape/fixture integrity
+
+          sec "26. plugin archive = .pack-allowlist, and shipped text points at nothing outside it"
+          # what ships is one explicit list (the Makefile recipe reads it); docs/, AGENTS.md, CLAUDE.md, README, CHANGELOG do not ship.
+          # reference forms, exemptions and negative tests live in tests/test_pack_allowlist.py
+          # a check that could not run is printed, never folded into a bare "ok" (no node -> the shipped .js is not parsed)
+          if python3 tests/test_pack_allowlist.py >/dev/null 2>&1; then
+            skipped=$(python3 tests/test_pack_allowlist.py --scan | grep '^SKIP' || true)
+            if [ -n "$skipped" ] && [ -n "${CI:-}" ]; then err "in CI every shipped file must be parsed -- NOT CHECKED: $skipped"
+            elif [ -n "$skipped" ]; then printf '  ~ PARTIAL allowlist ok, no dangling reference in shipped text -- NOT CHECKED: %s\n' "$skipped"
+            else ok "allowlist ok, no dangling reference in shipped text, shipped .sh/.py/.js parse"; fi
+          else err "pack allowlist / dangling reference (python3 tests/test_pack_allowlist.py for the full report):"; python3 tests/test_pack_allowlist.py --scan | head -20; fi
+
+          sec "27. v4 gates: A1 tools pin, A8 skill names + spawn forms, A2 safety floor, A16 shipped-text lint, A15 design runner, W9 eval suites (ADR §7 W1)"
+          # One data switch: REQ4=1 from plugin.json major 4 (W10's switch commit) or SHODE_REQUIRE_V4=1 (rehearsal; it can
+          # only turn checks on). While REQ4=0 every TREE check below is wired but NOT yet required: findings print as
+          # '~ advisory', never folded into a bare ok (3.17.2: ux Bash + orchestrator, `code-index`, no floor text, the two
+          # `CLAUDE_PLUGIN_ROOT:-.` fallbacks). The unit + mutation tests of every check are required now.
+          # A1 also keeps one required tree ratchet now: the 4.0.0 pin may report only the planned switch (EXPECTED_3X_GAP).
+          v4tree(){ # $1 label, $2 findings, $3 scan rc
+            if [ "$3" -eq 0 ]; then ok "$1"
+            elif [ $REQ4 -eq 1 ]; then err "$1 (required from 4.0.0):"; echo "$2" | head -20
+            else printf '  ~ advisory (%s required from 4.0.0): %s finding(s)\n' "$1" "$(echo "$2" | grep -c .)"; echo "$2" | head -20 | sed 's/^/      /'; fi; }
+          for t in test_agent_tools_pin test_skill_names test_shipped_text_lint test_floor test_gate27_wiring test_ci_wiring test_ux_design_runbooks test_eval_runners; do   # test_floor: R45; test_ux_design_runbooks: R68/S7-1 (always required)
+            python3 tests/$t.py >/dev/null 2>&1 || { err "tests/$t.py red (unit/mutation tests always required; from 4.0.0 also the tree):"; python3 tests/$t.py 2>&1 | grep -E '^(FAIL|ERROR)'; }
+          done
+          a1=$(python3 tests/test_agent_tools_pin.py --scan 2>&1); v4tree "A1 tools pin" "$a1" $?
+          a8=$(python3 tests/test_skill_names.py --scan 2>&1); v4tree "A8 skill names + spawn forms" "$a8" $?
+          a16a=$(python3 tests/test_shipped_text_lint.py --scan a 2>&1); v4tree "A16(a) no CLAUDE_PLUGIN_ROOT fallback in shipped text" "$a16a" $?
+          a16b=$(python3 tests/test_shipped_text_lint.py --scan b 2>&1); v4tree "A16(b) no floor-relaxing text outside the floor markers" "$a16b" $?
+          if [ $REQ4 -eq 1 ]; then
+            # --require explicitly: the required mode must not depend on floor.py's own version parse agreeing with REQ4
+            if [ -f scripts/floor.py ]; then python3 scripts/floor.py --check --require || err "A2 safety floor: scripts/floor.py --check --require red (required from 4.0.0)"
+            else err "A2 safety floor: scripts/floor.py missing (required from 4.0.0)"; fi
+          elif [ -f scripts/floor.py ]; then
+            fl=$(python3 scripts/floor.py --check 2>&1); fl_rc=$?
+            if [ $fl_rc -eq 0 ]; then ok "A2 safety floor (advisory until 4.0.0)"
+            else printf '  ~ advisory (A2 required from 4.0.0): floor check red\n'; echo "$fl" | head -10 | sed 's/^/      /'; fi
+          else printf '  ~ advisory (A2 required from 4.0.0): scripts/floor.py not present yet -- NOT CHECKED\n'; fi
+          # A15 (router decision on the W12 review): the design runner is security-critical, so its suite is REQUIRED in
+          # every mode, here and locally. Isolation: tests/fixtures/design_run/gitiso.py gives every git call its own
+          # HOME/GIT_CONFIG_GLOBAL/XDG_CONFIG_HOME under the test tmp dir + GIT_CONFIG_NOSYSTEM=1 and refuses otherwise;
+          # the pytest process itself also runs with GIT_CONFIG_NOSYSTEM=1 and a throwaway HOME/XDG (user site kept).
+          # Runner needs: git >= MIN_GIT of design_run.py (ubuntu-latest ships a newer /usr/bin/git), python3 + pytest
+          # (CI: the setup-python step installs it from the hash-pinned .github/requirements-ci.txt; if still missing, a
+          # private venv from the SAME file -- never `pip --user` into a PEP 668 system python, Chris W1 r2 R2-3 / C-7);
+          # no node, no Playwright (the suite uses stub binaries). The venv is removed after the W9 block below in every
+          # case, also when pip failed (C-7).
+          # A missing suite file is red, never a silent ok (Bella W1 r2 N1 / W12 F-12; tests/test_gate27_wiring.py).
+          [ -f tests/test_design_run.py ] || err "A15 design runner suite: tests/test_design_run.py missing -- NOT CHECKED (required in every mode)"
+          a15py=python3; a15v=""
+          if ! python3 -c 'import pytest' 2>/dev/null && [ -n "${CI:-}" ]; then
+            a15v=$(mktemp -d) && python3 -m venv "$a15v/venv" >/dev/null 2>&1 \
+              && "$a15v/venv/bin/python" -m pip install --quiet --require-hashes --only-binary :all: -r .github/requirements-ci.txt >/dev/null 2>&1 \
+              && a15py="$a15v/venv/bin/python"
+          fi
+          a15ok=0; "$a15py" -c 'import pytest' 2>/dev/null && a15ok=1
+          pyt(){ # one isolated pytest run: own HOME/GIT_CONFIG_GLOBAL/XDG under a fresh temp dir, user site kept
+            local h rc; h=$(mktemp -d)
+            env GIT_CONFIG_NOSYSTEM=1 HOME="$h/home" GIT_CONFIG_GLOBAL="$h/gitconfig" XDG_CONFIG_HOME="$h/xdg" \
+              PYTHONUSERBASE="$("$a15py" -m site --user-base)" PYTHONDONTWRITEBYTECODE=1 "$a15py" -m pytest -q -p no:cacheprovider "$@" 2>&1
+            rc=$?; rm -rf "$h"; return $rc; }
+          if [ -f tests/test_design_run.py ]; then
+            if [ $a15ok -eq 1 ]; then
+              a15=$(pyt tests/test_design_run.py); a15_rc=$?
+              if [ $a15_rc -eq 0 ]; then ok "A15 design runner suite ($(echo "$a15" | tail -1))"
+              else err "A15 design runner suite red (tests/test_design_run.py):"; echo "$a15" | grep -E '^(FAILED|ERROR)|passed|failed' | head -20; fi
+            else err "A15 design runner suite: pytest not importable -- NOT CHECKED (python3 -m pip install --require-hashes --only-binary :all: -r .github/requirements-ci.txt)"; fi
+          fi
+          # W9 eval suites (bd v7u.4.7 W9 wiring; required in every mode, like A15): the frozen 4.0 core scenario set's own
+          # manifest + derivation (python3 only), then the v4-security scorer and shadow-floor suites (pytest, the A15
+          # interpreter and isolation). A missing script or suite directory is red, never a skip.
+          if [ -f eval/scenarios/core-4.0/check-freeze.sh ]; then
+            if w9f=$(bash eval/scenarios/core-4.0/check-freeze.sh 2>&1); then ok "W9 $w9f"
+            else err "W9 core-4.0 freeze red (bash eval/scenarios/core-4.0/check-freeze.sh):"; echo "$w9f" | head -10; fi
+          else err "W9 core-4.0 freeze: eval/scenarios/core-4.0/check-freeze.sh missing -- NOT CHECKED (required in every mode)"; fi
+          w9s=""
+          for d in eval/v4-security/tests eval/shadow-floor/tests; do
+            if [ -d "$d" ]; then w9s="$w9s $d"; else err "W9 eval suite: $d missing -- NOT CHECKED (required in every mode)"; fi
+          done
+          if [ -n "$w9s" ]; then
+            if [ $a15ok -eq 1 ]; then
+              w9=$(pyt $w9s); w9_rc=$?
+              if [ $w9_rc -eq 0 ]; then ok "W9 eval suites ($(echo "$w9" | tail -1))"
+              else err "W9 eval suites red ($w9s):"; echo "$w9" | grep -E '^(FAILED|ERROR)|passed|failed' | head -20; fi
+            else err "W9 eval suites: pytest not importable -- NOT CHECKED (python3 -m pip install --require-hashes --only-binary :all: -r .github/requirements-ci.txt)"; fi
+          fi
+          rm -rf "${a15v:-}"
+          [ $fail -eq 0 ] && ok "v4 gate tests (REQ4=$REQ4, plugin.json major $VMAJ; A1/A8/A16 tree + A2 required only when REQ4=1)"
 
           echo
           if [ $fail -eq 0 ]; then echo "== ALL GATE CHECKS PASS =="; else echo "== GATE FAILED =="; fi
@@ -649,8 +803,24 @@ jobs:
         # no new dependency.
         run: bash tests/test-lock.sh
 
+      # The archive that gets uploaded is checked as built, and one shipped script is run from it
+      # unpacked: a file a script opens at run time has to be IN the archive, not just in the repo.
+      # `make pack` may add exactly one path to the working tree: the archive (git-ignored, so the
+      # comparison lists ignored and untracked files too, one per line, before and after).
       - name: Build .plugin artifact
-        run: make pack
+        run: |
+          # an archive left by an earlier suite is removed first; the snapshot is a file, so a tree with no untracked path compares as empty
+          rm -f shode-house-v*.plugin
+          before="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/pack-tree-before.$$"
+          tree_state() { git status --porcelain --untracked-files=no; git ls-files --others; }
+          tree_state > "$before"
+          make pack
+          changed=$(tree_state | diff "$before" - | grep '^[<>]' || true); rm -f "$before"
+          [ "$changed" = "> $(ls shode-house-v*.plugin)" ] || { echo "make pack must add exactly one path to the working tree, the archive; the tree changed by:"; echo "${changed:-(nothing: make pack wrote no archive)}"; exit 1; }
+          python3 tests/test_pack_allowlist.py --archive shode-house-v*.plugin
+          d=$(mktemp -d) && unzip -q shode-house-v*.plugin -d "$d"
+          out=$(cd "$d" && bash scripts/policy-check.sh ci-archive-smoke 2>&1) || { echo "$out" | tail -5; echo "scripts/policy-check.sh fails when run from the unpacked archive"; rm -rf "$d"; exit 1; }
+          echo "$out" | tail -1; rm -rf "$d"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

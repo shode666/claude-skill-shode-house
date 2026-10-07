@@ -5,7 +5,7 @@
 # No framework dependency (same style as tests/test-workflow-state.sh) -- plain
 # bash test functions + a tiny assert library. Fixture request.json / bd
 # artifact dirs are written to a mktemp sandbox per test, never touching the
-# real repo state. Wired into ci.yml as exactly ONE step (CLAUDE.md rule:
+# real repo state. Wired into ci.yml as exactly ONE step (milestone constraint:
 # "เพิ่ม step ใหม่ได้ไม่เกิน 1 step สำหรับ Milestone B ทั้งก้อน").
 #
 # Usage: bash tests/test-registry.sh
@@ -824,7 +824,7 @@ rm -rf "$D"
 # ---------------------------------------------------------------------------
 # C-A6 iter0: routes.json and transitions.json used to speak two different phase
 # vocabularies (phase_1a/1b/3b vs 1a-spec/1b-design/3b-review). transitions.json is the
-# single source of truth (CLAUDE.md 'Repo'); this test locks that in going forward.
+# single source of truth for the phase vocabulary; this test locks that in going forward.
 t_start "phase-vocab: every phase id used in routes.json's phases[] exists in transitions.json's states[] (no drift between the two registries)"
 unknown=""
 while IFS= read -r p; do

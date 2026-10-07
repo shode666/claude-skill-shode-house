@@ -1,0 +1,11 @@
+ M outputs/SPEC-bd-101.md
+ M src/ledger.py
+ M tests/test_ledger.py
+?? outputs/ledger-tolerance/01-security-engineer-phase-1c.md
+?? outputs/ledger-tolerance/02-developer-phase-2.md
+?? outputs/ledger-tolerance/03-business-analyst-phase-1a.md
+?? outputs/ledger-tolerance/04-code-reviewer-phase-3b.md
+?? outputs/ledger-tolerance/05-qa-engineer-phase-3b.md
+?? outputs/ledger-tolerance/06-developer-phase-2-iter2.md
+?? outputs/ledger-tolerance/07-code-reviewer-phase-3b-iter2.md
+?? outputs/ledger-tolerance/08-qa-engineer-phase-3b-iter2.md

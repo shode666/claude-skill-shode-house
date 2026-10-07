@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # workflow-state.sh -- Milestone A phase-graph + reconciliation (bd: shode-roadmap/C-A5, iter 2)
 #
-# Builds on the iter-0/1 tracer bullet (bd: shode-roadmap/C-A4) -- see
-# outputs/shode-roadmap/C/09-dave-workflow-state.md for that history. This iteration:
+# Builds on the iter-0/1 tracer bullet (bd: shode-roadmap/C-A4); that history
+# is kept in the maintainer implementation notes, which do not ship. This iteration:
 #   1. Expands the 6-node MVP graph to the real 10-node shode-house phase set, driven
 #      entirely by references/state-machine/transitions.json (states/conditional_phases/
 #      enter_requires/transitions) -- no phase or edge name is hardcoded in this script.
@@ -22,7 +22,7 @@
 #                graph edge, does not need an entry in transitions.json's "transitions"
 #
 # Deps: bash + jq + shasum (ADR-C3 -- no python3 in the hot path; shasum already used by
-# tests/test-workflow-state.sh in iter0, so it's an established, CI-verified dependency).
+# the maintainer suite test-workflow-state.sh in iter0, so it's an established, CI-verified dependency).
 #
 # Engagement guard: every command is a no-op (exit 0, silent, no side effect) unless
 # "$ROOT/.shode-house" already exists. This script never creates that top-level dir --
@@ -30,7 +30,7 @@
 # scope). This is intentional so an unrelated repo that never opted into shode-house
 # workflow-state is never touched.
 #
-# bd is an OPTIONAL MIRROR, not a dependency (outputs/shode-roadmap/C/05-oliver-decisions.md
+# bd is an OPTIONAL MIRROR, not a dependency (maintainer decision record
 # #6 / ADR-C6): `reconcile`'s bd-dependent checks (1 and 2) are SKIPPED -- loudly, with a
 # printed reason -- when `bd` is not on PATH or there is no active bd workspace. They are
 # never silently treated as PASS, and a missing bd never crashes the script.
@@ -42,7 +42,7 @@ set -u -o pipefail
 
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Same override convention as TRANSITIONS/ERRORS_FILE below -- lets a mutated COPY of
-# this script (moved outside scripts/, see tests/test-reliability.sh's MUTATION (a))
+# this script (moved outside scripts/, see the maintainer suite test-reliability.sh's MUTATION (a))
 # still find the real scripts/lib/lock.sh instead of a nonexistent sibling next to the copy.
 WFSTATE_LOCK_LIB="${WFSTATE_LOCK_LIB:-$SELF_DIR/lib/lock.sh}"
 # shellcheck source=lib/lock.sh
@@ -58,7 +58,7 @@ TRANSITIONS="${WFSTATE_TRANSITIONS:-$SELF_DIR/../references/state-machine/transi
 ERRORS_FILE="${WFSTATE_ERRORS:-$SELF_DIR/../references/state-machine/errors.json}"
 REWORK_FILE="${WFSTATE_REWORK_ROUTING:-$SELF_DIR/../references/state-machine/rework-routing.json}"
 
-# 9-value phase-status enum -- outputs/shode-roadmap/C/05-oliver-decisions.md #4
+# 9-value phase-status enum -- maintainer decision record #4
 STATUS_ENUM="pending ready in_progress blocked conditional_pass passed failed skipped escalated"
 # statuses a phase may be advanced *away from* (FR-201 rule 2, simplified for this
 # tracer bullet -- see "sing thi cong-jai mai tham" in the hand-off artifact)
@@ -395,13 +395,13 @@ cmd_advance() {
 
   # ---- escalated is a SELF-transition (to == from), not a phase-graph edge. It marks
   # the phase currently stuck in a retry loop as escalated -- "needs a human decision,
-  # do not auto-retry" (state schema note, outputs/shode-roadmap/C/01-bella-spec-1a.md
+  # do not auto-retry" (state schema note, maintainer Phase 1a spec
   # SS2). It deliberately does not require (or check) transitions.json's edge table:
   # declaring 10 identical self-loop rows there (one per phase) would be pure noise --
   # this action is generic across every phase by construction (to==from), so it is not
   # "an edge outside transitions.json" in the sense the routing table exists to prevent
-  # (routing DATA between distinct phases). See outputs/shode-roadmap/C/09-dave-workflow-state.md
-  # "iter 2" for the full design-decision writeup.
+  # (routing DATA between distinct phases). The full design-decision writeup is the
+  # "iter 2" section of the maintainer implementation notes (not shipped).
   if [ "$outcome" = "escalated" ]; then
     if [ "$to" != "$from" ]; then
       ok=0; reason="escalated outcome requires self-transition (to must equal current phase '$from'), got '$to'"
@@ -574,7 +574,7 @@ cmd_retry() {
 
 # ---- rework (Milestone D, bd: shode-roadmap/C-D1): "ผลลัพธ์ผิด ต้องแก้ implementation" --
 # routes back to the RESPONSIBLE phase for a <triage-class> via rework-routing.json
-# (output-styles/oliver.md section 5's Triage routing table, transcribed there -- not
+# (the router style's Triage line, output-styles/shode-house.md, transcribed there -- not
 # re-decided here). Deliberately does NOT reimplement the transition: it resolves the
 # target phase from the class, then calls cmd_advance() itself with outcome=failed --
 # same validated edge / enter_requires / iter-cap / atomic-write / iter+1-on-revisit
@@ -787,7 +787,7 @@ cmd_reconcile() {
   #   4 = general drift on artifacts belonging to a NOT-yet-approved phase
   #   5 = an APPROVED phase's sign-off now references content that has since changed
   # (Dave design decision, iter 2 -- ROADMAP-runtime-10.md SS2.2 names both cases but
-  # does not define how they differ; see outputs/shode-roadmap/C/09-dave-workflow-state.md.)
+  # does not define how they differ; the rationale is in the maintainer implementation notes.)
   local hash_fail_4="" hash_fail_5=""
   while IFS=$'\t' read -r phase pstatus; do
     [ -z "$phase" ] && continue

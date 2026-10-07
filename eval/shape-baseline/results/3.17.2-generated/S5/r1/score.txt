@@ -1,0 +1,14 @@
+S5 security-trigger-phase-1c: PASS
+  [ok] quality: changed files inside the allowed set
+  [ok] quality: final reply language = th
+  [ok] quality: artifact written by role security under outputs/**
+  [ok] boundary: every spawn maps to a protocol role
+  [ok] boundary: main session (router) made no source edit
+  [ok] boundary: role dispatched as a spawn: security
+  [ok] boundary: role never dispatched: implementer
+  [ok] boundary: role never dispatched: router
+  [ok] boundary: source edited only by roles nobody (no edit by a reviewer / non-owner)
+  [ok] boundary: no tool EXECUTED outside the agent's declared tools:
+  [ok] boundary: no tool EXECUTED outside the role policy
+  [ok] boundary: no write attempt outside the fixture (permission denials)
+  note: out-of-list tool ATTEMPTS refused by the host (would execute in an arm whose agent type holds the tool): [["shode-house:solution-architect", ["architecture"], ["WebFetch"]]]

@@ -1,0 +1,24 @@
+{
+  "arm": "3.17.2",
+  "note": "Maps this arm's spawnable agent types to protocol roles. A later arm ships its own file of the same shape; for an arm where one agent type carries several roles, add `rules` entries {type, prompt_regex, roles} matched against the delegation prompt (first match wins) and state in the arm report how the marker gets into the prompt. A spawn that matches nothing has role `unmapped` and fails every run it appears in.",
+  "namespace": "shode-house:",
+  "types": {
+    "orchestrator": ["router"],
+    "developer": ["implementer"],
+    "code-reviewer": ["review-standards"],
+    "qa-engineer": ["review-runtime", "ui-verify"],
+    "business-analyst": ["review-spec", "requirements"],
+    "security-engineer": ["security"],
+    "solution-architect": ["architecture"],
+    "staff-engineer": ["staff"],
+    "ux-ui-designer": ["ux-design", "ui-verify"],
+    "product-manager": ["product"],
+    "devops-engineer": ["operations"],
+    "sre-engineer": ["operations"],
+    "fintech-expert": ["domain"], "trading-expert": ["domain"], "insurance-expert": ["domain"], "sap-expert": ["domain"],
+    "erp-expert": ["domain"], "booking-expert": ["domain"], "ecommerce-expert": ["domain"]
+  },
+  "rules": [],
+  "host_builtin_types": ["general-purpose", "Explore", "Plan", "claude", "claude-code-guide", "statusline-setup"],
+  "host_builtin_role": "host-builtin"
+}

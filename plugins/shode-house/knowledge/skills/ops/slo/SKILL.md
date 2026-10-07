@@ -5,7 +5,7 @@ description: Define reliability targets for a production service, covering servi
 
 # SLO (Service Level Objective discipline)
 
-> **Owner**: Reggie (sole). Co-pilot: Aaron (infra metric scrape), Patrick (error budget conversation)
+> **Owner**: sre-engineer (sole). Co-pilot: devops-engineer (infra metric scrape), product-manager (error budget conversation)
 
 ## When NOT to use
 
@@ -21,7 +21,7 @@ Collect for production calibration; proposed objectives may be documented earlie
 - [ ] **Service production-running ≥ 2 weeks** (มี baseline metric จริง; ห้าม "guess SLO")
 - [ ] **User journey identified** (อะไรคือ critical path — login? checkout? read?  — ต้องระบุ)
 - [ ] **Metric source available** (Prometheus exporter / APM / log-based — ระบุ instrument)
-- [ ] **Patrick alignment** (error budget policy — slow rollout vs feature freeze threshold)
+- [ ] **product-manager alignment** (error budget policy — slow rollout vs feature freeze threshold)
 - [ ] **Current performance baseline** (p50/p95/p99 จริง 4 weeks — ห้าม "industry standard")
 
 Missing baseline blocks measured calibration/attainment claims, not planning the
@@ -59,7 +59,7 @@ window and unresolved targets explicitly; agree the needed window with the owner
 ```yaml
 # slo-payment.yml
 service: payment-api
-owners: [Reggie, Aaron]
+owners: [sre-engineer, devops-engineer]
 slis:
   availability:
     sli: success_count / total_count
@@ -90,7 +90,7 @@ alerts:
 | 24h | > 3x | P2 ticket | Exhaust in 10d (trend concern) |
 | 72h | > 1x | Slow burn warning | Trend over week — investigate |
 
-## Error budget policy (negotiate with Patrick)
+## Error budget policy (negotiate with product-manager)
 
 | Budget remaining | Policy |
 |-----------------|--------|
@@ -98,9 +98,9 @@ alerts:
 | 50-75% | Caution — extra review on risky changes |
 | 25-50% | Slow down — pause low-priority risky features |
 | < 25% | **Freeze** — only reliability work + critical bugfix |
-| < 0% (negative) | Hard freeze — Patrick conversation about scope cut |
+| < 0% (negative) | Hard freeze — product-manager conversation about scope cut |
 
-## Observability stack (Reggie config)
+## Observability stack (sre-engineer config)
 
 | Layer | Tool | Output |
 |-------|------|--------|
@@ -117,10 +117,10 @@ alerts:
 
 ## Phase wiring
 
-- **Phase 1a Sara**: NFR row ตรง SLO target (latency p95, availability) — Reggie sign
-- **Phase 1c Sentinel**: security AC ที่กระทบ SLO (rate-limit, circuit breaker)
-- **Phase 5 Reggie**: SLO baseline capture (last 7d) + dashboard live + alert wired
-- **Phase 6 Reggie**: burn rate watch continuous + incident trigger + postmortem
+- **Phase 1a solution-architect**: NFR row ตรง SLO target (latency p95, availability) — sre-engineer sign
+- **Phase 1c security-engineer**: security AC ที่กระทบ SLO (rate-limit, circuit breaker)
+- **Phase 5 sre-engineer**: SLO baseline capture (last 7d) + dashboard live + alert wired
+- **Phase 6 sre-engineer**: burn rate watch continuous + incident trigger + postmortem
 
 ## Evidence
 
@@ -136,7 +136,7 @@ alerts:
 ## ห้าม
 
 - ห้าม "average latency" — p50/p95/p99 เท่านั้น (avg ปกปิด long tail)
-- ห้าม SLO ที่ Patrick ไม่ได้ negotiate (ไม่ realistic + ไม่มี budget conversation)
+- ห้าม SLO ที่ product-manager ไม่ได้ negotiate (ไม่ realistic + ไม่มี budget conversation)
 - ห้าม alert ไม่มี runbook (alert = "do something now")
 - ห้าม "100% availability" target (impossible + ไม่มี budget for change)
 - ห้าม close incident ไม่มี postmortem schedule
@@ -147,7 +147,7 @@ alerts:
 | Situation | Next skill | Reason |
 |---|---|---|
 | SLO burn-rate alert ดัง | → `incident` | War room (SLO = measurement; incident = response) |
-| Error budget exhausted → feature freeze | → talk to Patrick (PM) + policy review | Patrick negotiates budget; SLO ไม่ตัดสิน prioritization |
-| SLO ใหม่ต้อง test ใน load | → `automate-test` (load test section) | Quinn load test verify p95/p99 threshold realistic |
+| Error budget exhausted → feature freeze | → talk to product-manager (PM) + policy review | product-manager negotiates budget; SLO ไม่ตัดสิน prioritization |
+| SLO ใหม่ต้อง test ใน load | → `automate-test` (load test section) | qa-engineer load test verify p95/p99 threshold realistic |
 | Latency spike root cause | → `diagnose` → `dev-gate` | Structured RCA + TDD fix (SLO ไม่หา root cause) |
-| Capacity plan ต้อง infra change | → Aaron infra design (link Sara if architectural)
+| Capacity plan ต้อง infra change | → devops-engineer infra design (link solution-architect if architectural)

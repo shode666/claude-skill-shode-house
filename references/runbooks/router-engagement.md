@@ -1,0 +1,250 @@
+---
+name: router-engagement
+description: Runbook (lazy-load) ของ router — Engagement Plan template + Phase 0/1c/6/7 + multi-sig gates. โหลดตอนเปิด engagement ใหม่หรือเข้า phase เหล่านั้น
+---
+
+```lazy-load-contract
+LOAD: references/runbooks/router-engagement.md
+WHEN: engagement_start=true OR phase IN (0,1c,6)
+OWNER: router
+REQUIRED-BEFORE: phase_dispatch
+```
+
+# Engagement Plan + Phase 0/1c/6/7 — router
+
+> แยกจาก agent prompt v3.12.1 — งาน triage/route/state ประจำวันไม่ต้องแบก template นี้
+
+Apply this full runbook only for the harness tier that needs it. Reuse confirmed
+record homes, approved design and existing authority. Beads and outputs paths below
+are examples for projects using them; no template requires a new tracker or duplicate
+checkpoint. Phase approval is needed only where authority remains unsettled or the
+user explicitly chose approval at each handoff.
+
+## Engagement Plan Template
+
+```
+📋 Engagement: [name] | ID: E-{N}
+ลูกค้าต้องการ: [1-2 ย่อหน้า]
+Domain: [primary] + [secondary]
+Mode: [AFK | Interactive | Hybrid (default)]   ← Sandcastle-inspired
+Tracker: [bd | github | linear | jira | asana]   ← Pluggable
+
+(ห้ามใส่ T-shirt size / man-day / timeline ใน plan โดย default;
+ ใช้เฉพาะ user explicit ขอ `/design-system --estimate` หรือ "ช่วยประเมิน effort")
+
+Risk:
+| # | Risk | Likelihood | Impact | Mitigation |
+
+Pipeline (🔴 v3.3 PEV loop per bd — no sprint outer loop):
+
+  ┌─ PEV LOOP per task ──────────────────────────────────────────┐
+  │  PICK     : claim task (confirmed tracker)                   │
+  │  📋 PLAN                                                     │
+  │  Phase 1a : business-analyst ∥ solution-architect (TRUE parallel)                     │
+  │             BRD+AC ∥ ADR+risk → task notes                  │
+  │             Gate: pre-spec-expand                            │
+  │  Phase 1b : ux-ui-designer + Domain (sequential, conditional)           │
+  │             ux-ui-designer* read spec → wireframe+tokens+a11y baseline  │
+  │             Domain* read spec → regulation+rule              │
+  │             → outputs/SPEC-<bd-id>.md                        │
+  │             Gate: pre-implement-ui (ux-ui-designer signed)              │
+  │  Phase 1c : security-engineer threat model (conditional)              │
+  │  💻 EXECUTE                                                  │
+  │  Phase 2  : developer (parallel developer#1/#2 if independent)         │
+  │             Scope Contract + code + unit                     │
+  │             Gate: pre-ui-check (lint+unit+smoke green)       │
+  │  ✅ VERIFY (code-reviewer/qa-engineer adversarial — zero trust developer)       │
+  │  Phase 3a : ux-ui-designer POST (sequential gate)                       │
+  │             Screenshot diff + a11y manual + Chrome MCP       │
+  │             Gate: pre-code-review (ux-ui-designer PASS)                 │
+  │  Phase 3b : code-reviewer ∥ qa-engineer (TRUE parallel, verdict=FAIL def.) │
+  │             code-reviewer: 7-dim + mutation ≥70% + visual evidence    │
+  │             qa-engineer: integ + E2E + contract + load + Chrome    │
+  │             → outputs/REVIEW-<bd-id>.md                      │
+  │  🚦 TRIAGE                                                   │
+  │  Phase 4  : router Triage (max iter 3)                       │
+  │             Critical/Major → create linked task (from N)     │
+  │             Loop routing by finding type                     │
+  │             Clean → close + read back; note lesson           │
+  │             Gate: pre-loop-exit                              │
+  │  🚀 DEPLOY                                                   │
+  │  Phase 5  : devops-engineer continuous per ready task (or manual batch)│
+  │             CI + canary + health check + observability       │
+  │  📡 OPERATE                                                  │
+  │  Phase 6  : sre-engineer SLO watch + incident response             │
+  └──────────────────────────────────────────────────────────────┘
+
+* = conditional (ux-ui-designer ถ้า frontend; Domain ถ้า business rule; security-engineer ถ้า auth/PII/money)
+
+ดำเนินต่อเมื่อ existing authorization ครอบ scope; ถ้ายังไม่ครอบให้ถามเฉพาะ decision ที่ขาด
+(ห้าม "Total: ~N days"; agent ส่งงาน task-complete, ไม่ time-bound. ห้าม sprint bracket)
+```
+
+### 🔁 Loop Enforcement (router tracks per-bd PEV state)
+
+router maintain per-bd state (no sprint state — sprint removed):
+
+**Per-bd loop state**:
+```
+| bd-id | iter | last-phase | findings           | next-phase |
+| bd-42 | 1    | 3b         | UI accept fail     | → 1b (ux-ui-designer redesign baseline) |
+| bd-42 | 2    | 3a         | code lint fail     | → 2 (developer fix) |
+| bd-42 | 3    | 3b         | none               | → close + Phase 5 |
+```
+
+**Rules**:
+- iter เริ่มที่ 1 (ครั้งแรกผ่าน 1a→3b = iter 1)
+- Loop routing **precise** ตาม finding type:
+  - **code/perf/security implementation/test coverage** → Phase 2 (developer)
+  - **UI/design adherence/visual diff/a11y manual** → Phase 1b (ux-ui-designer redesign)
+  - **spec/AC/regulation/business rule** → Phase 1a (business-analyst ∥ solution-architect revise)
+- iter > 3 → **STOP** broadcast "[router] bd-N exceeded iter 3 — escalating user: re-scope / kill / split"
+- Task close = Phase 4 Triage clean (0 Critical/Major) + iter ≤ 3 + lesson note posted
+- 🔴 **M8 Close-on-Done**: เมื่อ closure ได้รับ authority close ใน confirmed tracker ด้วย reason "<verdict> <source_revision_and_diff_evidence> <test_result>" แล้ว read back ยืนยัน CLOSED (Markdown fallback). ใช้ commit SHA เมื่อมี authorized commit; ไม่สร้าง commit เพียงเพื่อให้ template ครบ. งาน PARTIAL/BLOCKED คงเปิดพร้อมเหตุผล. Batch backlog → `shode-house:drain` skill
+
+### Mode Selection (Phase 2 — บังคับเลือก option-style)
+
+```
+Q: Engagement mode?
+A) Hybrid (Recommended) — AFK ถึง pre-deploy, Interactive ตอน deploy
+B) AFK (Auto) — router delegate ทุก phase, user approve เฉพาะ R0
+C) Interactive (Supervised) — human approve ทุก hand-off
+```
+
+**Mode bind R0/R1/R2** (ดู `shode-house-workflow` § Engagement Mode):
+- AFK: R2 auto, R1 inform, R0 ขออนุญาต
+- Interactive: R2/R1 inform, R0 ask + ทุก phase exit ขออนุมัติ
+- Hybrid: AFK rule pre-deploy → Interactive deploy ขึ้น
+
+## Process
+
+1. **Triage** — clarify ถ้ากำกวม (option-style)
+2. **Plan** → verify existing authorization; ask only for unsettled scope/authority
+3. **Execute** — delegate, broadcast status, ตรวจ output ก่อน hand-off
+4. **Synthesize** — cross-check (BRD ↔ ADR ↔ code ↔ test via bd RTM)
+5. **Deliver** — `outputs/` + summary + next
+
+## Output Format
+
+```markdown
+# 📋 Engagement: [name]
+
+## ความเข้าใจ
+[1-2 ย่อหน้า + assumption]
+
+## Domain
+Primary: [name] → [agent] | Secondary: ...
+
+## Risk Register
+| # | Risk | L | I | Mitigation |
+
+## Tasks (bd)
+#1 business-analyst BRD       in_progress
+#2 solution-architect ADR     blocked-by:1
+#3 developer payment-api      blocked-by:2
+
+## 📦 Deliverables
+- outputs/01-brd.md
+- outputs/03-arch.md
+
+## Next
+- [ ] ...
+```
+
+---
+
+
+## Phase 0/1c/6/7 + Drift Defense + Multi-sig Gates
+
+### Phase 0 Discovery (NEW)
+**Owner**: 🔍 product-manager (lead) + Domain SME
+**router role**: prep — confirm bd scope blank, route product-manager + invite Domain SME(s) based on user request
+**Gate**: `pre-spec` — product-manager sign-off ก่อน Phase 1a
+
+### Phase 1c Threat Model (NEW)
+**Owner**: ✅ security-engineer (lead) + solution-architect (context)
+**Trigger**: feature touches auth | PII | money | external integration | file upload | AI agent | webhook | session
+**router role**: detect trigger ก่อน Phase 2; dispatch security-engineer (parallel-able with 1b ถ้า scope independent)
+**Gate**: `pre-implement` — STRIDE doc + security AC posted
+
+### Phase 6 Operate (NEW — continuous)
+**Owner**: 🚀 sre-engineer (lead) + devops-engineer (infra) + router (escalation routing)
+**Trigger**: post-deploy continuous
+**router role**: route incident-related user messages to sre-engineer; escalate error-budget < 0 to product-manager
+
+### ~~Phase 7 Learn (REMOVED v3.3)~~
+- Per-bd reflect captured in Phase 4 Triage (router lesson note post close)
+- Continuous OKR review (product-manager) — per-bd contribution, no sprint bracket
+- ห้ามใช้ /sprint command — removed in v3.3
+
+### Multi-sig pre-deploy-prod gate (R0)
+
+```
+⏸️ Gate: pre-deploy-prod (bd-<id>)
+Required evidence (paths mandatory):
+  ✅ CI green               [path]   — devops-engineer
+  ✅ Image scan 0 critical  [path]   — devops-engineer
+  ✅ SLO baseline captured  [path]   — sre-engineer
+  ✅ Runbook ready          [path]   — sre-engineer
+  ✅ Rollback drill passed  [path]   — devops-engineer+sre-engineer
+  ✅ STRIDE signed-off      [path]   — security-engineer
+  ✅ Web-Q 4-axis           [path]   — ux-ui-designer+security-engineer
+  ✅ Domain regulation cite [refs]   — fintech-expert/insurance-expert (if applicable)
+Multi-sig approval:
+  - devops-engineer (build): ___
+  - sre-engineer (SLO):  ___
+  - security-engineer (sec):___
+  - product-manager (OKR): ___ (R0 only)
+```
+
+### Follow-up Classifier (router ingest ทุก user message ใน active engagement)
+
+```
+User message → router classify (1-line caveman):
+  "ลองใหม่ / ไม่ work"   → fix     → reopen bd, iter+1, Phase 2
+  "เปลี่ยน X"             → spec    → reopen bd, Phase 1a redo
+  "ทำไม Y"                → quest   → answer, no phase change
+  "OK / ผ่าน / approve"   → approve → close gate check
+  "เพิ่ม Z"               → new     → create child task
+  "เสร็จยัง"              → status  → inspect canonical record, answer briefly, continue active authorized work
+```
+
+ห้าม developer/code-reviewer/qa-engineer/security-engineer/ux-ui-designer proceed ก่อน router classify
+
+### Canonical checkpoint (router maintain)
+
+Maintain one current checkpoint in the confirmed record home. Reuse an existing
+`outputs/SESSION-STATE.md` only when it is that checkpoint; otherwise link to the
+canonical record rather than create another competing state file. Example:
+```
+Active Engagement: E-<N> "<title>"
+Active bd issues:
+  - bd-42 : state:review-pending  iter:2  last:code-reviewer-3b
+Last handoff: developer ▸ Verify (bd-42, iter:2)
+Pending gates: pre-loop-exit (bd-42) — waiting qa-engineer + security-engineer notes
+```
+
+At start/resume each agent reads the accessible canonical checkpoint and assigned
+artifacts (or source-marked excerpts when files are not shared). Missing optional
+state files do not block an otherwise grounded response.
+
+### Team Routing
+
+| งาน | Team | Lead agent |
+|-----|------|-----------|
+| Opportunity / OKR / market sizing | 🔍 Discover | product-manager |
+| Requirement / BRD / FRD / AC | 📐 Design (business-analyst) | business-analyst |
+| Architecture / ADR / NFR | 📐 Design (solution-architect) | solution-architect |
+| Cross-team tech consistency | 🧭 Lead | staff-engineer |
+| UX/UI / design system / a11y | 📐 Design (ux-ui-designer) | ux-ui-designer |
+| Domain regulation / business rule | 🎓 Domain | fintech-expert/erp-expert/sap-expert/trading-expert/insurance-expert/booking-expert/ecommerce-expert |
+| Production code | 🛠 Dev | developer |
+| Data pipeline / ML / RAG | 🛠 Dev | developer (interim; สร้าง Devon/Mason เมื่อ project ต้องการ deep) |
+| Code review + unit | ✅ Verify | code-reviewer |
+| Integration/E2E/contract/load | ✅ Verify | qa-engineer |
+| Threat model + security depth | ✅ Verify | security-engineer |
+| Docker/CI/IaC/deploy build + harness runner | 🚀 Ops | devops-engineer (app-level runner → developer) |
+| SLO/incident/runbook/on-call | 🚀 Ops | sre-engineer |
+| API docs / release notes | 📐 Design | business-analyst (interim; สร้าง Tex เมื่อต้องการ docs portal) |
+
+---

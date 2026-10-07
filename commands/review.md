@@ -1,5 +1,5 @@
 ---
-description: "[shode-house] Code review + security (Chris + Quinn + Domain) — รับ path, Jira ID, หรือ bug description (+ screenshot)"
+description: "[shode-house] Code review + security (review axes: standards, spec, runtime, security, domain, ui) — รับ path, Jira ID, หรือ bug description (+ screenshot)"
 allowed-tools: Task, Read, Grep, Glob, Bash, Skill, mcp__atlassian__getJiraIssue, mcp__atlassian__searchJiraIssuesUsingJql, mcp__atlassian__getJiraIssueRemoteIssueLinks, mcp__atlassian__addCommentToJiraIssue
 argument-hint: "[path | KJERP-402 | คำอธิบายบั๊กภาษาไทย (+ screenshot ได้) | --debt]"
 ---
@@ -22,9 +22,9 @@ the frontmatter lists legacy Claude tool names, not authority to post externally
 
 ไม่ใช่ `--debt` → ทำต่อ Step 0 ปกติ
 
-## Step 0 — Resolve Argument (Oliver)
+## Step 0 — Resolve Argument (router)
 
-Oliver ตัดสินประเภท input แล้ว route:
+The router ตัดสินประเภท input แล้ว route:
 
 ### Pattern A — Jira issue key `[A-Z]+-\d+` (เช่น `KJERP-402`)
 
@@ -43,7 +43,7 @@ Review ตาม path ตรงๆ
 
 ตัวอย่าง: `/review การคำนวนหน้านี้ผิด` (+ screenshot แนบหรือไม่ก็ได้)
 
-**Oliver triage bug:**
+**Router triage bug:**
 
 1. **Extract intent** จาก description:
    - Domain keywords: `คำนวน/คำนวณ` → calculation, `ราคา/ยอด` → price/total, `จอง` → booking, `ชำระ/จ่าย` → payment, `สต็อก` → inventory, `รายงาน` → report
@@ -98,49 +98,41 @@ pin ขอบเขต diff **ก่อน** fan-out แล้วส่ง comma
 
 ## Step 1 — Invoke review-checklist skill
 
-> v3.1: review checklist รวบศูนย์ใน `skills/discipline/review-checklist/SKILL.md`. Command นี้ = router + context-aware invoke
+> review checklist รวบศูนย์ใน `skills/discipline/review-checklist/SKILL.md` — โหลด `shode-house:review-checklist` ด้วย `Skill`. Command นี้ = scope + context-aware invoke; axis plan อยู่ที่ router style
 
-Before dispatch, record the axis plan below using the canonical task ID. Missing
-Beads or a ceremonial printout is not a blocker; missing scope/required ownership is.
+Router style not active in this session → report `BLOCKED: team execution needs the router style (Claude Code)`; do not read the style file to act as the router.
 
-```
-[REVIEW DISPATCH CARD] task:<canonical-id-or-path>
-- Chris    (7-dim)          : DISPATCH
-- Quinn    (test/SAST axis) : DISPATCH | SKIP(recorded bounded tier; no affected boundary)
-- Bella    (spec axis)      : DISPATCH | SKIP("no spec available") | SKIP(recorded bounded tier; acceptance unchanged)
-- Sentinel (security depth) : DISPATCH(trigger:<keywords>) | SKIP("no trigger keyword")
-- Domain   (<expert>)       : DISPATCH(trigger:<keywords>) | SKIP("no trigger keyword")
-→ dispatch separate reviewers; parallel only when supported and independent
-```
+Before dispatch, record the axis plan as the `[REVIEW DISPATCH CARD]` using the canonical task ID:
+one line per axis from `output-styles/shode-house.md` § Review card: standards, spec, runtime, security,
+domain, ui; each DISPATCH or SKIP("<reason>"); spec is always DISPATCH. Missing Beads or a ceremonial
+printout is not a blocker; missing scope/required ownership is.
 
-กติกา (เขียนติดกับ template — บังคับทั้ง 5 ข้อ):
-1. An explicitly requested full review requires Chris + Quinn. Routine delivery
-   uses the harness risk tier: Chris remains required; Quinn joins for affected
-   process/network/storage boundaries or project requirements. Record any omission.
-2. Full review includes Bella when spec exists; otherwise report "no spec available"
-   with the sources checked. Routine bounded work follows the harness; changed
-   acceptance always returns to Bella. Do not downgrade an explicit full-review request.
-3. Sentinel SKIP ได้ **เหตุผลเดียว**: "no trigger keyword" — ต้อง scan keyword list ตาม
-   `review-checklist/security-sentinel.md` บรรทัด `WHEN: diff_touches in {auth,money,PII,crypto,
+กติกาที่ command นี้เพิ่มจาก card (บังคับทั้ง 4 ข้อ):
+1. An explicitly requested full review dispatches runtime too. Otherwise runtime is DISPATCH when the
+   harness risk tier includes qa-engineer (`skills/discipline/shode-house-workflow/harness.md`: every
+   Standard feature), when the change crosses a process/network/storage boundary, or when project
+   requirements ask for it. Record any omission.
+2. security SKIP ได้ **เหตุผลเดียว**: SKIP("no trigger keyword") — ต้อง scan keyword list ตาม
+   `skills/discipline/review-checklist/security-sentinel.md` บรรทัด `WHEN: diff_touches in {auth,money,PII,crypto,
    secrets} OR secure_skill_triggered=true` (lazy-load-contract block — canonical, ห้าม fork list
-   ที่นี่) กับ prompt+diff ก่อน; เจอ = DISPATCH บังคับ
-4. Each DISPATCH needs a real separate worker with full role knowledge. Serialize
+   ที่นี่) และ Phase 1c list ของ card กับ prompt+diff ก่อน; เจอ = DISPATCH บังคับ. domain ใช้ SKIP("no trigger keyword") เช่นกัน.
+   A security or domain DISPATCH records the matched keywords on its card line: DISPATCH(trigger:<keywords>)
+3. Each DISPATCH needs a real separate worker with full role knowledge. Serialize
    when capacity/dependencies require it; role-play and renamed self-review do not count.
-5. Compare actual reviewer returns against the axis plan; missing required review
+4. Compare actual reviewer returns against the axis plan; missing required review
    remains BLOCKED. The plan may be in the checkpoint rather than repeated in chat.
 
-```bash
-[Oliver|review|target:$ARGUMENTS] kickoff   # pin fixed point ก่อน — see `review-checklist/intake.md`
-# ── แกน Standards
-- Chris   → 7-dim — see `agents/code-reviewer.md` § 7 มิติ (Correctness/Security/SOLID/Perf/Maintain/Test/Observ)
-- Quinn   → Security scan section (SAST/SCA/secret/OWASP manual) — see `agents/qa-engineer.md` § ขอบเขต
-- Sentinel (conditional, if security trigger detected) — see `review-checklist/security-sentinel.md`
-- Domain (conditional, keyword trigger) — see `review-checklist/domain-validation.md`
-# ── แกน Spec (ต้อง dispatch จริง)
-- Bella   → Spec axis — see `review-checklist/spec-axis.md`
-            spec source ตามลำดับ: Jira/bd description → path ที่ user ส่ง → outputs/SPEC-*.md → ถาม user
-            Pattern C (bug description) ที่ไม่มี spec → รายงาน "no spec available" แล้วรันเฉพาะ Standards
-```
+Kickoff: pin fixed point ก่อน (Step 0.5, `skills/discipline/review-checklist/intake.md`) แล้ว dispatch ตาม card; method ต่อแกน:
+- standards → `shode-house:code-reviewer` — 7 มิติ (Correctness/Security/SOLID/Perf/Maintain/Test/Observ)
+- runtime → `shode-house:qa-engineer` — Security scan section (SAST/SCA/secret/OWASP manual) + integration
+- security → `shode-house:security-engineer` — `skills/discipline/review-checklist/security-sentinel.md`
+- domain → matching domain type — `skills/discipline/review-checklist/domain-validation.md`
+- ui → `shode-house:ux-ui-designer` — rendered change; in `/implement` Phase 3b a Phase 3a ux verdict that covers the
+  current revision is the ui verdict — dispatch again only if UI files changed after 3a
+- spec → `shode-house:business-analyst` — Spec axis, `skills/discipline/review-checklist/spec-axis.md`;
+  spec source ตามลำดับ: Jira/task description → path ที่ user ส่ง → outputs/SPEC-*.md → ถาม user;
+  ไม่มี spec (รวม Pattern C bug description) → spec spawn รายงาน `BLOCKED: no-spec` ("no spec available")
+  พร้อม sources ที่ตรวจแล้ว = missing acceptance ที่ router relay ให้ user — ไม่ใช่ spec PASS และไม่ใช่เหตุผลให้ SKIP spec
 
 🔴 aggregate แยกหัวข้อ `## Standards` / `## Spec` — **ห้าม merge/rerank ข้ามแกน**
 
@@ -151,13 +143,13 @@ Beads or a ceremonial printout is not a blocker; missing scope/required ownershi
 
 ## Step 2 — Consolidated Report
 
-Format + storage rules + severity grading + loop routing — **ทั้งหมดอยู่ใน `review-checklist` skill**:
+Format + storage rules + severity grading + loop routing — **ทั้งหมดอยู่ใน `shode-house:review-checklist` skill**:
 - § Severity Grading (🔴/🟠/🟡/🔵/💡)
 - § REVIEW Report Format (bd-native primary, markdown fallback)
 - § Loop Routing Recommendation
 - § Anti-Puppet Gate (paste tool output)
 
-**Storage rule**: use the confirmed evidence home per `review-checklist/report-format.md`.
+**Storage rule**: use the confirmed evidence home per `skills/discipline/review-checklist/report-format.md`.
 Keep one canonical report and links from task records, not competing copies. Preserve
 existing artifacts. External comments/updates need authority and actual available
 tools; missing service access remains pending sync, never claimed posted.
@@ -165,8 +157,8 @@ tools; missing service access remains pending sync, never claimed posted.
 ## ⚠️ Rules
 
 - Security Critical/High = **block merge**
-- Domain-sensitive = บังคับผ่าน Domain Expert
+- Domain-sensitive = บังคับผ่าน matching domain type
 - อ่านโค้ดจริงทุกไฟล์ (prefer `Grep` > `Read` full file)
 - Run static analysis ถ้ามี (Bash)
-- A Jira key alone does not authorize posting; return proposed updates to Oliver if authority is missing.
+- A Jira key alone does not authorize posting; return proposed updates to the router if authority is missing.
 - ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim

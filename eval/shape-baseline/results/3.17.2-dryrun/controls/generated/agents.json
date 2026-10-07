@@ -1,0 +1,6 @@
+{"null-bash-main": {"description": "control", "prompt": "Reply with the single word OK.", "tools": ["Read","Write","Edit","Grep","Glob","Bash","Skill"]},
+ "null-nobash-main": {"description": "control", "prompt": "Reply with the single word OK.", "tools": ["Read","Write","Edit","Grep","Glob","WebSearch","WebFetch","Skill"]},
+ "null-bash-opus": {"description": "control", "prompt": "Reply with the single word OK.", "model": "opus", "tools": ["Read","Write","Edit","Grep","Glob","Bash","Skill"]},
+ "null-nobash-opus": {"description": "control", "prompt": "Reply with the single word OK.", "model": "opus", "tools": ["Read","Write","Edit","Grep","Glob","WebSearch","WebFetch","Skill"]},
+ "null-bash-fable": {"description": "control", "prompt": "Reply with the single word OK.", "model": "claude-fable-5", "tools": ["Read","Write","Edit","Grep","Glob","Bash","WebSearch","Skill"]},
+ "null-nobash-fable": {"description": "control", "prompt": "Reply with the single word OK.", "model": "claude-fable-5", "tools": ["Read","Write","Edit","Grep","Glob","WebSearch","WebFetch","Skill"]}}

@@ -3,7 +3,227 @@ name: incident
 description: Respond to active production impact such as an outage, degradation, data loss or breach by assigning severity and mitigating first, then a blameless postmortem. Not for bugs not currently hurting production users, nor planned maintenance.
 ---
 
-Use the referenced skill [incident](../../knowledge/skills/ops/incident/SKILL.md) as the workflow entry point. Follow only the branches that apply to the current task, and load additional references only when the root skill directs you to.
-This is a discovery adapter, not a replacement for the role or skill knowledge.
+# Incident (response + runbook + postmortem)
+
+> **Owner**: sre-engineer (lead) + router (escalation routing) + devops-engineer (infra mitigation) + security-engineer (if security)
+
+## When NOT to use
+
+- **Bug ที่ไม่ใช่ production outage** — ใช้ `shode-house:diagnose` skill (structured debugging) แทน
+- **Customer support ticket** (single user, no SLO breach) — product-manager handle เป็น product feedback
+- **Planned maintenance / scheduled downtime** — ไม่ใช่ incident; ใช้ change management runbook
+- **Internal dev environment crash** — ไม่นับ incident (severity = P3 informal)
+- **Security suspect ที่ยังไม่ confirmed** — escalate security-engineer ก่อน; ห้าม open war room โดยไม่มี evidence (false-positive incident เปลือง budget)
+
+## Required inputs
+
+Response intake: identify the incident/authorized responder, then collect during triage:
+
+- [ ] **Alert source identified** (Prometheus rule name / health check / customer report — ระบุ origin)
+- [ ] **Severity assigned** (P0/P1/P2/P3 ตาม matrix; **ห้ามเปิด war room ถ้า P3**)
+- [ ] **Blast radius estimate** (กี่ user / กี่ region / กี่ % traffic — รู้เพื่อ comms ถูก)
+- [ ] **Rollback option known** (มี last-known-good version + how to revert; ถ้าไม่มี — ขอ devops-engineer ก่อน)
+- [ ] **On-call หรือ author available** (ถ้าไม่มี → ต้อง escalate ทันที ไม่รอ war room)
+
+Unknown blast radius or rollback becomes an urgent triage task, not a reason to
+delay acknowledgement, escalation or authorized investigation. Record uncertainty;
+verify actual authority and the applicable runbook before operational changes.
+
+## หลักการ
+
+1. **Mitigate ก่อน fix** — rollback / scale / circuit break / feature-flag-off
+2. **Blameless** — fault in process, not people
+3. **5-why ขั้นต่ำ** — first principle root cause
+4. **Action items มี owner + due date + ticket**
+
+## Severity matrix
+
+| Sev | Definition | Response time (ack) | War room | Postmortem |
+|-----|-----------|---------------------|----------|------------|
+| **P0** | Full outage / data loss / security breach | < 5 min | Required | < 3 business days |
+| **P1** | Critical degraded / SLO burn 14x | < 15 min | Required | < 5 business days |
+| **P2** | Partial impact / workaround มี | < 1 hr | Optional | < 7 business days |
+| **P3** | Minor / no user impact | next business day | No | Optional |
+
+## Incident response flow (sre-engineer IC = Incident Commander)
+
+```
+ALERT (burn rate / health check / customer report)
+   ↓
+ACK (sre-engineer or on-call < 5 min) — claim IC role
+   ↓
+TRIAGE 15 min — assemble war room:
+   - IC: sre-engineer
+   - Infra: devops-engineer
+   - Code: developer (author of recent change)
+   - Sec (if applicable): security-engineer
+   - Comms: router
+   ↓
+MITIGATE first (rollback / scale / flag off)
+   ↓
+COMMUNICATE every 30 min in war-room channel:
+   "Update <HH:MM> — actions taken / current status / next action / ETA"
+   ↓
+RESOLVE when SLO back to normal (not when fix shipped — fix may come later)
+   ↓
+POSTMORTEM scheduled within 5 days
+```
+
+## Runbook template
+
+ทุก critical alert ต้องมี runbook (sre-engineer block deploy ถ้าขาด)
+
+```markdown
+# Runbook: <alert name>
+**Service**: payment-api  **Alert**: high error rate  **Severity**: P1
+
+## Symptom
+- error rate > 1% in last 5 min
+- typical observable: <description>
+
+## Diagnosis (in order)
+1. Check Grafana dashboard: <link> — what changed?
+2. Recent deploy? `kubectl rollout history deployment/payment-api`
+3. DB latency? Check `pg_stat_activity` — slow query?
+4. Upstream dependency? Check trace ID sample
+5. Network/CDN? Check Cloudflare status
+
+## Mitigation
+**First**:
+- Rollback last deploy: `kubectl rollout undo deployment/payment-api`
+- Or: feature flag off: `LD_TOGGLE_OFF=new_refund_flow`
+
+**If first fails**:
+- Scale replicas: `kubectl scale --replicas=10 deployment/payment-api`
+- Failover read-replica: <link to runbook>
+
+## Escalation
+- P0/P1 not mitigated in 30 min → wake solution-architect + devops-engineer
+- Security suspicion → page security-engineer
+- DB-level → page DBA on-call
+
+## Test (chaos drill)
+- Last verified during incident: <YYYY-MM-DD>
+- Manually triggered drill: <YYYY-MM-DD>
+```
+
+## Postmortem template (blameless)
+
+```markdown
+# Postmortem: <title> (<YYYY-MM-DD>)
+**Severity**: P0/P1  **Duration**: hh:mm  **Impact**: <users / revenue>
+**IC**: sre-engineer  **Authors**: sre-engineer + developer
+
+## Summary
+1 paragraph: what happened, customer impact, root cause, mitigation
+
+## Timeline (UTC) — detection → response → mitigation → resolution
+| Time | Event (source: log/alert/user report) |
+|------|-------|
+| HH:MM | First alert (burn rate 14x, P1 page) |
+| HH:MM | sre-engineer ack, war room opened |
+| HH:MM | Hypothesis: DB connection pool exhaustion |
+| HH:MM | Mitigation: scale pool 50 → 200 |
+| HH:MM | SLO restored |
+
+## Impact
+- User: [count, %, region] · Revenue: [฿] · Data: [loss/integrity/none] · SLO: error budget burned [%]
+
+## Root cause (5-why)
+1. Why did API error rate spike? → DB connection pool exhausted
+2. Why exhausted? → Burst traffic 3x normal
+3. Why burst? → Marketing campaign launched without warm-up
+4. Why no warning? → No load forecast pre-launch
+5. Why no forecast? → No process for marketing → SRE handoff
+
+**Root cause** (structural cause, not "human mistake"): Process gap between Marketing campaign launch and SRE capacity planning
+
+## What went well
+- Burn rate alert fired correctly (1h window, 14x)
+- sre-engineer ack in 4 min (target < 5)
+- Rollback was practiced; quick mitigation
+
+## What went poorly
+- No pre-launch load forecast
+- DB pool size hardcoded (not Terraform-managed)
+- War room channel had no product-manager (PM should know early)
+
+## Action items (system change, not blame)
+| # | Action | Owner | Due | Task | Severity |
+|---|--------|-------|-----|----------|----------|
+| 1 | Add Marketing → SRE handoff process | product-manager | 2026-06-15 | bd-101 | HIGH |
+| 2 | Move DB pool config to Terraform | devops-engineer | 2026-06-08 | bd-102 | HIGH |
+| 3 | Add product-manager to P0/P1 war-room paging | sre-engineer | 2026-06-01 | bd-103 | MED |
+| 4 | Document campaign launch playbook | business-analyst | 2026-06-30 | bd-104 | MED |
+
+## Lessons (broadcast to team)
+- ทุก marketing campaign > 2x normal traffic → SRE load forecast บังคับ
+- Hardcoded resource config = trap; Terraform ทุกอย่าง
+```
+
+## On-call rotation
+
+```markdown
+# On-call rotation: payment-team
+**Rotation**: weekly, Mon 9:00 AM TH handoff
+**Tier 1** (primary): rotation list
+**Tier 2** (secondary): rotation list (covers primary unavailable)
+**Tier 3** (escalation): solution-architect + devops-engineer + sre-engineer always
+
+## Handoff template (Mon 9:00 AM in standup)
+- Open issues: <list tickets + status>
+- Recent incidents (last week): <count + severity>
+- Known fragile area: <list>
+- Maintenance scheduled this week: <list>
+- Burn rate trend: <link Grafana>
+```
+
+## 5-Why pitfalls (sre-engineer enforce blameless)
+
+❌ Wrong:
+- "developer forgot to test" (blame individual)
+- "devops-engineer's config was wrong" (blame)
+- "Should have known" (hindsight bias)
+
+✅ Right:
+- "Test process didn't catch X" (process)
+- "Config schema allowed invalid Y" (system gap)
+- "Documentation gap on Z" (system)
+
+## Evidence
+
+```
+✅ "[Postmortem: postmortems/2026-05-22-payment.md] MTTR=42min, 4 action items (bd-101..104)"
+✅ "[Runbook: runbooks/payment-high-error.md] last verified 2026-05-22 incident"
+✅ "[On-call: oncall-schedule.md] this week: <name>, handoff Mon 9:00"
+✅ "[War room: thread-link] 12 updates, IC sre-engineer, 5 participants"
+❌ "incident resolved" (no recovery evidence)
+```
+
+Service recovery and investigation closure are separate: record observed recovery
+and duration when known; keep root-cause investigation and postmortem actions open
+with owners rather than claiming they are complete.
+
+## ห้าม
+
+- ห้าม close incident โดยไม่มี postmortem schedule
+- ห้าม postmortem ที่ระบุชื่อ blame
+- ห้าม "the fix is to be more careful" — เปลี่ยน process/tool/automation
+- ห้าม action item ไม่มี owner + due + ticket
+- ห้าม mitigate กับ fix รวบเป็นขั้นเดียว — mitigate first, fix later
+- ห้าม alert ที่ไม่มี runbook (ที่ดังจริง = bd-issue urgent + block deploy)
+
+## Skill composition (where to go next)
+
+| Situation | Next skill | Reason |
+|---|---|---|
+| Postmortem identifies SLO breach pattern | → `slo` | Recalibrate SLI/SLO/error budget; ปรับ burn-rate alert (incident ไม่ทำ measurement design) |
+| Root cause = bug ที่ต้อง fix | → `diagnose` → `dev-gate` | Structured RCA + TDD-driven fix (incident จบที่ mitigation) |
+| Root cause = security breach | → `secure` | security-engineer STRIDE + abuse case + threat model update |
+| Root cause = test gap ทำให้หลุด CI | → `automate-test` | Pyramid + regression coverage + CI gate (close the hole) |
+| Action item ต้อง deploy hot-fix | → `dev-gate` (followed by hot-fix release) | TDD applies even to hot-fix (no exception)
+
 Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ under this plugin's knowledge/ directory, not the user's project.
+Resolve paths beginning ./ or ../ from this file's own directory; resolve other relative file names in this skill under this plugin's knowledge/skills/ops/incident/ directory.
 Use actual host tools and preserve host/project/user authority.
+No shode-house safety floor in this context (a main session without the router style)? Load `shode-house:ask` first.

@@ -1,0 +1,19 @@
+{
+  "note": "Arm-neutral tool policy per role = the v3.17.2 `tools:` list of the agent that owns the role at commit 1bc8174, with user decisions 12 and 13 recorded as allowed tightenings. A spawn passes when every tool it USED is inside the policy of at least one of its roles. In v3.17.2 the host enforces this per agent file; in an arm where several roles share one agent type it is not host-enforced, which is why it is scored. WebSearch/WebFetch are denied for every arm by the run settings, so they cannot be observed here.",
+  "roles": {
+    "implementer": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"],
+    "review-standards": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"],
+    "review-runtime": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"],
+    "ui-verify": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch", "WebFetch", "Skill"],
+    "review-spec": ["Read", "Write", "Edit", "WebSearch", "Grep", "Glob", "Skill"],
+    "requirements": ["Read", "Write", "Edit", "WebSearch", "Grep", "Glob", "Skill"],
+    "security": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch", "Skill"],
+    "architecture": ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"],
+    "staff": ["Read", "Grep", "Glob", "Bash", "WebSearch", "Write", "Edit", "Skill"],
+    "ux-design": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch", "WebFetch", "Skill"],
+    "product": ["Read", "Write", "Edit", "WebSearch", "WebFetch", "Grep", "Glob", "Skill"],
+    "operations": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "Skill"],
+    "domain": ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"]
+  },
+  "host_tools_always_allowed": ["TodoWrite", "TaskCreate", "TaskUpdate", "TaskList", "TaskGet", "ToolSearch", "SubagentHandback", "StructuredOutput"]
+}

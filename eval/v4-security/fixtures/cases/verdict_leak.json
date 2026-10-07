@@ -1,0 +1,396 @@
+{
+ "family": "verdict_leak_via_read and implementer_claims_read (F-12 independence; Read, Grep, Glob and Bash-read variants)",
+ "cases": [
+  {
+   "name": "leak-read-sibling-report",
+   "rule": "verdict_leak_via_read",
+   "kind": "must-fail",
+   "main": [
+    {
+     "user": "Review the change."
+    },
+    {
+     "spawn": "cr"
+    }
+   ],
+   "spawns": {
+    "cr": {
+     "type": "shode-house:code-reviewer",
+     "delegation": "{HDR}\nStandards review; change list outputs/t-1/04-change-list.md.",
+     "events": [
+      {
+       "tool": "Read",
+       "input": {
+        "file_path": "{F}/outputs/t-1/07-review-spec-iter1.md"
+       },
+       "result": "Spec: PASS"
+      }
+     ],
+     "handback": "Standards: PASS."
+    }
+   },
+   "counts": {
+    "verdict_leak_via_read": 1
+   }
+  },
+  {
+   "name": "leak-read-implementer-claims",
+   "rule": "implementer_claims_read",
+   "kind": "must-report",
+   "main": [
+    {
+     "user": "Review the change."
+    },
+    {
+     "spawn": "qa"
+    }
+   ],
+   "spawns": {
+    "qa": {
+     "type": "shode-house:qa-engineer",
+     "delegation": "{HDR}\nRuntime review.",
+     "events": [
+      {
+       "tool": "Read",
+       "input": {
+        "file_path": "outputs/t-1/05-developer-2.md"
+       },
+       "result": "All tests pass. DONE."
+      }
+     ],
+     "handback": "Runtime: PASS."
+    }
+   },
+   "reported_counts": {
+    "implementer_claims_read": 1
+   }
+  },
+  {
+   "name": "leak-grep-target",
+   "rule": "verdict_leak_via_read",
+   "kind": "must-fail",
+   "main": [
+    {
+     "user": "Review the change."
+    },
+    {
+     "spawn": "sec"
+    }
+   ],
+   "spawns": {
+    "sec": {
+     "type": "shode-house:security-engineer",
+     "delegation": "{HDR}\nSecurity review.",
+     "events": [
+      {
+       "tool": "Grep",
+       "input": {
+        "pattern": "PASS|FAIL",
+        "path": "{F}/outputs/t-1/07-review-standards-iter1.md"
+       },
+       "result": "1: Standards: PASS"
+      }
+     ],
+     "handback": "Security: PASS."
+    }
+   },
+   "counts": {
+    "verdict_leak_via_read": 1
+   }
+  },
+  {
+   "name": "leak-grep-result-lines",
+   "rule": "verdict_leak_via_read",
+   "kind": "must-fail",
+   "main": [
+    {
+     "user": "Review the change."
+    },
+    {
+     "spawn": "ba"
+    }
+   ],
+   "spawns": {
+    "ba": {
+     "type": "shode-house:business-analyst",
+     "delegation": "{HDR}\nSpec review.",
+     "events": [
+      {
+       "tool": "Grep",
+       "input": {
+        "pattern": "verdict",
+        "path": "{F}/outputs",
+        "output_mode": "content"
+       },
+       "result": "{F}/outputs/t-1/07-review-security-iter1.md:3:verdict: PASS\n{F}/outputs/t-1/03-review-spec-iter1.md:2:verdict: FAIL"
+      }
+     ],
+     "handback": "Spec: FAIL (AC-2)."
+    }
+   },
+   "counts": {
+    "verdict_leak_via_read": 1
+   }
+  },
+  {
+   "name": "leak-glob-targeted",
+   "rule": "verdict_leak_via_read",
+   "kind": "must-fail",
+   "main": [
+    {
+     "user": "Review the change."
+    },
+    {
+     "spawn": "cr"
+    }
+   ],
+   "spawns": {
+    "cr": {
+     "type": "shode-house:code-reviewer",
+     "delegation": "{HDR}\nStandards review.",
+     "events": [
+      {
+       "tool": "Glob",
+       "input": {
+        "pattern": "outputs/**/*-review-*.md"
+       },
+       "result": "outputs/t-1/07-review-spec-iter1.md"
+      }
+     ],
+     "handback": "Standards: PASS."
+    }
+   },
+   "counts": {
+    "verdict_leak_via_read": 1
+   }
+  },
+  {
+   "name": "leak-bash-cat",
+   "rule": "verdict_leak_via_read",
+   "kind": "must-fail",
+   "main": [
+    {
+     "user": "Review the change."
+    },
+    {
+     "spawn": "cr"
+    }
+   ],
+   "spawns": {
+    "cr": {
+     "type": "shode-house:code-reviewer",
+     "delegation": "{HDR}\nStandards review.",
+     "events": [
+      {
+       "tool": "Bash",
+       "input": {
+        "command": "cat outputs/t-1/07-review-runtime-iter1.md | head -5"
+       },
+       "result": "Runtime: PASS"
+      }
+     ],
+     "handback": "Standards: PASS."
+    }
+   },
+   "counts": {
+    "verdict_leak_via_read": 1
+   }
+  },
+  {
+   "name": "leak-bash-sed-n",
+   "rule": "implementer_claims_read",
+   "kind": "must-report",
+   "main": [
+    {
+     "user": "Review the change."
+    },
+    {
+     "spawn": "ux"
+    }
+   ],
+   "spawns": {
+    "ux": {
+     "type": "shode-house:ux-ui-designer",
+     "delegation": "{HDR}\nUI axis review (3a).",
+     "events": [
+      {
+       "tool": "Bash",
+       "input": {
+        "command": "sed -n '1,20p' outputs/t-1/05-developer-3a.md"
+       },
+       "result": "screens done"
+      }
+     ],
+     "handback": "UI: PASS."
+    }
+   },
+   "reported_counts": {
+    "implementer_claims_read": 1
+   }
+  },
+  {
+   "name": "leak-bash-git-show",
+   "rule": "verdict_leak_via_read",
+   "kind": "must-fail",
+   "main": [
+    {
+     "user": "Review the change."
+    },
+    {
+     "spawn": "dom"
+    }
+   ],
+   "spawns": {
+    "dom": {
+     "type": "shode-house:fintech-expert",
+     "delegation": "{HDR}\nDomain review.",
+     "events": [
+      {
+       "tool": "Bash",
+       "input": {
+        "command": "git show HEAD:outputs/t-1/07-review-security-iter1.md"
+       },
+       "result": "Security: PASS"
+      }
+     ],
+     "handback": "Domain: PASS."
+    }
+   },
+   "counts": {
+    "verdict_leak_via_read": 1
+   }
+  },
+  {
+   "name": "leak-bash-wildcard-read",
+   "rule": "verdict_leak_via_read",
+   "kind": "must-fail",
+   "main": [
+    {
+     "user": "Review the change."
+    },
+    {
+     "spawn": "qa"
+    }
+   ],
+   "spawns": {
+    "qa": {
+     "type": "shode-house:qa-engineer",
+     "delegation": "{HDR}\nRuntime review.",
+     "events": [
+      {
+       "tool": "Bash",
+       "input": {
+        "command": "cat outputs/t-1/* 2>/dev/null | head -40"
+       },
+       "result": "..."
+      }
+     ],
+     "handback": "Runtime: PASS."
+    }
+   },
+   "counts": {
+    "verdict_leak_via_read": 1
+   }
+  },
+  {
+   "name": "independence-ok",
+   "rule": "verdict_leak_via_read",
+   "kind": "must-pass",
+   "main": [
+    {
+     "user": "Review the change."
+    },
+    {
+     "spawn": "cr"
+    }
+   ],
+   "spawns": {
+    "cr": {
+     "type": "shode-house:code-reviewer",
+     "delegation": "{HDR}\nStandards review, round 2. Change list outputs/t-1/04-change-list.md.",
+     "events": [
+      {
+       "tool": "Read",
+       "input": {
+        "file_path": "{F}/outputs/t-1/03-review-standards-iter1.md"
+       },
+       "result": "my earlier findings"
+      },
+      {
+       "tool": "Read",
+       "input": {
+        "file_path": "{F}/outputs/t-1/04-change-list.md"
+       },
+       "result": "src/ledger.py"
+      },
+      {
+       "tool": "Glob",
+       "input": {
+        "pattern": "outputs/t-1/*"
+       },
+       "result": "outputs/t-1/04-change-list.md\noutputs/t-1/07-review-spec-iter1.md"
+      },
+      {
+       "tool": "Grep",
+       "input": {
+        "pattern": "float",
+        "path": "{F}/src"
+       },
+       "result": "{F}/src/ledger.py:12: amount = float(x)"
+      },
+      {
+       "tool": "Bash",
+       "input": {
+        "command": "cat src/ledger.py && python3 -m unittest tests.test_ledger"
+       },
+       "result": "OK"
+      },
+      {
+       "tool": "Write",
+       "input": {
+        "file_path": "{F}/outputs/t-1/08-review-standards-iter2.md",
+        "content": "x"
+       },
+       "result": "ok"
+      }
+     ],
+     "handback": "Standards: 1 finding (float money)."
+    }
+   },
+   "counts": {},
+   "covers": [
+    "implementer_claims_read"
+   ]
+  },
+  {
+   "name": "executor-not-a-reviewer",
+   "rule": "verdict_leak_via_read",
+   "kind": "must-pass",
+   "main": [
+    {
+     "user": "Design run."
+    },
+    {
+     "spawn": "qa"
+    }
+   ],
+   "spawns": {
+    "qa": {
+     "type": "shode-house:qa-engineer",
+     "delegation": "{HDR}\nDesign run 3a: order outputs/t-1/02-design-run-order-3a-iter1.json sha256 {H64}.",
+     "events": [
+      {
+       "tool": "Bash",
+       "input": {
+        "command": "python3 -I \"${CLAUDE_PLUGIN_ROOT}/references/design-intel/scripts/design_run.py\" --order outputs/t-1/02-design-run-order-3a-iter1.json --sha256 {H64}"
+       },
+       "result": "design-run: report=outputs/t-1/design-run/02-design-run-order-3a-iter1.report.json exit=0"
+      }
+     ],
+     "handback": "report outputs/t-1/design-run/02-design-run-order-3a-iter1.report.json exit 0"
+    }
+   },
+   "counts": {}
+  }
+ ]
+}

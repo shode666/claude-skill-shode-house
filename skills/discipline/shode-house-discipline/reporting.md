@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `shode-house-discipline` — ตั
 ```lazy-load-contract
 LOAD: skills/discipline/shode-house-discipline/reporting.md
 WHEN: report_length_exceeds_return_format=true OR risk_statement_required=true
-OWNER: orchestrator
+OWNER: router
 REQUIRED-BEFORE: report_to_user
 ```
 
@@ -24,14 +24,14 @@ REQUIRED-BEFORE: report_to_user
 
 **ห้าม**: preamble ("ผมจะเริ่มด้วย…") · narrate ทุก tool call · เล่าซ้ำสิ่งที่อยู่ใน artifact แล้ว · restate คำถาม user · สรุปปิดท้ายที่ไม่มีข้อมูลใหม่
 **ตัดคำบรรยายได้ ห้ามตัด**: evidence · security finding · ตัวเลข · dissent · สิ่งที่ทำไม่สำเร็จ
-เกินไปอีกขั้น (long loop / broadcast) → โหลด `caveman` skill
+เกินไปอีกขั้น (long loop / broadcast) → โหลด `shode-house:caveman` skill
 
 ## 🏷️ Tag prefix — ตัวอย่าง
 
 ```
-[Dave|state:phase-2|bd:42]
-[Uma|state:adhoc|bd:none]
-Dave ▸ Chris : payment service implement เสร็จ พร้อม review (bd:42)
+[developer|state:phase-2|bd:42]
+[ux-ui-designer|state:adhoc|bd:none]
+developer ▸ code-reviewer : payment service implement เสร็จ พร้อม review (bd:42)
 ```
 ไม่มี task → `bd:none` · ไม่มี phase → `state:adhoc`
 
@@ -53,20 +53,20 @@ Risk: [what] | Likelihood: L/M/H | Impact: L/M/H | Mitigation: [concrete] | Owne
 Worker results identify their owner; these examples are not a required prefix for every user-facing message:
 
 ```
-[Oliver] รับงาน, triage → Bella + Sara
-[Bella] เก็บ requirement → 5 clarifying options
-[Sara] ออกแบบ C4 + ADR-01 ledger
-[Dave#1] implementing POST /payments/create
-[Dave#2] implementing POST /payments/refund (parallel)
-[Chris] reviewing src/payment.py — 2 high finding
-[Quinn] running E2E checkout → 8/8 pass
-[Aaron] docker compose up → all healthy ✅
-[Felix] validating ledger flow — double-entry ok
-[Uma] Figma checkout v2 → handoff Dave
+[router] รับงาน, triage → business-analyst + solution-architect
+[business-analyst] เก็บ requirement → 5 clarifying options
+[solution-architect] ออกแบบ C4 + ADR-01 ledger
+[developer#1] implementing POST /payments/create
+[developer#2] implementing POST /payments/refund (parallel)
+[code-reviewer] reviewing src/payment.py — 2 high finding
+[qa-engineer] running E2E checkout → 8/8 pass
+[devops-engineer] docker compose up → all healthy ✅
+[fintech-expert] validating ledger flow — double-entry ok
+[ux-ui-designer] Figma checkout v2 → handoff developer
 ```
 
 **กติกา**:
-- Worker return tag = `[ชื่อ]`; parallel Dave = `[Dave#1]`, `[Dave#2]`
+- Worker return tag = `[agent id]`; parallel developer = `[developer#1]`, `[developer#2]`
 - 1 message = 1 agent voice (ห้ามผสม)
 - Preserve owner, task ID and phase at handoffs and meaningful state changes.
 - Long output (BRD/ADR/code) → tag header + content ปกติ
@@ -76,29 +76,29 @@ Worker results identify their owner; these examples are not a required prefix fo
 ขยาย `[ชื่อ]` → `[ชื่อ|key:val|key:val]` เมื่อต้องการให้ tool downstream parse ได้:
 
 ```
-[Oliver|state:plan|engagement:E-42] รับงาน triage
-[Dave#1|state:impl|task:bd-15|file:payment.py] writing handler
-[Chris|state:review|finding:HIGH:2|MED:5] block merge
-[Quinn|state:test|suite:e2e|pass:8|fail:0] checkout flow ✅
-[Aaron|state:deploy|env:staging|health:200] live
+[router|state:plan|engagement:E-42] รับงาน triage
+[developer#1|state:impl|task:bd-15|file:payment.py] writing handler
+[code-reviewer|state:review|finding:HIGH:2|MED:5] block merge
+[qa-engineer|state:test|suite:e2e|pass:8|fail:0] checkout flow ✅
+[devops-engineer|state:deploy|env:staging|health:200] live
 ```
 
 **Standard keys**:
 - `state` — plan/impl/review/test/deploy/block/done
 - `task` — task id (bd-N) หรือ tracker external id
-- `engagement` — E-N (Oliver track)
+- `engagement` — E-N (router track)
 - `file` — file path ที่กำลังแก้
-- `finding` — severity:count (Chris/Quinn)
+- `finding` — severity:count (code-reviewer/qa-engineer)
 - `pass`/`fail` — test counter
 - `env` — dev/staging/uat/prod
 - `health` — HTTP status / pass/fail
-- `mode` — afk/interactive/hybrid (Oliver)
+- `mode` — afk/interactive/hybrid (router)
 
 **Default**: human-readable `[ชื่อ]` พอ; structured ใช้เมื่อ user สั่ง "structured" หรือมี downstream parser
 
-### Oliver caveman broadcast (1 บรรทัด ≤ 80 chars; when → `handoff.md` § Handoff Broadcast Protocol)
+### Router caveman broadcast (1 บรรทัด ≤ 80 chars; when → `handoff.md` § Handoff Broadcast Protocol)
 ```
-[Oliver] sara+bella → requirement
-[Oliver] bella done → sara reviewing
-[Oliver] blocked: waiting auth spec
+[router] solution-architect+business-analyst → requirement
+[router] business-analyst done → solution-architect reviewing
+[router] blocked: waiting auth spec
 ```

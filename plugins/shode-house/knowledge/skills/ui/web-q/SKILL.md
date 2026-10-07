@@ -6,7 +6,7 @@ description: Audit and improve a public-facing website across Core Web Vitals, p
 # Web-Q (Web Quality discipline — CWV + SEO + Sec headers)
 
 > Port + adapt จาก [`addyosmani/web-quality-skills`](https://github.com/addyosmani/web-quality-skills) (MIT)
-> **Owners cross-cutting**: Uma (Phase 1b AC + 3a Lighthouse) + Dave (impl) + Quinn (Phase 3b CI gate) + Aaron + **Sentinel** (security headers)
+> **Owners cross-cutting**: ux-ui-designer (Phase 1b AC + 3a Lighthouse) + developer (impl) + qa-engineer (Phase 3b CI gate) + devops-engineer + **security-engineer** (security headers)
 
 ## When NOT to use
 
@@ -41,7 +41,7 @@ or require unrelated infrastructure changes.
 
 ## 1. Core Web Vitals
 
-### LCP fix (Dave/Uma audit)
+### LCP fix (developer/ux-ui-designer audit)
 
 ```html
 <!-- ✅ Preload + fetchpriority -->
@@ -84,7 +84,7 @@ startTransition(() => setFilter(newFilter))
 <div class="ad-slot" style="min-height: 250px"></div> <!-- reserve space -->
 ```
 
-### Measure (Bash mandatory — Uma 3a + Aaron 5)
+### Measure (Bash mandatory — ux-ui-designer 3a + devops-engineer 5)
 
 ```bash
 # Lab (per-build CI)
@@ -119,7 +119,7 @@ onLCP(m => sendBeacon('/metrics/lcp', m.value))
 }]
 ```
 
-Aaron CI (`.lighthouserc.json`):
+devops-engineer CI (`.lighthouserc.json`):
 ```json
 {"ci": {
   "collect": {"numberOfRuns": 3, "settings": {"budgetPath": "./lighthouse-budget.json"}},
@@ -131,7 +131,7 @@ Validate budget keys against the installed Lighthouse version. Track INP from re
 
 ---
 
-## 3. SEO (Emma + Brooke + Uma public-facing)
+## 3. SEO (ecommerce-expert + booking-expert + ux-ui-designer public-facing)
 
 ### Must-have
 ```html
@@ -147,10 +147,10 @@ Validate budget keys against the installed Lighthouse version. Track INP from re
 ### JSON-LD per domain (mandatory)
 | Domain | Schema |
 |--------|--------|
-| Emma product page | `Product` + `Offer` + `AggregateRating` + `BreadcrumbList` |
-| Emma category | `BreadcrumbList` + `ItemList` |
-| Brooke property | `LodgingBusiness` / `Hotel` + `aggregateRating` |
-| Brooke confirmation | `Reservation` |
+| ecommerce-expert product page | `Product` + `Offer` + `AggregateRating` + `BreadcrumbList` |
+| ecommerce-expert category | `BreadcrumbList` + `ItemList` |
+| booking-expert property | `LodgingBusiness` / `Hotel` + `aggregateRating` |
+| booking-expert confirmation | `Reservation` |
 | Org-wide | `Organization` + `WebSite` + `SearchAction` |
 | Article/blog | `Article` + `Author` |
 
@@ -167,7 +167,7 @@ Validate budget keys against the installed Lighthouse version. Track INP from re
 
 ---
 
-## 4. Security Headers (Sentinel + Aaron)
+## 4. Security Headers (security-engineer + devops-engineer)
 
 ```nginx
 # Example for self-hosted external scripts/styles; adapt and test report-only first
@@ -232,16 +232,16 @@ npx observatory-cli example.com           # grade ≥ A
 
 ## Phase wiring (where this skill activates)
 
-- **Phase 1a Bella**: AC template เพิ่ม CWV target + SEO must-have row
-- **Phase 1a Sara**: ADR เพิ่ม "Performance budget" + CSP rollout date
-- **Phase 1b Uma**: Lighthouse target ใน AC + Structured Data spec per page
-- **Phase 1c Sentinel**: CSP/Trusted Types/SRI policy + headers spec
-- **Phase 2 Dave**: implement ตาม Universal Rules + smoke `npx lhci collect`
-- **Phase 3a Uma POST**: Lighthouse Bash + paste JSON + 4-axis breakdown
-- **Phase 3b Quinn**: Lighthouse CI perf ≥ 90 + budget pass gate
-- **Phase 3b Sentinel**: mozilla-observatory grade ≥ A + securityheaders ≥ A
-- **Phase 5 Aaron**: prod Lighthouse (mobile+desktop) + observatory pre-deploy gate
-- **Phase 6 Reggie**: web-vitals RUM live + p75 alarm
+- **Phase 1a business-analyst**: AC template เพิ่ม CWV target + SEO must-have row
+- **Phase 1a solution-architect**: ADR เพิ่ม "Performance budget" + CSP rollout date
+- **Phase 1b ux-ui-designer**: Lighthouse target ใน AC + Structured Data spec per page
+- **Phase 1c security-engineer**: CSP/Trusted Types/SRI policy + headers spec
+- **Phase 2 developer**: implement ตาม Universal Rules + smoke `npx lhci collect`
+- **Phase 3a ux-ui-designer POST**: Lighthouse Bash + paste JSON + 4-axis breakdown
+- **Phase 3b qa-engineer**: Lighthouse CI perf ≥ 90 + budget pass gate
+- **Phase 3b security-engineer**: mozilla-observatory grade ≥ A + securityheaders ≥ A
+- **Phase 5 devops-engineer**: prod Lighthouse (mobile+desktop) + observatory pre-deploy gate
+- **Phase 6 sre-engineer**: web-vitals RUM live + p75 alarm
 
 ---
 

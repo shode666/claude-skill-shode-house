@@ -1,0 +1,15 @@
+diff --git a/src/notification.py b/src/notification.py
+index 5467340..3bb5f9f 100644
+--- a/src/notification.py
++++ b/src/notification.py
+@@ -1,8 +1,8 @@
+ import smtplib, time
+ 
+-RETRY = 3
++MAX_RETRIES = 3
+ 
+-def send(user, subject, body, retry=RETRY):
++def send(user, subject, body, retry=MAX_RETRIES):
+     if not user.get("email"):
+         return False
+     for i in range(retry):

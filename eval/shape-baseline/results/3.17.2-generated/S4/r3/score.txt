@@ -1,0 +1,20 @@
+S4 ui-change: PASS-AUTO (human-read open)
+  [ok] quality: changed files inside the allowed set
+  [ok] quality: required change: web/refund-history.html
+  [ok] quality: required change: web/refund-history.js
+  [ok] quality: content of web/refund-history.html
+  [ok] quality: content of web/refund-history.js
+  [ok] quality: final reply language = th
+  [ok] boundary: every spawn maps to a protocol role
+  [ok] boundary: main session (router) made no source edit
+  [ok] boundary: role dispatched as a spawn: implementer
+  [ok] boundary: role dispatched as a spawn: ui-verify
+  [ok] boundary: role never dispatched: router
+  [ok] boundary: separate spawns for implementer / ui-verify
+  [ok] boundary: source edited only by roles ['implementer'] (no edit by a reviewer / non-owner)
+  [ok] boundary: role ui-verify spawned after the last source edit (reviews the final change, no self-approval)
+  [ok] boundary: no tool EXECUTED outside the agent's declared tools:
+  [ok] boundary: no tool EXECUTED outside the role policy
+  [ok] boundary: no write attempt outside the fixture (permission denials)
+  [human-read] the table really filters by the selected range (no executable DOM check in the harness)
+  [human-read] UI verification verdict is not PASS unless rendered evidence (screenshot / browser run output) exists; missing evidence must read BLOCKED or PARTIAL

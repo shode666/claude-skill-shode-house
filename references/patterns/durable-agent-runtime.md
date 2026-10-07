@@ -5,11 +5,11 @@ OWNER: devops-engineer
 REQUIRED-BEFORE: runner_generate
 ```
 
-# Durable agent runtime — contract สำหรับ runner ที่ Aaron generate (v3.12)
+# Durable agent runtime — contract สำหรับ runner ที่ devops-engineer generate (v3.12)
 
-> **Audience**: Aaron (generate runner ระดับ infra/CI) · Sara (ADR ตอนเลือก platform) · Dave (app-level idempotency)
+> **Audience**: devops-engineer (generate runner ระดับ infra/CI) · solution-architect (ADR ตอนเลือก platform) · developer (app-level idempotency)
 > **โหลดเมื่อ**: target project ต้องการ long-running agent / fan-out cap / retry / checkpoint / human approval ที่กินเวลาเป็นวัน
-> **ห้าม ship engine ใน plugin** (`CLAUDE.md` (invariant "Runtime guarantee = generate, don't ship")) — ไฟล์นี้คือ *contract ว่า runner ที่ถูกต้องต้องมีอะไร* ไม่ใช่ตัว runner
+> **ห้าม ship engine ใน plugin** (runtime guarantee = generate, don't ship) — ไฟล์นี้คือ *contract ว่า runner ที่ถูกต้องต้องมีอะไร* ไม่ใช่ตัว runner
 > **YAGNI**: ไม่มี need = ไม่ generate. Agent ที่รันจบใน session เดียว ไม่ต้องมีอะไรในนี้เลย
 
 ---
@@ -47,7 +47,7 @@ recovery ต้อง **ข้าม step ที่เสร็จแล้ว�
 ### 3. Idempotency ที่ tool boundary
 ทุก operation ที่ mutate ต้องมี **idempotency key** + duplicate detection แบบ Stripe: ผลลัพธ์แรกของ key ถูกเก็บ และถูกส่งคืนทุกครั้งที่ retry
 pattern: **บันทึก intent ก่อนลงมือ → บันทึก receipt หลังสำเร็จ** ช่องว่างระหว่างสองอันคือจุดที่ crash แล้วเจ็บ
-🔴 money/ledger (Felix) · schema migration (`data-migration` skill) · deploy (Aaron) = ห้ามไม่มี idempotency key
+🔴 money/ledger (fintech-expert) · schema migration (`data-migration` skill) · deploy (devops-engineer) = ห้ามไม่มี idempotency key
 
 ### 4. Version stamp — กัน divergence ตอน replay
 บันทึกลง journal ทุก run: **model id · prompt/agent version · plugin version · tool schema version · sandbox image**
@@ -69,7 +69,7 @@ trace ต้องตอบ "เกิดอะไรขึ้น" ได้ **�
 
 ## Testing ที่บังคับ — crash injection
 
-ระบบ recovery ที่ไม่เคยถูกทดสอบ = ระบบที่กู้ได้เพราะโชคดี. Quinn ต้องมี test ที่ **จงใจฆ่า process** ที่จุดเหล่านี้:
+ระบบ recovery ที่ไม่เคยถูกทดสอบ = ระบบที่กู้ได้เพราะโชคดี. qa-engineer ต้องมี test ที่ **จงใจฆ่า process** ที่จุดเหล่านี้:
 
 - [ ] หลัง API สำเร็จ **แต่ก่อน** เขียน receipt ลง journal (จุดที่เกิด double-execute)
 - [ ] หลัง approval ผ่าน **แต่ก่อน** เริ่ม execute
@@ -80,7 +80,7 @@ trace ต้องตอบ "เกิดอะไรขึ้น" ได้ **�
 
 ---
 
-## Platform landscape (2026) — เลือกใน ADR ของ Sara ไม่ใช่ default
+## Platform landscape (2026) — เลือกใน ADR ของ solution-architect ไม่ใช่ default
 
 | Platform | รูปแบบ | เหมาะเมื่อ |
 |---|---|---|
@@ -98,11 +98,11 @@ trace ต้องตอบ "เกิดอะไรขึ้น" ได้ **�
 
 | contract ข้างบน | shode-house ระดับ plugin | ระดับ target project |
 |---|---|---|
-| journal | `bd` notes + `outputs/<bd-id>/` artifact + commit sha (= audit trail, replay ไม่ได้) | Aaron generate |
-| replay / idempotency | ❌ ไม่มี runtime guarantee — resume จาก canonical checkpoint + artifact จริง และ reconcile uncertain effects ตาม harness | Aaron generate เมื่อ project ขอ |
+| journal | `bd` notes + `outputs/<bd-id>/` artifact + commit sha (= audit trail, replay ไม่ได้) | devops-engineer generate |
+| replay / idempotency | ❌ ไม่มี runtime guarantee — resume จาก canonical checkpoint + artifact จริง และ reconcile uncertain effects ตาม harness | devops-engineer generate เมื่อ project ขอ |
 | version stamp | ✅ run stamp ใน bd | ต่อยอดเป็น journal field |
 | HITL durability | ✅ approval + artifact sha ใน bd | ต่อยอดเป็น approval event |
 | redaction | ✅ กฎใน `diagnose` + evidence protocol | ใส่ใน trace pipeline |
-| crash injection | ❌ ไม่มี (agent session ไม่ใช่ระบบที่เรา deploy) | ✅ Quinn เขียน |
+| crash injection | ❌ ไม่มี (agent session ไม่ใช่ระบบที่เรา deploy) | ✅ qa-engineer เขียน |
 
 Sources: [Zylos — Durable Execution for AI Agent Runtimes (2026-04)](https://zylos.ai/research/2026-04-24-durable-execution-agent-runtimes/) · [Reactify — Durable AI agents in 2026](https://www.reactify-solutions.com/articles/durable-ai-agents-2026) · [Inngest — Durable Execution & AI Agents](https://www.inngest.com/blog/durable-execution-key-to-harnessing-ai-agents) · [Microsoft Learn — Durable Task for AI Agents](https://learn.microsoft.com/en-us/azure/durable-task/sdks/durable-task-for-ai-agents)

@@ -1,0 +1,6 @@
+1fa1556 fixture(3.17): refund history screen (web/) for UI probes
+7c733ba fixture(3.17): validators + targeted tests (E01 typo)
+f7fbb28 fixture: spec + phase artifacts for bd-101/102/103
+6306f16 feat(ledger): posting with card reference
+5bbcf1c feat(notification): retry + backoff
+9fb52c4 baseline: notification + ledger

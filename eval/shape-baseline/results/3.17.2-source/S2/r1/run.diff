@@ -1,0 +1,11 @@
+diff --git a/src/duration.py b/src/duration.py
+index ccbc6ea..103b60f 100644
+--- a/src/duration.py
++++ b/src/duration.py
+@@ -11,5 +11,5 @@ def parse_duration(text):
+         raise ValueError(f"bad duration: {text!r}")
+     total = 0
+     for number, unit in parts:
+-        total = int(number) * _SECONDS[unit]
++        total += int(number) * _SECONDS[unit]
+     return total

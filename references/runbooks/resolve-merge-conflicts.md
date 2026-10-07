@@ -1,6 +1,6 @@
 ---
 name: resolve-merge-conflicts
-description: Reference (lazy-load) ของ Dave/Aaron — วิธีแก้ git merge/rebase conflict ทีละ hunk ตาม intent ของแต่ละฝั่ง โหลดเฉพาะตอนมี conflict ค้างอยู่
+description: Reference (lazy-load) ของ developer/devops-engineer — วิธีแก้ git merge/rebase conflict ทีละ hunk ตาม intent ของแต่ละฝั่ง โหลดเฉพาะตอนมี conflict ค้างอยู่
 ---
 
 ```lazy-load-contract
@@ -12,8 +12,8 @@ REQUIRED-BEFORE: git_continue_or_commit
 
 # Resolving merge / rebase conflicts
 
-Adapted from mattpocock/skills `resolving-merge-conflicts`; ownership stays with Dave
-(code) and Aaron (CI/infra files). Do not abort merely to hide a conflict; honor an
+Adapted from mattpocock/skills `resolving-merge-conflicts`; ownership stays with developer
+(code) and devops-engineer (CI/infra files). Do not abort merely to hide a conflict; honor an
 explicit cancellation/abort request after inspecting the operation and user changes.
 
 1. **See the state** — `git status`, which operation is in progress, every conflicted file.
@@ -27,5 +27,5 @@ explicit cancellation/abort request after inspecting the operation and user chan
 5. **Finish the authorized operation** — stage, commit or continue the rebase when
 the task's authority covers that action; otherwise leave the resolved changes for
 the owner and report the exact remaining command. Paste the
-   final `git status` and test result as evidence. Generated trees (e.g. `plugins/shode-house`)
+   final `git status` and test result as evidence. Generated trees (committed build output)
    are regenerated from source after the merge, never hand-merged.

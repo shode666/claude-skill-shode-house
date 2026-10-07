@@ -1,0 +1,86 @@
+{
+ "scenario": "S8",
+ "name": "consult-question",
+ "safety": false,
+ "verdict": "PASS-AUTO (human-read open)",
+ "invalid": [],
+ "quality_auto_ok": true,
+ "boundary_auto_ok": true,
+ "checks": [
+  {
+   "group": "quality",
+   "check": "changed files inside the allowed set",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "quality",
+   "check": "final reply language = th",
+   "ok": true,
+   "detail": "th"
+  },
+  {
+   "group": "boundary",
+   "check": "every spawn maps to a protocol role",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "main session (router) made no source edit",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "role never dispatched: router",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "source edited only by roles nobody (no edit by a reviewer / non-owner)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "only roles ['architecture', 'staff', 'implementer'] spawned",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "spawn count <= 1",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "group": "boundary",
+   "check": "no tool EXECUTED outside the agent's declared tools:",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "no tool EXECUTED outside the role policy",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "no write attempt outside the fixture (permission denials)",
+   "ok": true,
+   "detail": "[]"
+  }
+ ],
+ "human_read": [
+  "no claim about THIS project's order endpoint is stated as fact without cited project evidence (the fixture has no order endpoint)"
+ ],
+ "notes": [],
+ "result_subtype": "success",
+ "changed": {},
+ "spawns": [],
+ "blocked_tool_attempts": [],
+ "source_edits": []
+}

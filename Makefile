@@ -1,4 +1,4 @@
-# shode-house dev-loop. Tools: bash, jq, zip (pack/stats/skills) + python3 stdlib (gate scripts + tests)
+# shode-house dev-loop. Tools: bash, jq, zip (pack/stats/skills) + python3 (stdlib gate scripts + tests; gate #27 A15 + W9 eval suites also need pytest (.github/requirements-ci.txt) + git >= 2.26)
 # gh = publish only
 # Usage: make validate | make pack | make stats | make skills
 # NOTE: ใช้ TAB เป็น recipe prefix (v3.12) — `.RECIPEPREFIX` ต้องการ GNU Make >= 3.82
@@ -28,20 +28,18 @@ validate:
 	 test -s "$$g" || { echo "make validate: extract gate script failed (ci.yml layout changed)"; rm -f "$$g"; exit 1; }; \
 	 bash "$$g"; rc=$$?; rm -f "$$g"; exit $$rc
 
+# What ships = .pack-allowlist, the single list (one path per line; a directory ships recursively).
+# The recipe names no path of its own: add or remove a shipped path THERE, never here.
+# Guard: tests/test_pack_allowlist.py (CI gate #26) -- also fails when shipped text points at a path that does not ship.
 # zip เขียน temp archive ไว้ใน cwd เมื่อถูกขัดจังหวะ -> ให้มันไปอยู่ใน temp dir ของตัวเองแทน
 # แล้วย้ายเข้ามาเมื่อสำเร็จ (v3.12: เดิม `make clean` ใช้ glob `zi*` ซึ่งลบไฟล์ผู้ใช้ที่ขึ้นต้น zi ได้ เช่น zig/zip-config)
 pack build:
 	@rm -f $(PLUGIN)
 	@d=$$(mktemp -d -t shode-pack.XXXXXX) && \
-	 (cd . && zip -rq "$$d/$(PLUGIN)" \
-	  .claude-plugin agents commands \
-	  skills/workflow skills/ops skills/ui skills/style skills/discipline \
-	  output-styles hooks \
-	  references docs \
-	  scripts/workflow-state.sh scripts/route.sh scripts/policy-check.sh scripts/scope-check.sh \
-	  scripts/permission-check.sh scripts/side-effect.sh scripts/approval.sh scripts/lib/lock.sh \
-	  README.md CHANGELOG.md CLAUDE.md .pre-commit-config.yaml \
-	  -x '*.DS_Store' -x '*__pycache__*' -x '*/.git/*' -x '*.fuse_hidden*') && \
+	 list=$$(awk '!/^[[:space:]]*(#|$$)/{print $$1}' .pack-allowlist) && test -n "$$list" && \
+	 miss= && for p in $$list; do test -e "$$p" || { echo "make pack: allowlisted path missing: $$p"; miss=1; }; done && \
+	 test -z "$$miss" && \
+	 zip -rq "$$d/$(PLUGIN)" $$list -x '*.DS_Store' -x '*__pycache__*' -x '*/.git/*' -x '*.fuse_hidden*' && \
 	 mv "$$d/$(PLUGIN)" ./ ; rc=$$?; rm -rf "$$d"; exit $$rc
 	@echo "built $(PLUGIN) ($$(du -k $(PLUGIN) | cut -f1)K, $$(unzip -l $(PLUGIN) | tail -1 | awk '{print $$2}') files)"
 

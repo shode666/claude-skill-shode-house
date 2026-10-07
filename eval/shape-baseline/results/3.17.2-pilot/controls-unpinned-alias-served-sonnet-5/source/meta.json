@@ -1,0 +1,8 @@
+{
+ "kind": "control",
+ "start": "2026-10-02T14:31:29Z",
+ "end": "2026-10-02T14:31:39Z",
+ "claude_exit": 0,
+ "main_model": "sonnet",
+ "effort": "medium"
+}

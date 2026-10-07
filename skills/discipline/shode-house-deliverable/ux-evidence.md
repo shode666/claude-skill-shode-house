@@ -1,6 +1,6 @@
 ---
 name: ux-evidence
-description: Reference (lazy-load) ของ `shode-house-deliverable` — Anti-Puppet เฉพาะ UX/UI/a11y + template paste-evidence ของ Uma Phase 3a POST. โหลดเมื่อเข้า Phase 1b/3a หรือก่อน claim ว่า UI/a11y ผ่าน
+description: Reference (lazy-load) ของ `shode-house-deliverable` — Anti-Puppet เฉพาะ UX/UI/a11y + template paste-evidence ของ ux-ui-designer Phase 3a POST. โหลดเมื่อเข้า Phase 1b/3a หรือก่อน claim ว่า UI/a11y ผ่าน
 ---
 
 ```lazy-load-contract
@@ -26,12 +26,12 @@ REQUIRED-BEFORE: phase_3a_verdict
 - "[manual keyboard test pasted] Tab → header logo → nav → CTA → form fields in order ✅"
 
 ทำไม่ได้ = "❌ ไม่ได้รัน เพราะ [no Playwright in project / no axe installed]" — ตรงไป ห้ามแกล้งผ่าน
-Evidence ladder (Playwright ก่อน · browser MCP ถ้ามี · ไม่มีเลย = BLOCKED) → `ui-test` skill
+Evidence ladder (Playwright ก่อน · browser MCP ถ้ามี · ไม่มีเลย = BLOCKED) → `shode-house:ui-test` skill
 
-## Mandatory paste-evidence — Uma POST (Phase 3a)
+## Mandatory paste-evidence — ux-ui-designer POST (Phase 3a)
 
 ```
-[Uma|state:phase-3a|bd:42] POST verdict
+[ux-ui-designer|state:phase-3a|bd:42] POST verdict
 - Visual diff: [Bash: `npx chromatic ...`] baseline build/12345 → current build/12346, diff 0.08%
 - Screenshot before: tests/visual/checkout-before.png
 - Screenshot after:  tests/visual/checkout-after.png

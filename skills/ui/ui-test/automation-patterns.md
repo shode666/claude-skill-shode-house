@@ -70,7 +70,7 @@ test('should apply coupon and reduce total when valid code entered', async ({pag
 - Storybook stories ครอบทุก component state (default/hover/disabled/loading/error/empty/dark)
 - Chromatic / Percy snapshot baseline ทุก story
 - Diff threshold: 0.1% pixel (config per story)
-- Review workflow: design (Uma) approve diff ก่อน merge
+- Review workflow: design (ux-ui-designer) approve diff ก่อน merge
 
 ### Coverage
 - Component (atomic): button, input, card... (Storybook)
@@ -112,7 +112,7 @@ projects: [
 - Orientation change (portrait/landscape)
 - Network throttling (slow 3G)
 
-## CI Integration (Aaron wire)
+## CI Integration (devops-engineer wire)
 
 ```yaml
 e2e:

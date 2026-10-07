@@ -1,6 +1,6 @@
-# General Backend Patterns (Dave reference)
+# General Backend Patterns (developer reference)
 
-> Read on-demand เมื่อ Dave ต้อง implement pattern เหล่านี้
+> Read on-demand เมื่อ developer ต้อง implement pattern เหล่านี้
 
 ## 🗄️ Database
 
@@ -23,7 +23,7 @@
 - **Error**: RFC 7807 Problem Details (`type`, `title`, `status`, `detail`, `instance`)
 - **Rate limit** + retry header (`Retry-After`, `X-RateLimit-*`)
 
-## 📡 Observability (Dave emit, Aaron collect)
+## 📡 Observability (developer emit, devops-engineer collect)
 
 ### Logs (structured JSON)
 ```json

@@ -1,0 +1,308 @@
+diff --git a/outputs/SPEC-bd-101.md b/outputs/SPEC-bd-101.md
+index 0a69e09..b704524 100644
+--- a/outputs/SPEC-bd-101.md
++++ b/outputs/SPEC-bd-101.md
+@@ -8,7 +8,32 @@
+ - AC-2 amount > ยอดที่จ่ายจริง → `422` พร้อม error code `AMOUNT_EXCEEDS_PAID`
+ - AC-3 order ที่ยังไม่ชำระ → `409 ORDER_NOT_PAID`
+ - AC-4 เรียกซ้ำด้วย `Idempotency-Key` เดิม → คืน refund เดิม ไม่สร้างใหม่
+-- AC-5 ทุก refund ลง ledger แบบ double-entry ผลรวมต้องเป็นศูนย์
++- AC-5 (rev 2, bd-ledger-tolerance) ทุก refund ลง ledger แบบ double-entry และ **ผลรวมของ entries ที่ถูกบันทึกแล้วต้องเป็นศูนย์พอดี** (Decimal, ไม่มี tolerance ใน stored journal). Input ที่คลาดจากศูนย์เล็กน้อยจาก upstream rounding ถูกดูดซับด้วย adjustment entry ที่มองเห็นได้ ตาม 5a-5e. ให้ residual = Decimal sum ของ amount ใน input entries; `LEDGER_ROUNDING_TOLERANCE = Decimal("0.01")`
++  - AC-5a (within tolerance, inclusive) Given input ที่ `residual != 0` และ `abs(residual) <= LEDGER_ROUNDING_TOLERANCE` (รวมขอบ ±0.01) When `post()` Then บันทึก input entries ครบ + เพิ่ม 1 rounding-adjustment entry `{account: LEDGER_ROUNDING_ACCOUNT, amount: -residual, kind: "rounding_adjustment"}` ใน write เดียวกัน (atomic: ไม่มีกรณีที่ business entries ถูกเขียนแต่ adjustment ไม่ถูกเขียน) ผลรวม entries ที่ stored = 0 พอดี, audit trail (rev 3, Oliver ruling) = row ที่ `post()` คืน เท่านั้น: fields `residual`, `input_count`, และ entry `rounding_adjustment` ไม่มี sink แยก (log/store) (ดู 5f). ตัวอย่าง: residual +0.01 → adjustment -0.01; residual -0.01 → adjustment +0.01
++  - AC-5b (over tolerance) Given `abs(residual) > LEDGER_ROUNDING_TOLERANCE` (เช่น ±0.02, ±0.011, `0.0100000001`, 10.00) When `post()` Then `ValueError("unbalanced")` และไม่มีอะไรถูกเขียน (ไม่มี entry, ไม่มี adjustment, ไม่มี audit record ของ post นี้)
++  - AC-5c (exact zero) Given `residual == 0` When `post()` Then บันทึกตามเดิม ไม่สร้าง adjustment entry
++  - AC-5d (hostile amounts) Given amount ใดๆ ที่ไม่ใช่ตัวเลข (None/dict/list/ข้อความที่ parse ไม่ได้) หรือไม่ finite (NaN, sNaN, ±Infinity) When `post()` Then `ValueError` ที่มีข้อความกำหนดไว้ (ไม่ใช่ `unbalanced`) ไม่มี `decimal.InvalidOperation` หลุดออกมา และไม่มีอะไรถูกเขียน; validate ก่อนรวมยอด
++    - rev 3 additions (Oliver ruling; implemented by Dave, accepted by Chris/Quinn): (i) amount ต้อง `|x| < 1e41` และมีทศนิยม ≤ 40 ตำแหน่ง มิฉะนั้น `ValueError("invalid amount")`; (ii) string ที่มี underscore (เช่น `"1_000"`) ถูกปฏิเสธ; (iii) รวมยอดแบบ exact ไม่มี silent rounding. **ASSUMPTION:** bound 1e41 / 40 ทศนิยม รอ Felix/finance ยืนยัน (Chris N-1: ซ้ำซ้อนกับ exact-sum trap และ boundary ยังไม่มี test) -> FU-6
++  - AC-5e (Decimal-only check) การเปรียบเทียบ tolerance ทำใน `Decimal` ทั้งหมด (`abs(residual) <= LEDGER_ROUNDING_TOLERANCE`) ห้าม float literal/การแปลงเป็น float ในการตัดสิน
++  - AC-5f (no float in output) ค่าเงินทุกตัวใน row ที่คืนและใน audit record (รวม `amount`, residual, adjustment) ไม่เป็น `float` (ใช้ Decimal) ผลรวม/ค่า residual ตรวจเทียบแบบ exact
++    - Row shape (rev 3, Oliver ruling): `amount` และ `residual` เป็น `Decimal`; `posted` นับ adjustment entry รวมด้วย; มี `input_count` และ `rounding_adjustment`
++  - Named constants (module-level, ไม่ configurable ผ่าน env/config): `LEDGER_ROUNDING_TOLERANCE = Decimal("0.01")`, `LEDGER_ROUNDING_ACCOUNT = "<PLACEHOLDER-ROUNDING-ACCOUNT>"` (ASSUMPTION: ชื่อ placeholder จนกว่า finance ตอบ Q1)
++  - AC-2 (amount ที่ขอคืน) ไม่ได้รับผลกระทบ: adjustment ลง internal account ไม่ปนใน refund/customer leg
++
++### Revision history
++- rev 1: AC-5 "ทุก refund ลง ledger แบบ double-entry ผลรวมต้องเป็นศูนย์" (original; `post()` strict `total != 0` → reject)
++- rev 2 (bd-ledger-tolerance, spec-change, user-authorized): `post()` รับ input ที่ Decimal sum อยู่ภายใน ±0.01 (upstream rounding) แต่ stored journal ยังต้อง = 0 พอดี ผ่าน rounding-adjustment entry (domain: 01-fintech-expert-domain.md §7; security: 01-security-engineer-phase-1c.md SEC-AC-1/2/3/4/6). ID AC-5 คงเดิม; sub-clauses 5a-5f เพิ่มใหม่ เดิม (strict zero) ใช้กับ stored journal ต่อไป
++
++- rev 3 (bd-ledger-tolerance, Oliver rulings recorded; housekeeping only, no src/tests change): (1) audit trail ของ 5a = row ที่ `post()` คืน ไม่มี sink แยก; (2) 5d เพิ่ม bound `|x|<1e41` + ทศนิยม ≤40 -> `ValueError("invalid amount")`, reject underscore string, exact summation (bound เป็น ASSUMPTION -> FU-6); (3) row shape: `amount`/`residual` Decimal, `posted` นับ adjustment, `input_count`, `rounding_adjustment`. เพิ่ม FU-6, FU-7
+ 
+ ## Out of scope
+ partial refund หลายครั้งต่อ order · การคืนเงินข้าม currency
++
++### Out of scope ของ rev 2 (follow-ups, ยังไม่ทำใน bd-ledger-tolerance)
++- FU-1 reject amount ที่มีทศนิยม > 2 ตำแหน่ง (Felix AC-5d / Q2) — ยังไม่ห้าม จึงมีความเสี่ยง sub-satang adjustment
++- FU-2 cumulative drift cap + alert / adjustment-rate monitoring (SEC-AC-5, T1 salami, Felix Q5)
++- FU-3 ownership + chart-of-accounts ของ rounding account และรอบ review/write-off (Q1, finance) — ตอนนี้ใช้ placeholder
++- FU-4 PAN เต็มใน `print` ที่ `src/ledger.py:13` (SEC-AC-7, Critical/PCI) — ticket แยก ต้องไม่หายไป
++- FU-5 (ตัวเลือก) แก้ที่ root cause: upstream allocation rounding (Felix §8); `mask_card` len<10 (LOW)
++- FU-6 confirm-or-drop bound `|x|<1e41` / ทศนิยม ≤40 กับ Felix/finance (Chris N-1: ซ้ำซ้อนกับ exact-sum trap) + เพิ่ม boundary tests ถ้ายืนยันให้คงไว้ (ปัจจุบัน boundary ยังไม่มี test). ไม่ใช่ FU-1 (FU-1 = ทศนิยม >2 ตำแหน่ง ยังไม่ห้าม)
++- FU-7 เพิ่ม tests: generator-input และ Inexact-path
+diff --git a/src/ledger.py b/src/ledger.py
+index de52756..46d8310 100644
+--- a/src/ledger.py
++++ b/src/ledger.py
+@@ -1,13 +1,77 @@
+-from decimal import Decimal
++import decimal
++from decimal import Decimal, InvalidOperation, Inexact, localcontext
++
++# AC-5 rev 2 (bd-ledger-tolerance). Module-level on purpose: widening the
++# tolerance is a money-control change (code review), not an env/config flag.
++LEDGER_ROUNDING_TOLERANCE = Decimal("0.01")
++# ASSUMPTION: placeholder until finance answers Q1 (FU-3). Replace before prod.
++LEDGER_ROUNDING_ACCOUNT = "<PLACEHOLDER-ROUNDING-ACCOUNT>"
++
++# Bounds keep exact summation cheap and deterministic (no unbounded precision
++# from hostile exponents like "1e999999999"). Magnitude < 1e41, scale <= 40.
++# ASSUMPTION: no real ledger amount needs more; Oliver/Felix to confirm domain max.
++_MAX_ADJUSTED = 40
++_MIN_EXPONENT = -40
++# Enough digits to add any number of bounded amounts exactly; Inexact is trapped
++# so a silent rounding can never hide a residual.
++_EXACT_PRECISION = 200
++
+ 
+ def mask_card(pan):
+     return pan[:6] + "*" * (len(pan) - 10) + pan[-4:]
+ 
++def _parse_amount(entry):
++    """Return entry amount as a finite, bounded Decimal or raise ValueError (AC-5d)."""
++    try:
++        text = str(entry["amount"])
++        if "_" in text:  # Decimal() accepts "1_0"; reject digit-group underscores
++            raise ValueError("invalid amount")
++        amount = Decimal(text)
++        if not amount.is_finite():
++            raise ValueError("invalid amount")
++        if amount.adjusted() > _MAX_ADJUSTED or amount.as_tuple().exponent < _MIN_EXPONENT:
++            raise ValueError("invalid amount")
++    except (KeyError, TypeError, decimal.DecimalException):
++        raise ValueError("invalid amount") from None
++    except ValueError:
++        raise ValueError("invalid amount") from None
++    return amount
++
++
+ def post(entries, card=None):
+-    total = sum(Decimal(str(e["amount"])) for e in entries)
+-    if total != 0:
+-        raise ValueError("unbalanced")
+-    row = {"posted": len(entries), "amount": float(total)}
++    # Validate every amount before summing; nothing is built on invalid input.
++    entries = list(entries)
++    amounts = [_parse_amount(e) for e in entries]
++    try:
++        with localcontext() as ctx:
++            ctx.prec = _EXACT_PRECISION
++            ctx.traps[Inexact] = True  # never silently round a money sum
++            residual = sum(amounts, Decimal("0"))
++            if abs(residual) > LEDGER_ROUNDING_TOLERANCE:  # inclusive, Decimal only
++                raise ValueError("unbalanced")
++            persisted = [{**e, "amount": a} for e, a in zip(entries, amounts)]
++            adjustment = None
++            if residual != 0:
++                adjustment = {
++                    "account": LEDGER_ROUNDING_ACCOUNT,
++                    "amount": -residual,
++                    "kind": "rounding_adjustment",
++                }
++                persisted.append(adjustment)
++            # Invariant recomputed from the persisted entries, independent of residual.
++            stored_total = sum((e["amount"] for e in persisted), Decimal("0"))
++            if stored_total != 0:
++                raise ValueError("unbalanced")
++    except decimal.DecimalException:
++        raise ValueError("invalid amount") from None
++    row = {
++        "posted": len(persisted),
++        "input_count": len(entries),
++        "amount": stored_total,
++        "residual": residual,
++        "entries": persisted,
++        "rounding_adjustment": dict(adjustment) if adjustment else None,
++    }
+     if card:
+         row["card"] = mask_card(card)
+         print(f"ledger post card={card}")
+diff --git a/tests/test_ledger.py b/tests/test_ledger.py
+index 088f3ec..c1d430e 100644
+--- a/tests/test_ledger.py
++++ b/tests/test_ledger.py
+@@ -1,6 +1,7 @@
+-import os, sys, unittest
++import contextlib, copy, decimal, io, os, sys, unittest
++from decimal import Decimal
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+-from ledger import post
++from ledger import post, LEDGER_ROUNDING_TOLERANCE, LEDGER_ROUNDING_ACCOUNT
+ 
+ 
+ class LedgerPostTest(unittest.TestCase):
+@@ -8,6 +9,168 @@ class LedgerPostTest(unittest.TestCase):
+         with self.assertRaises(ValueError):
+             post([{"amount": "10.00"}])
+ 
++    def _assert_no_float(self, value):
++        self.assertNotIsInstance(value, float)
++        if isinstance(value, dict):
++            for v in value.values():
++                self._assert_no_float(v)
++        elif isinstance(value, list):
++            for v in value:
++                self._assert_no_float(v)
++
++    def _stored_sum(self, row):
++        with decimal.localcontext() as ctx:  # exact: default 28-digit context would round
++            ctx.prec = 200
++            ctx.traps[decimal.Inexact] = True
++            return sum((e["amount"] for e in row["entries"]), Decimal("0"))
++
++    def test_constants(self):
++        self.assertEqual(LEDGER_ROUNDING_TOLERANCE, Decimal("0.01"))
++        self.assertIsInstance(LEDGER_ROUNDING_TOLERANCE, Decimal)
++
++    def test_positive_boundary_accepted_with_adjustment(self):
++        row = post([{"account": "a", "amount": "10.01"}, {"account": "b", "amount": "-10.00"}])
++        adj = row["rounding_adjustment"]
++        self.assertEqual(adj, {"account": LEDGER_ROUNDING_ACCOUNT,
++                               "amount": Decimal("-0.01"), "kind": "rounding_adjustment"})
++        self.assertEqual(row["residual"], Decimal("0.01"))
++        self.assertEqual(row["posted"], 3)
++        self.assertEqual(row["entries"][-1], adj)
++        self.assertEqual(self._stored_sum(row), Decimal("0"))
++
++    def test_negative_boundary_accepted_with_adjustment(self):
++        row = post([{"account": "a", "amount": "10.00"}, {"account": "b", "amount": "-10.01"}])
++        self.assertEqual(row["rounding_adjustment"]["amount"], Decimal("0.01"))
++        self.assertEqual(row["residual"], Decimal("-0.01"))
++        self.assertEqual(row["posted"], 3)
++        self.assertEqual(self._stored_sum(row), Decimal("0"))
++
++    def test_over_tolerance_rejected(self):
++        for bad in ("0.011", "-0.011", "0.0100000001", "0.02", "-0.02",
++                    "0.01000000000000000001", "-0.01000000000000000001"):
++            with self.subTest(residual=bad):
++                with self.assertRaisesRegex(ValueError, "^unbalanced$"):
++                    post([{"amount": bad}])
++
++    def test_zero_residual_no_adjustment(self):
++        row = post([{"amount": "5.00"}, {"amount": "-5.00"}])
++        self.assertIsNone(row["rounding_adjustment"])
++        self.assertEqual(row["posted"], 2)
++        self.assertEqual(row["residual"], Decimal("0"))
++        self.assertEqual(self._stored_sum(row), Decimal("0"))
++
++    def test_empty_entries_preserved(self):
++        row = post([])
++        self.assertEqual(row["posted"], 0)
++        self.assertIsNone(row["rounding_adjustment"])
++        self.assertEqual(row["amount"], Decimal("0"))
++
++    def test_hostile_amounts_raise_value_error_not_invalid_operation(self):
++        for bad in ("NaN", "sNaN", "Infinity", "-Infinity", "abc", None, {}, [],
++                    float("nan"), float("inf"), Decimal("NaN")):
++            with self.subTest(amount=repr(bad)):
++                with self.assertRaises(ValueError) as ctx:
++                    post([{"amount": "1.00"}, {"amount": bad}])
++                self.assertNotEqual(str(ctx.exception), "unbalanced")
++
++    def test_missing_amount_key_is_value_error(self):
++        with self.assertRaises(ValueError):
++            post([{"account": "a"}])
++
++    def test_float_inputs_binary_artifacts(self):
++        # str(0.1) etc. are exact decimal strings: 0.1 + 0.2 - 0.3 == 0 as Decimal.
++        row = post([{"amount": 0.1}, {"amount": 0.2}, {"amount": -0.3}])
++        self.assertIsNone(row["rounding_adjustment"])
++        self._assert_no_float(row)
++        # An already-summed float (0.30000000000000004) lands within tolerance and is
++        # absorbed by an exact Decimal adjustment; stored sum stays exactly zero.
++        row = post([{"amount": 0.1 + 0.2}, {"amount": -0.3}])
++        self.assertEqual(row["residual"], Decimal("0.00000000000000004"))
++        self.assertEqual(self._stored_sum(row), Decimal("0"))
++        self._assert_no_float(row)
++
++    def test_no_float_in_return(self):
++        for entries in ([{"amount": "1.00"}, {"amount": "-0.99"}],
++                        [{"amount": 1}, {"amount": -1}], []):
++            self._assert_no_float(post(entries))
++
++    def test_card_branch_preserved(self):
++        with contextlib.redirect_stdout(io.StringIO()):
++            row = post([], card="4111111111111111")
++        self.assertEqual(row["card"], "411111******1111")
++
++    def test_large_magnitude_residual_not_hidden_by_rounding(self):
++        big = "10000000000000000000000000000"  # 29 digits > default 28-digit context
++        with self.assertRaisesRegex(ValueError, "^unbalanced$"):
++            post([{"amount": big}, {"amount": "5"}, {"amount": "-" + big}])
++        with self.assertRaisesRegex(ValueError, "^unbalanced$"):
++            post([{"amount": "1E+40"}, {"amount": "0.02"}, {"amount": "-1E+40"}])
++
++    def test_large_magnitude_exact_residual_within_tolerance(self):
++        row = post([{"amount": "1E+40"}, {"amount": "0.01"}, {"amount": "-1E+40"}])
++        self.assertEqual(row["residual"], Decimal("0.01"))
++        self.assertEqual(row["rounding_adjustment"]["amount"], Decimal("-0.01"))
++        self.assertEqual(self._stored_sum(row), Decimal("0"))
++
++    def test_no_decimal_exception_escapes(self):
++        for bad in ("1e999999999", "-1e999999999", "1e-999999999", "1E+41", "0e999999999",
++                    "1e9999999999999999999", "0." + "0" * 50 + "1"):
++            with self.subTest(amount=bad):
++                for entries in ([{"amount": bad}], [{"amount": "1.00"}, {"amount": bad}],
++                                [{"amount": bad}, {"amount": bad}]):
++                    try:
++                        post(entries)
++                    except ValueError:
++                        pass
++                    except decimal.DecimalException as exc:  # pragma: no cover
++                        self.fail(f"decimal exception escaped: {exc!r}")
++        with self.assertRaisesRegex(ValueError, "^invalid amount$"):
++            post([{"amount": "1e999999999"}])
++
++    def test_underscore_amount_rejected(self):
++        for bad in ("1_0", "1_0.00", "_1", "1_"):
++            with self.subTest(amount=bad):
++                with self.assertRaisesRegex(ValueError, "^invalid amount$"):
++                    post([{"amount": bad}, {"amount": "-10"}])
++
++    def test_rounding_adjustment_is_a_copy(self):
++        row = post([{"amount": "10.01"}, {"amount": "-10.00"}])
++        self.assertIsNot(row["rounding_adjustment"], row["entries"][-1])
++        self.assertEqual(row["rounding_adjustment"], row["entries"][-1])
++        row["rounding_adjustment"]["amount"] = Decimal("9")
++        self.assertEqual(row["entries"][-1]["amount"], Decimal("-0.01"))
++
++    def test_input_count_in_audit_row(self):
++        row = post([{"amount": "10.01"}, {"amount": "-10.00"}])
++        self.assertEqual((row["input_count"], row["posted"]), (2, 3))
++        row = post([{"amount": "5.00"}, {"amount": "-5.00"}])
++        self.assertEqual((row["input_count"], row["posted"]), (2, 2))
++        self.assertEqual(post([])["input_count"], 0)
++
++    def test_rejected_post_leaves_input_unchanged(self):
++        for entries in ([{"account": "a", "amount": "10.02"}, {"account": "b", "amount": "-10.00"}],
++                        [{"account": "a", "amount": "1.00"}, {"account": "b", "amount": "NaN"}]):
++            snapshot = copy.deepcopy(entries)
++            with self.assertRaises(ValueError):
++                post(entries)
++            self.assertEqual(entries, snapshot)
++
++    def test_accepted_post_leaves_input_unchanged(self):
++        entries = [{"account": "a", "amount": "10.01"}, {"account": "b", "amount": "-10.00"}]
++        snapshot = copy.deepcopy(entries)
++        post(entries)
++        self.assertEqual(entries, snapshot)
++
++    def test_hostile_amount_first_in_list(self):
++        for bad in ("NaN", "abc", None, "1e999999999", "1_0"):
++            with self.subTest(amount=repr(bad)):
++                with self.assertRaisesRegex(ValueError, "^invalid amount$"):
++                    post([{"amount": bad}, {"amount": "1.00"}])
++
++    def test_string_entries_is_value_error(self):
++        with self.assertRaisesRegex(ValueError, "^invalid amount$"):
++            post("ab")
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

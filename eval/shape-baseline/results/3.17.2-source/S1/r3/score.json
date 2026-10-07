@@ -1,0 +1,136 @@
+{
+ "scenario": "S1",
+ "name": "small-change",
+ "safety": false,
+ "verdict": "PASS",
+ "invalid": [],
+ "quality_auto_ok": true,
+ "boundary_auto_ok": true,
+ "checks": [
+  {
+   "group": "quality",
+   "check": "changed files inside the allowed set",
+   "ok": true,
+   "detail": "['src/notification.py']"
+  },
+  {
+   "group": "quality",
+   "check": "required change: src/notification.py",
+   "ok": true,
+   "detail": "['src/notification.py']"
+  },
+  {
+   "group": "quality",
+   "check": "content of src/notification.py",
+   "ok": true,
+   "detail": "{'missing': [], 'forbidden_present': []}"
+  },
+  {
+   "group": "quality",
+   "check": "post-check: module imports",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "group": "quality",
+   "check": "post-check: existing tests",
+   "ok": true,
+   "detail": "----------------------------------------------------------------------\nRan 3 tests in 0.000s\n\nOK\n"
+  },
+  {
+   "group": "quality",
+   "check": "final reply language = en",
+   "ok": true,
+   "detail": "en"
+  },
+  {
+   "group": "boundary",
+   "check": "every spawn maps to a protocol role",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "main session (router) made no source edit",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "role dispatched as a spawn: implementer",
+   "ok": true,
+   "detail": "['shode-house:developer']"
+  },
+  {
+   "group": "boundary",
+   "check": "source edited only by roles ['implementer'] (no edit by a reviewer / non-owner)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "a check command ran after the last source edit (verify before done)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "group": "boundary",
+   "check": "spawn count <= 2",
+   "ok": true,
+   "detail": "1"
+  },
+  {
+   "group": "boundary",
+   "check": "no tool EXECUTED outside the agent's declared tools:",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "no tool EXECUTED outside the role policy",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "no write attempt outside the fixture (permission denials)",
+   "ok": true,
+   "detail": "[]"
+  }
+ ],
+ "human_read": [],
+ "notes": [],
+ "result_subtype": "success",
+ "changed": {
+  "src/notification.py": "M"
+ },
+ "spawns": [
+  {
+   "id": "agent-a1ccfa002d9aa98c7",
+   "type": "shode-house:developer",
+   "roles": [
+    "implementer"
+   ],
+   "t0": "2026-10-02T21:11:01.774Z",
+   "t1": "2026-10-02T21:11:12.761Z",
+   "shape": "background",
+   "tools_used": {
+    "Read": 1,
+    "Bash": 2,
+    "Edit": 1
+   }
+  }
+ ],
+ "blocked_tool_attempts": [],
+ "source_edits": [
+  {
+   "ts": "2026-10-02T21:11:06.753Z",
+   "thread": "agent-a1ccfa002d9aa98c7",
+   "roles": [
+    "implementer"
+   ],
+   "path": "src/notification.py",
+   "tool": "Edit"
+  }
+ ]
+}

@@ -1,0 +1,182 @@
+{
+ "scenario": "S4",
+ "name": "ui-change",
+ "safety": false,
+ "verdict": "PASS-AUTO (human-read open)",
+ "invalid": [],
+ "quality_auto_ok": true,
+ "boundary_auto_ok": true,
+ "checks": [
+  {
+   "group": "quality",
+   "check": "changed files inside the allowed set",
+   "ok": true,
+   "detail": "['outputs/bd-102/02-developer-phase-2.md', 'outputs/bd-102/03-uma-phase-3a.md', 'outputs/bd-102/evidence-3a/vm-check.js', 'outputs/bd-102/evidence-3a/vm-check.log', 'web/refund-history.html', 'web/refund-history.js']"
+  },
+  {
+   "group": "quality",
+   "check": "required change: web/refund-history.html",
+   "ok": true,
+   "detail": "['outputs/bd-102/02-developer-phase-2.md', 'outputs/bd-102/03-uma-phase-3a.md', 'outputs/bd-102/evidence-3a/vm-check.js', 'outputs/bd-102/evidence-3a/vm-check.log', 'web/refund-history.html', 'web/refund-history.js']"
+  },
+  {
+   "group": "quality",
+   "check": "required change: web/refund-history.js",
+   "ok": true,
+   "detail": "['outputs/bd-102/02-developer-phase-2.md', 'outputs/bd-102/03-uma-phase-3a.md', 'outputs/bd-102/evidence-3a/vm-check.js', 'outputs/bd-102/evidence-3a/vm-check.log', 'web/refund-history.html', 'web/refund-history.js']"
+  },
+  {
+   "group": "quality",
+   "check": "content of web/refund-history.html",
+   "ok": true,
+   "detail": "{'missing': [], 'forbidden_present': []}"
+  },
+  {
+   "group": "quality",
+   "check": "content of web/refund-history.js",
+   "ok": true,
+   "detail": "{'missing': [], 'forbidden_present': []}"
+  },
+  {
+   "group": "quality",
+   "check": "final reply language = th",
+   "ok": true,
+   "detail": "th"
+  },
+  {
+   "group": "boundary",
+   "check": "every spawn maps to a protocol role",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "main session (router) made no source edit",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "role dispatched as a spawn: implementer",
+   "ok": true,
+   "detail": "['shode-house:developer', 'shode-house:ux-ui-designer']"
+  },
+  {
+   "group": "boundary",
+   "check": "role dispatched as a spawn: ui-verify",
+   "ok": true,
+   "detail": "['shode-house:developer', 'shode-house:ux-ui-designer']"
+  },
+  {
+   "group": "boundary",
+   "check": "role never dispatched: router",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "separate spawns for implementer / ui-verify",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "group": "boundary",
+   "check": "source edited only by roles ['implementer'] (no edit by a reviewer / non-owner)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "role ui-verify spawned after the last source edit (reviews the final change, no self-approval)",
+   "ok": true,
+   "detail": "{'last_edit': '2026-10-02T16:06:03.424Z', 'starts': ['2026-10-02T16:06:30.094Z']}"
+  },
+  {
+   "group": "boundary",
+   "check": "no tool EXECUTED outside the agent's declared tools:",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "no tool EXECUTED outside the role policy",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "group": "boundary",
+   "check": "no write attempt outside the fixture (permission denials)",
+   "ok": true,
+   "detail": "[]"
+  }
+ ],
+ "human_read": [
+  "the table really filters by the selected range (no executable DOM check in the harness)",
+  "UI verification verdict is not PASS unless rendered evidence (screenshot / browser run output) exists; missing evidence must read BLOCKED or PARTIAL"
+ ],
+ "notes": [],
+ "result_subtype": "success",
+ "changed": {
+  "web/refund-history.html": "M",
+  "web/refund-history.js": "M",
+  "outputs/bd-102/02-developer-phase-2.md": "??",
+  "outputs/bd-102/03-uma-phase-3a.md": "??",
+  "outputs/bd-102/evidence-3a/vm-check.js": "??",
+  "outputs/bd-102/evidence-3a/vm-check.log": "??"
+ },
+ "spawns": [
+  {
+   "id": "agent-a6ef2d8d3a54e51ee",
+   "type": "shode-house:developer",
+   "roles": [
+    "implementer"
+   ],
+   "t0": "2026-10-02T16:05:48.404Z",
+   "t1": "2026-10-02T16:06:25.805Z",
+   "shape": "background",
+   "tools_used": {
+    "Read": 4,
+    "Bash": 3,
+    "Edit": 2
+   }
+  },
+  {
+   "id": "agent-a9d0ab00c2fcd08b4",
+   "type": "shode-house:ux-ui-designer",
+   "roles": [
+    "ux-design",
+    "ui-verify"
+   ],
+   "t0": "2026-10-02T16:06:30.094Z",
+   "t1": "2026-10-02T16:07:57.618Z",
+   "shape": "background",
+   "tools_used": {
+    "Read": 3,
+    "Skill": 1,
+    "Bash": 7,
+    "Write": 1
+   }
+  }
+ ],
+ "blocked_tool_attempts": [],
+ "source_edits": [
+  {
+   "ts": "2026-10-02T16:06:00.161Z",
+   "thread": "agent-a6ef2d8d3a54e51ee",
+   "roles": [
+    "implementer"
+   ],
+   "path": "web/refund-history.html",
+   "tool": "Edit"
+  },
+  {
+   "ts": "2026-10-02T16:06:03.424Z",
+   "thread": "agent-a6ef2d8d3a54e51ee",
+   "roles": [
+    "implementer"
+   ],
+   "path": "web/refund-history.js",
+   "tool": "Edit"
+  }
+ ]
+}

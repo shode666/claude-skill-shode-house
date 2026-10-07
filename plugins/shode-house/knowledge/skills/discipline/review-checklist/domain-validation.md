@@ -17,13 +17,13 @@ money / regulation = **ห้าม merge โดยไม่มีลายเ�
 
 | keyword ใน diff | expert |
 |---|---|
-| payment · ledger · settlement · wallet | Felix (fintech) |
-| policy · claim · premium · underwriting | Iris (insurance) |
-| SAP · ABAP · IDoc · BAPI | Sam (SAP) |
-| order · matching · orderbook · position | Tara (trading) |
-| accounting · GL · inventory · costing | Elena (ERP) |
-| booking · availability · yield · overbooking | Brooke (booking) |
-| cart · promotion · checkout · catalog | Emma (e-commerce) |
+| payment · ledger · settlement · wallet | fintech-expert |
+| policy · claim · premium · underwriting | insurance-expert |
+| SAP · ABAP · IDoc · BAPI | sap-expert |
+| order · matching · orderbook · position | trading-expert |
+| accounting · GL · inventory · costing | erp-expert |
+| booking · availability · yield · overbooking | booking-expert |
+| cart · promotion · checkout · catalog | ecommerce-expert |
 
 ตารางเต็ม + tie-break เมื่อ diff แตะหลาย domain → `report-format.md` § Domain routing
 

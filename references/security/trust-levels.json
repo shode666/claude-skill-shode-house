@@ -1,5 +1,5 @@
 {
-  "_comment": "Milestone F untrusted-content boundary + provenance trust levels as DATA (bd: shode-roadmap/C-F1, ROADMAP-runtime-10.md SS 11.2 + SS 12). Read by scripts/permission-check.sh (`claim_trust` action) + CI ONLY -- NEVER preloaded into agent context. Levels are ordered exactly as the roadmap lists them (canonical > operational > user > external > untrusted > generated). What IS script-checkable: (a) a declared trust level must be one of these six; (b) a path's declared trust may never exceed the rank of its path class below -- that is the machine-checkable half of the cascade rule 'agent output cannot elevate the trust of its own source' (an agent writing outputs/** can claim at most `generated`; unclassified content in a target repo -- README, issues, logs, fixtures, source comments, web content -- defaults to `untrusted` and cannot be re-labeled upward). What is NOT script-checkable today is listed honestly in outputs/shode-roadmap/C/15-sentinel-runtime-security.md SS enforceability -- do not treat this file as covering more than it does.",
+  "_comment": "Milestone F untrusted-content boundary + provenance trust levels as DATA (bd: shode-roadmap/C-F1, ROADMAP-runtime-10.md SS 11.2 + SS 12). Read by scripts/permission-check.sh (`claim_trust` action) + CI ONLY -- NEVER preloaded into agent context. Levels are ordered exactly as the roadmap lists them (canonical > operational > user > external > untrusted > generated). What IS script-checkable: (a) a declared trust level must be one of these six; (b) a path's declared trust may never exceed the rank of its path class below -- that is the machine-checkable half of the cascade rule 'agent output cannot elevate the trust of its own source' (an agent writing outputs/** can claim at most `generated`; unclassified content in a target repo -- README, issues, logs, fixtures, source comments, web content -- defaults to `untrusted` and cannot be re-labeled upward). What is NOT script-checkable today is listed honestly in the maintainer runtime-security review (SS enforceability; that review does not ship) -- do not treat this file as covering more than it does.",
   "levels": {
     "canonical": 6,
     "operational": 5,
@@ -11,16 +11,17 @@
   "instruction_sources": ["canonical", "operational", "user"],
   "data_only_sources": ["external", "untrusted", "generated"],
   "_boundary_note": "instruction_sources vs data_only_sources encodes SS 11.2: 'README, issue, web page, source comment, log, test fixture, generated AI content = data not instruction'. The classification is enforceable (claim_trust); an agent actually OBEYING an instruction found inside data-only content is not detectable by this script -- that remains a prompt-level convention plus hook-layer work (see threat model 08-sentinel SS 3 E2 / R4).",
+  "_root_note": "F-13 (W8): every path class names the root it is matched against. root 'plugin' = relative to the plugin root (CLAUDE_PLUGIN_ROOT, resolved physically); the same relative path under the project root is NOT in the class, so a project file at references/x.md is `untrusted`, not canonical. An unset, empty, relative or nonexistent plugin root puts no path in a plugin class (no fallback to $PWD or to the project root). root 'project' = relative to the project root. A class without a valid root is a corrupt registry (permission-check.sh exits 64). Paths are lexically normalised and physically resolved first; a symlink leaf is in no class.",
   "path_classes": [
-    { "pattern": "CLAUDE.md", "trust": "canonical" },
-    { "pattern": "agents/*", "trust": "canonical" },
-    { "pattern": "skills/*", "trust": "canonical" },
-    { "pattern": "output-styles/*", "trust": "canonical" },
-    { "pattern": "references/*", "trust": "canonical" },
-    { "pattern": "scripts/*", "trust": "canonical" },
-    { "pattern": "hooks/*", "trust": "canonical" },
-    { "pattern": ".shode-house/*", "trust": "operational" },
-    { "pattern": "outputs/*", "trust": "generated" }
+    { "pattern": "CLAUDE.md", "trust": "canonical", "root": "project" },
+    { "pattern": "agents/*", "trust": "canonical", "root": "plugin" },
+    { "pattern": "skills/*", "trust": "canonical", "root": "plugin" },
+    { "pattern": "output-styles/*", "trust": "canonical", "root": "plugin" },
+    { "pattern": "references/*", "trust": "canonical", "root": "plugin" },
+    { "pattern": "scripts/*", "trust": "canonical", "root": "plugin" },
+    { "pattern": "hooks/*", "trust": "canonical", "root": "plugin" },
+    { "pattern": ".shode-house/*", "trust": "operational", "root": "project" },
+    { "pattern": "outputs/*", "trust": "generated", "root": "project" }
   ],
   "default_class": "untrusted",
   "cascade": {

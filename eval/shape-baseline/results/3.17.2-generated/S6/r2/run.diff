@@ -1,0 +1,130 @@
+diff --git a/src/ledger.py b/src/ledger.py
+index de52756..1d040f4 100644
+--- a/src/ledger.py
++++ b/src/ledger.py
+@@ -1,13 +1,32 @@
+-from decimal import Decimal
++import logging
++from decimal import Decimal, InvalidOperation
++
++logger = logging.getLogger(__name__)
++
++# Max accepted |sum(entries)| per post() call (upstream rounding mismatch). Inclusive.
++TOLERANCE = Decimal("0.01")
+ 
+ def mask_card(pan):
+     return pan[:6] + "*" * (len(pan) - 10) + pan[-4:]
+ 
++def parse_amount(raw):
++    if raw is None or isinstance(raw, bool):
++        raise ValueError("invalid amount")
++    try:
++        amount = Decimal(str(raw))
++    except InvalidOperation:
++        raise ValueError("invalid amount") from None
++    if not amount.is_finite():
++        raise ValueError("invalid amount")
++    return amount
++
+ def post(entries, card=None):
+-    total = sum(Decimal(str(e["amount"])) for e in entries)
+-    if total != 0:
++    total = sum((parse_amount(e["amount"]) for e in entries), Decimal(0))
++    if abs(total) > TOLERANCE:
+         raise ValueError("unbalanced")
+-    row = {"posted": len(entries), "amount": float(total)}
++    if total != 0:
++        logger.warning("ledger post tolerated residual=%s posted=%d", total, len(entries))
++    row = {"posted": len(entries), "amount": float(total), "residual": str(total)}
+     if card:
+         row["card"] = mask_card(card)
+         print(f"ledger post card={card}")
+diff --git a/tests/test_ledger.py b/tests/test_ledger.py
+index 088f3ec..c35a818 100644
+--- a/tests/test_ledger.py
++++ b/tests/test_ledger.py
+@@ -1,6 +1,11 @@
+-import os, sys, unittest
++import logging, os, sys, unittest
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+-from ledger import post
++from decimal import Decimal
++from ledger import post, TOLERANCE
++
++
++def entries(*amounts):
++    return [{"amount": a} for a in amounts]
+ 
+ 
+ class LedgerPostTest(unittest.TestCase):
+@@ -8,6 +13,70 @@ class LedgerPostTest(unittest.TestCase):
+         with self.assertRaises(ValueError):
+             post([{"amount": "10.00"}])
+ 
++    def test_tolerance_is_decimal(self):
++        self.assertEqual(TOLERANCE, Decimal("0.01"))
++        self.assertIsInstance(TOLERANCE, Decimal)
++
++    def test_positive_boundary_accepted(self):
++        row = post(entries("10.00", "-9.99"))
++        self.assertEqual(row["posted"], 2)
++        self.assertEqual(row["residual"], "0.01")
++
++    def test_negative_boundary_accepted(self):
++        row = post(entries("-10.00", "9.99"))
++        self.assertEqual(row["posted"], 2)
++        self.assertEqual(row["residual"], "-0.01")
++
++    def test_balanced_residual_zero(self):
++        row = post(entries("10.00", "-10.00"))
++        self.assertEqual(row["residual"], "0.00")
++        self.assertEqual(row["amount"], 0.0)
++
++    def test_just_over_rejected_both_signs(self):
++        for pair in (("10.00", "-9.98"), ("-10.00", "9.98"),
++                     ("0.010000001", "0"), ("-0.010000001", "0")):
++            with self.subTest(pair=pair):
++                with self.assertRaisesRegex(ValueError, "unbalanced"):
++                    post(entries(*pair))
++
++    def test_below_boundary_accepted_raw_total(self):
++        row = post(entries("0.0099"))
++        self.assertEqual(row["residual"], "0.0099")
++
++    def test_non_finite_and_invalid_rejected(self):
++        bad = ["NaN", "sNaN", "Infinity", "-Infinity", "abc", None, True, False,
++               float("nan"), float("inf"), float("-inf")]
++        for value in bad:
++            with self.subTest(value=value):
++                with self.assertRaises(ValueError) as ctx:
++                    post(entries(value))
++                self.assertEqual(type(ctx.exception), ValueError)
++
++    def test_infinities_cannot_cancel(self):
++        with self.assertRaises(ValueError):
++            post(entries("Infinity", "-Infinity"))
++
++    def test_non_finite_among_valid_entries(self):
++        with self.assertRaises(ValueError):
++            post(entries("5.00", "NaN", "-5.00"))
++
++    def test_log_line_when_tolerated_has_no_pii(self):
++        with self.assertLogs("ledger", level="WARNING") as logs:
++            post(entries("10.00", "-9.99"), card=None)
++        self.assertEqual(logs.output,
++                         ["WARNING:ledger:ledger post tolerated residual=0.01 posted=2"])
++
++    def test_no_log_when_balanced(self):
++        with self.assertLogs("ledger", level="WARNING") as logs:
++            post(entries("10.00", "-10.00"))
++            logging.getLogger("ledger").warning("sentinel")
++        self.assertEqual(logs.output, ["WARNING:ledger:sentinel"])
++
++    def test_existing_keys_preserved(self):
++        row = post(entries("1.00", "-1.00"))
++        self.assertEqual(row["posted"], 2)
++        self.assertIn("amount", row)
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "max_runs": 8,
+  "templates": {
+    "design-search": {
+      "phases": ["1b"],
+      "runner": "plugin-python",
+      "script": "search.py",
+      "argv": ["--design-system", "--variance", "{variance}", "--motion", "{motion}", "--density", "{density}", "-p", "{project}", "--json", "--", "{query}"],
+      "params": {"query": "text", "variance": {"int_range": [1, 10]}, "motion": {"int_range": [1, 10]}, "density": {"int_range": [1, 10]}, "project": "text"},
+      "executes": [], "e3": null, "writes": [], "artifacts": [], "network": "none", "stdout_json": true, "timeout_s": 120
+    },
+    "design-persist": {
+      "phases": ["1b"],
+      "runner": "plugin-python",
+      "script": "search.py",
+      "argv": ["--design-system", "--variance", "{variance}", "--motion", "{motion}", "--density", "{density}", "-p", "{project}", "--persist", "--output-dir", "<root>", "--json", "--", "{query}"],
+      "params": {"query": "text", "variance": {"int_range": [1, 10]}, "motion": {"int_range": [1, 10]}, "density": {"int_range": [1, 10]}, "project": "text"},
+      "executes": [], "e3": null, "writes": ["design-system/**"], "artifacts": [], "network": "none", "stdout_json": true, "timeout_s": 120
+    },
+    "design-page": {
+      "phases": ["1b"],
+      "runner": "plugin-python",
+      "script": "search.py",
+      "argv": ["--design-system", "--variance", "{variance}", "--motion", "{motion}", "--density", "{density}", "-p", "{project}", "--persist", "--output-dir", "<root>", "--page", "{page}", "--json", "--", "{query}"],
+      "params": {"query": "text", "variance": {"int_range": [1, 10]}, "motion": {"int_range": [1, 10]}, "density": {"int_range": [1, 10]}, "project": "text", "page": "slug"},
+      "executes": [], "e3": null, "writes": ["design-system/**"], "artifacts": [], "network": "none", "stdout_json": true, "timeout_s": 120
+    },
+    "design-query-domain": {
+      "phases": ["1b", "3a"],
+      "runner": "plugin-python",
+      "script": "search.py",
+      "argv": ["--domain", "{domain}", "-n", "{n}", "--json", "--", "{query}"],
+      "params": {"query": "text", "n": {"int_range": [1, 20]}, "domain": {"enum": ["style", "color", "chart", "landing", "product", "ux", "typography", "icons", "gsap", "react", "web", "google-fonts"]}},
+      "executes": [], "e3": null, "writes": [], "artifacts": [], "network": "none", "stdout_json": true, "timeout_s": 120
+    },
+    "design-query-stack": {
+      "phases": ["1b", "3a"],
+      "runner": "plugin-python",
+      "script": "search.py",
+      "argv": ["--stack", "{stack}", "-n", "{n}", "--json", "--", "{query}"],
+      "params": {"query": "text", "n": {"int_range": [1, 20]}, "stack": {"enum": ["react", "nextjs", "vue", "svelte", "astro", "swiftui", "react-native", "flutter", "nuxtjs", "nuxt-ui", "html-tailwind", "shadcn", "jetpack-compose", "threejs", "angular", "laravel", "javafx", "wpf", "winui", "avalonia", "uno", "uwp"]}},
+      "executes": [], "e3": null, "writes": [], "artifacts": [], "network": "none", "stdout_json": true, "timeout_s": 120
+    },
+    "contrast-check": {
+      "phases": ["1b", "3a"],
+      "runner": "plugin-python",
+      "script": "check_contrast.py",
+      "argv": ["--design-system-json", "<run-json:ds>"],
+      "params": {"ds": "run_ref"},
+      "executes": [], "e3": null, "writes": [], "artifacts": [], "network": "none", "stdout_json": false, "timeout_s": 60
+    },
+    "contrast-check-decorative": {
+      "phases": ["1b", "3a"],
+      "runner": "plugin-python",
+      "script": "check_contrast.py",
+      "argv": ["--design-system-json", "<run-json:ds>", "--border-decorative={reason}"],
+      "params": {"ds": "run_ref", "reason": "text"},
+      "executes": [], "e3": null, "writes": [], "artifacts": [], "network": "none", "stdout_json": false, "timeout_s": 60
+    },
+    "contrast-pair": {
+      "phases": ["3a"],
+      "runner": "plugin-python",
+      "script": "check_contrast.py",
+      "argv": ["--pair={fg},{bg}"],
+      "params": {"fg": "hex_color", "bg": "hex_color"},
+      "executes": [], "e3": null, "writes": [], "artifacts": [], "network": "none", "stdout_json": false, "timeout_s": 60
+    },
+    "baseline-capture": {
+      "phases": ["1b"],
+      "runner": "project-bin",
+      "bin": "playwright",
+      "spec": "tests/visual/{feature}.spec.ts",
+      "argv": ["test", "<spec-filter>", "--update-snapshots"],
+      "params": {"feature": "slug"},
+      "executes": ["spec", "playwright-config", "package-json", "lockfiles"], "e3": "spec",
+      "writes": ["tests/visual/{feature}.spec.ts-snapshots/**", "test-results/**", "playwright-report/**"],
+      "artifacts": [], "network": "loopback", "stdout_json": false, "timeout_s": 540
+    },
+    "ui-capture": {
+      "phases": ["3a"],
+      "runner": "project-bin",
+      "bin": "playwright",
+      "spec": "tests/visual/{feature}.spec.ts",
+      "argv": ["test", "<spec-filter>", "--update-snapshots=none"],
+      "params": {"feature": "slug"},
+      "executes": ["spec", "playwright-config", "package-json", "lockfiles"], "e3": "spec",
+      "writes": ["test-results/**", "playwright-report/**"],
+      "artifacts": [], "network": "loopback", "stdout_json": false, "timeout_s": 540
+    },
+    "ui-screenshot": {
+      "phases": ["3a"],
+      "runner": "project-bin",
+      "bin": "playwright",
+      "argv": ["screenshot", "--viewport-size={viewport_w},{viewport_h}", "{url}", "<out>/<run-id>.png"],
+      "params": {"viewport_w": {"int_range": [240, 3840]}, "viewport_h": {"int_range": [240, 2160]}, "url": "url"},
+      "executes": ["playwright-config", "package-json", "lockfiles"], "e3": null,
+      "writes": [], "artifacts": ["<run-id>.png"], "network": "url", "stdout_json": false, "timeout_s": 300
+    },
+    "visual-diff": {
+      "phases": ["3a"],
+      "runner": "project-bin",
+      "bin": "playwright",
+      "argv": ["test", "--grep", "visual regression"],
+      "params": {},
+      "executes": ["playwright-config", "package-json", "lockfiles", "tracked-specs"], "e3": "default-pattern",
+      "writes": ["test-results/**", "playwright-report/**"],
+      "artifacts": [], "network": "loopback", "stdout_json": false, "timeout_s": 540
+    },
+    "axe-scan": {
+      "phases": ["3a"],
+      "runner": "project-bin",
+      "bin": "axe",
+      "argv": ["{url}", "--dir", "<out>/", "--save", "<run-id>.axe.json"],
+      "params": {"url": "url"},
+      "executes": ["package-json", "lockfiles"], "e3": null,
+      "writes": [], "artifacts": ["<run-id>.axe.json"], "network": "url", "stdout_json": false, "timeout_s": 300
+    },
+    "state-tests": {
+      "phases": ["3a"],
+      "runner": "project-bin",
+      "bin": "playwright",
+      "spec": "tests/states/{feature}.spec.ts",
+      "argv": ["test", "<spec-filter>"],
+      "params": {"feature": "slug"},
+      "executes": ["spec", "playwright-config", "package-json", "lockfiles"], "e3": "spec",
+      "writes": ["test-results/**", "playwright-report/**"],
+      "artifacts": [], "network": "loopback", "stdout_json": false, "timeout_s": 540
+    }
+  }
+}

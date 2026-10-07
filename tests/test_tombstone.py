@@ -20,6 +20,11 @@ import json, pathlib, re, sys, tempfile, unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
 from test_team_package import RETIRED  # noqa: E402  (the single retired-names list)
+# v4.0.0 (ledger W2 coupled_W10_edit): RETIRED also names the retired agent file and the old output style
+# (agents/orchestrator.md, output-styles/oliver.md). Name patterns here are skill patterns, so they are derived
+# from the skill keys only; the persona/agent tombstone is A6 (tests/test_skill_names.py), and every key -- skill
+# or not -- must still be absent with its replacement present (test_retired_dirs_are_gone_and_replacements_exist).
+SKILL_RETIRED = {k: v for k, v in RETIRED.items() if k.startswith("skills/")}
 
 SCAN = (
     "agents", "commands", "output-styles", "skills/workflow", "skills/ops", "skills/ui", "skills/style",
@@ -27,13 +32,13 @@ SCAN = (
     "eval/prompts", ".github", ".enforcement-map.json", ".rule-migrations.json", ".preload-budget",
     ".skill-metadata-budget", ".agent-core-budget", ".workflow-scenario-budget", ".claude-plugin",
     ".cursor-plugin", "plugins/shode-house", "Makefile", "README.md", "CLAUDE.md", "AGENTS.md",
-    "docs/enforcement-map.md", "docs/bd-quickstart.md",
+    "docs/enforcement-map.md", "docs/bd-quickstart.md", "docs/cowork-validator-history.md", "docs/repo-invariants",
 )
 MARKER = "tombstone-allow"
 FORMERLY = re.compile(r"formerly (the )?$")   # must sit directly before the retired name (Quinn M-1)
 
 
-def pattern(retired=RETIRED):
+def pattern(retired=SKILL_RETIRED):
     parts = []
     for path in retired:
         _, bucket, name, _ = path.split("/")
@@ -49,7 +54,7 @@ def frozen(root):
     return {l.split(None, 1)[1].strip().lstrip("*") for l in sums.read_text().splitlines() if l.strip()} if sums.is_file() else set()
 
 
-def scan(root=ROOT, retired=RETIRED):
+def scan(root=ROOT, retired=SKILL_RETIRED):
     pat, skip, hits = pattern(retired), frozen(root), []
     for entry in SCAN:
         base = root / entry
@@ -75,14 +80,18 @@ def scan(root=ROOT, retired=RETIRED):
 class TombstoneTest(unittest.TestCase):
     def test_retired_dirs_are_gone_and_replacements_exist(self):
         for old, new in RETIRED.items():
-            self.assertFalse((ROOT / old).parent.exists(), f"retired skill dir still present: {old}")
+            if old.startswith("skills/"):
+                self.assertFalse((ROOT / old).parent.exists(), f"retired skill dir still present: {old}")
+            else:   # a retired agent file or output style: the file itself is gone (its directory stays)
+                self.assertFalse((ROOT / old).exists(), f"retired file still present: {old}")
             self.assertTrue((ROOT / new).is_file(), f"replacement owner missing: {new}")
+        self.assertEqual(4, len(SKILL_RETIRED))
 
     def test_no_retired_name_on_the_scanned_surface(self):
         self.assertEqual([], scan())
 
     def test_negative_each_retired_name_is_caught(self):
-        names = [p.split("/")[2] for p in RETIRED]
+        names = [p.split("/")[2] for p in SKILL_RETIRED]
         bare = [n for n in names if not n.startswith("shode-house-")]
         self.assertTrue(bare, "negative test needs the un-prefixed retired name")
         with tempfile.TemporaryDirectory() as d:
@@ -90,7 +99,7 @@ class TombstoneTest(unittest.TestCase):
             lines = [f"load `{n}` first" for n in names]                      # backticked (bare name included)
             lines += [f"see the {n} skill" for n in bare] + [f"run /shode-house:{n}" for n in bare]
             lines += [f"per {n} rules" for n in names if n not in bare]      # bare prefixed name
-            lines += [f"read skills/{p.split('/')[1]}/{p.split('/')[2]}/SKILL.md" for p in RETIRED]
+            lines += [f"read skills/{p.split('/')[1]}/{p.split('/')[2]}/SKILL.md" for p in SKILL_RETIRED]
             (root / "agents" / "x.md").write_text("\n".join(lines) + "\n")
             self.assertEqual(len(lines), len(scan(root)))
             allowed = [f"formerly `{bare[0]}`", f"`{bare[0]}`  # tombstone-allow", f"a {bare[0]} with the client", "shode-house-driftwood"]

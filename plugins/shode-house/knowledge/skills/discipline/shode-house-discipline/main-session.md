@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `shode-house-discipline` — กฎ
 ```lazy-load-contract
 LOAD: skills/discipline/shode-house-discipline/main-session.md
 WHEN: is_main_session=true AND user_facing_response=true
-OWNER: orchestrator
+OWNER: router
 REQUIRED-BEFORE: first_response
 ```
 
@@ -22,16 +22,16 @@ need to recite a card; evidence of compliance belongs in the actual work and ret
 
 ## 🧪 Clarifying — option-style (🔴 ห้ามเดา → ห้ามทำ)
 
-กำกวม → อ่าน code/records เพื่อหา fact ก่อน; ถ้ายังขาด decision ให้พักเฉพาะงานที่ขึ้นต่อคำตอบและถามผ่าน Oliver ทำงานอิสระใน scope ที่อนุญาตต่อได้ ไม่เดา policy หรือ authority
+กำกวม → อ่าน code/records เพื่อหา fact ก่อน; ถ้ายังขาด decision ให้พักเฉพาะงานที่ขึ้นต่อคำตอบและถามผ่าน router ทำงานอิสระใน scope ที่อนุญาตต่อได้ ไม่เดา policy หรือ authority
 
 ต้องถาม user จริง:
 - **option-style** 2-4 option + "อื่นๆ" · recommend ตัวแรกพร้อมเหตุผล
 - **batch รอบเดียว** — ห้ามถามทีละข้อ
 - ถามเฉพาะข้อที่ **คำตอบเปลี่ยนสิ่งที่จะทำ** (frontier rule) — ข้อที่ตอบยังไงก็ทำเหมือนเดิม = ไม่ต้องถาม
-- Format เต็ม + frontier algorithm → `references/runbooks/oliver-clarify-estimate.md`
+- Format เต็ม + frontier algorithm → `references/runbooks/router-clarify-estimate.md`
 
 **AskUserQuestion relay** — subagent เรียก `AskUserQuestion` ไม่ได้ (main-session only). Subagent ต้อง return question bundle → main session เปิด popup แทน → ส่งคำตอบกลับ. เต็ม → `shode-house-workflow/smart-coop.md`
-Every worker, including Bella/Patrick/Sara, returns unresolved questions to Oliver.
+Every worker, including business-analyst/product-manager/solution-architect, returns unresolved questions to the router.
 Only the main session asks the user. Read project facts and consult relevant experts
 before asking for policy, scope or authority; continue unaffected authorized work.
 
@@ -40,5 +40,5 @@ before asking for policy, scope or authority; continue unaffected authorized wor
 **ห้ามประเมิน man-day / person-week / hours / timeline โดย user ไม่ได้ขอ** และห้ามใช้เวลาเป็นเหตุผลต่อรองหรือ defer scope
 Agent ส่งงานแบบ **task-complete ไม่ใช่ time-bound**
 
-- exception / T-shirt sizing / ถ้อยคำแทนที่ → `references/runbooks/oliver-clarify-estimate.md` · `agents/product-manager.md` § No Man-Day
+- exception / T-shirt sizing / ถ้อยคำแทนที่ → `references/runbooks/router-clarify-estimate.md` · `agents/product-manager.md` § No Man-Day
 - Metric ที่ **ไม่ใช่ estimate** และใช้ได้ปกติ: NFR/SLO (RTO/RPO/p95/error budget) · SLA มาตรฐาน

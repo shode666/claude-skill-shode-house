@@ -5,22 +5,22 @@ description: Set up a project's test automation strategy and infrastructure, mea
 
 # Automate Test (CI test gate + pyramid)
 
-> **Owner**: Quinn (design + integration/E2E) + Chris (unit) + Aaron (CI wiring)
+> **Owner**: qa-engineer (design + integration/E2E) + code-reviewer (unit) + devops-engineer (CI wiring)
 
 ## When NOT to use
 
 - **Single-file script / utility** — manual test ครั้งเดียวพอ ไม่ต้อง pyramid
 - **POC / spike** ก่อน decision — เน้น exploration; test มา phase 2
 - **Pure data migration** (one-shot) — ตรวจด้วย count/checksum + rollback plan; pyramid overkill
-- **Legacy codebase ที่ Quinn ยังไม่ baseline** — Quinn ต้อง `coverage report` baseline ก่อน
+- **Legacy codebase ที่ qa-engineer ยังไม่ baseline** — qa-engineer ต้อง `coverage report` baseline ก่อน
 
 ## Required inputs — discover before selecting gates
 
 ก่อนเริ่ม test strategy ต้องมี:
 
 - [ ] **Tech stack ระบุ** (language + framework — เพื่อเลือก test tool ที่ฟิต)
-- [ ] **Service boundary clear** (อะไรเป็น unit, อะไรเป็น integration — ต้องมี SA หรือ Dave ระบุ)
-- [ ] **CI platform ระบุ** (GitHub Actions / GitLab / CircleCI — สำหรับ Aaron wire gate)
+- [ ] **Service boundary clear** (อะไรเป็น unit, อะไรเป็น integration — ต้องมี SA หรือ developer ระบุ)
+- [ ] **CI platform ระบุ** (GitHub Actions / GitLab / CircleCI — สำหรับ devops-engineer wire gate)
 - [ ] **Baseline coverage** (ถ้า legacy: รัน `coverage report` หา starting point; ห้ามตั้ง threshold ลอย ๆ)
 - [ ] **Test data strategy** (fixture / factory / production sample / synthetic — ห้าม "เดี๋ยวค่อย mock")
 
@@ -30,9 +30,9 @@ dependent configuration; continue authorized baseline collection and preparation
 ## Test Pyramid (planning heuristic)
 
 ```
-       /E2E\         10% (Quinn — Playwright)
-      /Integ\        20% (Quinn — Testcontainers)
-     / Unit  \       70% (Chris — pytest/Vitest/JUnit)
+       /E2E\         10% (qa-engineer — Playwright)
+      /Integ\        20% (qa-engineer — Testcontainers)
+     / Unit  \       70% (code-reviewer — pytest/Vitest/JUnit)
 ```
 
 ❌ Anti-pattern (inverted pyramid): E2E เยอะ = slow, fragile, expensive
@@ -63,7 +63,7 @@ jobs or new test infrastructure to every project.
 
 ## Threshold (เก็บใน config)
 
-Defaults below are examples until the project adopts them; Chris grades by risk.
+Defaults below are examples until the project adopts them; code-reviewer grades by risk.
 
 - Unit coverage: business ≥ 80%, infra ≥ 50%
 - Integration: critical path 100%, normal 70%+
@@ -74,23 +74,23 @@ Defaults below are examples until the project adopts them; Chris grades by risk.
 
 ## Test Types & Tools
 
-### Unit (Chris)
+### Unit (code-reviewer)
 - pytest (Py), Vitest+Jest (JS/TS), testing+testify (Go), JUnit+Mockito (Java/Kt)
 - Property-based: Hypothesis, fast-check
 - Mutation: mutmut, Stryker
 
-### Integration (Quinn)
+### Integration (qa-engineer)
 - **Testcontainers** (Postgres/Redis/Kafka/MinIO/Elastic) — real services
 - WireMock — mock HTTP boundary
 - Schemathesis — OpenAPI fuzz
 - DB tx rollback / isolated DB per test
 
-### Contract (Quinn — microservices essential)
+### Contract (qa-engineer — microservices essential)
 - **Pact** (consumer-driven): consumer publish → provider verify
 - Pactflow broker
 - Run ใน CI ทั้งสอง side
 
-### Performance (Quinn — nightly)
+### Performance (qa-engineer — nightly)
 - **k6** (recommended) / Gatling / Locust / JMeter
 - Load (sustained peak), Stress (find breaking), Soak (long-run leak), Spike (sudden ramp)
 
@@ -99,7 +99,7 @@ Defaults below are examples until the project adopts them; Chris grades by risk.
 - Inject: kill pod, latency, partition, disk fill
 - Run: staging continuous, prod scheduled
 
-## CI Pipeline (Aaron set up)
+## CI Pipeline (devops-engineer set up)
 
 ```yaml
 on: [push, pull_request]
@@ -124,7 +124,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
 ```
 
-Aaron configures applicable adopted checks as required, within authorized CI scope.
+devops-engineer configures applicable adopted checks as required, within authorized CI scope.
 The pipeline is illustrative; promotion to production requires actual deployment
 authorization and the project's release gates.
 
@@ -136,10 +136,10 @@ authorization and the project's release gates.
 
 ## Hand-off
 
-- Dave: smoke test + emit observability (`/health`, metric, trace)
-- Chris: unit test deep + edge case
-- Quinn: integration + E2E + contract + perf
-- Aaron: wire เข้า CI + threshold + alert
+- developer: smoke test + emit observability (`/health`, metric, trace)
+- code-reviewer: unit test deep + edge case
+- qa-engineer: integration + E2E + contract + perf
+- devops-engineer: wire เข้า CI + threshold + alert
 
 ## ห้าม
 

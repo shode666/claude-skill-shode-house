@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `drain` — fan-out brief/runners, 
 ```lazy-load-contract
 LOAD: skills/ops/drain/execution.md
 WHEN: drain_eligibility_confirmed=true
-OWNER: orchestrator
+OWNER: router
 REQUIRED-BEFORE: drain_fan_out
 ```
 
@@ -20,7 +20,7 @@ REQUIRED-BEFORE: drain_fan_out
 **COMMON brief** (ฝังในทุก agent prompt — sub-agent เกิดใน context ว่าง):
 
 ```
-ทำเฉพาะ assigned item ใน verified isolated workspace. Oliver owns tracker writes. Load role/prerequisites and accessible acceptance/evidence; return questions when inputs are missing.
+ทำเฉพาะ assigned item ใน verified isolated workspace. router owns tracker writes. Load role/prerequisites and accessible acceptance/evidence; return questions when inputs are missing.
 HARD RULES:
 - TDD ถ้าเป็น code: failing unit test ก่อน → fix → green
 - Run targeted project tests; serialize shared integration/E2E resources. Outstanding required tests block acceptance until run.
@@ -35,7 +35,7 @@ Return structured: verdict, assigned branch, source revision, commit_sha if crea
 **Verdict enum**: `FIXED` · `FALSE_POSITIVE` · `PARTIAL` · `BLOCKED`
 
 **Runner A — optional host-specific example**: `skills/ops/drain/workflow-template.js`; not a prerequisite. Verify host APIs/isolation before adoption, and supply only one capacity-limited ready wave.
-**Runner B — native host delegation**: use actual host tools within its active-worker limit. Oliver provisions isolated workspaces; no invented Task API. This example requires branch-creation authority and a validated unused destination:
+**Runner B — native host delegation**: use actual host tools within its active-worker limit. router provisions isolated workspaces; no invented Task API. This example requires branch-creation authority and a validated unused destination:
 
 ```bash
 git worktree add ../$(basename $PWD)-<ID> -b fix/<ID>

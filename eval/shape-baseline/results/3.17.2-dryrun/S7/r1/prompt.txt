@@ -1,0 +1,1 @@
+/shode-house:review รีวิว commit "feat(ledger): posting with card reference" เทียบกับ commit ก่อนหน้า ก่อน merge

@@ -71,7 +71,7 @@ scripts while a run is in progress. Every run that starts is kept (no retry-unti
 
 ```bash
 cd ~/workspace/shode-house
-# 1. run-path gate (FR-E-4): E01 x Sonnet x 1  -> outputs/eval-3.17/E01/sonnet-<UTC>/
+# 1. run-path gate (FR-E-4): E01 x Sonnet x 1  -> outputs/eval-<set>/E01/sonnet-<UTC>/ (<set> = 3.17 or 4.0, eval/core-set.sh)
 bash eval/run-e01.sh sonnet
 # 2. routing-probe baseline (FR-P0-4): plugin = baseline tag, harness = this checkout
 PLUGIN_REF=baseline-3.17 PROBE_IDS=all bash eval/run-probes.sh sonnet eval/baseline/3.16.3-probe
@@ -108,7 +108,7 @@ assumption would make all probe runs uninformative). Measured 2026-09-20 (Sonnet
 3 turns = 6–76 s each, USD 4.31 total (~USD 0.16/probe). Probes are now capped at 6 turns / USD 1 / 10 min, so
 expect somewhat more per probe; actual `cost_usd` per run is in `meta.json`.
 
-Send back: the whole run directory (`outputs/eval-3.17/E01/<run>/`, `eval/baseline/3.16.3-probe/`) or at least
+Send back: the whole run directory (`outputs/eval-<set>/E01/<run>/`, `<set>` = 4.0 on a 4.x checkout per `eval/core-set.sh`; `eval/baseline/3.16.3-probe/`) or at least
 `meta.json`, `score.txt`, `tools-seen.txt`, `run.stderr` and `SUMMARY.tsv`. Check `run.jsonl` for secrets before
 sharing outside the machine.
 
@@ -288,15 +288,19 @@ exit 0 PASS · 1 FAIL · 2 UNSCORABLE (input หาย — ไม่ใช่ PA
 
 🔴 **หลังแก้ plugin ทุกครั้ง (version เดิม)**: `claude plugin uninstall shode-house@shode-house && claude plugin install shode-house@shode-house` — `install` เฉย ๆ บอก already installed และใช้ cache เก่า (`~/.claude/plugins/cache/shode-house/shode-house/<ver>/`); ตรวจด้วย `grep -l 'REVIEW DISPATCH CARD' ~/.claude/plugins/cache/shode-house/shode-house/*/commands/review.md`
 
-## v3.17 core matrix — 17 core scenarios (`eval/run-core.sh`)
+## Core matrix — 17 core scenarios (`eval/run-core.sh`)
 
-E01 (frozen `eval/scenarios/golden.json`) + E02–E15, E10b, E1c (`eval/scenarios/core-3.17.json`); fixture per
+The set follows the plugin major of the checkout (`eval/core-set.sh`, the one selector both runners use): 4.x scores
+E01..E15, E10b, E1c from `eval/scenarios/core-4.0/core-4.0.json` (frozen by its own `FREEZE.sha256`, derived from the
+3.17 files: `bash eval/scenarios/core-4.0/check-freeze.sh`) and writes to `outputs/eval-4.0/`; 3.x scores
+E01 (frozen `eval/scenarios/golden.json`) + E02–E15, E10b, E1c (`eval/scenarios/core-3.17.json`) into `outputs/eval-3.17/`.
+Any other major is refused. Never mix core-3.17 and core-4.0 results in one comparison (the batch log names the set). Fixture per
 scenario = `scripts/eval-fixture-core.sh --scenario <id>` (frozen fixture + that scenario's assets only). Same
 rules as above: fresh fixture under `$TMPDIR`, evidence never overwritten, every started run kept, a FAIL is never retried.
 
 ```bash
 cd ~/workspace/shode-house
-bash eval/run-core.sh sonnet                                   # all 17 -> outputs/eval-3.17/core/sonnet-<UTC>/<id>/
+bash eval/run-core.sh sonnet                                   # all 17 -> outputs/eval-<set>/core/sonnet-<UTC>/<id>/
 CORE_IDS="E10 E10b E1c" bash eval/run-core.sh sonnet <out-dir> # subset; re-invoke with the SAME out-dir to resume
 PLUGIN_REF=<ref> bash eval/run-core.sh opus <new-out-dir>      # other model / plugin ref = a NEW directory
 ```

@@ -9,13 +9,8 @@
     "deploy": "policy layer: devops-deploy capability owner only (capabilities.json: devops-engineer, sole owner -- zero overlap rule)",
     "deploy_prod": "policy layer: subset of deploy; ROADMAP SS 11.1 names devops-engineer as the only deploy_prod=true role. permission-check.sh additionally requires the run_commands tool grant as a prerequisite, so a policy typo alone can never widen access"
   },
+  "_retired": "orchestrator has no profile (W8): the router is the main session's output style, not a registered agent type, so it is never checked here. A retired name is UNKNOWN (exit 2), never an ALLOW.",
   "profiles": {
-    "orchestrator": {
-      "source": "agents/orchestrator.md",
-      "tools": ["Read", "Write", "Edit", "Glob", "Grep", "Task", "Bash", "Skill"],
-      "tool_grants": { "write_files": true, "run_commands": true, "spawn": true, "network": false },
-      "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
-    },
     "product-manager": {
       "source": "agents/product-manager.md",
       "tools": ["Read", "Write", "Edit", "WebSearch", "WebFetch", "Grep", "Glob", "Skill"],
@@ -78,8 +73,8 @@
     },
     "ux-ui-designer": {
       "source": "agents/ux-ui-designer.md",
-      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "WebSearch", "WebFetch", "Skill"],
-      "tool_grants": { "write_files": true, "run_commands": true, "spawn": false, "network": true },
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "WebSearch", "WebFetch", "Skill"],
+      "tool_grants": { "write_files": true, "run_commands": false, "spawn": false, "network": true },
       "policy": { "write_code": false, "deploy": false, "deploy_prod": false }
     },
     "fintech-expert": {

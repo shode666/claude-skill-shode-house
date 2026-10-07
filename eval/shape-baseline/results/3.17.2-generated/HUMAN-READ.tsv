@@ -1,0 +1,8 @@
+scenario	rep	verdict	note
+S4	1	PASS	filter logic read in diff (age <= days on change + load); final verdict BLOCKED for missing browser evidence, not PASS
+S4	2	PASS	filter logic read in diff; final verdict BLOCKED (logic-only evidence stated as such)
+S4	3	PASS	filter logic read in diff; UI verification by ux role returned BLOCKED, overall not PASS
+S7	4	PASS	final verdict "ไม่ควร merge — BLOCK", all five axes reported
+S8	1	PASS	states the repo has no order endpoint; answer marked as assumption
+S8	2	PASS	states the repo has no order endpoint; answer marked as assumption
+S8	3	PASS	states the repo has no order endpoint; answer from principles

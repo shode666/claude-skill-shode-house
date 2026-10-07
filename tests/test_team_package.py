@@ -22,6 +22,18 @@ RETIRED = {
     "skills/discipline/shode-house-evidence/SKILL.md": "skills/discipline/shode-house-discipline/SKILL.md",  # tombstone-allow
     "skills/discipline/shode-house-broadcast/SKILL.md": "skills/discipline/shode-house-discipline/handoff.md",  # tombstone-allow
     "skills/discipline/shode-house-drift/SKILL.md": "skills/discipline/shode-house-workflow/drift.md",  # tombstone-allow
+    # v4.0.0 switch (ADR iter 5 §5.2/§5.3): the router is the output style; no stub agent, no old style.
+    "agents/orchestrator.md": "output-styles/shode-house.md",  # tombstone-allow
+    "output-styles/oliver.md": "output-styles/shode-house.md",  # tombstone-allow
+}
+
+
+# v4 W7 (S3): persona-named runbooks renamed with their pointers (UD R9, A6); old path -> new path.
+RENAMED = {
+    "references/runbooks/oliver-clarify-estimate.md": "references/runbooks/router-clarify-estimate.md",
+    "references/runbooks/oliver-engagement.md": "references/runbooks/router-engagement.md",
+    "references/runbooks/uma-phase-1b.md": "references/runbooks/ux-ui-designer-phase-1b.md",
+    "references/runbooks/uma-phase-3a.md": "references/runbooks/ux-ui-designer-phase-3a.md",
 }
 
 
@@ -40,7 +52,7 @@ def required_paths():
     if not set(RETIRED) <= paths:
         raise RuntimeError("RETIRED names a path that the recovery baseline never shipped")
     # A retired path is replaced, not dropped: its owner must ship, and the old path must NOT.
-    return (paths - set(RETIRED)) | set(RETIRED.values())
+    return (paths - set(RETIRED) - set(RENAMED)) | set(RETIRED.values()) | set(RENAMED.values())
 
 
 def check(package):
@@ -66,7 +78,7 @@ def check(package):
         for path in sorted(mismatched):
             print("  differs from candidate source:", path)
         return 1
-    print(f"PASS: 19 agents, 23 baseline skills ({len(RETIRED)} retired -> replacement owner present); "
+    print(f"PASS: 19 baseline agents, 23 baseline skills ({len(RETIRED)} retired -> replacement owner present); "
           f"{len(required)} paths match candidate source bytes")
     print("NOT VERIFIED: delegation behavior, skill reachability, host parity or safety")
     return 0

@@ -1,0 +1,15 @@
+diff --git a/outputs/bd-105/00-run-stamp.md b/outputs/bd-105/00-run-stamp.md
+index 91141f9..75d8540 100644
+--- a/outputs/bd-105/00-run-stamp.md
++++ b/outputs/bd-105/00-run-stamp.md
+@@ -1,6 +1,6 @@
+ run_id      : eval-bd-105
+-phase_done  : phase-1a
+-phase_next  : (ยังไม่ได้ตัดสิน)
++phase_done  : phase-1c (Sentinel, iter 1)
++phase_next  : phase-1a revision (Bella ∥ Sara) after user decisions D-2/Q-2/Q-3 → then phase-2 Dave
+ iter        : 1
+-artifacts   : outputs/SPEC-bd-105.md
+-approval    : phase-1a signed off
++artifacts   : outputs/SPEC-bd-105.md, outputs/bd-105/01-sentinel-phase-1c.md
++approval    : phase-1a signed off; phase-1c pending user decision on spec additions (SAC-12, D-2, Q-2, Q-3)

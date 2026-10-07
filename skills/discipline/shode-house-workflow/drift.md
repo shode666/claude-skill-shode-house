@@ -6,60 +6,60 @@ description: Reference (lazy-load) ของ `shode-house-workflow` — Drift De
 ```lazy-load-contract
 LOAD: skills/discipline/shode-house-workflow/drift.md
 WHEN: drift_detected=true OR done_claim_disputed=true OR state_recovery=true OR task_close=true
-OWNER: orchestrator
+OWNER: router
 REQUIRED-BEFORE: claim_done_or_close_task
 ```
 
 # Workflow Drift Defense — detail (M3 · M6 · M8 + phase notes)
 
-> v3.0 invariants ที่ Oliver enforce ทุก message. ขาด mechanism ไหน = workflow drift จะกลับมา
+> v3.0 invariants ที่ router enforce ทุก message. ขาด mechanism ไหน = workflow drift จะกลับมา
 
 ### M1 — Ingress Guard → ย้ายไป `shode-house-discipline` § M1
 
-M1 บังคับที่ **ทุก agent** ไม่ใช่แค่ Oliver → ย้ายเข้า skill ที่ทุก agent preload เพื่อการันตีว่าถึงจริง
-`shode-house-workflow` = **M2–M7 (Oliver enforcer)** เท่านั้น
+M1 บังคับที่ **ทุก agent** ไม่ใช่แค่ router → ย้ายเข้า skill ที่ทุก agent preload เพื่อการันตีว่าถึงจริง
+`shode-house-workflow` = **M2–M7 (router enforcer)** เท่านั้น
 
 ### M2/M4/M5/M7 — why + M7 example (detection rules themselves stay in SKILL.md root)
 
-แก้ปัญหา **agent หลุด workflow ใน follow-up message** — Dave บอก "เสร็จแล้ว" โดยไม่ผ่าน Verify, fix ตรงโดยไม่ผ่าน Phase 1a
+แก้ปัญหา **agent หลุด workflow ใน follow-up message** — developer บอก "เสร็จแล้ว" โดยไม่ผ่าน Verify, fix ตรงโดยไม่ผ่าน Phase 1a
 
 ```
-User direct ping → Dave (bypass Oliver):
-  ❌ WRONG: Dave "OK ครับ" ทำ
-  ✅ RIGHT: Dave ▸ "ผมต้อง escalate Oliver ก่อน — message นอก phase context
+User direct ping → developer (bypass router):
+  ❌ WRONG: developer "OK ครับ" ทำ
+  ✅ RIGHT: developer ▸ "ผมต้อง escalate router ก่อน — message นอก phase context
                    (bd-42 state:review-pending). Classify ก่อน"
-  → Oliver ingest, re-classify (M2)
+  → router ingest, re-classify (M2)
 ```
 
 ### M3 — Anti-Puppet "Done" (extend v2.8.1 Anti-Puppet)
 
 | Agent | Can say | Can NOT say |
 |-------|---------|-------------|
-| Dave | "code edited", "smoke ✓" | "feature done", "ready merge" |
-| Chris | "7-dim clean", "unit ≥ 80%" | "ready merge", "ready prod" |
-| Quinn | "E2E green", "load p95 ok" | "ready prod" |
-| Sentinel | "STRIDE pass", "0 critical" | "secure" (without observability proof) |
-| Uma | "UI verdict PASS" | "shipped" |
-| **Oliver** | "ready merge" only with applicable independent reviews and triggered experts per harness tier, current evidence and merge authority | — |
-| **Reggie** | "✓ prod stable" — ต้อง SLO 2hr observed | — |
+| developer | "code edited", "smoke ✓" | "feature done", "ready merge" |
+| code-reviewer | "7-dim clean", "unit ≥ 80%" | "ready merge", "ready prod" |
+| qa-engineer | "E2E green", "load p95 ok" | "ready prod" |
+| security-engineer | "STRIDE pass", "0 critical" | "secure" (without observability proof) |
+| ux-ui-designer | "UI verdict PASS" | "shipped" |
+| **router** | "ready merge" only with applicable independent reviews and triggered experts per harness tier, current evidence and merge authority | — |
+| **sre-engineer** | "✓ prod stable" — ต้อง SLO 2hr observed | — |
 
 ### M6 — Conversation State pin (persistent)
 
-Oliver maintain current checkpoint ใน record ที่ project ยืนยันตาม `shode-house-workflow/harness.md`. ตัวอย่าง Markdown ต่อไปนี้ไม่บังคับสร้าง `outputs/SESSION-STATE.md` ซ้ำ:
+router maintain current checkpoint ใน record ที่ project ยืนยันตาม `shode-house-workflow/harness.md`. ตัวอย่าง Markdown ต่อไปนี้ไม่บังคับสร้าง `outputs/SESSION-STATE.md` ซ้ำ:
 ```
 Active Engagement: E-1 "Refund flow"
 Active bd issues:
-  - bd-42 : state:review-pending  iter:2  last:Chris-3b
-  - bd-43 : state:impl             iter:1  last:Dave#2
+  - bd-42 : state:review-pending  iter:2  last:code-reviewer-3b
+  - bd-43 : state:impl             iter:1  last:developer#2
 
 Last handoff:
-  Dave ▸ Verify (bd-42, iter:2)
+  developer ▸ Verify (bd-42, iter:2)
 
 Pending gates:
-  - pre-loop-exit (bd-42) : waiting Quinn + Sentinel notes
+  - pre-loop-exit (bd-42) : waiting qa-engineer + security-engineer notes
 ```
 
-ทุก agent อ่าน current task record ที่ Oliver ส่งมาและ artifacts ที่เกี่ยวข้องก่อนลงมือ; ไม่บังคับโหลด checkpoint ทุก task หรือ history ทั้งหมด
+ทุก agent อ่าน current task record ที่ router ส่งมาและ artifacts ที่เกี่ยวข้องก่อนลงมือ; ไม่บังคับโหลด checkpoint ทุก task หรือ history ทั้งหมด
 
 ### M8 — Close-on-Done Guard (ปิดช่อง stale-open)
 
@@ -74,10 +74,10 @@ In the confirmed tracker (Beads commands → harness.md § Beads example):
 
 | Agent | Can say | Can NOT say |
 |-------|---------|-------------|
-| **Oliver** | "bd-42 CLOSED [paste tracker read-back]" | "ปิด bd แล้ว" / "เคลียร์ backlog แล้ว" (ไม่มี output) |
-| Dave/Chris/Quinn | "verdict FIXED, sha a1b2c3d, 214 passed" | "ปิด bd ให้แล้ว" (close = Oliver Phase 4 เท่านั้น) |
+| **router** | "bd-42 CLOSED [paste tracker read-back]" | "ปิด bd แล้ว" / "เคลียร์ backlog แล้ว" (ไม่มี output) |
+| developer/code-reviewer/qa-engineer | "verdict FIXED, sha a1b2c3d, 214 passed" | "ปิด bd ให้แล้ว" (close = router Phase 4 เท่านั้น) |
 
-For any tracker, Oliver updates the canonical task after required acceptance and
+For any tracker, the router updates the canonical task after required acceptance and
 authorized closure, then reads it back. Record the revision and actual evidence.
 Unavailable remote updates remain pending sync; never create a parallel tracker
 or claim CLOSED without the authoritative result.
@@ -88,25 +88,25 @@ or claim CLOSED without the authoritative result.
 - ❌ close `PARTIAL` / `BLOCKED` ให้ตัวเลขสวย — **คง OPEN + note ตรงไปตรงมา**
 - ❌ เชื่อ list/summary view เป็นหลักฐานสถานะ — read-back ของ task นั้นเท่านั้นที่ trust ได้
 
-**Batch / backlog run** (หลาย item รอบเดียว) → ใช้ `drain` skill; Step 5 = close-on-done + read-back verify ทุก item
+**Batch / backlog run** (หลาย item รอบเดียว) → load `shode-house:drain`; Step 5 = close-on-done + read-back verify ทุก item
 
 ## 🆕 New Phases
 
 ### Phase 0 — Discovery (NEW)
-- **Owner**: 🔍 Discover Team (Patrick + Domain SME)
+- **Owner**: 🔍 Discover Team (product-manager + Domain SME)
 - **Trigger**: New initiative, no task yet (continuous — not sprint-bound)
 - **Output**: OKR + opportunity sizing + RICE/WSJF priority + Domain pain validation
 - **Gate**: `pre-spec` — sign-off ก่อน Phase 1a Foundation
 - **Why**: validate the opportunity before speculative specification work
 
 ### Phase 6 — Operate (NEW — continuous post-deploy)
-- **Owner**: 🚀 Reggie (lead) + Aaron (infra) + Oliver (escalation routing)
+- **Owner**: 🚀 sre-engineer (lead) + devops-engineer (infra) + router (escalation routing)
 - **Trigger**: post-deploy continuous
 - **Output**: SLO burn rate watch + incident response + blameless postmortem + runbook update
-- **Escalation**: error budget < 0 → ping Patrick (PM) for feature freeze conversation
+- **Escalation**: error budget < 0 → ping product-manager (PM) for feature freeze conversation
 
 ### ~~Phase 7 — Learn (REMOVED v3.3)~~
-- **v3.3 change**: Phase 7 sprint retro deprecated — per-bd reflect in Phase 4 Triage (Oliver records the lesson in the checkpoint retro per `harness.md`)
-- **Patrick OKR review**: continuous (per-bd contribution to OKR; no sprint bracket)
-- **Tech debt RICE**: continuous backlog priority by Patrick (Stan tech-debt input)
+- **v3.3 change**: Phase 7 sprint retro deprecated — per-bd reflect in Phase 4 Triage (router records the lesson in the checkpoint retro per `harness.md`)
+- **product-manager OKR review**: continuous (per-bd contribution to OKR; no sprint bracket)
+- **Tech debt RICE**: continuous backlog priority by product-manager (staff-engineer tech-debt input)
 - **ห้ามใช้** `/sprint close retro` — command removed

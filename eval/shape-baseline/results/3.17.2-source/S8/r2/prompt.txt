@@ -1,0 +1,1 @@
+/shode-house:consult ระบบ order ของเรามี endpoint เดียวรับ 3 หน้าที่ (create/update/cancel) ควรแยกไหม

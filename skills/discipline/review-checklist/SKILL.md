@@ -14,26 +14,26 @@ are not mere docs; urgency alone never waives required review or security gates.
 
 ## Inputs and decision boundaries
 
-spec source · configured checks · evidence home · severity scale → หาเองจาก repo/task record (ลำดับ + default → `intake.md`); not found → return to Oliver; when to ask → `shode-house-discipline` § Ask vs derive
+spec source · configured checks · evidence home · severity scale → หาเองจาก repo/task record (ลำดับ + default → `intake.md`); not found → return to the router; when to ask → `shode-house-discipline` § Ask vs derive
 
 ### Stop and return
 
-- diff scope ยังไม่ pin (fixed point หรือ supplied content ไม่ครบ) → ส่งกลับ Oliver — reviewer ไม่เดา scope เอง
-- spec source ไม่มี = รายงาน "no spec available" ห้าม pass เงียบ
+- diff scope ยังไม่ pin (fixed point หรือ supplied content ไม่ครบ) → ส่งกลับ router — reviewer ไม่เดา scope เอง
+- spec source ไม่มี = Spec axis คืน `BLOCKED: no-spec` ห้าม pass เงียบ
 
 ## แกนของการ review — ใครทำอะไร
 
-- **Standards** — Chris → `agents/code-reviewer.md` § 7 มิติ; Correctness = internal behavior/invariant/error-path เท่านั้น
-- **Standards / runtime** — Quinn → `agents/qa-engineer.md` § ขอบเขต (integration/E2E/contract/load/a11y/pen)
-- **Spec** — Bella → `spec-axis.md`
-- **Security depth** (cond.) — Sentinel → `security-sentinel.md` + `secure` skill
+- **Standards** — code-reviewer → `agents/code-reviewer.md` § 7 มิติ; Correctness = internal behavior/invariant/error-path เท่านั้น
+- **Standards / runtime** — qa-engineer → `agents/qa-engineer.md` § ขอบเขต (integration/E2E/contract/load/a11y/pen)
+- **Spec** — business-analyst → `spec-axis.md`
+- **Security depth** (cond.) — security-engineer → `security-sentinel.md` + `shode-house:secure` skill
 - **Domain** (cond.) — domain expert → `domain-validation.md`
 
 ## 🔴 Aggregation rule
 
 - **Standards กับ Spec เป็นคนละ sub-agent เสมอ** — context ห้ามปน
 - แยกหัวข้อ `## Standards` / `## Spec` · **ห้าม merge หรือ rerank ข้ามแกน** · ปิดท้าย 1 บรรทัด: จำนวน finding + ตัวแย่สุด **ในแต่ละแกน**
-- **requirement conformity เป็นของ Spec axis เท่านั้น** — Chris ห้ามตรวจซ้ำ
+- **requirement conformity เป็นของ Spec axis เท่านั้น** — code-reviewer ห้ามตรวจซ้ำ
 
 ## Severity Grading (schema เดียวทุกแกน)
 
@@ -50,7 +50,7 @@ spec source · configured checks · evidence home · severity scale → หา�
 3. **Visual verify** — UI changes require actual screenshot/interaction, console and network evidence per `ui-test`. Backend-only API/CLI/library work uses response, behavior and relevant integration evidence, not screenshots. Missing applicable evidence = **BLOCKED**; browser MCP is not required.
 4. **Finding ทุกข้อ** ระบุ `file:line` + severity + วิธีแก้ และ track ใน tracker ไม่ใช่ค้างในแชท
 5. **Scope is pinned; severity follows impact.** Blockers need violated AC/invariant/security criteria or a demonstrated defect, including unchanged code newly exposed by this change. Unrelated findings retain severity but require separate repair authority. Hypothetical unsupported inputs alone do not justify new iterations.
-6. **money/PII/auth** → Domain Expert + Sentinel ลงชื่อก่อน merge
+6. **money/PII/auth** → Domain Expert + security-engineer ลงชื่อก่อน merge
 7. **Fixed point** — review scope = `git diff <base>...HEAD` (three-dot = merge-base), pin ก่อน fan-out
 8. **Reviewer independence** — no agent approves its own primary deliverable
 

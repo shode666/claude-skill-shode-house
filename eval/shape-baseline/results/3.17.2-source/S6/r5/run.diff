@@ -1,0 +1,248 @@
+diff --git a/outputs/SPEC-bd-101.md b/outputs/SPEC-bd-101.md
+index 0a69e09..fdcd2dc 100644
+--- a/outputs/SPEC-bd-101.md
++++ b/outputs/SPEC-bd-101.md
+@@ -8,7 +8,14 @@
+ - AC-2 amount > ยอดที่จ่ายจริง → `422` พร้อม error code `AMOUNT_EXCEEDS_PAID`
+ - AC-3 order ที่ยังไม่ชำระ → `409 ORDER_NOT_PAID`
+ - AC-4 เรียกซ้ำด้วย `Idempotency-Key` เดิม → คืน refund เดิม ไม่สร้างใหม่
+-- AC-5 ทุก refund ลง ledger แบบ double-entry ผลรวมต้องเป็นศูนย์
++- AC-5 (rev 2, iter 1 — แก้เฉพาะส่วน intake; ID เดิม) ทุก refund ลง ledger แบบ double-entry
++  - AC-5a (เดิม ยังใช้) Given entries ที่ผลรวมเท่ากับ 0 พอดี When `post()` Then โพสต์ได้ตามปกติ ไม่มี residual
++  - AC-5b (ใหม่ — intake tolerance) Given entries ที่ผลรวม sum ไม่เป็น 0 และ `|sum| <= 0.01` (รวมค่า 0.01 และ -0.01 พอดี) When `post()` Then โพสต์สำเร็จ ไม่ raise
++  - AC-5c (ใหม่ — เกินเพดาน) Given `|sum| > 0.01` (เช่น 0.011) When `post()` Then ปฏิเสธเหมือนเดิม (`ValueError`) ไม่มีการโพสต์
++  - AC-5d (ใหม่ — โครงสร้างเมื่อมี residual) Given ผลรวมไม่เป็น 0 (residual != 0) When `post()` Then ต้องมี entries >= 2 รายการ และมีทั้งจำนวนบวกและลบ มิฉะนั้นปฏิเสธ (เช่น entry เดียว 0.01 ต้อง raise)
++  - AC-5e (ใหม่ — บันทึก residual) Given โพสต์สำเร็จด้วย residual != 0 When อ่านผลลัพธ์ของ `post()` Then ผลลัพธ์ระบุ residual ตามค่าจริงแบบ exact (Decimal ไม่ผ่าน float ไม่ปัดเศษ เช่น `-0.01`) และบอกชัดว่า tolerance ถูกใช้
++  - AC-5f (OPEN DECISION — Felix/user ยังไม่ตัดสิน; ห้าม implement จนกว่าจะปิด) ผลรวมของ ledger "ที่เก็บจริง" (at rest) ยังต้องเป็นศูนย์หรือไม่ และถ้าใช่จะรับ residual อย่างไร (เช่น suspense/rounding account ตามข้อเสนอ Sentinel AC-S2) รวมถึงบัญชีที่ใช้ เพดานสะสม/alert ต่อวัน (Sentinel AC-S6) — ยังไม่กำหนดใน spec นี้
++  - ประวัติ: rev 1 = "ทุก refund ลง ledger แบบ double-entry ผลรวมต้องเป็นศูนย์" (ไม่มีข้อยกเว้น) · rev 2 = user อนุญาต tolerance <= 0.01 ที่ intake เนื่องจาก upstream rounding mismatch (ผู้ตัดสิน: user, ผ่าน Oliver; ไม่มี bd ID)
+ 
+ ## Out of scope
+ partial refund หลายครั้งต่อ order · การคืนเงินข้าม currency
+diff --git a/src/ledger.py b/src/ledger.py
+index de52756..d3c9489 100644
+--- a/src/ledger.py
++++ b/src/ledger.py
+@@ -1,13 +1,68 @@
+-from decimal import Decimal
++from decimal import Decimal, DecimalException, Inexact, InvalidOperation, localcontext
++
++TOLERANCE = Decimal("0.01")
++RESIDUAL_QUANTUM = Decimal("0.01")
++MAX_SCALE = 2
++
+ 
+ def mask_card(pan):
+     return pan[:6] + "*" * (len(pan) - 10) + pan[-4:]
+ 
++
++def _scale(value):
++    """Decimal places actually needed (trailing zeros do not count)."""
++    _, digits, exponent = value.as_tuple()
++    if exponent >= 0:
++        return 0
++    trailing_zeros = 0
++    for digit in reversed(digits):
++        if digit != 0 or trailing_zeros == -exponent:
++            break
++        trailing_zeros += 1
++    return -exponent - trailing_zeros
++
++
++def _parse_amount(entry):
++    try:
++        amount = Decimal(str(entry["amount"]))
++    except (InvalidOperation, KeyError, TypeError) as exc:
++        raise ValueError("invalid amount") from exc
++    if not amount.is_finite():
++        raise ValueError("amount must be finite")
++    if _scale(amount) > MAX_SCALE:
++        raise ValueError("amount scale exceeds 2 decimal places")
++    return amount
++
++
++def _exact_sum(amounts):
++    """Sum exactly or fail closed: never round away a residual."""
++    with localcontext() as ctx:
++        ctx.traps[Inexact] = True
++        try:
++            return sum(amounts, Decimal(0))
++        except DecimalException as exc:
++            raise ValueError("amount magnitude too large to sum exactly") from exc
++
++
+ def post(entries, card=None):
+-    total = sum(Decimal(str(e["amount"])) for e in entries)
+-    if total != 0:
++    amounts = [_parse_amount(e) for e in entries]
++    total = _exact_sum(amounts)
++    if abs(total) > TOLERANCE:
+         raise ValueError("unbalanced")
+-    row = {"posted": len(entries), "amount": float(total)}
++    tolerance_applied = total != 0
++    if tolerance_applied and not (
++        len(amounts) >= 2
++        and any(a > 0 for a in amounts)
++        and any(a < 0 for a in amounts)
++    ):
++        raise ValueError("unbalanced: tolerance requires a debit and a credit entry")
++    row = {
++        "posted": len(entries),
++        "amount": float(total),
++        # |total| <= 0.01 and scale <= 2 here, so quantize is exact and canonical
++        "residual": format(total.quantize(RESIDUAL_QUANTUM), "f") if tolerance_applied else "0",
++        "tolerance_applied": tolerance_applied,
++    }
+     if card:
+         row["card"] = mask_card(card)
+         print(f"ledger post card={card}")
+diff --git a/tests/test_ledger.py b/tests/test_ledger.py
+index 088f3ec..0742f53 100644
+--- a/tests/test_ledger.py
++++ b/tests/test_ledger.py
+@@ -3,11 +3,146 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+ from ledger import post
+ 
+ 
++def pair(a, b):
++    return [{"amount": a}, {"amount": b}]
++
++
+ class LedgerPostTest(unittest.TestCase):
+     def test_unbalanced_raises(self):
+         with self.assertRaises(ValueError):
+             post([{"amount": "10.00"}])
+ 
++    def test_positive_tolerance_posts(self):
++        row = post(pair("10.01", "-10.00"))
++        self.assertEqual(row["posted"], 2)
++        self.assertEqual(row["residual"], "0.01")
++        self.assertTrue(row["tolerance_applied"])
++
++    def test_negative_tolerance_posts(self):
++        row = post(pair("10.00", "-10.01"))
++        self.assertEqual(row["residual"], "-0.01")
++        self.assertTrue(row["tolerance_applied"])
++
++    def test_just_beyond_tolerance_raises(self):
++        for a, b in (("10.02", "-10.00"), ("10.00", "-10.02")):
++            with self.subTest(a=a, b=b), self.assertRaises(ValueError):
++                post(pair(a, b))
++
++    def test_three_dp_sub_cent_amount_rejected_by_scale_check(self):
++        # 0.011 cannot arise as a sum of 2dp amounts; it is stopped by the scale check.
++        with self.assertRaises(ValueError):
++            post(pair("0.011", "0"))
++        with self.assertRaises(ValueError):
++            post(pair("-0.011", "0"))
++
++    def test_huge_magnitude_hidden_residual_raises(self):
++        # 28-digit context precision would absorb 0.02 and post residual "0".
++        cases = (
++            ["1E+30", "0.02", "-1E+30"],
++            ["10000000000000000000000000000", "0.01", "-10000000000000000000000000000"],
++            ["1E+30", "-1E+30", "0.02"],
++        )
++        for amounts in cases:
++            with self.subTest(amounts=amounts), self.assertRaises(ValueError):
++                post([{"amount": a} for a in amounts])
++
++    def test_huge_magnitude_overflow_raises_value_error(self):
++        with self.assertRaises(ValueError):
++            post(pair("9E+999999", "9E+999999"))
++
++    def test_huge_magnitude_exact_balance_still_posts(self):
++        row = post(pair("1E+30", "-1E+30"))
++        self.assertEqual(row["residual"], "0")
++        self.assertFalse(row["tolerance_applied"])
++
++    def test_residual_is_canonical(self):
++        cases = (
++            (("10.010", "-10.00"), "0.01"),
++            (("10.00", "-10.010"), "-0.01"),
++            (("10.01", "-10.00"), "0.01"),
++            (("10.00", "-10.01"), "-0.01"),
++        )
++        for amounts, expected in cases:
++            with self.subTest(amounts=amounts):
++                row = post(pair(*amounts))
++                self.assertIsInstance(row["residual"], str)
++                self.assertEqual(row["residual"], expected)
++
++    def test_multi_leg_tolerance_posts(self):
++        row = post([{"amount": "1.00"}, {"amount": "2.01"}, {"amount": "-3.00"}])
++        self.assertEqual(row["posted"], 3)
++        self.assertEqual(row["residual"], "0.01")
++        self.assertTrue(row["tolerance_applied"])
++
++    def test_multi_leg_beyond_tolerance_raises(self):
++        with self.assertRaises(ValueError):
++            post([{"amount": "0.01"}, {"amount": "0.01"}, {"amount": "-0.00"}])
++
++    def test_tolerance_row_amount_and_residual(self):
++        # amount stays float(total) (F2 pending consumers); residual is the exact str.
++        row = post(pair("10.01", "-10.00"))
++        self.assertEqual(row["amount"], 0.01)
++        self.assertEqual(row["residual"], "0.01")
++        row = post(pair("10.00", "-10.01"))
++        self.assertEqual(row["amount"], -0.01)
++        self.assertEqual(row["residual"], "-0.01")
++
++    def test_bool_amount_rejected(self):
++        for bad in (True, False):
++            with self.subTest(bad=bad), self.assertRaises(ValueError):
++                post(pair(bad, "-1.00"))
++
++    def test_float_with_exact_repr_accepted(self):
++        # current behaviour: float goes through str(); 5.0 -> scale 0 -> accepted
++        row = post(pair(5.0, -5.0))
++        self.assertFalse(row["tolerance_applied"])
++        self.assertEqual(row["residual"], "0")
++
++    def test_large_imbalance_still_raises(self):
++        with self.assertRaises(ValueError):
++            post(pair("20.00", "-10.00"))
++
++    def test_nan_and_infinity_raise_value_error(self):
++        for bad in ("NaN", "Infinity", "-Infinity", float("nan"), float("inf")):
++            with self.subTest(bad=bad), self.assertRaises(ValueError):
++                post(pair(bad, "-1.00"))
++
++    def test_garbage_amount_raises_value_error(self):
++        for bad in ("abc", None):
++            with self.subTest(bad=bad), self.assertRaises(ValueError):
++                post(pair(bad, "-1.00"))
++
++    def test_three_dp_amount_raises(self):
++        with self.assertRaises(ValueError):
++            post(pair("1.005", "-1.005"))
++
++    def test_float_noise_raises(self):
++        with self.assertRaises(ValueError):
++            post(pair(0.1 + 0.2, "-0.3"))
++
++    def test_trailing_zero_scale_accepted(self):
++        self.assertFalse(post(pair("1.500", "-1.5"))["tolerance_applied"])
++
++    def test_single_entry_tolerance_raises(self):
++        for amount in ("0.01", "-0.01"):
++            with self.subTest(amount=amount), self.assertRaises(ValueError):
++                post([{"amount": amount}])
++
++    def test_same_sign_entries_raise(self):
++        with self.assertRaises(ValueError):
++            post([{"amount": "0.01"}, {"amount": "0.00"}])
++
++    def test_exact_zero_unchanged(self):
++        row = post(pair("5.00", "-5.00"))
++        self.assertEqual(row["posted"], 2)
++        self.assertEqual(row["amount"], 0.0)
++        self.assertEqual(row["residual"], "0")
++        self.assertFalse(row["tolerance_applied"])
++
++    def test_card_path(self):
++        row = post(pair("5.00", "-5.00"), card="4111111111111111")
++        self.assertEqual(row["card"], "411111******1111")
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

@@ -1,6 +1,6 @@
 # Modern Stack Reference (2025+)
 
-> Read on-demand เมื่อ Sara/Aaron/Dave ต้องเลือก stack
+> Read on-demand เมื่อ solution-architect/devops-engineer/developer ต้องเลือก stack
 
 ## Runtime
 - **Edge**: Cloudflare Workers, Vercel Edge, Deno Deploy, Bun

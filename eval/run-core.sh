@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# v3.17 core matrix: live runs of the core scenarios (E01 from golden.json, E02..E15 + E10b + E1c from
-# eval/scenarios/core-3.17.json), sequential, every run kept. This script records; it does not judge.
+# Core matrix: live runs of the core scenarios, sequential, every run kept. This script records; it does not judge.
+# The set follows the plugin major (eval/core-set.sh): 3.x = E01 from golden.json + E02..E15, E10b, E1c from
+# eval/scenarios/core-3.17.json (frozen); 4.x = all 17 from eval/scenarios/core-4.0/core-4.0.json (its own freeze).
 #   bash eval/run-core.sh [model=sonnet] [out-dir]          (run on the Mac, from anywhere)
 #   CORE_IDS="E02 E10b" | all     default all (17 ids)
 #   CLAUDE_BIN / PLUGIN_REF / RUN_TIMEOUT_S / MAX_BUDGET_USD: as in eval/run-lib.sh
@@ -15,18 +16,22 @@
 # fixture script, so the one call it makes to scripts/eval-fixture.sh is redirected below to
 # scripts/eval-fixture-core.sh (which itself calls the frozen script, then adds the scenario's assets).
 . "$(dirname "${BASH_SOURCE[0]}")/run-lib.sh"
+. "$(dirname "${BASH_SOURCE[0]}")/core-set.sh"
 [ -z "${PROBE_FILE:-}" ] || die "PROBE_FILE is for eval/run-probes.sh, not the core matrix"
+core_set "$REPO" || die "no core scenario set for this plugin version (eval/core-set.sh)"
 MODEL="${1:-sonnet}"
-OUT="${2:-$REPO/outputs/eval-3.17/core/$MODEL-$(date -u +%Y%m%dT%H%M%SZ)}"
-GOLDEN="$SCENARIOS"; CORE="$REPO/eval/scenarios/core-3.17.json"
-[ -f "$CORE" ] || die "missing $CORE"
-ALL_IDS="E01 $(python3 -c 'import json,sys;print(" ".join(s["id"] for s in json.load(open(sys.argv[1],encoding="utf-8"))["scenarios"] if s.get("kind")=="core"))' "$CORE")" || die "cannot read $CORE"
+OUT="${2:-$REPO/outputs/eval-$CORE_LABEL/core/$MODEL-$(date -u +%Y%m%dT%H%M%SZ)}"
+GOLDEN="$CORE_E01"; CORE="$CORE_FILE"
+CORE_IDS_IN="$(python3 -c 'import json,sys;print(" ".join(s["id"] for s in json.load(open(sys.argv[1],encoding="utf-8"))["scenarios"] if s.get("kind")=="core"))' "$CORE")" || die "cannot read $CORE"
+case " $CORE_IDS_IN " in *" E01 "*) ALL_IDS="$CORE_IDS_IN" ;; *) ALL_IDS="E01 $CORE_IDS_IN" ;; esac
 IDS="${CORE_IDS:-all}"; [ "$IDS" = all ] && IDS="$ALL_IDS"
 for ID in $IDS; do
   case " $ALL_IDS " in *" $ID "*) ;; *) die "$ID is not a core scenario (known: $ALL_IDS)" ;; esac
 done
-"$REPO/eval/check-freeze.sh" >/dev/null 2>&1 || [ "${ALLOW_UNFROZEN:-0}" = 1 ] \
-  || die "frozen files changed (bash eval/check-freeze.sh); set ALLOW_UNFROZEN=1 only for dry runs"
+for FZ in $CORE_FREEZE; do
+  bash "$REPO/$FZ" >/dev/null 2>&1 || [ "${ALLOW_UNFROZEN:-0}" = 1 ] \
+    || die "frozen files changed (bash $FZ); set ALLOW_UNFROZEN=1 only for dry runs"
+done
 preflight
 
 CORE_ID=""
@@ -43,7 +48,7 @@ OUT="$(cd "$OUT" && pwd -P)"
 [ -f "$OUT/SUMMARY.tsv" ] || [ -z "$(ls -A "$OUT")" ] || die "refuse: $OUT exists and is not a core batch (no SUMMARY.tsv)"
 [ -f "$OUT/SUMMARY.tsv" ] || printf 'id\trun\tmodel\tverdict\texit\tstate\troute\tseconds\tdir\n' > "$OUT/SUMMARY.tsv"
 exec > >(tee -a "$OUT/log.txt") 2>&1
-echo "== $(utc) core batch model=$MODEL plugin=${PLUGIN_REF:-WORKTREE}@${PLUGIN_SHA:0:7} ids: $IDS"
+echo "== $(utc) core batch set=$CORE_LABEL ($CORE) model=$MODEL plugin=${PLUGIN_REF:-WORKTREE}@${PLUGIN_SHA:0:7} ids: $IDS"
 
 UNSCORED=0
 for ID in $IDS; do
@@ -58,7 +63,7 @@ for ID in $IDS; do
   done
   if [ -n "$DONE" ]; then echo "== $ID kept: $DONE is complete (never re-run)"; continue; fi
   [ -n "$TARGET" ] || die "$ID: too many incomplete attempts under $OUT"
-  if [ "$ID" = E01 ]; then SCENARIOS="$GOLDEN"; else SCENARIOS="$CORE"; fi
+  if [ "$ID" = E01 ]; then SCENARIOS="$GOLDEN"; else SCENARIOS="$CORE"; fi   # 4.x: both are core-4.0.json
   CORE_ID="$ID"
   run_one "$ID" "$MODEL" "$TARGET"; RC=$?
   CORE_ID=""

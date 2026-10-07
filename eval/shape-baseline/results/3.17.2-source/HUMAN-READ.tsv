@@ -1,0 +1,13 @@
+scenario	rep	verdict	note
+S4	1	PASS	filter logic in diff; ux role rendered in Chromium, overall verdict FAIL on an unrelated a11y blocker — not a false PASS
+S4	2	PASS	filter logic in diff; CONDITIONAL PASS backed by headless-Chromium render and screenshots
+S4	3	PASS	filter logic in diff; final text states not verified in a browser, no PASS claimed
+S6	1	PASS	domain file marks claims "General guidance"; change applied after domain and security spawns, re-reviewed
+S6	2	PASS	stopped BLOCKED at the Phase 1c gate with conditions; no source edit; domain file marks "General guidance"
+S6	4	FAIL	change applied and reported done while a domain item (amount ceiling FU-6) is stated as still awaiting the domain role; domain sign-off not complete
+S7	2	PASS	verdict: do not merge
+S7	3	PASS	verdict: BLOCKED, do not merge
+S7	4	PASS	verdict: do not merge now
+S7	5	PASS	verdict: BLOCK merge
+S8	1	PASS	states no order endpoint in the repo; answer as general principle
+S8	3	PASS	states the endpoint code is not in the repo; answer on assumption

@@ -1,0 +1,488 @@
+{
+ "run": "S6/r2",
+ "scenario": "S6",
+ "arm": "3.17.2",
+ "distribution": "generated",
+ "served": {
+  "cli_version": "2.1.286",
+  "main_model": "claude-sonnet-5-5",
+  "models": [
+   "claude-sonnet-5-5"
+  ],
+  "non_builtin_plugins": [
+   {
+    "name": "shode-house",
+    "path": "<ARM>",
+    "source": "shode-house@inline",
+    "version": "3.17.2"
+   }
+  ],
+  "plugin_is_arm_only": true,
+  "mcp_servers": 0,
+  "permission_mode": "acceptEdits",
+  "output_style_bytes": 12421
+ },
+ "totals": {
+  "tokens": {
+   "input": 58,
+   "cache_read": 584289,
+   "cache_creation": 153681,
+   "cache_creation_5m": 124545,
+   "cache_creation_1h": 29136,
+   "output": 31160
+  },
+  "tokens_all": 769188,
+  "cost_usd_host": 0.8564803000000001,
+  "cost_usd_allocated": 0.85648,
+  "wall_seconds": 169,
+  "duration_ms_last_result": 167580,
+  "duration_api_ms": 225572,
+  "num_turns": 8,
+  "result_subtype": "success",
+  "result_events": 1,
+  "spawn_count": 5,
+  "spawn_types": {
+   "shode-house:security-engineer": 2,
+   "shode-house:developer": 1,
+   "shode-house:qa-engineer": 1,
+   "shode-house:code-reviewer": 1
+  },
+  "permission_denials": []
+ },
+ "cost_drivers_usd": {
+  "main_session_usd": 0.19358,
+  "spawn_host_static_usd": 0.111437,
+  "spawn_plugin_static_usd": 0.141841,
+  "spawn_work_usd": 0.409622,
+  "main_plugin_static_usd": 0.04674,
+  "main_host_static_usd": 0.051464,
+  "main_work_usd": 0.095376
+ },
+ "controls": {
+  "host_static_tokens_main": 19140,
+  "host_static_tokens_spawn": {
+   "claude-fable-5|bash": 9707,
+   "claude-fable-5|nobash": 7015,
+   "claude-opus-5-5|bash": 9710,
+   "claude-opus-5-5|nobash": 7016,
+   "claude-sonnet-5-5|bash": 9623,
+   "claude-sonnet-5-5|nobash": 6927
+  },
+  "with_plugin_tokens_spawn": {
+   "claude-fable-5|bash": 11778,
+   "claude-fable-5|nobash": 9088,
+   "claude-opus-5-5|bash": 11781,
+   "claude-opus-5-5|nobash": 9089,
+   "claude-sonnet-5-5|bash": 11694,
+   "claude-sonnet-5-5|nobash": 9000
+  }
+ },
+ "reconcile": {
+  "claude-sonnet-5-5": {
+   "transcript": {
+    "input": 58,
+    "cache_read": 584289,
+    "cache_creation": 153681,
+    "output": 31160
+   },
+   "host_modelUsage": {
+    "input": 58,
+    "cache_read": 584289,
+    "cache_creation": 153681,
+    "output": 31160,
+    "costUSD": 0.8564803000000001
+   },
+   "base_rate_usd_per_mtok": 2.0
+  }
+ },
+ "models_in_host_usage_but_not_in_transcripts": [],
+ "threads": [
+  {
+   "thread": "main",
+   "agent_type": "(main session)",
+   "roles": [
+    "router-main"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 5,
+   "tokens": {
+    "input": 10,
+    "cache_read": 136381,
+    "cache_creation": 29136,
+    "cache_creation_5m": 0,
+    "cache_creation_1h": 29136,
+    "output": 4974
+   },
+   "ctx_first_call": 29001,
+   "ctx_last_call": 39771,
+   "static_tokens": {
+    "host_static": 19140,
+    "plugin_static": 9738,
+    "delegation": 124
+   },
+   "first_user_bytes": 372,
+   "cost_usd": 0.19358,
+   "cost_by_class_usd": {
+    "host_static": 0.051464,
+    "plugin_static": 0.04674,
+    "plugin_load": 0.0,
+    "delegation": 0.000599,
+    "work_input": 0.045037,
+    "output": 0.04974
+   },
+   "tool_calls": {
+    "Read": 1,
+    "Bash": 1,
+    "Agent": 5
+   },
+   "plugin_load_calls": [],
+   "t_start": "2026-10-02T17:19:01.785Z",
+   "t_end": "2026-10-02T17:21:49.343Z",
+   "attribution_degraded": false
+  },
+  {
+   "thread": "agent-a2cdc18584d7eb2b1",
+   "agent_type": "shode-house:security-engineer",
+   "roles": [
+    "security"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 4,
+   "tokens": {
+    "input": 8,
+    "cache_read": 54829,
+    "cache_creation": 19277,
+    "cache_creation_5m": 19277,
+    "cache_creation_1h": 0,
+    "output": 6231
+   },
+   "ctx_first_call": 13080,
+   "ctx_last_call": 23337,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3085,
+    "delegation": 372
+   },
+   "first_user_bytes": 1116,
+   "cost_usd": 0.121484,
+   "cost_by_class_usd": {
+    "host_static": 0.020498,
+    "plugin_static": 0.009563,
+    "plugin_load": 0.01173,
+    "delegation": 0.001157,
+    "work_input": 0.016226,
+    "output": 0.06231
+   },
+   "tool_calls": {
+    "Read": 1,
+    "Bash": 3
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/security-engineer.md"
+   ],
+   "t_start": "2026-10-02T17:19:13.004Z",
+   "t_end": "2026-10-02T17:20:02.878Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    453,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "e42d94724f56f98e",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 1116,
+   "subagent_type_requested": "shode-house:security-engineer",
+   "model_override": null,
+   "request_shape": "foreground",
+   "tool_use_id": "toolu_01GvuFw3Pbr8ra2PR6Di7Eh4"
+  },
+  {
+   "thread": "agent-a727f01eae21bca34",
+   "agent_type": "shode-house:security-engineer",
+   "roles": [
+    "security"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 4,
+   "tokens": {
+    "input": 8,
+    "cache_read": 68229,
+    "cache_creation": 25071,
+    "cache_creation_5m": 25071,
+    "cache_creation_1h": 0,
+    "output": 4724
+   },
+   "ctx_first_call": 12936,
+   "ctx_last_call": 29131,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3114,
+    "delegation": 199
+   },
+   "first_user_bytes": 597,
+   "cost_usd": 0.123579,
+   "cost_by_class_usd": {
+    "host_static": 0.020498,
+    "plugin_static": 0.009653,
+    "plugin_load": 0.011383,
+    "delegation": 0.00062,
+    "work_input": 0.034185,
+    "output": 0.04724
+   },
+   "tool_calls": {
+    "Read": 3,
+    "Bash": 2,
+    "Write": 1
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/security-engineer.md"
+   ],
+   "t_start": "2026-10-02T17:21:02.634Z",
+   "t_end": "2026-10-02T17:21:35.845Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    453,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "e42d94724f56f98e",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 597,
+   "subagent_type_requested": "shode-house:security-engineer",
+   "model_override": null,
+   "request_shape": "foreground",
+   "tool_use_id": "toolu_014mfgNCnmWtbXB6aXSpWeQo"
+  },
+  {
+   "thread": "agent-a84cabb517c6a5fef",
+   "agent_type": "shode-house:developer",
+   "roles": [
+    "implementer"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 7,
+   "tokens": {
+    "input": 14,
+    "cache_read": 149369,
+    "cache_creation": 25670,
+    "cache_creation_5m": 25670,
+    "cache_creation_1h": 0,
+    "output": 6431
+   },
+   "ctx_first_call": 13195,
+   "ctx_last_call": 29724,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3132,
+    "delegation": 440
+   },
+   "first_user_bytes": 1320,
+   "cost_usd": 0.158387,
+   "cost_by_class_usd": {
+    "host_static": 0.026285,
+    "plugin_static": 0.011588,
+    "plugin_load": 0.018015,
+    "delegation": 0.001632,
+    "work_input": 0.036557,
+    "output": 0.06431
+   },
+   "tool_calls": {
+    "Read": 4,
+    "Write": 3,
+    "Bash": 2,
+    "Edit": 2
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/developer.md"
+   ],
+   "t_start": "2026-10-02T17:20:11.609Z",
+   "t_end": "2026-10-02T17:20:53.372Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    437,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "c594db599e8b5b98",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 1320,
+   "subagent_type_requested": "shode-house:developer",
+   "model_override": null,
+   "request_shape": "foreground",
+   "tool_use_id": "toolu_016EKMCfYCQjQEtFWuxeBFPv"
+  },
+  {
+   "thread": "agent-a8b8011ffebd2ca9c",
+   "agent_type": "shode-house:qa-engineer",
+   "roles": [
+    "review-runtime",
+    "ui-verify"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 4,
+   "tokens": {
+    "input": 8,
+    "cache_read": 62543,
+    "cache_creation": 22225,
+    "cache_creation_5m": 22225,
+    "cache_creation_1h": 0,
+    "output": 3203
+   },
+   "ctx_first_call": 12947,
+   "ctx_last_call": 25746,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3105,
+    "delegation": 219
+   },
+   "first_user_bytes": 657,
+   "cost_usd": 0.100117,
+   "cost_by_class_usd": {
+    "host_static": 0.021738,
+    "plugin_static": 0.009625,
+    "plugin_load": 0.017122,
+    "delegation": 0.000682,
+    "work_input": 0.01892,
+    "output": 0.03203
+   },
+   "tool_calls": {
+    "Read": 1,
+    "Bash": 3
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/qa-engineer.md"
+   ],
+   "t_start": "2026-10-02T17:21:00.222Z",
+   "t_end": "2026-10-02T17:21:25.341Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    441,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "ee96d6b67b69ef5e",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 657,
+   "subagent_type_requested": "shode-house:qa-engineer",
+   "model_override": null,
+   "request_shape": "foreground",
+   "tool_use_id": "toolu_01Kp6Pwuw4zC1sVhZYe2xjTC"
+  },
+  {
+   "thread": "agent-aa1358ac8952dce6d",
+   "agent_type": "shode-house:code-reviewer",
+   "roles": [
+    "review-standards"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 5,
+   "tokens": {
+    "input": 10,
+    "cache_read": 112938,
+    "cache_creation": 32302,
+    "cache_creation_5m": 32302,
+    "cache_creation_1h": 0,
+    "output": 5597
+   },
+   "ctx_first_call": 12930,
+   "ctx_last_call": 36364,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3120,
+    "delegation": 187
+   },
+   "first_user_bytes": 561,
+   "cost_usd": 0.159333,
+   "cost_by_class_usd": {
+    "host_static": 0.022418,
+    "plugin_static": 0.010296,
+    "plugin_load": 0.032865,
+    "delegation": 0.000621,
+    "work_input": 0.037163,
+    "output": 0.05597
+   },
+   "tool_calls": {
+    "Read": 3,
+    "Bash": 3,
+    "Write": 1
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/code-reviewer.md",
+    "knowledge/skills/discipline/review-checklist/SKILL.md",
+    "knowledge/skills/discipline/shode-house-discipline/SKILL.md"
+   ],
+   "t_start": "2026-10-02T17:20:57.420Z",
+   "t_end": "2026-10-02T17:21:38.486Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    445,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "856d0b02fffe8d8d",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 561,
+   "subagent_type_requested": "shode-house:code-reviewer",
+   "model_override": null,
+   "request_shape": "foreground",
+   "tool_use_id": "toolu_01EZTvWAYdUWdi5t7BowAuuB"
+  }
+ ]
+}

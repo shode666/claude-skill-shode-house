@@ -1,0 +1,278 @@
+{
+ "run": "S4/r2",
+ "scenario": "S4",
+ "arm": "3.17.2",
+ "distribution": "generated",
+ "served": {
+  "cli_version": "2.1.286",
+  "main_model": "claude-sonnet-5-5",
+  "models": [
+   "claude-sonnet-5-5"
+  ],
+  "non_builtin_plugins": [
+   {
+    "name": "shode-house",
+    "path": "<ARM>",
+    "source": "shode-house@inline",
+    "version": "3.17.2"
+   }
+  ],
+  "plugin_is_arm_only": true,
+  "mcp_servers": 0,
+  "permission_mode": "acceptEdits",
+  "output_style_bytes": 12421
+ },
+ "totals": {
+  "tokens": {
+   "input": 34,
+   "cache_read": 370258,
+   "cache_creation": 69995,
+   "cache_creation_5m": 42270,
+   "cache_creation_1h": 27725,
+   "output": 13268
+  },
+  "tokens_all": 453555,
+  "cost_usd_host": 0.4233746,
+  "cost_usd_allocated": 0.423375,
+  "wall_seconds": 107,
+  "duration_ms_last_result": 9234,
+  "duration_api_ms": 109529,
+  "num_turns": 1,
+  "result_subtype": "success",
+  "result_events": 3,
+  "spawn_count": 2,
+  "spawn_types": {
+   "shode-house:developer": 1,
+   "shode-house:qa-engineer": 1
+  },
+  "permission_denials": []
+ },
+ "cost_drivers_usd": {
+  "main_session_usd": 0.194601,
+  "spawn_host_static_usd": 0.044854,
+  "spawn_plugin_static_usd": 0.019998,
+  "spawn_work_usd": 0.163921,
+  "main_plugin_static_usd": 0.052365,
+  "main_host_static_usd": 0.05912,
+  "main_work_usd": 0.083116
+ },
+ "controls": {
+  "host_static_tokens_main": 19140,
+  "host_static_tokens_spawn": {
+   "claude-fable-5|bash": 9707,
+   "claude-fable-5|nobash": 7015,
+   "claude-opus-5-5|bash": 9710,
+   "claude-opus-5-5|nobash": 7016,
+   "claude-sonnet-5-5|bash": 9623,
+   "claude-sonnet-5-5|nobash": 6927
+  },
+  "with_plugin_tokens_spawn": {
+   "claude-fable-5|bash": 11778,
+   "claude-fable-5|nobash": 9088,
+   "claude-opus-5-5|bash": 11781,
+   "claude-opus-5-5|nobash": 9089,
+   "claude-sonnet-5-5|bash": 11694,
+   "claude-sonnet-5-5|nobash": 9000
+  }
+ },
+ "reconcile": {
+  "claude-sonnet-5-5": {
+   "transcript": {
+    "input": 34,
+    "cache_read": 370258,
+    "cache_creation": 69995,
+    "output": 13268
+   },
+   "host_modelUsage": {
+    "input": 34,
+    "cache_read": 370258,
+    "cache_creation": 69995,
+    "output": 13268,
+    "costUSD": 0.4233746
+   },
+   "base_rate_usd_per_mtok": 2.0
+  }
+ },
+ "models_in_host_usage_but_not_in_transcripts": [],
+ "threads": [
+  {
+   "thread": "main",
+   "agent_type": "(main session)",
+   "roles": [
+    "router-main"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 7,
+   "tokens": {
+    "input": 14,
+    "cache_read": 204315,
+    "cache_creation": 27725,
+    "cache_creation_5m": 0,
+    "cache_creation_1h": 27725,
+    "output": 4281
+   },
+   "ctx_first_call": 28978,
+   "ctx_last_call": 38360,
+   "static_tokens": {
+    "host_static": 19140,
+    "plugin_static": 9722,
+    "delegation": 116
+   },
+   "first_user_bytes": 348,
+   "cost_usd": 0.194601,
+   "cost_by_class_usd": {
+    "host_static": 0.05912,
+    "plugin_static": 0.050557,
+    "plugin_load": 0.001808,
+    "delegation": 0.000607,
+    "work_input": 0.039699,
+    "output": 0.04281
+   },
+   "tool_calls": {
+    "Read": 1,
+    "Skill": 1,
+    "Bash": 1,
+    "Agent": 2
+   },
+   "plugin_load_calls": [
+    "diagnose"
+   ],
+   "t_start": "2026-10-02T16:03:49.384Z",
+   "t_end": "2026-10-02T16:05:34.577Z",
+   "attribution_degraded": false
+  },
+  {
+   "thread": "agent-a20e0afb9777c9f60",
+   "agent_type": "shode-house:developer",
+   "roles": [
+    "implementer"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 4,
+   "tokens": {
+    "input": 8,
+    "cache_read": 48345,
+    "cache_creation": 13270,
+    "cache_creation_5m": 13270,
+    "cache_creation_1h": 0,
+    "output": 2802
+   },
+   "ctx_first_call": 13120,
+   "ctx_last_call": 17324,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3036,
+    "delegation": 461
+   },
+   "first_user_bytes": 1383,
+   "cost_usd": 0.07088,
+   "cost_by_class_usd": {
+    "host_static": 0.020512,
+    "plugin_static": 0.009412,
+    "plugin_load": 0.0,
+    "delegation": 0.001433,
+    "work_input": 0.011504,
+    "output": 0.02802
+   },
+   "tool_calls": {
+    "Read": 2,
+    "Edit": 2,
+    "Bash": 2
+   },
+   "plugin_load_calls": [],
+   "t_start": "2026-10-02T16:04:03.569Z",
+   "t_end": "2026-10-02T16:04:25.889Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    437,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "c594db599e8b5b98",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 1383,
+   "subagent_type_requested": "shode-house:developer",
+   "model_override": null,
+   "request_shape": "background",
+   "tool_use_id": "toolu_01EY5keRcTNxyrJQMuLj2d9g"
+  },
+  {
+   "thread": "agent-afaf0ae537dbeeb40",
+   "agent_type": "shode-house:qa-engineer",
+   "roles": [
+    "review-runtime",
+    "ui-verify"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 6,
+   "tokens": {
+    "input": 12,
+    "cache_read": 117598,
+    "cache_creation": 29000,
+    "cache_creation_5m": 29000,
+    "cache_creation_1h": 0,
+    "output": 6185
+   },
+   "ctx_first_call": 12989,
+   "ctx_last_call": 33062,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3025,
+    "delegation": 341
+   },
+   "first_user_bytes": 1024,
+   "cost_usd": 0.157894,
+   "cost_by_class_usd": {
+    "host_static": 0.024342,
+    "plugin_static": 0.010586,
+    "plugin_load": 0.0,
+    "delegation": 0.001198,
+    "work_input": 0.059916,
+    "output": 0.06185
+   },
+   "tool_calls": {
+    "Bash": 6
+   },
+   "plugin_load_calls": [],
+   "t_start": "2026-10-02T16:04:32.045Z",
+   "t_end": "2026-10-02T16:05:25.319Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    441,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "ee96d6b67b69ef5e",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 1024,
+   "subagent_type_requested": "shode-house:qa-engineer",
+   "model_override": null,
+   "request_shape": "background",
+   "tool_use_id": "toolu_01D56SFUwghkMSjR52EGNmN2"
+  }
+ ]
+}

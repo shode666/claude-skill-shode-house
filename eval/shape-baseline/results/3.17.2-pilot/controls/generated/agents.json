@@ -1,0 +1,5 @@
+{"null-t1": {"description": "control t1", "prompt": "Reply with the single word OK.", "tools": ["Read","Write","Edit","Grep","Glob","Bash","Skill"]},
+ "null-t2": {"description": "control t2", "prompt": "Reply with the single word OK.", "tools": ["Read","Write","Edit","Grep","Glob","Bash","WebSearch","Skill"]},
+ "null-t3": {"description": "control t3", "prompt": "Reply with the single word OK.", "tools": ["Read","Write","Edit","WebSearch","Grep","Glob","Skill"]},
+ "null-t4": {"description": "control t4", "prompt": "Reply with the single word OK.", "tools": ["Read","Write","Edit","Grep","Glob","WebSearch","WebFetch","Skill"]},
+ "null-t5": {"description": "control t5", "prompt": "Reply with the single word OK.", "tools": ["Read","Write","Edit","Grep","Glob","Bash","WebSearch","WebFetch","Skill"]}}

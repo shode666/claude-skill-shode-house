@@ -1,11 +1,11 @@
 # Scope Contract — Pre-implement Gate (v2.4.1)
 
 > Lazy-load reference. ไม่อยู่ใน main context. Agent load เมื่อต้อง post scope ก่อน implement
-> Why: failure-modes/001 (edit-validation-contradiction) + realworld pain — agent over-scope / misinterpret / overlap
+> Why: the edit-validation contradiction (validation ที่ทำให้หน้า edit save ไม่ได้เลย) + realworld pain — agent over-scope / misinterpret / overlap
 
 ## เมื่อใดต้อง post Scope Contract
 
-ก่อน **implement / refactor / scaffold / fix bug / migration / config change** — agent ที่ทำงานจริง (Dave/Chris/Quinn/Aaron/domain experts) บันทึก scope และตรวจ ownership/authorization ก่อน edit; reuse scope ที่อนุญาตแล้ว ไม่บังคับขอ confirm ซ้ำหรือรอ silence-as-approval
+ก่อน **implement / refactor / scaffold / fix bug / migration / config change** — agent ที่ทำงานจริง (developer/code-reviewer/qa-engineer/devops-engineer/domain experts) บันทึก scope และตรวจ ownership/authorization ก่อน edit; scope ที่อนุญาตแล้วใช้ต่อได้โดยไม่ต้องขอ scope ซ้ำ และไม่ถือ silence เป็น approval; R0 ทุกครั้งยังต้องได้ confirm ของ user สำหรับ action นั้นตรง ๆ
 
 ไม่ต้อง post: research / read-only analysis / answer question / clarification
 
@@ -24,7 +24,7 @@
 
 **IN/OUT** — กัน scope creep
 - IN ≤ 3 bullets, ระบุ outcome ไม่ใช่ activity ("POST /payments/create endpoint" ไม่ใช่ "เขียน code")
-- OUT ระบุสิ่งที่ user/Oliver อาจ assume ว่าทำแต่ไม่ทำในรอบนี้ (กัน "ทำเพิ่มนิดนึง")
+- OUT ระบุสิ่งที่ user/router อาจ assume ว่าทำแต่ไม่ทำในรอบนี้ (กัน "ทำเพิ่มนิดนึง")
 
 **Files** — coordinated ownership, not a filesystem lock
 - ระบุ paths ที่จะ Write/Edit (read-only ไม่ต้อง list)
@@ -33,7 +33,7 @@
 - file นอก Files → พัก write ของไฟล์นั้นเพื่อตรวจ ownership และบันทึก amendment; ถ้ายังอยู่ใน outcome/authority เดิมไม่ต้องขอ user อนุมัติซ้ำ
 
 **Stop** — กัน agent ทำเรื่อยเปื่อย
-- ทดสอบได้ ("smoke test pass + Chris approve") ไม่ใช่ subjective ("ดีพอ")
+- ทดสอบได้ ("smoke test pass + code-reviewer approve") ไม่ใช่ subjective ("ดีพอ")
 - ถ้าทดสอบไม่ได้ = task ยังไม่ scope พอ → re-design
 
 **Echo** — กัน misinterpretation
@@ -43,12 +43,12 @@
 ## Flow
 
 ```
-1. Oliver มอบ task → agent ทำ research/clarify ถ้ายังกำกวม
+1. router มอบ task → agent ทำ research/clarify ถ้ายังกำกวม
 2. agent post Scope Contract
-3. Oliver scan active contracts:
+3. router scan active contracts:
    a. Files overlap กับ active agent อื่น? → BLOCK, agent wait
    b. ไม่ overlap → ผ่าน
-4. Verify existing authorization covers this scope. If not, obtain explicit approval before editing. AFK/silence never grants approval; approved unchanged scope does not need repeated confirmation.
+4. Verify existing authorization covers this scope. If not, obtain explicit approval before editing. AFK/silence never grants approval; an approved, unchanged scope is not re-approved, and each R0 action still needs the user's confirm of that exact action.
 5. Agent implement (เฉพาะ Files ที่ประกาศ)
 6. agent post "scope closed" → ปล่อย file ownership
 ```
@@ -57,33 +57,33 @@
 
 ### ตัวอย่างที่ 1 — parallel ทำงานได้
 ```
-[Dave#1|state:scope|task:bd-15] Scope contract
+[developer#1|state:scope|task:bd-15] Scope contract
 - IN: implement POST /payments/create endpoint
 - OUT: refactor existing /payments/list, add UI form
 - Files: src/payment/create_handler.py, tests/payment/test_create.py
-- Stop: smoke test pass + Chris approve
+- Stop: smoke test pass + code-reviewer approve
 - Echo: เข้าใจว่าเพิ่ม endpoint ใหม่ไม่แก้ของเดิม → จะทำ POST handler + integration test
 
-[Dave#2|state:scope|task:bd-16] Scope contract
+[developer#2|state:scope|task:bd-16] Scope contract
 - IN: implement POST /payments/refund endpoint
 - OUT: ไม่แตะ /create
 - Files: src/payment/refund_handler.py, tests/payment/test_refund.py
-- Stop: smoke test pass + Chris approve
+- Stop: smoke test pass + code-reviewer approve
 - Echo: เข้าใจว่า refund แยก endpoint ไม่รวมกับ create → จะทำ POST handler + test
 ```
 → Files ไม่ overlap → parallel ได้
 
 ### ตัวอย่างที่ 2 — block ที่ overlap
 ```
-[Dave#3|state:scope|task:bd-17] Scope contract
-- Files: src/payment/create_handler.py  ← overlap Dave#1
+[developer#3|state:scope|task:bd-17] Scope contract
+- Files: src/payment/create_handler.py  ← overlap developer#1
 ```
-→ Oliver: BLOCK Dave#3, รอ Dave#1 ปิด task ก่อน
+→ router: BLOCK developer#3 จนกว่า developer#1 จะ return และ scope ของ developer#1 ถูกปล่อย (worker ไม่ปิด task เอง; the router ปิด)
 
 ### ตัวอย่างที่ 3 — Echo จับ misinterpretation
 User: "เพิ่ม validation ตรง edit ราคา"
 ```
-[Dave|state:scope] Scope contract
+[developer|state:scope] Scope contract
 - IN: เพิ่ม validation `price > 0` ที่ POST /products/:id/price
 - ...
 - Echo: เข้าใจว่า user ขอ validate ค่าราคา > 0 → จะทำ validation ตรง backend
@@ -93,9 +93,9 @@ User: "ไม่ใช่ ผมหมายถึง validate ที่ fronten
 
 ## Enforcement
 
-- Oliver = enforcer หลัก (ดู `agents/orchestrator.md` § Scope Contract Enforcement)
-- ทุก implementing agent (Dave/Chris/Quinn/Aaron/domain expert) ต้อง compliance
-- ขัด rule = block + Oliver แจ้ง user
+- router = enforcer หลัก (ดู § Flow ข้อ 3 และ § Script-checkable enforcement ด้านล่าง)
+- ทุก implementing agent (developer/code-reviewer/qa-engineer/devops-engineer/domain expert) ต้อง compliance
+- ขัด rule = block + router แจ้ง user
 
 ## Catches (จาก realworld painpoint)
 
@@ -132,7 +132,7 @@ agent พักเฉพาะ affected write แล้วบันทึก **S
 - Files ปล่อย: <list>
 - Stop criteria met: <evidence>
 ```
-→ Oliver ปลด file ownership → agent อื่นต่อได้
+→ router ปลด file ownership → agent อื่นต่อได้
 
 ## Script-checkable enforcement (🆕 bd: shode-house-5cs.4, L2)
 
@@ -142,7 +142,7 @@ The distributed instruction-only plugin supplies neither these scripts nor hooks
 it must not claim this enforcement or install the runtime implicitly. Without it,
 use the harness's scoped ownership, serialized writes and honest enforcement limits.
 
-ข้างบนคือ **prose protocol** (chat message + Oliver อ่านเอง) — ชั้นที่ **script บังคับจริง**
+ข้างบนคือ **prose protocol** (chat message + router อ่านเอง) — ชั้นที่ **script บังคับจริง**
 อยู่ที่ `scripts/scope-check.sh` (per-bd manifest `.shode-house/scope/<bd-id>.json`) +
 `hooks/scripts/guard-scope-write.sh` (PreToolUse บน `Write|Edit|Bash`). ความสัมพันธ์กับ
 `references/scope/README.md` เดิมไม่เปลี่ยน (prose ↔ script คนละชั้น ประกอบกัน ไม่ทับกัน)
@@ -150,10 +150,11 @@ use the harness's scoped ownership, serialized writes and honest enforcement lim
 - **Fail-closed unclaimed path**: path ที่ไม่มีใครประกาศ owns[] → **ไม่ ALLOW เงียบๆ อีกต่อไป**
   — ถ้าอยู่ใน `allowed_roots[]` ของ agent ที่ขอ (plan-approved boundary ตอน Scope Contract)
   → exit 4 `NEEDS_AMENDMENT` พร้อมคำสั่ง `--amend` ที่ต้องรันเป๊ะๆ; ถ้าอยู่นอก `allowed_roots[]`
-  → exit 1 `DENY`, escalate ให้ Oliver, **ห้าม self-amend ข้ามขอบเขตที่ plan อนุมัติไว้**
+  → exit 1 `DENY`, escalate ให้ router, **ห้าม self-amend ข้ามขอบเขตที่ plan อนุมัติไว้**
 - **`--amend`**: atomic (lock + validate + atomic-rename เหมือน `workflow-state.sh`), เติมได้
   เฉพาะ `owns[]` — **ห้ามเติม `allowed_roots[]`** (self-amend ≠ self-expand)
-- **bind-on-claim**: agent เห็นเฉพาะ label ของตัวเอง (`Dave#1`) ไม่เห็น instance id ที่ harness
+  มี time budget 3 s ต่อการเรียกเหมือน scope check ของ hook: เกิน budget → ถูกปฏิเสธ (`scope-budget`) และ manifest ไม่เปลี่ยน
+- **bind-on-claim**: agent เห็นเฉพาะ label ของตัวเอง (`developer#1`) ไม่เห็น instance id ที่ harness
   สุ่มให้ตอน subagent spawn — agent รัน `scripts/scope-check.sh <bd> <label> --bind` เป็นก้าวแรก,
   hook (`guard-scope-write.sh`, ADAPTER ของ platform นี้) เห็นทั้ง identity fields ของ harness
   และคำสั่ง Bash พร้อมกัน จึงเป็นคนบันทึกจริง (7 กติกา ระบุด้วย instance_id + label เท่านั้น,

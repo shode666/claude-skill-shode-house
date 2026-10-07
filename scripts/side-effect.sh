@@ -265,7 +265,7 @@ timestamp() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 # One lock_acquire attempt is itself bounded: 20 polls x sleep 0.1 => it gives up after
 # ~2.0 s. The budget a caller needs is therefore (N-1) x one critical section, because
 # same-bd reserve/record is strictly serialized by design. Measured worst caller wait for
-# the suite's own N=20 same-key case (tests/test-reliability.sh "N=20 parallel reserve
+# the suite's own N=20 same-key case (maintainer suite test-reliability.sh "N=20 parallel reserve
 # calls, ALL on the SAME never-before-seen key"), instrumented per attempt:
 #   4 cores        1.94 s      (1-2 attempts)
 #   2 cores        2.07-2.48 s (2 attempts)

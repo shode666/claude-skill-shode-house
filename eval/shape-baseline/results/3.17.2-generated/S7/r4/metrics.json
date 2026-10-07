@@ -1,0 +1,495 @@
+{
+ "run": "S7/r4",
+ "scenario": "S7",
+ "arm": "3.17.2",
+ "distribution": "generated",
+ "served": {
+  "cli_version": "2.1.286",
+  "main_model": "claude-sonnet-5-5",
+  "models": [
+   "claude-sonnet-5-5"
+  ],
+  "non_builtin_plugins": [
+   {
+    "name": "shode-house",
+    "path": "<ARM>",
+    "source": "shode-house@inline",
+    "version": "3.17.2"
+   }
+  ],
+  "plugin_is_arm_only": true,
+  "mcp_servers": 0,
+  "permission_mode": "acceptEdits",
+  "output_style_bytes": 12421
+ },
+ "totals": {
+  "tokens": {
+   "input": 62,
+   "cache_read": 584640,
+   "cache_creation": 129210,
+   "cache_creation_5m": 91067,
+   "cache_creation_1h": 38143,
+   "output": 30310
+  },
+  "tokens_all": 744222,
+  "cost_usd_host": 0.8003914999999998,
+  "cost_usd_allocated": 0.800391,
+  "wall_seconds": 87,
+  "duration_ms_last_result": 14653,
+  "duration_api_ms": 234898,
+  "num_turns": 1,
+  "result_subtype": "success",
+  "result_events": 6,
+  "spawn_count": 5,
+  "spawn_types": {
+   "shode-house:security-engineer": 1,
+   "shode-house:business-analyst": 1,
+   "shode-house:fintech-expert": 1,
+   "shode-house:qa-engineer": 1,
+   "shode-house:code-reviewer": 1
+  },
+  "permission_denials": []
+ },
+ "cost_drivers_usd": {
+  "main_session_usd": 0.295214,
+  "spawn_host_static_usd": 0.093042,
+  "spawn_plugin_static_usd": 0.130509,
+  "spawn_work_usd": 0.281626,
+  "main_plugin_static_usd": 0.05606,
+  "main_host_static_usd": 0.062948,
+  "main_work_usd": 0.176207
+ },
+ "controls": {
+  "host_static_tokens_main": 19140,
+  "host_static_tokens_spawn": {
+   "claude-fable-5|bash": 9707,
+   "claude-fable-5|nobash": 7015,
+   "claude-opus-5-5|bash": 9710,
+   "claude-opus-5-5|nobash": 7016,
+   "claude-sonnet-5-5|bash": 9623,
+   "claude-sonnet-5-5|nobash": 6927
+  },
+  "with_plugin_tokens_spawn": {
+   "claude-fable-5|bash": 11778,
+   "claude-fable-5|nobash": 9088,
+   "claude-opus-5-5|bash": 11781,
+   "claude-opus-5-5|nobash": 9089,
+   "claude-sonnet-5-5|bash": 11694,
+   "claude-sonnet-5-5|nobash": 9000
+  }
+ },
+ "reconcile": {
+  "claude-sonnet-5-5": {
+   "transcript": {
+    "input": 62,
+    "cache_read": 584640,
+    "cache_creation": 129210,
+    "output": 30310
+   },
+   "host_modelUsage": {
+    "input": 62,
+    "cache_read": 584640,
+    "cache_creation": 129210,
+    "output": 30310,
+    "costUSD": 0.8003914999999998
+   },
+   "base_rate_usd_per_mtok": 2.0
+  }
+ },
+ "models_in_host_usage_but_not_in_transcripts": [],
+ "threads": [
+  {
+   "thread": "main",
+   "agent_type": "(main session)",
+   "roles": [
+    "router-main"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 8,
+   "tokens": {
+    "input": 16,
+    "cache_read": 265651,
+    "cache_creation": 38143,
+    "cache_creation_5m": 0,
+    "cache_creation_1h": 38143,
+    "output": 8948
+   },
+   "ctx_first_call": 29172,
+   "ctx_last_call": 48778,
+   "static_tokens": {
+    "host_static": 19140,
+    "plugin_static": 9978,
+    "delegation": 54
+   },
+   "first_user_bytes": 274,
+   "cost_usd": 0.295214,
+   "cost_by_class_usd": {
+    "host_static": 0.062948,
+    "plugin_static": 0.053884,
+    "plugin_load": 0.002176,
+    "delegation": 0.000295,
+    "work_input": 0.086431,
+    "output": 0.08948
+   },
+   "tool_calls": {
+    "Bash": 2,
+    "Skill": 1,
+    "Agent": 5
+   },
+   "plugin_load_calls": [
+    "shode-house:review-checklist"
+   ],
+   "t_start": "2026-10-02T21:03:12.417Z",
+   "t_end": "2026-10-02T21:04:37.632Z",
+   "attribution_degraded": false
+  },
+  {
+   "thread": "agent-a6348f8ffa40be6fd",
+   "agent_type": "shode-house:security-engineer",
+   "roles": [
+    "security"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 5,
+   "tokens": {
+    "input": 10,
+    "cache_read": 73374,
+    "cache_creation": 16534,
+    "cache_creation_5m": 16534,
+    "cache_creation_1h": 0,
+    "output": 3688
+   },
+   "ctx_first_call": 12770,
+   "ctx_last_call": 20594,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3026,
+    "delegation": 121
+   },
+   "first_user_bytes": 362,
+   "cost_usd": 0.09291,
+   "cost_by_class_usd": {
+    "host_static": 0.022422,
+    "plugin_static": 0.009987,
+    "plugin_load": 0.012686,
+    "delegation": 0.000402,
+    "work_input": 0.010533,
+    "output": 0.03688
+   },
+   "tool_calls": {
+    "Read": 1,
+    "Bash": 4
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/security-engineer.md"
+   ],
+   "t_start": "2026-10-02T21:03:24.931Z",
+   "t_end": "2026-10-02T21:03:56.134Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    453,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "e42d94724f56f98e",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 362,
+   "subagent_type_requested": "shode-house:security-engineer",
+   "model_override": null,
+   "request_shape": "background",
+   "tool_use_id": "toolu_01V3B1197urvWZzZuiZKJbmg"
+  },
+  {
+   "thread": "agent-aaef97df1bb924047",
+   "agent_type": "shode-house:business-analyst",
+   "roles": [
+    "review-spec",
+    "requirements"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 5,
+   "tokens": {
+    "input": 10,
+    "cache_read": 60051,
+    "cache_creation": 17688,
+    "cache_creation_5m": 17688,
+    "cache_creation_1h": 0,
+    "output": 3557
+   },
+   "ctx_first_call": 10103,
+   "ctx_last_call": 21304,
+   "static_tokens": {
+    "host_static": 6927,
+    "plugin_static": 3040,
+    "delegation": 136
+   },
+   "first_user_bytes": 407,
+   "cost_usd": 0.09182,
+   "cost_by_class_usd": {
+    "host_static": 0.014547,
+    "plugin_static": 0.010033,
+    "plugin_load": 0.014273,
+    "delegation": 0.000451,
+    "work_input": 0.016946,
+    "output": 0.03557
+   },
+   "tool_calls": {
+    "Glob": 2,
+    "Bash": 1,
+    "Read": 7,
+    "Write": 1
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/business-analyst.md",
+    "knowledge/skills/discipline/review-checklist/spec-axis.md"
+   ],
+   "t_start": "2026-10-02T21:03:29.781Z",
+   "t_end": "2026-10-02T21:03:58.699Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Skill",
+    "Grep",
+    "Glob"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    451,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "043b6ab4b1df7e51",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 407,
+   "subagent_type_requested": "shode-house:business-analyst",
+   "model_override": null,
+   "request_shape": "background",
+   "tool_use_id": "toolu_01F86JykmHWNadbnc7EJApVe"
+  },
+  {
+   "thread": "agent-abcb840b12165c99d",
+   "agent_type": "shode-house:fintech-expert",
+   "roles": [
+    "domain"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 4,
+   "tokens": {
+    "input": 8,
+    "cache_read": 54331,
+    "cache_creation": 19976,
+    "cache_creation_5m": 19976,
+    "cache_creation_1h": 0,
+    "output": 5660
+   },
+   "ctx_first_call": 10083,
+   "ctx_last_call": 24133,
+   "static_tokens": {
+    "host_static": 6927,
+    "plugin_static": 3019,
+    "delegation": 137
+   },
+   "first_user_bytes": 411,
+   "cost_usd": 0.117422,
+   "cost_by_class_usd": {
+    "host_static": 0.011917,
+    "plugin_static": 0.009359,
+    "plugin_load": 0.025795,
+    "delegation": 0.000428,
+    "work_input": 0.013322,
+    "output": 0.0566
+   },
+   "tool_calls": {
+    "Read": 4,
+    "Bash": 1,
+    "Glob": 1,
+    "Write": 1
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/fintech-expert.md",
+    "knowledge/skills/discipline/shode-house-discipline/SKILL.md",
+    "knowledge/skills/discipline/domain-core/SKILL.md"
+   ],
+   "t_start": "2026-10-02T21:03:26.299Z",
+   "t_end": "2026-10-02T21:04:12.549Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Skill",
+    "Grep",
+    "Glob"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    447,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "05d29f138475da96",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 411,
+   "subagent_type_requested": "shode-house:fintech-expert",
+   "model_override": null,
+   "request_shape": "background",
+   "tool_use_id": "toolu_01Dt7pGVWLXgSxVRySqRqYBS"
+  },
+  {
+   "thread": "agent-ae66ec6a0e2be3c48",
+   "agent_type": "shode-house:qa-engineer",
+   "roles": [
+    "review-runtime",
+    "ui-verify"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 5,
+   "tokens": {
+    "input": 10,
+    "cache_read": 79110,
+    "cache_creation": 20347,
+    "cache_creation_5m": 20347,
+    "cache_creation_1h": 0,
+    "output": 4555
+   },
+   "ctx_first_call": 12800,
+   "ctx_last_call": 23868,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3030,
+    "delegation": 147
+   },
+   "first_user_bytes": 441,
+   "cost_usd": 0.112259,
+   "cost_by_class_usd": {
+    "host_static": 0.023662,
+    "plugin_static": 0.009999,
+    "plugin_load": 0.01835,
+    "delegation": 0.000489,
+    "work_input": 0.01421,
+    "output": 0.04555
+   },
+   "tool_calls": {
+    "Read": 1,
+    "Bash": 4
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/qa-engineer.md"
+   ],
+   "t_start": "2026-10-02T21:03:28.107Z",
+   "t_end": "2026-10-02T21:04:04.195Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    441,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "ee96d6b67b69ef5e",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 441,
+   "subagent_type_requested": "shode-house:qa-engineer",
+   "model_override": null,
+   "request_shape": "background",
+   "tool_use_id": "toolu_01Ucn6umAKut4roqWQ1DdGby"
+  },
+  {
+   "thread": "agent-aeadb4fd520beeede",
+   "agent_type": "shode-house:code-reviewer",
+   "roles": [
+    "review-standards"
+   ],
+   "models": [
+    "claude-sonnet-5-5"
+   ],
+   "api_calls": 4,
+   "tokens": {
+    "input": 8,
+    "cache_read": 52123,
+    "cache_creation": 16522,
+    "cache_creation_5m": 16522,
+    "cache_creation_1h": 0,
+    "output": 3902
+   },
+   "ctx_first_call": 12798,
+   "ctx_last_call": 20584,
+   "static_tokens": {
+    "host_static": 9623,
+    "plugin_static": 3031,
+    "delegation": 144
+   },
+   "first_user_bytes": 433,
+   "cost_usd": 0.090766,
+   "cost_by_class_usd": {
+    "host_static": 0.020493,
+    "plugin_static": 0.009395,
+    "plugin_load": 0.010632,
+    "delegation": 0.000451,
+    "work_input": 0.010774,
+    "output": 0.03902
+   },
+   "tool_calls": {
+    "Read": 1,
+    "Bash": 3
+   },
+   "plugin_load_calls": [
+    "knowledge/agents/code-reviewer.md"
+   ],
+   "t_start": "2026-10-02T21:03:23.496Z",
+   "t_end": "2026-10-02T21:03:55.203Z",
+   "attribution_degraded": false,
+   "tools_served": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Skill"
+   ],
+   "host_static_measured_for_model": true,
+   "system_prompt_bytes": [
+    445,
+    340,
+    899,
+    49
+   ],
+   "agent_body_served_sha256": "856d0b02fffe8d8d",
+   "agent_body_matches_arm_file": true,
+   "delegation_bytes": 433,
+   "subagent_type_requested": "shode-house:code-reviewer",
+   "model_override": null,
+   "request_shape": "background",
+   "tool_use_id": "toolu_01Deou6GnGqbQBzZ4nHyJbGD"
+  }
+ ]
+}

@@ -5,7 +5,7 @@ description: Decide who owns a request, covering type of work, responsible role,
 
 # shode-house — Routing & Team Structure
 
-> Oliver = workflow/process owner. Stan (Staff) = cross-team tech depth. Sara (SA) = per-project tech decision
+> router = workflow/process owner. staff-engineer (Staff) = cross-team tech depth. solution-architect (SA) = per-project tech decision
 
 Goal: every request gets exactly one accountable owner before work starts. Answer four questions, in order:
 
@@ -25,7 +25,7 @@ Owners disagree → § Conflict Resolution; undecidable → escalate to the user
 
 ## 📚 References (lazy)
 
-- Load `ownership.md` when adding/removing/renaming an agent, resolving a persona name to its agent file or team, or answering a question about team composition. Ordinary owner selection needs only this root.
+- Load `ownership.md` when adding/removing/renaming an agent, resolving a 3.x persona name to its agent id or team, or answering a question about team composition. Ordinary owner selection needs only this root.
 - Load `orchestration.md` before staggering a pipeline, running several tasks in one long run, or settling a reviewer-vs-producer dispute.
 
 ---
@@ -68,19 +68,21 @@ Owners disagree → § Conflict Resolution; undecidable → escalate to the user
 
 Trigger = the change needs a **domain-rule decision** (regulation, compliance, ledger/settlement semantics, policy/claim rule, pricing/yield rule). Domain vocabulary alone (a variable named `payment`, a label, a rename) does not pull a specialist. Unsure whether a domain rule is decided → route to the specialist.
 ```
-เงิน/ชำระ/ธนาคาร/PromptPay/KYC → Felix
-บัญชี/stock/payroll/MRP generic → Elena
-SAP/ABAP/S4HANA/Fiori/BTP → Sam
-trade/order/exchange/FIX → Tara
-ประกัน/policy/claim/IFRS17 → Iris
-จอง/PMS/yield → Brooke
-ร้านค้า/cart/promo/marketplace → Emma
+เงิน/ชำระ/ธนาคาร/PromptPay/KYC → fintech-expert
+บัญชี/stock/payroll/MRP generic → erp-expert
+SAP/ABAP/S4HANA/Fiori/BTP → sap-expert
+trade/order/exchange/FIX → trading-expert
+ประกัน/policy/claim/IFRS17 → insurance-expert
+จอง/PMS/yield → booking-expert
+ร้านค้า/cart/promo/marketplace → ecommerce-expert
 ```
 
+- **Domain Expert ปฏิเสธได้** ถ้านอก scope (recommend agent อื่น)
+
 ### หลาย domain → primary + secondary
-- "e-com + PromptPay" → Emma + Felix
-- "ERP บน SAP" → Sam + Elena
-- "ประกันรถ + ชำระบัตร" → Iris + Felix + Emma
+- "e-com + PromptPay" → ecommerce-expert + fintech-expert
+- "ERP บน SAP" → sap-expert + erp-expert
+- "ประกันรถ + ชำระบัตร" → insurance-expert + fintech-expert + ecommerce-expert
 
 ---
 
@@ -88,29 +90,30 @@ trade/order/exchange/FIX → Tara
 
 | Conflict | Winner |
 |----------|--------|
-| Business rule vs Tech | Domain ให้ข้อเท็จจริง/ข้อจำกัด; Sara เสนอทางเลือก; user ตัดสิน policy/scope ที่ยังไม่ตกลง |
-| Architecture vs Implementation | Sara |
-| Look & feel / visual direction / interaction pattern | **Uma** (Design Authority) — ยกเว้นชน a11y law / security / regulation → constraint ชนะ |
-| Security vs Performance | Sentinel ตรวจข้อจำกัดความปลอดภัย; Sara เทียบทางเลือก; expert ไม่มีสิทธิ์ยกเว้น approval ของ user |
-| Quality vs Timeline | Chris+Quinn (block) |
+| Business rule vs Tech | Domain ให้ข้อเท็จจริง/ข้อจำกัด; solution-architect เสนอทางเลือก; user ตัดสิน policy/scope ที่ยังไม่ตกลง |
+| Architecture vs Implementation | solution-architect |
+| Look & feel / visual direction / interaction pattern | **ux-ui-designer** (Design Authority) — ยกเว้นชน a11y law / security / regulation → constraint ชนะ |
+| Security vs Performance | security-engineer ตรวจข้อจำกัดความปลอดภัย; solution-architect เทียบทางเลือก; expert ไม่มีสิทธิ์ยกเว้น approval ของ user |
+| Quality vs Timeline | code-reviewer+qa-engineer (block) |
 | Complex vs Simple | Keep simple (YAGNI) |
 | Standard vs Custom | Standard |
 | Perf opt vs Readability | Readability (profile first) |
 
 ตัดสินไม่ได้ → escalate user ระบุ trade-off
+- ห้าม escalate user ทุกเรื่องเล็ก (ใช้ conflict matrix)
 
 ---
 
 ## 📏 T-shirt (🔴 internal routing heuristic only, ไม่ส่งต่อ user)
 
-> T-shirt = **internal signal** สำหรับ Oliver decide parallel vs sequential delegation. **ห้ามใช้เป็น time estimate ส่งให้ user** (per `shode-house-discipline/main-session.md` § No Man-Day). ถ้า user explicit ขอ effort → ใช้ `/design-system --estimate`.
+> T-shirt = **internal signal** สำหรับ router decide parallel vs sequential delegation. **ห้ามใช้เป็น time estimate ส่งให้ user** (per `shode-house-discipline/main-session.md` § No Man-Day). ถ้า user explicit ขอ effort → ใช้ `/design-system --estimate`.
 
 Relative scale (no time anchor):
 - **XS** = trivial atomic change (one-line tweak / typo)
 - **S** = single-file scope
 - **M** = multi-file scope, single concern
 - **L** = cross-module scope, multiple concerns
-- **XL** = cross-service / cross-domain → **split into smaller tasks with `decompose`** in the confirmed tracker (including Markdown); preserve tracer bullets, blocking dependencies and create-then-wire ordering. `bd` examples in `orchestration.md` apply only to Beads projects; other trackers keep their native IDs and operations.
+- **XL** = cross-service / cross-domain → **split into smaller tasks with `shode-house:decompose`** in the confirmed tracker (including Markdown); preserve tracer bullets, blocking dependencies and create-then-wire ordering. `bd` examples in `orchestration.md` apply only to Beads projects; other trackers keep their native IDs and operations.
 
 ---
 
@@ -120,7 +123,7 @@ Default = sequential. Parallel only when **all** hold: tasks are independent · 
 
 เลือก parallel จาก dependency, host capability และต้นทุน context จริง ไม่ใช่จำนวนบรรทัดหรือ multiplier ที่ไม่ได้วัด
 
-สองงานที่ independent ก็ parallel ได้ เช่น Chris กับ Quinn; ถ้า host ไม่รองรับ ให้เรียกแยก sequential โดยรักษา reviewer context และ verdict เป็นอิสระ ห้ามแทนด้วย Oliver self-review แล้วเรียก independent
+สองงานที่ independent ก็ parallel ได้ เช่น code-reviewer กับ qa-engineer; ถ้า host ไม่รองรับ ให้เรียกแยก sequential โดยรักษา reviewer context และ verdict เป็นอิสระ ห้ามแทนด้วย router self-review แล้วเรียก independent
 Producer/consumer ที่ต้องใช้ผลกันหรือเขียนไฟล์เดียวกันต้องรอ; การลด token ต้องไม่ตัด expert ที่ถูก trigger หรือ evidence ที่ gate ต้องใช้
 > Implementation: Worktree Isolation (ดู Workflow Discipline)
 > ห้ามใช้ "deadline matter" เป็น reason parallel — agent ไม่มี deadline ของตัวเอง (per `shode-house-discipline/main-session.md` § No Man-Day)
@@ -134,22 +137,22 @@ Producer/consumer ที่ต้องใช้ผลกันหรือเ�
 
 | Capability | Sole Owner | ห้ามทับโดย |
 |------------|------------|------------|
-| User research, OKR, RICE/WSJF priority | **Patrick** | Bella |
-| BRD / FRD / AC G-W-T / RTM | **Bella** | Patrick (input only) |
-| C4 / ADR / NFR / tech stack | **Sara** | Stan, Aaron |
-| Cross-team consistency, tech radar, polyglot review | **Stan** | Sara (per-project only) |
-| Look & feel direction (final say) / wireframe / design tokens / a11y design / visual baseline | **Uma** | Quinn (axe automation only); advisory ต่อ Sara/Dave/Bella ดู agent file § Design Authority |
+| User research, OKR, RICE/WSJF priority | **product-manager** | business-analyst |
+| BRD / FRD / AC G-W-T / RTM | **business-analyst** | product-manager (input only) |
+| C4 / ADR / NFR / tech stack | **solution-architect** | staff-engineer, devops-engineer |
+| Cross-team consistency, tech radar, polyglot review | **staff-engineer** | solution-architect (per-project only) |
+| Look & feel direction (final say) / wireframe / design tokens / a11y design / visual baseline | **ux-ui-designer** | qa-engineer (axe automation only); advisory ต่อ solution-architect/developer/business-analyst ดู agent file § Design Authority |
 | Domain regulation cite, business rule | **Domain SME** | ทุกคน |
-| Production code (BE/FE/integration) | **Dave** (Dave#N parallel) | Chris (test only) |
-| Data pipeline / ETL / CDC / Kafka / dbt | **Dave** (interim) | — (สร้าง Devon agent เมื่อ project ต้องการ deep data) |
-| ML model / RAG / vector / prompt eval | **Dave** (interim) | — (สร้าง Mason agent เมื่อ project ต้องการ deep ML) |
-| 7-dim review + unit test quality (risk-based mutation) | **Chris** | Quinn (ห้าม unit) |
-| Integration + E2E + Contract + Load + axe auto | **Quinn** | Chris (ห้าม integ), Uma (ห้าม automation) |
-| STRIDE / SAST / DAST / Secrets / Pen test / CSP | **Sentinel** | Sara, Chris, Quinn (handoff) |
-| Dockerfile / CI/CD / IaC / Deploy build | **Aaron** | Reggie (ห้าม build) |
-| SLO / SLI / Error budget / Incident / Runbook | **Reggie** | Aaron (ห้าม SLO) |
-| Workflow orchestration / state / delegation | **Oliver** | Patrick |
-| API docs / Developer portal / Release notes | **Bella** (interim) | — (สร้าง Tex agent เมื่อ project ต้องการ docs portal เต็มรูป) |
+| Production code (BE/FE/integration) | **developer** (developer#N parallel) | code-reviewer (test only) |
+| Data pipeline / ETL / CDC / Kafka / dbt | **developer** (interim) | — (สร้าง Devon agent เมื่อ project ต้องการ deep data) |
+| ML model / RAG / vector / prompt eval | **developer** (interim) | — (สร้าง Mason agent เมื่อ project ต้องการ deep ML) |
+| 7-dim review + unit test quality (risk-based mutation) | **code-reviewer** | qa-engineer (ห้าม unit) |
+| Integration + E2E + Contract + Load + axe auto | **qa-engineer** | code-reviewer (ห้าม integ), ux-ui-designer (ห้าม automation) |
+| STRIDE / SAST / DAST / Secrets / Pen test / CSP | **security-engineer** | solution-architect, code-reviewer, qa-engineer (handoff) |
+| Dockerfile / CI/CD / IaC / Deploy build | **devops-engineer** | sre-engineer (ห้าม build) |
+| SLO / SLI / Error budget / Incident / Runbook | **sre-engineer** | devops-engineer (ห้าม SLO) |
+| Workflow orchestration / state / delegation | **router** | product-manager |
+| API docs / Developer portal / Release notes | **business-analyst** (interim) | — (สร้าง Tex agent เมื่อ project ต้องการ docs portal เต็มรูป) |
 
 > Rule: ทุก agent ก่อน accept งานต้องประกาศ "ผมรับ capability X" — ถ้าไม่ใช่ sole owner = reroute
 > Interim owner = ไม่มี dedicated agent ตอนนี้ (YAGNI); สร้างเมื่อ project ต้องการจริง (ดู `ownership.md` § Add agent) — ไม่ใช่ phantom sole-owner
@@ -172,18 +175,18 @@ how the handoff is recorded.
 
 | Phase | R | A | C | I |
 |-------|---|---|---|---|
-| **0 Discover** | Patrick, Domain SME | **Patrick** | Bella, Sara, Stan | Oliver |
-| **1a Foundation** | Bella, Sara | **Oliver** (gate) | Stan, Domain SME, Patrick | Uma, Dave |
-| **1b Pre-Design** | Uma, Domain SME | **Uma** | Sara, Bella | Dave, Quinn |
-| **1c Threat Model** | Sentinel | **Sentinel** | Sara, Domain SME | Chris, Quinn |
-| **2 Implement** | Dave (parallel) | **Oliver** (scope enforce) | Chris, Stan | Uma, Quinn, Sentinel |
-| **3a UI Check** | Uma | **Uma** | Dave | Chris, Quinn |
-| **3b Quality Coop** | Chris, Quinn, Sentinel, Aaron | **Oliver** (triage) | Stan, Domain SME | Dave, Uma |
-| **4 Triage** | Oliver | **Oliver** | Chris, Quinn, Sentinel | Dave, Patrick |
-| **5 Deploy** | Aaron, Reggie | **Aaron** (build) + **Reggie** (SLO) | Quinn, Sentinel | All |
-| **6 Operate** | Reggie | **Reggie** | Aaron, Oliver, Patrick | Dave |
+| **0 Discover** | product-manager, Domain SME | **product-manager** | business-analyst, solution-architect, staff-engineer | router |
+| **1a Foundation** | business-analyst, solution-architect | **router** (gate) | staff-engineer, Domain SME, product-manager | ux-ui-designer, developer |
+| **1b Pre-Design** | ux-ui-designer, Domain SME | **ux-ui-designer** | solution-architect, business-analyst | developer, qa-engineer |
+| **1c Threat Model** | security-engineer | **security-engineer** | solution-architect, Domain SME | code-reviewer, qa-engineer |
+| **2 Implement** | developer (parallel) | **router** (scope enforce) | code-reviewer, staff-engineer | ux-ui-designer, qa-engineer, security-engineer |
+| **3a UI Check** | ux-ui-designer | **ux-ui-designer** | developer | code-reviewer, qa-engineer |
+| **3b Quality Coop** | code-reviewer, qa-engineer, security-engineer, devops-engineer | **router** (triage) | staff-engineer, Domain SME | developer, ux-ui-designer |
+| **4 Triage** | router | **router** | code-reviewer, qa-engineer, security-engineer | developer, product-manager |
+| **5 Deploy** | devops-engineer, sre-engineer | **devops-engineer** (build) + **sre-engineer** (SLO) | qa-engineer, security-engineer | All |
+| **6 Operate** | sre-engineer | **sre-engineer** | devops-engineer, router, product-manager | developer |
 
-> Phase 7 (Sprint Learn) removed — per-bd reflect happens in Phase 4 Triage; continuous OKR review (Patrick) without bracket.
+> Phase 7 (Sprint Learn) removed — per-bd reflect happens in Phase 4 Triage; continuous OKR review (product-manager) without bracket.
 
 
 > New Phases (0 Discovery / 1c Threat Model / 6 Operate) → ดู `shode-house-workflow` (1c canonical trigger list อยู่ใน root; 0/6 notes → `drift.md`)
@@ -192,7 +195,7 @@ how the handoff is recorded.
 
 ## Inputs and decision boundaries
 
-- Missing owner, two claimed owners, or a request outside every capability row → stop and ask Oliver/user; do not self-assign.
+- Missing owner, two claimed owners, or a request outside every capability row → stop and ask the router or the user; do not self-assign.
 - No reference loaded → stay sequential, single task, owners from the tables above.
 
 ## Completion

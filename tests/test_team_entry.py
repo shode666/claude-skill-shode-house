@@ -1,7 +1,9 @@
 """Structural routing regression, not behavioral or host-parity proof.
 
-Role inventory comes from the frozen 3.15 baseline; the entrypoint must route to
-every retained role and every declared prerequisite must exist in shipped buckets.
+Role inventory comes from the frozen 3.15 baseline (minus RETIRED) plus every agents/*.md on disk
+(v4 ADR §7 W1: sets read from files, so a new or retired role flips the check by data); the
+entrypoint must route to every role and every declared prerequisite -- bare or `<plugin>:<name>` --
+must exist in shipped buckets.
 Mutation cases prove that missing knowledge cannot silently pass this check.
 """
 import importlib.util
@@ -12,6 +14,65 @@ import unittest
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+# v4 persona rename (ADR iter5 §5.3, UD R9): the explicit 3.x persona -> 4.0 agent id mapping. Pinned here
+# on purpose (not derived from the file under test): ownership.md § Formerly must equal it, and every 3.x
+# pinned row is compared after this rename, so a dropped owner/phase/domain row still turns red.
+PERSONA_TO_AGENT = {
+    "Oliver": "router", "Patrick": "product-manager", "Bella": "business-analyst", "Sara": "solution-architect",
+    "Stan": "staff-engineer", "Sentinel": "security-engineer", "Dave": "developer", "Chris": "code-reviewer",
+    "Quinn": "qa-engineer", "Aaron": "devops-engineer", "Uma": "ux-ui-designer", "Reggie": "sre-engineer",
+    "Felix": "fintech-expert", "Elena": "erp-expert", "Sam": "sap-expert", "Tara": "trading-expert",
+    "Iris": "insurance-expert", "Brooke": "booking-expert", "Emma": "ecommerce-expert",
+}
+
+
+def formerly_map(root=ROOT):
+    """The `formerly` table of ownership.md as parsed from the file (compared with PERSONA_TO_AGENT)."""
+    path = root / "skills/discipline/shode-house-routing/ownership.md"
+    text = path.read_text()
+    if "## Formerly" not in text:
+        return {}
+    table = text[text.index("## Formerly"):].split("\n### ", 1)[0]
+    return dict(re.findall(r"^\| ([A-Z][a-z]+) \| ([a-z][a-z-]*)", table, re.M))
+
+
+def v4_names(line):
+    """Old pinned rows are compared after the explicit rename; a no-op on a 3.x tree (no `formerly` table)."""
+    if not formerly_map():
+        return line
+    pat = re.compile(r"(?<![A-Za-z0-9_.-])(" + "|".join(map(re.escape, PERSONA_TO_AGENT)) + r")(?![A-Za-z0-9_])")
+    return pat.sub(lambda m: PERSONA_TO_AGENT[m.group(1)], line)
+
+
+# 3.x lines the 4.0 tree rewrites rather than renames: each one is replaced by the pinned 4.0 line(s),
+# asserted in its place (never just skipped).
+V4_ROSTER = {  # superseded by the 4.0 roster + § Formerly
+    "- **Core (12)**": (
+        "- **Router**: the main session under `output-styles/shode-house.md`; routes, gates, relays and closes. "
+        "It is not a spawnable agent.",
+        "- **Core (11)**: staff-engineer · product-manager · business-analyst · solution-architect · "
+        "ux-ui-designer · developer (parallel #N) · code-reviewer · qa-engineer · security-engineer · "
+        "devops-engineer · sre-engineer"),
+    "- **Domain (7, pluggable)**": (
+        "- **Domain (7, pluggable)**: fintech-expert · erp-expert · sap-expert · trading-expert · "
+        "insurance-expert · booking-expert · ecommerce-expert",),
+}
+V4_REWRITTEN = dict(V4_ROSTER, **{
+    "## 👥 ทีม (19 agents": ("## 👥 Team (18 agents = 11 core + 7 domain, plus the router)",),  # 18 agents + router style
+    # pointer re-aimed: the orchestrator Harness Contract section is retired
+    "long run = หลาย bd ต่อเนื่อง.": ("long run = หลาย bd ต่อเนื่อง. enforce ด้วย harness contract (ดู `/init` rule 11 + "
+                                       "`shode-house-workflow/harness.md`):",),
+})
+
+
+def v4_replacement(line):
+    """-> the pinned 4.0 lines that replace a rewritten 3.x line, or None (line must survive as renamed)."""
+    if not formerly_map():
+        return None
+    return next((new for prefix, new in V4_REWRITTEN.items() if line.startswith(prefix)), None)
+PLUGIN = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())["name"]
 spec = importlib.util.spec_from_file_location("inventory", ROOT / "tests/test_team_package.py")
 inventory = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(inventory)
@@ -20,7 +81,8 @@ spec.loader.exec_module(inventory)
 def entry_errors(entry, contents):
     errors = []
     baseline = inventory.required_paths()
-    roles = sorted(p for p in baseline if p.startswith("agents/") and p.endswith(".md"))
+    roles = sorted({p for p in baseline if p.startswith("agents/") and p.endswith(".md")}
+                   | {p for p in contents if p.startswith("agents/") and p.count("/") == 1 and p.endswith(".md")})
     skills = {Path(p).parent.name: p for p in contents if p.endswith("/SKILL.md")}
     for role in roles:
         if not re.search(r"\|\s*" + re.escape(Path(role).name) + r"\s*\|", entry):
@@ -34,7 +96,7 @@ def entry_errors(entry, contents):
             errors.append("missing prerequisites: " + role)
             continue
         for name in json.loads(match.group(1)):
-            path = skills.get(name)
+            path = skills.get(name[len(PLUGIN) + 1:] if name.startswith(PLUGIN + ":") else name)
             if not path or not contents[path].strip():
                 errors.append("missing prerequisite: " + role + ": " + name)
     # Validate the new entry's literal relative resource pointers.
@@ -66,7 +128,7 @@ class TeamEntryTest(unittest.TestCase):
             rows = [line for line in section.splitlines() if line.startswith("|") or " → " in line]
             self.assertTrue(rows)
             for row in rows:
-                self.assertIn(row, current)
+                self.assertIn(v4_names(row), current)
         link = "../shode-house-discipline/handoff.md"
         self.assertIn("(" + link + ")", current)
         self.assertTrue(((ROOT / path).parent / link).resolve().is_file())
@@ -107,7 +169,7 @@ class TeamEntryTest(unittest.TestCase):
     def _neutral(cls, line):
         for old, new in cls.TRACKER_NEUTRAL:
             line = line.replace(old, new)
-        return line.strip()
+        return v4_names(line).strip()   # v4 W7 (S3): skill text carries agent ids (UD R9), same explicit rename
 
     @classmethod
     def _skill_lines(cls, skill_dir, names=None):
@@ -145,10 +207,13 @@ class TeamEntryTest(unittest.TestCase):
             "| Code touches frontend | → `ui-test` | E2E + visual + a11y automation (dev-gate ไม่ครอบ visual) |":
                 "| Code touches frontend | → `ui-test` | E2E + visual + a11y automation |",
             "| Hand-off Phase 2 → 3b review | → `review-checklist` skill | Chris 7-dim + Quinn integration matrix (used by /implement Phase 3b + /review)":
-                "| Hand-off Phase 2 → 3b review | → `review-checklist` skill | Chris 7-dim + Quinn integration matrix",
+                "| Hand-off Phase 2 → 3b review | → `shode-house:review-checklist` skill | Chris 7-dim + Quinn integration matrix",
+            # v4 W7 (ADR iter5 §7 W7 "namespaced loads"): the load names the plugin skill, the line is otherwise kept
+            "- **Production hot-fix P0/P1** — ใช้ `incident` skill ก่อน; dev-gate ตามมาตอน follow-up fix":
+                "- **Production hot-fix P0/P1** — ใช้ `shode-house:incident` skill ก่อน; dev-gate ตามมาตอน follow-up fix",
         }
         missing = [l for l in self._baseline_body_lines(d + "/SKILL.md")
-                   if self._neutral(l) not in lines and l not in dropped and p5.get(l) not in lines]
+                   if self._neutral(l) not in lines and l not in dropped and (v4_names(p5[l]) if l in p5 else None) not in lines]
         self.assertEqual([], missing)
         self.assertIn('### Hand-off evidence (Phase 2 → 3) — ขาดข้อใด = ยังไม่ done, ห้าม claim "done"', lines)
         self.assertIn("### Stop and return", lines)
@@ -167,8 +232,12 @@ class TeamEntryTest(unittest.TestCase):
         self.assertEqual(1, len(new_url))
         self.assertIn("(ไม่มี = BLOCKED ไม่ใช่ PASS)", new_url[0])
         self.assertIn("จนกว่าจะได้ authorization", new_url[0])
+        # v7u.8: the parenthetical named `.mcp.json`, a file the .plugin archive does not ship; the rule half survives
+        mcp = ("plugin **ไม่ได้จัดหา** browser MCP (`.mcp.json` มีแค่ Context7) และชื่อ tool ต่างกันตาม config ของผู้ใช้ "
+               "→ บังคับ MCP ตรง ๆ = ออกแบบให้ block ด้วยของที่ agent ใช้ไม่ได้")
+        self.assertIn(mcp.replace(" (`.mcp.json` มีแค่ Context7)", ""), lines)
         self.assertEqual([], [l for l in self._baseline_body_lines(d + "/SKILL.md")
-                              if self._neutral(l) not in lines and l != url])
+                              if self._neutral(l) not in lines and l not in (url, mcp)])
         self.assertIn("automation-patterns.md", (ROOT / d / "SKILL.md").read_text())
 
     def test_drain_router_keeps_invariants_in_root_and_moved_blocks_in_execution(self):
@@ -201,7 +270,17 @@ class TeamEntryTest(unittest.TestCase):
             rows = [l for l in old[old.index(start):old.index(end)].splitlines() if l.startswith(("|", "- **"))]
             self.assertGreaterEqual(len(rows), 2)
             for row in rows:
-                self.assertIn(row.strip(), ownership)
+                new = v4_replacement(row) if row.startswith(tuple(V4_ROSTER)) else None
+                if new is None:
+                    self.assertIn(v4_names(row.strip()), ownership)
+                    continue
+                for line in new:  # rewritten roster row: its 4.0 replacement is pinned in its place
+                    self.assertIn(line, ownership)
+                # owner coverage: every 3.x persona of the row still has its agent (or the router) in the roster
+                for persona in re.findall(r"\b([A-Z][a-z]+) \(", row.split("**:", 1)[1]):
+                    self.assertIn(PERSONA_TO_AGENT[persona], " ".join(new).lower(), persona)
+        if formerly_map():
+            self.assertEqual(PERSONA_TO_AGENT, formerly_map())  # the explicit rename map == ownership.md § Formerly
         core = (ROOT / d / "SKILL.md").read_text()
         for ref in ("ownership.md", "orchestration.md"):
             self.assertIn(ref, core)
@@ -213,9 +292,27 @@ class TeamEntryTest(unittest.TestCase):
         repointed = ("- **XL** = cross-service / cross-domain → ",  # "`bd` examples below" -> orchestration.md
                      "> Interim owner = ไม่มี dedicated agent ตอนนี้ (YAGNI)",  # "ด้านบน" -> ownership.md § Add agent
                      "**Pattern**: ")  # P7 FR-P7-5: printing the trust label is no longer mandatory; citing the source still is
-        missing = [l for l in self._baseline_body_lines(d + "/SKILL.md", "baseline-3.17-m")
-                   if l.strip() not in lines and not l.startswith(repointed)]
+        # v7u.8: two notes pointed at files the .plugin archive does not ship (README § Model Strategy,
+        # skills/in-progress/); the pointer went, the statement stays in ownership.md -- the WHOLE new line is pinned
+        unshipped_pointer = {
+            "> **Model**: inherit host/session settings by default.":
+                "> **Model**: inherit host/session settings by default. Agent frontmatter is a host-specific preference, "
+                "not a portable model ID or permission to override the user's selection.",
+            "> Dropped Eval team (Evan agent over-engineer for current scale).":
+                "> Dropped Eval team (Evan agent over-engineer for current scale). Bias discipline embedded in each agent "
+                "prompt (ไม่มี § No-Bias ใน discipline; อย่าอ้างถึง). Eval harness is not shipped; maintainers keep it for "
+                "major-release regression (offline use).",
+        }
+        baseline = self._baseline_body_lines(d + "/SKILL.md", "baseline-3.17-m")
+        missing = [l for l in baseline
+                   if v4_names(l.strip()) not in lines and not l.startswith(repointed + tuple(unshipped_pointer))
+                   and v4_replacement(l) is None]
         self.assertEqual([], missing)
+        for l in baseline:  # rewritten lines: the pinned 4.0 replacement must be present instead
+            for new in v4_replacement(l) or ():
+                self.assertIn(new, lines, l[:40])
+        for prefix, whole in unshipped_pointer.items():
+            self.assertEqual(1, len([l for l in lines if l == whole]), prefix)
         core = (ROOT / d / "SKILL.md").read_text()
         for prefix in repointed:
             self.assertIn(prefix, core)
@@ -305,6 +402,22 @@ class TeamEntryTest(unittest.TestCase):
         start = harness.index("Iteration cap:")
         mutated = harness[:start] + harness[harness.index("\n\n", start) + 2:]
         self.assertTrue(self.harness_missing(mutated))
+
+    def test_namespaced_prerequisite_resolves_and_dangling_one_is_detected(self):
+        mutated = dict(self.contents)
+        body = mutated["agents/developer.md"]
+
+        def with_skills(names):  # rewrite the whole line: works on bare (3.x) and namespaced (4.0.0) trees
+            return re.sub(r"^skills:.*$", "skills: " + json.dumps(names), body, count=1, flags=re.M)
+        mutated["agents/developer.md"] = with_skills([PLUGIN + ":shode-house-discipline", PLUGIN + ":shode-house-deliverable"])
+        self.assertEqual([], entry_errors(self.entry, mutated))
+        mutated["agents/developer.md"] = with_skills([PLUGIN + ":shode-house-discipline", PLUGIN + ":code-index"])
+        self.assertEqual(["missing prerequisite: agents/developer.md: %s:code-index" % PLUGIN], entry_errors(self.entry, mutated))
+
+    def test_new_agent_on_disk_must_be_routed(self):
+        mutated = dict(self.contents)
+        mutated["agents/new-role.md"] = '---\nname: new-role\nskills: ["shode-house-discipline"]\n---\nbody\n'
+        self.assertEqual(["unrouted: agents/new-role.md"], entry_errors(self.entry, mutated))
 
     def test_broken_entry_reference_is_detected(self):
         mutated = self.entry.replace("engineering-loop.md", "does-not-exist.md")

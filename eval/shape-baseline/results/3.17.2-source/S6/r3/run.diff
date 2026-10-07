@@ -1,0 +1,77 @@
+diff --git a/src/ledger.py b/src/ledger.py
+index de52756..46eb48f 100644
+--- a/src/ledger.py
++++ b/src/ledger.py
+@@ -1,14 +1,21 @@
+ from decimal import Decimal
+ 
++# Upstream rounding tolerance, inclusive, both signs. Decimal only (no float money).
++ROUNDING_TOLERANCE = Decimal("0.01")
++
+ def mask_card(pan):
+     return pan[:6] + "*" * (len(pan) - 10) + pan[-4:]
+ 
+ def post(entries, card=None):
+-    total = sum(Decimal(str(e["amount"])) for e in entries)
+-    if total != 0:
++    total = sum((Decimal(str(e["amount"])) for e in entries), Decimal("0"))
++    if abs(total) > ROUNDING_TOLERANCE:
+         raise ValueError("unbalanced")
+-    row = {"posted": len(entries), "amount": float(total)}
++    row = {
++        "posted": len(entries),
++        "amount": str(total),
++        "residual": str(total),
++        "tolerance_used": total != 0,
++    }
+     if card:
+         row["card"] = mask_card(card)
+-        print(f"ledger post card={card}")
+     return row
+diff --git a/tests/test_ledger.py b/tests/test_ledger.py
+index 088f3ec..582a13f 100644
+--- a/tests/test_ledger.py
++++ b/tests/test_ledger.py
+@@ -1,4 +1,5 @@
+-import os, sys, unittest
++import contextlib, io, os, sys, unittest
++from decimal import Decimal
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+ from ledger import post
+ 
+@@ -8,6 +9,35 @@ class LedgerPostTest(unittest.TestCase):
+         with self.assertRaises(ValueError):
+             post([{"amount": "10.00"}])
+ 
++    def test_balanced(self):
++        row = post([{"amount": "10.00"}, {"amount": "-10.00"}])
++        self.assertEqual(row["residual"], "0.00")
++        self.assertFalse(row["tolerance_used"])
++
++    def test_boundary_inclusive_both_signs(self):
++        for amt in ("0.01", "-0.01"):
++            row = post([{"amount": amt}])
++            self.assertEqual(Decimal(row["residual"]), Decimal(amt))
++            self.assertTrue(row["tolerance_used"])
++
++    def test_beyond_tolerance_raises(self):
++        for amt in ("0.011", "-0.011", "0.010000000001"):
++            with self.assertRaises(ValueError):
++                post([{"amount": amt}])
++
++    def test_row_has_no_float(self):
++        row = post([{"amount": "0.01"}])
++        self.assertFalse(any(isinstance(v, float) for v in row.values()))
++
++    def test_pan_not_in_stdout_and_masked_in_row(self):
++        pan = "4111111111111111"
++        buf = io.StringIO()
++        with contextlib.redirect_stdout(buf):
++            row = post([{"amount": "1"}, {"amount": "-1"}], card=pan)
++        self.assertNotIn(pan, buf.getvalue())
++        self.assertNotIn(pan, str(row))
++        self.assertEqual(row["card"], "411111******1111")
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

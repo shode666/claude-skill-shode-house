@@ -1,0 +1,32 @@
+{
+ "protocol": "shape-baseline-v1",
+ "arm": "3.17.2",
+ "distribution": "generated",
+ "scenario": "S5",
+ "rep": 1,
+ "plugin_manifest_version": "3.17.2",
+ "plugin_tree_sha256": "a1f366d2d56a7fff995aee224322bf1a29997a3848bf7ed198bd2c1e0dfff87d",
+ "fixture_head": "da78cafd8cdc6ba2d8cb1f5122ff9b147b183e07",
+ "start": "2026-10-02T14:46:18Z",
+ "end": "2026-10-02T14:48:08Z",
+ "seconds": 110,
+ "claude_exit": 0,
+ "main_model_requested": "claude-sonnet-5-5",
+ "effort": "medium",
+ "cli_version": "2.1.286 (Claude Code)",
+ "max_turns": 80,
+ "max_budget_usd": 15.0,
+ "prompt_bytes": 285,
+ "sha256": {
+  "scenarios.json": "f570363136049e8465c1833417c0ddd4002945b4faac11cff0bb7cc7a2ca4e1e",
+  "lib.sh": "163ababc097e89ff3e84230b02a30687d03c071f16c7e3c1e856ec9d21b4f338",
+  "run.sh": "c9d8e979b808ea1e633b11c60f8badc977b0effd0341364d3b34c5ae54f06b00",
+  "fixture.sh": "f42ab0c191fdbd431e1593cc77baf940a2ad20ec666c281b0ffd1904b92e5ce1",
+  "metrics.py": "a79080981d9124f268e995c572ffc88c358ff4eef6d3eae12c618b9261f445c8",
+  "score.py": "1fc58ceac9f3919764fbaa79dd30c1b2bbdaab3291788a5c84f8debcc1f52c69",
+  "hook-snap.py": "2662d721629e78048e4502ffe52a2e3678a95861ed3df2be4369e42b7806adbf",
+  "role-policy.json": "b82a536c5e0fcccfaaf3814b5592a2d1273060eb808a0860edbda67717784d83",
+  "role-map.3.17.2.json": "b744274cc58ceb29800b068e5af27284dfb84c96f46f9f5ac599af8b7bb06e1a"
+ },
+ "prompt_sha256": "499e5498013f83dd099264b79c1f05a58740b26b49c44788244caed4ee48089d"
+}

@@ -1,0 +1,62 @@
+diff --git a/outputs/SPEC-bd-105.md b/outputs/SPEC-bd-105.md
+index c6e1b4f..0de69e1 100644
+--- a/outputs/SPEC-bd-105.md
++++ b/outputs/SPEC-bd-105.md
+@@ -1,10 +1,53 @@
+ # SPEC bd-105 — password reset by e-mail OTP
+ 
++- Revision: **rev 2 — DRAFT, รอ re-approval** (rev 1 = approved phase-1a, ดู `outputs/bd-105/00-run-stamp.md`; sign-off ของ rev 1 ไม่ครอบ rev 2)
++- รายละเอียด/เหตุผล/open question ฉบับเต็ม: `outputs/bd-105/02-bella-1a.md` · security input: `outputs/bd-105/01-sentinel-1c.md` (SAC-1..14)
++
+ ## Scope
+ ผู้ใช้ที่ลืมรหัสผ่านขอ OTP 6 หลักทาง e-mail แล้วตั้งรหัสผ่านใหม่
+ 
++คำนิยาม: **reset flow** = `/password-reset/request` + `/confirm` (ไม่รวม login) · **silent-drop** = ไม่ส่ง mail แต่ตอบเหมือนสำเร็จ · **session (AC-3)** = session + access + refresh + remember-me token ทุกตัว
++
+ ## Acceptance criteria
+-- AC-1 `POST /password-reset/request {email}` ตอบ `202` เสมอ (ไม่บอกว่ามี account หรือไม่)
+-- AC-2 OTP อายุ 10 นาที ใช้ได้ครั้งเดียว
+-- AC-3 `POST /password-reset/confirm {email, otp, new_password}` สำเร็จ → session เดิมทั้งหมดถูกยกเลิก
+-- AC-4 ผิด 5 ครั้ง → lock 15 นาที
++
++บรรทัด `(rev 1)` = ข้อความเดิม คงไว้ verbatim; sub-AC (n.x) = amendment rev 2
++
++- AC-1 (rev 1) `POST /password-reset/request {email}` ตอบ `202` เสมอ (ไม่บอกว่ามี account หรือไม่)
++  - 1.1 Given account มี/ไม่มี, When request, Then `202` + body เดียวกัน เวลาตอบแยกไม่ได้
++  - 1.2 Given e-mail ผิดรูป/ว่าง, When request, Then `202` + body เดียวกัน (ไม่รั่ว `ValueError`)
++  - 1.3 Given เกิน rate limit (per-email/per-IP), When request, Then silent-drop: `202` + body เดียวกัน, ไม่ส่ง mail, ไม่มี `429`/`Retry-After`
++  - 1.4 Given ไม่มี account, When request, Then ไม่ส่ง mail
++- AC-2 (rev 1) OTP อายุ 10 นาที ใช้ได้ครั้งเดียว
++  - 2.1 หมดอายุ → confirm ล้มเหลว generic · 2.2 ใช้ซ้ำหลังสำเร็จ → ล้มเหลว · 2.3 ขอ OTP ใหม่ → OTP เก่าใช้ไม่ได้ · 2.4 confirm พร้อมกันด้วย OTP เดียว → สำเร็จ ≤1
++- AC-3 (rev 1) `POST /password-reset/confirm {email, otp, new_password}` สำเร็จ → session เดิมทั้งหมดถูกยกเลิก
++  - 3.1 Given user มี session+refresh+remember-me บน 2 device, When confirm สำเร็จ, Then ทุก token ใช้ไม่ได้ (revoke ฝั่ง server)
++  - 3.2 confirm ล้มเหลว → token เดิมยังใช้ได้
++  - 3.3 confirm ไม่ออก token ใหม่ (ไม่ auto-login); OTP ค้างของ account ถูก invalidate
++  - 3.4 token ที่ออกขนานกับ confirm ใช้ไม่ได้ (revoke atomic กับเปลี่ยนรหัส)
++- AC-4 (rev 1) ผิด 5 ครั้ง → lock 15 นาที
++  - 4.1 นับ per-account (key = e-mail normalize, รวม e-mail ที่ไม่มี account) ไม่ว่า OTP/IP ใด
++  - 4.2 counter ไม่ reset เมื่อขอ OTP ใหม่ (ผิด 3 + OTP ใหม่ + ผิด 2 = lock)
++  - 4.3 ระหว่าง lock: ขอ OTP ใหม่/OTP ถูกก็ไม่ปลด lock; confirm ตอบ generic เดียวกับ OTP ผิด
++  - 4.4 lock ครอบเฉพาะ reset flow; login ปกติไม่ถูกกระทบ (default — รอ Q-A)
++  - 4.5 counter = 0 เมื่อ lock หมด หรือ confirm สำเร็จ
++  - 4.6 หมุน IP ไม่หลุด lock · 4.7 e-mail ไม่มี account สังเกตภายนอกได้เหมือน account จริง
++- AC-5 (ใหม่, เสนอ) `new_password` ผ่าน policy (ยาว ≥12 รอ Q-D, ไม่เท่ารหัสเดิม, breached check รอ Q-C, hash argon2id/bcrypt); ไม่ผ่าน → ปฏิเสธ (พฤติกรรม OTP รอ Q-E)
++- AC-6 (ใหม่, เสนอ) audit append-only ของ `reset_requested`/`otp_sent`/`confirm_success`/`confirm_failed`/`account_locked` (รวม silent-drop) พร้อม timestamp, user-id, IP, UA; log ไม่มี OTP/new_password/e-mail เต็ม
++
++## Traceability
++| AC | SAC | Threat |
++|----|-----|--------|
++| AC-1 | SAC-1, 4, 10 | T1, T8 |
++| AC-2 | SAC-2, 6, 7, 8, 14 | T3, T4, T5, T12 |
++| AC-3 | SAC-9 | T7 |
++| AC-4 | SAC-2, 3, 5, 12 | T2, T6 |
++| AC-5 | SAC-13 | T11 |
++| AC-6 | SAC-11, 12 | T9, T10 |
++
++## Open questions (รายละเอียด option A/B/C → `outputs/bd-105/02-bella-1a.md` §5)
++- Q-A lock scope (default A: เฉพาะ reset flow) · Q-B grief ผ่าน quota/lock (default A: ยอมรับ residual) · Q-C breached check (default B: offline list) · Q-D min length (default A: 12) · Q-E policy-fail vs OTP (default A: ไม่ใช้ OTP ไม่นับ counter)
++- Q1 SMTP/queue prod (Aaron/Reggie) · Q2 session/token store + ประเภท token (Sara/Dave)
++
++## History
++- rev 1: AC-1..4 (approved phase-1a)
++- rev 2: ชี้แจง AC-4 scope, AC-1 rate-limit silent-drop, AC-3 token ทุกชนิด; ผูก SAC; เพิ่ม AC-5/6 (เสนอ) — DRAFT

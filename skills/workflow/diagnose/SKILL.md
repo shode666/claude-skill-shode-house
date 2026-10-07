@@ -7,7 +7,7 @@ description: Debug an error, crash, failing test, wrong output, regression or sl
 
 > Inspired by mattpocock/skills (engineering/diagnose) — adapted for shode-house
 
-> **Owner**: Chris (review) + Quinn (test) + Dave (implement)
+> **Owner**: code-reviewer (review) + qa-engineer (test) + developer (implement)
 
 **Goal**: identify the cause of an unresolved failure and verify the smallest justified fix.
 
@@ -28,19 +28,19 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 
 ## When NOT to use
 
-- Bug อยู่ใน **production** และยังมี customer impact หรือ SLO burn → `incident` ก่อน (Reggie IC + war room — diagnose ไม่มี comms/severity); mitigate แล้วค่อยกลับมา
+- Bug อยู่ใน **production** และยังมี customer impact หรือ SLO burn → `incident` ก่อน (sre-engineer IC + war room — diagnose ไม่มี comms/severity); mitigate แล้วค่อยกลับมา
 - ยังไม่มี symptom ที่ reproduce ได้และไม่มี log/error — ไปเก็บหลักฐานก่อน
-- Feature request ที่ถูกเรียกว่า "bug" — นั่นคืองานของ Bella/Patrick
+- Feature request ที่ถูกเรียกว่า "bug" — นั่นคืองานของ business-analyst/product-manager
 - Known issue ที่มี ticket + root cause แล้ว — fix ตรง ๆ
 
 ## Inputs and decision boundaries
 
-- [ ] วิธี reproduce — หาเองก่อนจาก test ที่มี · README/Makefile · log/fixture ที่ได้รับ; หรือช่องทางที่จะหามาได้ (env, ข้อมูล, ขั้นตอน); หาไม่ได้ → ส่งกลับ Oliver (§ Step 1)
+- [ ] วิธี reproduce — หาเองก่อนจาก test ที่มี · README/Makefile · log/fixture ที่ได้รับ; หรือช่องทางที่จะหามาได้ (env, ข้อมูล, ขั้นตอน); หาไม่ได้ → ส่งกลับ router (§ Step 1)
 - When to ask → `shode-house-discipline` § Ask vs derive
 
 ### Stop and return
 
-- [ ] Symptom ที่ระบุได้ (error message / behavior ที่ผิด / metric ที่เปลี่ยน) — ไม่มีใครระบุ → ส่งคำถามกลับ Oliver
+- [ ] Symptom ที่ระบุได้ (error message / behavior ที่ผิด / metric ที่เปลี่ยน) — ไม่มีใครระบุ → ส่งคำถามกลับ router
 - [ ] Access ไป log / trace / ตัว service — ไม่มี = ระบุว่าติดตรงไหน ห้ามเดา root cause
 - [ ] Redact ผ่านแล้ว (§ Redact ก่อน paste)
 
@@ -58,7 +58,7 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 ### 1. สร้าง feedback loop ที่ **tight** และ **red-capable** (นี่คือหัวใจ ที่เหลือ mechanical)
 
 มี loop ที่แดงกับ bug ตัวนี้ = เจอสาเหตุแน่
-ไม่มี loop = จ้อง code ให้ตายก็ไม่เจอ → **ทุ่มเวลาตรงนี้มากเป็นพิเศษ ก้าวร้าว สร้างสรรค์ ห้ามยอมแพ้**
+ไม่มี loop = จ้อง code ให้ตายก็ไม่เจอ → **ทุ่มเวลาตรงนี้มากเป็นพิเศษ ห้ามยอมแพ้**
 
 **วิธีสร้าง — 3 อันแรกครอบเกือบทุกเคส**
 1. **Failing test** ที่ seam ซึ่งเข้าถึง bug · 2. **curl / HTTP script** ยิงใส่ dev server · 3. **CLI + fixture** diff stdout กับ snapshot ที่รู้ว่าถูก
@@ -72,7 +72,7 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 - [ ] **agent รันเองได้** — ไม่ต้องมีคนกดกลางทาง
 
 **ห้ามกระโดดไปสรุปสาเหตุก่อนมีคำสั่งนี้** — นั่นคือ failure mode ที่ skill นี้มีไว้กัน
-✅ **อ่าน code ได้เต็มที่เพื่อ *สร้าง* loop** (หา route/entry point, test setup, fixture, วิธี boot ระบบ, ชื่อ config) — หลายระบบสร้าง harness ไม่ได้เลยถ้าไม่อ่านก่อน
+✅ **อ่าน code ได้เต็มที่เพื่อ *สร้าง* loop** (หา route/entry point, test setup, fixture, วิธี boot ระบบ, ชื่อ config)
 เส้นแบ่ง: อ่านเพื่อ **"จะ trigger มันยังไง"** = ส่วนหนึ่งของขั้นนี้ · อ่านเพื่อ **"มันน่าจะพังเพราะ..."** = ข้ามขั้นตอน
 
 **สร้าง loop ไม่ได้จริง ๆ**: หยุดแล้วบอกตรง ๆ + list สิ่งที่ลองแล้ว + ขอ (ก) access environment ที่ repro ได้ (ข) captured artifact ที่ redact แล้ว (HAR/log/core dump/วิดีโอพร้อม timestamp) หรือ (ค) อนุญาตให้ใส่ instrumentation ชั่วคราวใน production — **ห้ามเดาต่อโดยไม่มี loop**
@@ -87,7 +87,7 @@ promote to Full and load this reference if the first fix fails or another sympto
 
 เขียน regression test **ก่อน** fix — แต่เฉพาะเมื่อมี **seam ที่ถูกต้อง** คือ seam ที่ test ได้เจอ bug pattern จริงอย่างที่มันเกิดที่ call site
 
-**ไม่มี seam ที่ถูกต้อง = นั่นแหละคือ finding** — ถ้า seam ที่มีตื้นเกินไป (unit test ที่ replicate chain ที่ trigger bug ไม่ได้ / test caller เดียวทั้งที่ bug ต้องมีหลาย caller) การเขียน test ตรงนั้นให้ **false confidence**. บันทึกว่า **architecture กันไม่ให้ล็อค bug ตัวนี้ได้** แล้ว route ต่อ (Sara/Stan) — อย่าฝืนเขียน
+**ไม่มี seam ที่ถูกต้อง = นั่นแหละคือ finding** — ถ้า seam ที่มีตื้นเกินไป (unit test ที่ replicate chain ที่ trigger bug ไม่ได้ / test caller เดียวทั้งที่ bug ต้องมีหลาย caller) การเขียน test ตรงนั้นให้ **false confidence**. บันทึกว่า **architecture กันไม่ให้ล็อค bug ตัวนี้ได้** แล้ว route ต่อ (solution-architect/staff-engineer) — อย่าฝืนเขียน
 
 มี seam ที่ถูก:
 1. เปลี่ยน repro ที่ minimise แล้วเป็น failing test ที่ seam นั้น
@@ -109,11 +109,11 @@ promote to Full and load this reference if the first fix fails or another sympto
 
 ## Hand-off / next skill
 
-Diagnose finished → Chris: review fix + regression unit test · Quinn: integration test เผื่อ pattern อื่น · Aaron: monitoring/alert ถ้าเป็น infra · Domain Expert: ถ้า business rule ผิด
+Diagnose finished → code-reviewer: review fix + regression unit test · qa-engineer: integration test เผื่อ pattern อื่น · devops-engineer: monitoring/alert ถ้าเป็น infra · Domain Expert: ถ้า business rule ผิด
 
 | Situation | Next skill | Reason |
 |---|---|---|
 | Diagnosis เสร็จ → จะเขียน fix code | → `dev-gate` | TDD + 11-gate |
 | Bug เกิดเพราะ test gap | → `automate-test` | เพิ่ม regression coverage + CI gate |
 | Bug ใน frontend (visual/a11y) | → `ui-test` | Playwright + axe + visual diff |
-| Bug เกี่ยวกับ security vuln | → `secure` | Sentinel STRIDE + abuse case
+| Bug เกี่ยวกับ security vuln | → `secure` | security-engineer STRIDE + abuse case

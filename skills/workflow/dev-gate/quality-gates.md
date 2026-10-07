@@ -14,7 +14,7 @@ Tool selection per stack → [tool-matrix.md](tool-matrix.md) (only when a gate 
 
 ### Gate 0: Architecture self-check
 
-> Tool ตรวจ Gate 1-10 ได้ครบ แต่ **SOLID/cohesion/readable ต้องคนตัดสิน**. Dave self-check ก่อน hand-off ลด round-trip กับ Chris
+> Tool ตรวจ Gate 1-10 ได้ครบ แต่ **SOLID/cohesion/readable ต้องคนตัดสิน**. developer self-check ก่อน hand-off ลด round-trip กับ code-reviewer
 
 **SOLID — apply to actual responsibilities, not an abstraction quota**:
 - [ ] **SRP** — group behavior with one reason to change; the word "and" alone does not require splitting.
@@ -43,7 +43,7 @@ Tool selection per stack → [tool-matrix.md](tool-matrix.md) (only when a gate 
 
 **Self-check format ตอน hand-off**:
 ```
-Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
+developer ▸ code-reviewer : impl bd-42 (dev-gate passed 1-10)
 - Gate 0 self-check:
   - SOLID: SRP ✓ OCP ✓ LSP ✓ ISP ✓ DIP ✓
   - Cohesion: high (1 module = 1 concern)
@@ -51,7 +51,7 @@ Dave ▸ Chris : impl bd-42 (dev-gate passed 1-10)
 - Trade-off documented: <link to comment line:N> (if any)
 ```
 
-> ถ้า self-check fail → refactor ก่อน hand-off ห้าม "Chris จะ review ให้". Chris จะ reject + bd revision รอบใหม่
+> ถ้า self-check fail → refactor ก่อน hand-off ห้าม "code-reviewer จะ review ให้". code-reviewer จะ reject + bd revision รอบใหม่
 
 ### Gate 1: Format
 - Auto-format on save (IDE) + pre-commit hook + CI gate (3 จุด)
@@ -104,7 +104,7 @@ are examples, not authority to replace a verified checker or install another one
 - ห้าม magic number/string → constant + comment "why"
 
 ### Gate 8: Test
-- Unit coverage per adopted target (example ≥ 80% business logic; Chris's responsibility; Dave smoke ก่อน hand-off)
+- Unit coverage per adopted target (example ≥ 80% business logic; code-reviewer's responsibility; developer smoke ก่อน hand-off)
 - AAA pattern + G-W-T naming
 - Edge case + error path
 - ห้าม skipped/disabled test ไม่มี ticket
@@ -113,7 +113,7 @@ are examples, not authority to replace a verified checker or install another one
 - SAST per language (ดู matrix Gate 9 column)
 - Secret scan (gitleaks / `git-secrets`) — block commit ที่มี API key / password / cert
 - Dependency audit (`npm audit` / `pip-audit` / `cargo audit`) — block critical/high vulns
-- **ห้าม**: ignore security warning โดยไม่ Sentinel approve
+- **ห้าม**: ignore security warning โดยไม่ security-engineer approve
 
 ### Gate 10: Doc
 - Docstring/JSDoc สำหรับ public API (signature + example + edge case)
@@ -140,7 +140,7 @@ are examples, not authority to replace a verified checker or install another one
 ## Pre-Push Checklist (all 11 gates)
 
 ```bash
-# Gate 0 — Architecture self-check (Dave answers each checkbox above ก่อนรัน mechanical gates)
+# Gate 0 — Architecture self-check (developer answers each checkbox above ก่อนรัน mechanical gates)
 
 make fmt          # Gate 1 — auto-format
 make imports      # Gate 2 — organize imports
@@ -158,11 +158,11 @@ make doc-check    # Gate 10 — public API docstring present
 ```makefile
 # Makefile snippet
 pre-push: fmt imports clean-unused lint typecheck complexity test security doc-check
-	@echo "✅ Gates 1-10 pass — Dave: confirm Gate 0 self-check before push"
+	@echo "✅ Gates 1-10 pass — developer: confirm Gate 0 self-check before push"
 ```
 
 ทุก check ผ่าน → ค่อย push. CI ก็ต้องรันชุดเดียวกัน (pre-commit + GitHub Actions / GitLab CI / CircleCI)
 
-> **Gate 0 ไม่อยู่ใน Makefile** — ตั้งใจให้ Dave หยุดคิด 30 วินาทีก่อน push, ไม่ใช่ auto-pass. มันคือ judgment ไม่ใช่ tool
+> **Gate 0 ไม่อยู่ใน Makefile** — ตั้งใจให้ developer หยุดคิด 30 วินาทีก่อน push, ไม่ใช่ auto-pass. มันคือ judgment ไม่ใช่ tool
 
 ---

@@ -27,7 +27,7 @@ REQUIRED-BEFORE: claim_done
 - "Hit endpoint → response: [paste JSON]"
 - "Open browser → screenshot: [link/path]"
 - "Docker up → `docker compose ps`: [paste status]"
-- "[tracker read-back bd-42] status=CLOSED reason='FIXED a1b2c3d 214 passed'"
+- "[router tracker read-back bd-42] status=CLOSED reason='FIXED a1b2c3d 214 passed'" (router evidence; workers return evidence and never close)
 
 ## 🔴 Anti-Real-World-Guess (extension)
 

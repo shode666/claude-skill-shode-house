@@ -12,22 +12,23 @@
 # v3.17 P5/P6: keys ratcheted DOWN to measured where lower
 # v3.17 P10 ratchet: discipline root 11,432 -> 11,032 B pays the v3.13 grace debt (7 experts +10 B, 3 reviewers +385 B);
 #   every key == measured and CI #16 GRACE 600 -> 0 (the C-G1 "+558 inside grace" note above is history)
-booking-expert=13883
-business-analyst=14131
-code-reviewer=16145
-developer=14131
-devops-engineer=14131
-ecommerce-expert=13883
-erp-expert=13883
-fintech-expert=13883
-insurance-expert=13883
-orchestrator=22284
-product-manager=14131
-qa-engineer=16145
-sap-expert=13883
-security-engineer=16145
-solution-architect=14131
-sre-engineer=14131
-staff-engineer=11032
-trading-expert=13883
-ux-ui-designer=14131
+# v4.0.0 switch (W10b): every key ratcheted DOWN to the measured switch-commit preload (ledger W4 budgets: the safety lines
+#   moved into the body floor, persona -> agent id, namespaced loads); key `orchestrator` deleted with agents/orchestrator.md (retired type)
+booking-expert=13050
+business-analyst=13310
+code-reviewer=15379
+developer=13310
+devops-engineer=13310
+ecommerce-expert=13050
+erp-expert=13050
+fintech-expert=13050
+insurance-expert=13050
+product-manager=13310
+qa-engineer=15379
+sap-expert=13050
+security-engineer=15379
+solution-architect=13310
+sre-engineer=13310
+staff-engineer=10199
+trading-expert=13050
+ux-ui-designer=13310

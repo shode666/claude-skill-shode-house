@@ -1,6 +1,6 @@
 {
-  "_comment": "Milestone B capability registry (bd: shode-roadmap/C-B1, ROADMAP-runtime-10.md SS 3.1). Transcribed verbatim from output-styles/oliver.md SS 4 'Routing (19 agents / 7 teams)' -- one entry per table row (18 rows; Oliver/orchestrator is the router itself and does not appear as a routed-to capability row in that table, so it is not listed here either). No new capability invented. Read by scripts/route.sh only -- this file is NOT preloaded into any agent context (see delegation note on token budget).",
-  "_source": "output-styles/oliver.md SS 4 Routing (19 agents / 7 teams)",
+  "_comment": "Milestone B capability registry (bd: shode-roadmap/C-B1, ROADMAP-runtime-10.md SS 3.1). Transcribed verbatim from the 3.17 router style's SS 4 'Routing (19 agents / 7 teams)' table -- one entry per table row (18 rows; the router itself is not a routed-to capability, so it is not listed here, and the orchestrator agent type is retired in 4.0.0, W8). No new capability invented. Read by scripts/route.sh only -- this file is NOT preloaded into any agent context (see delegation note on token budget).",
+  "_source": "3.17 router style (Oliver, retired in 4.0.0) SS 4 Routing (19 agents / 7 teams); the 18 owners are the 18 registered agent types",
   "capabilities": {
     "discovery-okr": {
       "owner": "product-manager",

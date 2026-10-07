@@ -1,0 +1,48 @@
+# .pack-allowlist -- the ONLY list of what `make pack` puts in the .plugin archive.
+#
+# One path per line, relative to the repo root; a directory ships recursively
+# (minus the junk patterns the Makefile recipe excludes). Anything not named
+# here does not ship: docs/, AGENTS.md, CLAUDE.md, README.md, CHANGELOG.md,
+# tests/, eval/, plugins/, the budget files and every other maintainer file.
+#
+# Rule for adding a line: the path is read at run time by an agent, skill,
+# command, hook or shipped script, OR the plugin format / the licence needs it.
+# A document that shipped text has to open belongs under references/, not docs/.
+#
+# Guard: tests/test_pack_allowlist.py (CI gate #26) -- every entry exists, the
+# Makefile recipe names no path of its own, and no shipped text file refers to
+# a repo path that is not shipped.
+
+# --- required by the plugin format / the licence
+.claude-plugin/plugin.json
+# marketplace catalogue: not read by a plugin host; kept because the shape that
+# passed the Cowork drag-drop validator contained it (not re-testable in CI)
+# -- remove this line and its EXEMPT entry once the user has tested a drag-drop without it
+.claude-plugin/marketplace.json
+LICENSE
+
+# --- discovery surface (plugin.json `skills` + default scan paths)
+agents
+commands
+skills/workflow
+skills/ops
+skills/ui
+skills/style
+skills/discipline
+output-styles
+
+# --- runtime enforcement
+hooks
+scripts/workflow-state.sh
+scripts/route.sh
+scripts/policy-check.sh
+scripts/scope-check.sh
+scripts/permission-check.sh
+scripts/side-effect.sh
+scripts/approval.sh
+scripts/lib/lock.sh
+# read by scripts/policy-check.sh at run time ($SELF_DIR/../.enforcement-map.json)
+.enforcement-map.json
+
+# --- lazy-loaded knowledge and the data the scripts above read
+references

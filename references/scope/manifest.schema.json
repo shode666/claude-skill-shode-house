@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "shode-house/references/scope/manifest.schema.json",
   "title": "shode-house scope manifest (Milestone E -- ROADMAP-runtime-10.md SS7.1-7.3, bd: shode-roadmap/C-E1)",
-  "description": "Per-bd concurrency scope lock. `agents[].owns` = SS7.1 scope manifest. `shared_files` = SS7.2 shared-file strategy (exclusive/append-only/merge-owner/generated -- data-driven, no filename is hardcoded in scripts/scope-check.sh). `base_sha` = SS7.3 optimistic-conflict snapshot store, written only by `scope-check.sh ... --snapshot`, never hand-edited. This file is a REFERENCE (schema + example) only -- the live manifest that scripts/scope-check.sh actually reads lives at .shode-house/scope/<bd-id with / -> -->.json inside a project that opted into shode-house (same convention as .shode-house/state/*.json for scripts/workflow-state.sh). Read by script/CI only -- never preloaded into an agent context (CLAUDE.md 'token/run ห้ามเพิ่ม').",
+  "description": "Per-bd concurrency scope lock. `agents[].owns` = SS7.1 scope manifest. `shared_files` = SS7.2 shared-file strategy (exclusive/append-only/merge-owner/generated -- data-driven, no filename is hardcoded in scripts/scope-check.sh). `base_sha` = SS7.3 optimistic-conflict snapshot store, written only by `scope-check.sh ... --snapshot`, never hand-edited. This file is a REFERENCE (schema + example) only -- the live manifest that scripts/scope-check.sh actually reads lives at .shode-house/scope/<bd-id with / -> -->.json inside a project that opted into shode-house (same convention as .shode-house/state/*.json for scripts/workflow-state.sh). Read by script/CI only -- never preloaded into an agent context.",
   "type": "object",
   "required": ["schema_version", "bd_id", "agents"],
   "additionalProperties": false,
@@ -61,7 +61,7 @@
           },
           "coupled_with": {
             "type": "array",
-            "description": "optional -- other paths whose content this file's correctness silently depends on. --snapshot / --verify also snapshot/check these paths together with the primary one. This is the direct fix for the ac632a3 incident (see example.manifest.json): a CI step in .github/workflows/ci.yml assumed eval/scenarios/golden.json's old schema while a different, correctly scope-locked agent changed golden.json under its own Files -- neither agent's Scope Contract overlapped, so nothing in SS7.1 alone would have caught it. Declaring the coupling here means a --verify on ci.yml also reports CONFLICT if golden.json drifted, even though the writer only touched ci.yml.",
+            "description": "optional -- other paths whose content this file's correctness silently depends on. --snapshot / --verify also snapshot/check these paths together with the primary one. This is the direct fix for the ac632a3 incident (see example.manifest.json): a CI step in the plugin repository's ci.yml assumed its golden.json scenario file's old schema while a different, correctly scope-locked agent changed golden.json under its own Files -- neither agent's Scope Contract overlapped, so nothing in SS7.1 alone would have caught it. Declaring the coupling here means a --verify on ci.yml also reports CONFLICT if golden.json drifted, even though the writer only touched ci.yml.",
             "items": { "type": "string", "minLength": 1 }
           },
           "note": {

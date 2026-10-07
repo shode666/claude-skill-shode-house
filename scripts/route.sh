@@ -206,8 +206,8 @@ jq empty "$TRANSITIONS" >/dev/null 2>&1 || die "$TRANSITIONS is not valid JSON"
 # state machine's own `.states` (references/state-machine/transitions.json) instead of
 # a second hardcoded copy (bd: shode-roadmap/C-A6 iter0 -- the old inline literal used a
 # phase_0/phase_1a/... vocabulary that had drifted from the state machine's actual node
-# ids ('0-discover', '1a-spec', ...), which is the single source of truth per CLAUDE.md
-# 'Repo'; sourcing it here means route.sh can never drift from it again).
+# ids ('0-discover', '1a-spec', ...), which is the single source of truth for the phase
+# vocabulary; sourcing it here means route.sh can never drift from it again).
 PHASE_ORDER="$(jq -c '.states' "$TRANSITIONS")"
 
 # bd: shode-house-5cs.2 -- absent/null/empty capability must be a loud error, not a

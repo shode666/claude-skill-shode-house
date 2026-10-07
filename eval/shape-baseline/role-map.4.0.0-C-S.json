@@ -1,0 +1,26 @@
+{
+  "arm": "4.0.0-C",
+  "note": "Arm 4.0.0-C (ADR iter 5 section 6): role-map.3.17.2.json minus the retired router agent type; every other type keeps its roles, because shape C keeps one agent type per role (section 5.2). The router is the main session (output style), scored as `router-main` by score.py; the `router` role stays mapped to no type, so a spawn of the retired type is `unmapped` and fails the run. `rules` (protocol section 9 step 2; role-map.3.17.2.json note): a delegation that names a design-run ORDER file, outputs/<task>/<NN>-design-run-order-(1b|3a)-iter<n>.json (section 5.6.1 step 3; the marker gets into the prompt because the router must pass the order path and its sha256 to the executor), is a design-run executor: qa-engineer -> review-runtime only, never ui-verify (Bella W9 S-1, router decision R71; ADR section 6 text via erratum 3), developer -> implementer. The runner report path (design-run/<order-stem>.report.json) relayed to reviewers does not match. The regex equals eval/v4-security/v4_rules.ORDER_NAME_PATTERN (pinned by a test). Arm 4.0.0-C-S differs only in model tiers and reuses this map: role-map.4.0.0-C-S.json is a byte-equal copy, so the frozen run.sh records its sha256 in meta.json under sha256[\"role-map.4.0.0-C-S.json\"], equal to this file's (S-3, R71). Reviewed by someone who did not write the arm.",
+  "namespace": "shode-house:",
+  "types": {
+    "developer": ["implementer"],
+    "code-reviewer": ["review-standards"],
+    "qa-engineer": ["review-runtime", "ui-verify"],
+    "business-analyst": ["review-spec", "requirements"],
+    "security-engineer": ["security"],
+    "solution-architect": ["architecture"],
+    "staff-engineer": ["staff"],
+    "ux-ui-designer": ["ux-design", "ui-verify"],
+    "product-manager": ["product"],
+    "devops-engineer": ["operations"],
+    "sre-engineer": ["operations"],
+    "fintech-expert": ["domain"], "trading-expert": ["domain"], "insurance-expert": ["domain"], "sap-expert": ["domain"],
+    "erp-expert": ["domain"], "booking-expert": ["domain"], "ecommerce-expert": ["domain"]
+  },
+  "rules": [
+    {"type": "qa-engineer", "prompt_regex": "(?<![A-Za-z0-9._-])outputs/[A-Za-z0-9._-]+/[0-9]+-design-run-order-(?:1b|3a)-iter[0-9]+\\.json(?![A-Za-z0-9_/-]|\\.[A-Za-z0-9])", "roles": ["review-runtime"]},
+    {"type": "developer", "prompt_regex": "(?<![A-Za-z0-9._-])outputs/[A-Za-z0-9._-]+/[0-9]+-design-run-order-(?:1b|3a)-iter[0-9]+\\.json(?![A-Za-z0-9_/-]|\\.[A-Za-z0-9])", "roles": ["implementer"]}
+  ],
+  "host_builtin_types": ["general-purpose", "Explore", "Plan", "claude", "claude-code-guide", "statusline-setup"],
+  "host_builtin_role": "host-builtin"
+}

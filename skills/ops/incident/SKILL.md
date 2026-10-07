@@ -5,15 +5,15 @@ description: Respond to active production impact such as an outage, degradation,
 
 # Incident (response + runbook + postmortem)
 
-> **Owner**: Reggie (lead) + Oliver (escalation routing) + Aaron (infra mitigation) + Sentinel (if security)
+> **Owner**: sre-engineer (lead) + router (escalation routing) + devops-engineer (infra mitigation) + security-engineer (if security)
 
 ## When NOT to use
 
-- **Bug ที่ไม่ใช่ production outage** — ใช้ `diagnose` skill (structured debugging) แทน
-- **Customer support ticket** (single user, no SLO breach) — Patrick handle เป็น product feedback
+- **Bug ที่ไม่ใช่ production outage** — ใช้ `shode-house:diagnose` skill (structured debugging) แทน
+- **Customer support ticket** (single user, no SLO breach) — product-manager handle เป็น product feedback
 - **Planned maintenance / scheduled downtime** — ไม่ใช่ incident; ใช้ change management runbook
 - **Internal dev environment crash** — ไม่นับ incident (severity = P3 informal)
-- **Security suspect ที่ยังไม่ confirmed** — escalate Sentinel ก่อน; ห้าม open war room โดยไม่มี evidence (false-positive incident เปลือง budget)
+- **Security suspect ที่ยังไม่ confirmed** — escalate security-engineer ก่อน; ห้าม open war room โดยไม่มี evidence (false-positive incident เปลือง budget)
 
 ## Required inputs
 
@@ -22,7 +22,7 @@ Response intake: identify the incident/authorized responder, then collect during
 - [ ] **Alert source identified** (Prometheus rule name / health check / customer report — ระบุ origin)
 - [ ] **Severity assigned** (P0/P1/P2/P3 ตาม matrix; **ห้ามเปิด war room ถ้า P3**)
 - [ ] **Blast radius estimate** (กี่ user / กี่ region / กี่ % traffic — รู้เพื่อ comms ถูก)
-- [ ] **Rollback option known** (มี last-known-good version + how to revert; ถ้าไม่มี — ขอ Aaron ก่อน)
+- [ ] **Rollback option known** (มี last-known-good version + how to revert; ถ้าไม่มี — ขอ devops-engineer ก่อน)
 - [ ] **On-call หรือ author available** (ถ้าไม่มี → ต้อง escalate ทันที ไม่รอ war room)
 
 Unknown blast radius or rollback becomes an urgent triage task, not a reason to
@@ -45,19 +45,19 @@ verify actual authority and the applicable runbook before operational changes.
 | **P2** | Partial impact / workaround มี | < 1 hr | Optional | < 7 business days |
 | **P3** | Minor / no user impact | next business day | No | Optional |
 
-## Incident response flow (Reggie IC = Incident Commander)
+## Incident response flow (sre-engineer IC = Incident Commander)
 
 ```
 ALERT (burn rate / health check / customer report)
    ↓
-ACK (Reggie or on-call < 5 min) — claim IC role
+ACK (sre-engineer or on-call < 5 min) — claim IC role
    ↓
 TRIAGE 15 min — assemble war room:
-   - IC: Reggie
-   - Infra: Aaron
-   - Code: Dave (author of recent change)
-   - Sec (if applicable): Sentinel
-   - Comms: Oliver
+   - IC: sre-engineer
+   - Infra: devops-engineer
+   - Code: developer (author of recent change)
+   - Sec (if applicable): security-engineer
+   - Comms: router
    ↓
 MITIGATE first (rollback / scale / flag off)
    ↓
@@ -71,7 +71,7 @@ POSTMORTEM scheduled within 5 days
 
 ## Runbook template
 
-ทุก critical alert ต้องมี runbook (Reggie block deploy ถ้าขาด)
+ทุก critical alert ต้องมี runbook (sre-engineer block deploy ถ้าขาด)
 
 ```markdown
 # Runbook: <alert name>
@@ -98,8 +98,8 @@ POSTMORTEM scheduled within 5 days
 - Failover read-replica: <link to runbook>
 
 ## Escalation
-- P0/P1 not mitigated in 30 min → wake Sara + Aaron
-- Security suspicion → page Sentinel
+- P0/P1 not mitigated in 30 min → wake solution-architect + devops-engineer
+- Security suspicion → page security-engineer
 - DB-level → page DBA on-call
 
 ## Test (chaos drill)
@@ -112,7 +112,7 @@ POSTMORTEM scheduled within 5 days
 ```markdown
 # Postmortem: <title> (<YYYY-MM-DD>)
 **Severity**: P0/P1  **Duration**: hh:mm  **Impact**: <users / revenue>
-**IC**: Reggie  **Authors**: Reggie + Dave
+**IC**: sre-engineer  **Authors**: sre-engineer + developer
 
 ## Summary
 1 paragraph: what happened, customer impact, root cause, mitigation
@@ -121,7 +121,7 @@ POSTMORTEM scheduled within 5 days
 | Time | Event (source: log/alert/user report) |
 |------|-------|
 | HH:MM | First alert (burn rate 14x, P1 page) |
-| HH:MM | Reggie ack, war room opened |
+| HH:MM | sre-engineer ack, war room opened |
 | HH:MM | Hypothesis: DB connection pool exhaustion |
 | HH:MM | Mitigation: scale pool 50 → 200 |
 | HH:MM | SLO restored |
@@ -140,21 +140,21 @@ POSTMORTEM scheduled within 5 days
 
 ## What went well
 - Burn rate alert fired correctly (1h window, 14x)
-- Reggie ack in 4 min (target < 5)
+- sre-engineer ack in 4 min (target < 5)
 - Rollback was practiced; quick mitigation
 
 ## What went poorly
 - No pre-launch load forecast
 - DB pool size hardcoded (not Terraform-managed)
-- War room channel had no Patrick (PM should know early)
+- War room channel had no product-manager (PM should know early)
 
 ## Action items (system change, not blame)
 | # | Action | Owner | Due | Task | Severity |
 |---|--------|-------|-----|----------|----------|
-| 1 | Add Marketing → SRE handoff process | Patrick | 2026-06-15 | bd-101 | HIGH |
-| 2 | Move DB pool config to Terraform | Aaron | 2026-06-08 | bd-102 | HIGH |
-| 3 | Add Patrick to P0/P1 war-room paging | Reggie | 2026-06-01 | bd-103 | MED |
-| 4 | Document campaign launch playbook | Bella | 2026-06-30 | bd-104 | MED |
+| 1 | Add Marketing → SRE handoff process | product-manager | 2026-06-15 | bd-101 | HIGH |
+| 2 | Move DB pool config to Terraform | devops-engineer | 2026-06-08 | bd-102 | HIGH |
+| 3 | Add product-manager to P0/P1 war-room paging | sre-engineer | 2026-06-01 | bd-103 | MED |
+| 4 | Document campaign launch playbook | business-analyst | 2026-06-30 | bd-104 | MED |
 
 ## Lessons (broadcast to team)
 - ทุก marketing campaign > 2x normal traffic → SRE load forecast บังคับ
@@ -168,7 +168,7 @@ POSTMORTEM scheduled within 5 days
 **Rotation**: weekly, Mon 9:00 AM TH handoff
 **Tier 1** (primary): rotation list
 **Tier 2** (secondary): rotation list (covers primary unavailable)
-**Tier 3** (escalation): Sara + Aaron + Reggie always
+**Tier 3** (escalation): solution-architect + devops-engineer + sre-engineer always
 
 ## Handoff template (Mon 9:00 AM in standup)
 - Open issues: <list tickets + status>
@@ -178,11 +178,11 @@ POSTMORTEM scheduled within 5 days
 - Burn rate trend: <link Grafana>
 ```
 
-## 5-Why pitfalls (Reggie enforce blameless)
+## 5-Why pitfalls (sre-engineer enforce blameless)
 
 ❌ Wrong:
-- "Dave forgot to test" (blame individual)
-- "Aaron's config was wrong" (blame)
+- "developer forgot to test" (blame individual)
+- "devops-engineer's config was wrong" (blame)
 - "Should have known" (hindsight bias)
 
 ✅ Right:
@@ -196,7 +196,7 @@ POSTMORTEM scheduled within 5 days
 ✅ "[Postmortem: postmortems/2026-05-22-payment.md] MTTR=42min, 4 action items (bd-101..104)"
 ✅ "[Runbook: runbooks/payment-high-error.md] last verified 2026-05-22 incident"
 ✅ "[On-call: oncall-schedule.md] this week: <name>, handoff Mon 9:00"
-✅ "[War room: thread-link] 12 updates, IC Reggie, 5 participants"
+✅ "[War room: thread-link] 12 updates, IC sre-engineer, 5 participants"
 ❌ "incident resolved" (no recovery evidence)
 ```
 
@@ -219,6 +219,6 @@ with owners rather than claiming they are complete.
 |---|---|---|
 | Postmortem identifies SLO breach pattern | → `slo` | Recalibrate SLI/SLO/error budget; ปรับ burn-rate alert (incident ไม่ทำ measurement design) |
 | Root cause = bug ที่ต้อง fix | → `diagnose` → `dev-gate` | Structured RCA + TDD-driven fix (incident จบที่ mitigation) |
-| Root cause = security breach | → `secure` | Sentinel STRIDE + abuse case + threat model update |
+| Root cause = security breach | → `secure` | security-engineer STRIDE + abuse case + threat model update |
 | Root cause = test gap ทำให้หลุด CI | → `automate-test` | Pyramid + regression coverage + CI gate (close the hole) |
 | Action item ต้อง deploy hot-fix | → `dev-gate` (followed by hot-fix release) | TDD applies even to hot-fix (no exception)

@@ -1,0 +1,172 @@
+diff --git a/src/ledger.py b/src/ledger.py
+index de52756..6be3ded 100644
+--- a/src/ledger.py
++++ b/src/ledger.py
+@@ -1,14 +1,60 @@
+-from decimal import Decimal
++from decimal import Decimal, InvalidOperation, Inexact, localcontext
++
++ROUNDING_TOLERANCE = Decimal("0.01")  # inclusive; THB scale 2 only
++# shortcut(bd:ledger-tolerance): placeholder CoA code, finance must confirm (Felix Q1)
++ROUNDING_ACCOUNT = "ROUNDING-DIFFERENCE-TBD"
+ 
+ def mask_card(pan):
+     return pan[:6] + "*" * (len(pan) - 10) + pan[-4:]
+ 
++def to_amount(raw):
++    if isinstance(raw, bool) or not isinstance(raw, (str, int, Decimal)):
++        raise ValueError("amount must be str, int or Decimal")
++    try:
++        amount = Decimal(raw)
++    except InvalidOperation:
++        raise ValueError("amount is not a number")
++    if not amount.is_finite():
++        raise ValueError("amount must be finite")
++    if amount.as_tuple().exponent < -2:
++        raise ValueError("amount has more than 2 decimal places")
++    return amount
++
++def entry_amount(entry):
++    if not isinstance(entry, dict) or "amount" not in entry:
++        raise ValueError("entry must be a dict with an amount")
++    return to_amount(entry["amount"])
++
++def exact_sum(entries):
++    # Any rounding (e.g. 1E+30 + 5.00 at 28 digits) would hide an imbalance: fail instead.
++    with localcontext() as ctx:
++        ctx.traps[Inexact] = True
++        try:
++            return sum((entry_amount(e) for e in entries), Decimal("0"))
++        except Inexact:
++            raise ValueError("amount too large to sum exactly")
++
++def exact_negate(value):
++    with localcontext() as ctx:
++        ctx.traps[Inexact] = True
++        try:
++            return -value
++        except Inexact:
++            raise ValueError("amount too large to negate exactly")
++
+ def post(entries, card=None):
+-    total = sum(Decimal(str(e["amount"])) for e in entries)
++    if len(entries) < 2:
++        raise ValueError("at least 2 entries required")
++    total = exact_sum(entries)
++    if abs(total) > ROUNDING_TOLERANCE:
++        raise ValueError("unbalanced")
++    journal = list(entries)
+     if total != 0:
++        journal.append({"amount": str(exact_negate(total)), "account": ROUNDING_ACCOUNT, "type": "rounding"})
++    stored = exact_sum(journal)
++    if stored != 0:
+         raise ValueError("unbalanced")
+-    row = {"posted": len(entries), "amount": float(total)}
++    row = {"posted": len(journal), "amount": str(stored), "rounding_residual": str(total)}
+     if card:
+         row["card"] = mask_card(card)
+-        print(f"ledger post card={card}")
+     return row
+diff --git a/tests/test_ledger.py b/tests/test_ledger.py
+index 088f3ec..c58b749 100644
+--- a/tests/test_ledger.py
++++ b/tests/test_ledger.py
+@@ -1,13 +1,97 @@
+-import os, sys, unittest
++import contextlib, io, os, sys, unittest
++from decimal import Decimal
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+ from ledger import post
+ 
+ 
++def amounts(*values):
++    return [{"amount": v} for v in values]
++
++
+ class LedgerPostTest(unittest.TestCase):
+     def test_unbalanced_raises(self):
+         with self.assertRaises(ValueError):
+             post([{"amount": "10.00"}])
+ 
++    def test_exact_balance_has_no_rounding_entry(self):
++        row = post(amounts("10.00", "-10.00"))
++        self.assertEqual(row["posted"], 2)
++        self.assertEqual(Decimal(row["rounding_residual"]), 0)
++        self.assertEqual(Decimal(row["amount"]), 0)
++
++    def test_positive_boundary_posts_with_rounding_entry(self):
++        row = post(amounts("10.00", "-9.99"))
++        self.assertEqual(row["rounding_residual"], "0.01")
++        self.assertEqual(row["posted"], 3)
++        self.assertEqual(Decimal(row["amount"]), 0)
++
++    def test_negative_boundary_posts_with_rounding_entry(self):
++        row = post(amounts("10.00", "-10.01"))
++        self.assertEqual(row["rounding_residual"], "-0.01")
++        self.assertEqual(row["posted"], 3)
++        self.assertEqual(Decimal(row["amount"]), 0)
++
++    def test_beyond_tolerance_raises(self):
++        for pair in (("10.00", "-9.98"), ("10.00", "-10.02")):
++            with self.assertRaises(ValueError):
++                post(amounts(*pair))
++
++    def test_single_entry_within_tolerance_raises(self):
++        with self.assertRaises(ValueError):
++            post(amounts("0.01"))
++
++    def test_empty_raises(self):
++        with self.assertRaises(ValueError):
++            post([])
++
++    def test_non_finite_raises_value_error(self):
++        for bad in ("NaN", "sNaN", "Infinity", "-Infinity"):
++            with self.assertRaises(ValueError):
++                post(amounts(bad, "0"))
++
++    def test_float_raises(self):
++        with self.assertRaises(ValueError):
++            post(amounts(10.0, -9.99))
++
++    def test_more_than_two_decimal_places_raises(self):
++        for bad in ("10.005", "0.009", "0.011"):
++            with self.assertRaises(ValueError):
++                post(amounts(bad, "-10.00"))
++
++    def test_lossy_precision_imbalance_raises(self):
++        with self.assertRaises(ValueError):
++            post(amounts("1E+30", "5.00", "-1E+30"))
++
++    def test_huge_exact_balance_still_posts(self):
++        row = post(amounts("1E+100", "-1E+100"))
++        self.assertEqual(Decimal(row["amount"]), 0)
++
++    def test_bool_amount_raises(self):
++        for pair in ((True, -1), (True, False)):
++            with self.assertRaises(ValueError):
++                post(amounts(*pair))
++
++    def test_missing_amount_key_raises_value_error(self):
++        with self.assertRaises(ValueError):
++            post([{"amount": "1.00"}, {"account": "x"}])
++
++    def test_non_dict_or_none_entry_raises_value_error(self):
++        for bad in (None, "1.00", 5, ["1.00"]):
++            with self.assertRaises(ValueError):
++                post([{"amount": "1.00"}, bad])
++
++    def test_garbage_string_raises_value_error(self):
++        with self.assertRaises(ValueError):
++            post(amounts("abc", "1.00"))
++
++    def test_no_pan_in_stdout_and_masked_in_row(self):
++        pan = "4111111111111111"
++        out = io.StringIO()
++        with contextlib.redirect_stdout(out):
++            row = post(amounts("1.00", "-1.00"), card=pan)
++        self.assertNotIn(pan, out.getvalue())
++        self.assertEqual(row["card"], "411111******1111")
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

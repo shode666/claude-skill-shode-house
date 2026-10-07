@@ -5,65 +5,76 @@ description: Coordinate multi-phase delivery with phase gates, recorded approval
 
 # shode-house — Workflow Discipline
 
-เริ่ม/resume engagement หรือก่อน delegate ครั้งแรก: อ่าน `harness.md` ข้างไฟล์นี้
-เพื่อยืนยัน source of truth, host tools, owner, checkpoint และการ reconcile UNKNOWN
+Starting or resuming an engagement, or before the first delegation: read `harness.md` (next to this file) to confirm the source of truth, host tools, owners, checkpoint and UNKNOWN reconciliation.
 
-> Oliver owns workflow. Phase Contract บังคับ. Hooks + Gates make pipeline auditable.
+> The router owns workflow. The Phase Contract is mandatory; gates make the pipeline auditable.
 
 ---
 ## 🧵 Task Tracking — tracker = single source of truth ของ status/dep
 
-เลือก source of truth ตาม project ที่ user ยืนยัน (ดู `harness.md`); ไม่มีของเดิมใช้ Markdown ได้ทุก concern. คำสั่งจริง = ของ tracker ที่ยืนยัน; ตัวอย่าง Beads (เฉพาะ project ที่เลือก Beads) → `harness.md` § Beads example
-- **Markdown deliverable** (BRD/ADR/SPEC/REVIEW) อยู่ตำแหน่งที่ project เลือก; status/dep อยู่ canonical record เดียว ซึ่งอาจเป็น Markdown ได้
-- abstraction: `tracker.create(title,priority,type,blockedBy?)` · `.ready()` · `.claim(id)` · `.note(id,text)` · `.close(id)` + read-back (🔴 M8 close-on-done) · `.link(from,to,type)` — tracker อื่น + คำถามเลือก tracker → `smart-coop.md` § Tracker options
+Use the source of truth the user confirmed (`harness.md`); with none, Markdown can hold every concern. Commands are the confirmed tracker's own; Beads example → `harness.md` § Beads example.
+- Markdown deliverables (BRD/ADR/SPEC/REVIEW) live where the project chose; status/dependencies live in one canonical record, which may be Markdown.
+- abstraction: `tracker.create(title,priority,type,blockedBy?)` · `.ready()` · `.claim(id)` · `.note(id,text)` · `.close(id)` + read-back (🔴 M8 close-on-done) · `.link(from,to,type)` — other trackers → `smart-coop.md` § Tracker options
 
-## 🎚️ Engagement Mode (Oliver เลือกก่อนเริ่ม)
+## 🎚️ Engagement Mode (the router picks before starting)
 
 - **AFK** — proceed through applicable phases within recorded scope/authority; unattended mode does not waive deployment, external-write or business-policy approval. Missing authority becomes a checkpointed blocker.
-- **Interactive** — human approve ทุก hand-off + ทุก phase exit; R2/R1 inform · *งานใหม่/ละเอียดอ่อน/audit*
-- **Hybrid** (default แนะนำ) — AFK จนถึง pre-deploy → Interactive ตั้งแต่ deploy ขึ้นไป
+- **Interactive** — the human approves every hand-off and phase exit; R2/R1 inform. For new, sensitive or audited work.
+- **Hybrid** (recommended default) — AFK up to pre-deploy, Interactive from deploy on.
 
-ทุก mode: **R0 (irreversible) ขออนุญาตเสมอ**
+Every mode: **R0 (irreversible) always asks first.**
 
-## 🚦 Phase orchestration — ห้าม (🔴 Oliver enforce)
+## 🚦 Phase orchestration (🔴 the router enforces)
 
-- Phase 1a Bella/Sara ใช้ independent context; parallel เมื่อ host รองรับและไม่มี dependency มิฉะนั้น sequential ได้. Phase 1b Uma/Domain ต้องอ่าน 1a spec ที่รวมแล้วก่อน design/validate
-- UI changed → ห้าม skip Phase 3a Uma POST gate. Pure backend → บันทึก not-applicable พร้อม diff evidence แล้วเข้า 3b ได้
-- Phase 3b Chris/Quinn ตรวจคนละ scope และ verdict อิสระ; parallel เมื่อทำได้ หรือ sequential คนละ context โดยห้ามคัดลอก verdict กัน
-- 🔴 ห้าม skip Phase 4 Triage routing. Review fail → loop ไป phase ที่ตรง finding (code→2, UI→1b, spec→1a); ห้าม "ผ่านครึ่ง ๆ" ข้ามไป Deploy
-- ห้าม close Phase 3 (3a/3b) ก่อน review report อยู่ใน evidence home ที่ project ยืนยัน; task record เก็บ link ไม่ copy ซ้ำ. ใช้ REVIEW Report Format
+- Phase 1a business-analyst and solution-architect work in independent contexts; parallel when the host supports it and nothing depends, otherwise sequential. Phase 1b ux-ui-designer/domain read the merged 1a spec before designing or validating.
+- UI changed → never skip the Phase 3a ux-ui-designer POST gate. Pure backend → record not-applicable with diff evidence, then 3b.
+- Phase 3b reviewers check separate scopes with independent verdicts; parallel when possible, or sequential in separate contexts, never copying a verdict.
+- 🔴 ห้าม skip Phase 4 Triage routing. Review fail → loop to the phase the finding belongs to (code→2, UI→1b, spec→1a); never "half pass" into Deploy.
+- Never close Phase 3 (3a/3b) before the review report is in the confirmed evidence home; the task record keeps a link, not a copy. Use the REVIEW Report Format.
 
 ## 🛡️ Phase 1c — Threat Model (🔴 canonical trigger list — single source)
-- **Owner**: ✅ Sentinel (lead) + Sara (architecture context)
+- **Owner**: ✅ security-engineer (lead) + solution-architect (architecture context)
 - **Trigger**: feature touching auth / session / PII / money / external integration / webhook / file upload / AI agent
 - **Output**: STRIDE + abuse case + security AC injected into Phase 1a
-- **Gate**: `pre-implement` — สิทธิ์ block Phase 2 ถ้าไม่ผ่าน
-- **Note**: ขนาน parallel กับ 1b ได้ ถ้า scope independent
+- **Gate**: `pre-implement` — may block Phase 2 until it passes
+- **Note**: may run parallel with 1b when scopes are independent
 - Fast path vs full-workflow trigger → `ask` § Fast path or full workflow (single owner); fast path never skips this trigger.
 - 🔴 **No waiver**: a user's or agent's "low risk" claim does not waive Phase 1c when a trigger fired. ห้าม dispatch Phase 2 ก่อน Phase 1c gate ผ่าน
 
+## ⏸️ Approval Gates
+
+Single table for every phase gate and R0 action; the router checks each gate before the hand-off (examples → `smart-coop.md` § Approval Gates).
+
+| Gate | Before | Check |
+|---|---|---|
+| Pre-spec-expand | 1a → 1b | business-analyst + solution-architect sign-off (task notes posted); light cross-read complete; no FR-ADR conflict unresolved |
+| Pre-implement-ui | 1b → 2 (frontend) | Applicable approved ux-ui-designer design + tokens/state/a11y criteria; reuse existing artifacts, Figma optional |
+| Pre-ui-check | 2 → 3a | lint clean + unit green + smoke pass + Scope Contract closed |
+| Pre-code-review | 3a → 3b | UI changed: ux-ui-designer POST PASS (visual/a11y/own AC); backend-only: explicit not-applicable with diff evidence |
+| Pre-merge | merge to main | code-reviewer approve + required project checks; qa-engineer and other axes pass when selected by harness tier/triggers |
+| Pre-merge-ui | merge UI change | Adopted UI checks pass + visual evidence approved + applicable accessibility criteria verified |
+| Pre-loop-exit | 4 Triage → 5 Deploy | Applicable review axes complete, no unresolved Critical/High, iteration policy met; canonical review/evidence saved and task status verified. Deployment remains separately authorized |
+| Pre-deploy-staging | staging deploy | Build + image scan pass |
+| Pre-deploy-uat | uat deploy | Staging E2E pass + QA sign-off |
+| Pre-deploy-prod | prod deploy | UAT business sign-off + change ticket + rollback plan; multi-sig devops-engineer + sre-engineer + security-engineer (+ product-manager for R0) |
+| Pre-data-migration | run migration prod | Backup verified + expand-contract + dry-run |
+| Pre-destructive | DROP/DELETE/rm -rf prod | User confirms this exact action + impact + rollback |
+
 ---
 
-## 🔧 Token-saving (runtime)
-
-- Search source code narrowly and read relevant context. Selected role/skill instructions must still be read completely as required; do not truncate safety rules to save tokens.
-- Oliver reuses specialist analysis, but must check returned artifacts, conflicting findings and stale evidence against acceptance; avoiding duplicate work never means blind trust.
-
----
-
-## 🔒 Run Durability (3 กฎที่ session ตายแล้วยังกู้ได้)
+## 🔒 Run Durability (3 rules that survive a dead session)
 
 > Sessions are not durable. Use the confirmed project record per `harness.md`, not a second required JSON/SESSION-STATE store. Project runtime engineering is separate authorized work, not a plugin prerequisite.
 
-**1. Run stamp — บันทึกตอน pick task (ไม่มี = reproduce ไม่ได้)**: note ใน task record — `run: plugin=v<X.Y.Z> model=<agent:model,...> started=<ISO8601> branch=<branch>`
+**1. Run stamp — record at task pick (without it nothing reproduces)**: task-record note `run: plugin=v<X.Y.Z> model=<agent:model,...> started=<ISO8601> branch=<branch>`
 
 **2. Approval durability — approve ผูกกับสิ่งที่เห็น ไม่ใช่ผูกกับเวลา (🔴)**
-- บันทึกใน task record: `approved: gate=<gate> by=<who> at=<ISO8601> artifact=<path> sha=<git hash-object path>`
+- Record in the task record: `approved: gate=<gate> by=<who> at=<ISO8601> artifact=<path> sha=<git hash-object path>`
 - artifact เปลี่ยนหลัง approve (sha ไม่ตรง) → **approval เป็นโมฆะ ต้องขอใหม่** ห้ามใช้ของเดิมต่อ
 - ก่อนผ่าน gate ใด ๆ: re-hash artifact แล้วเทียบกับ sha ที่บันทึกไว้
 - approval ที่อยู่แค่ในบทสนทนา = ไม่นับ (session ตาย = หลักฐานหาย)
 
-**3. Resume protocol — session ตายกลาง pipeline**
+**3. Resume protocol — session dies mid-pipeline**
 ```
 1. Read the current canonical checkpoint: run stamp, phase, owners, outstanding gates.
 2. Verify referenced artifacts/revisions; records without artifacts do not prove completion.
@@ -72,18 +83,18 @@ description: Coordinate multi-phase delivery with phase gates, recorded approval
 5. Never repeat an uncertain effect merely because the user says yes; unresolved outcome remains blocked per harness.md.
 ```
 
-**Pointer**: DoD checklist = `shode-house-deliverable/definition-of-done.md` § Definition of Done (single source) — Oliver enforce ก่อนปิด bd: ทุก DoD item ต้องมี evidence path
+**Pointer**: DoD checklist = `shode-house-deliverable/definition-of-done.md` § Definition of Done (single source) — the router enforces it before closing a task: every DoD item needs an evidence path.
 
 ## 🔁 Workflow Discipline (Archon-inspired)
 
-### Phase Contract — 🔴 v3.3 PEV Loop per bd (Oliver enforce)
+### Phase Contract — 🔴 v3.3 PEV Loop per bd (router enforce)
 
-> Task-complete, not time-bound; ห้าม man-day negotiation. Deploy only when ready and authorized, not batched by sprint.
+> Task-complete, not time-bound; no man-day negotiation. Deploy only when ready and authorized, not batched by sprint.
 
 ```
-PICK bd claim → PLAN 0 Discover* / 1a Bella∥Sara / 1b Uma*+Domain* / 1c Sentinel*
-  → EXECUTE 2 Dave → VERIFY 3a Uma* → 3b Chris∥Quinn → TRIAGE 4 Oliver
-  → DEPLOY 5 Aaron (continuous per bd) → OPERATE 6 Reggie          (* = conditional)
+PICK bd claim → PLAN 0 Discover* / 1a business-analyst∥solution-architect / 1b ux-ui-designer*+domain* / 1c security-engineer*
+  → EXECUTE 2 developer → VERIFY 3a ux-ui-designer* → 3b selected review axes → TRIAGE 4 router
+  → DEPLOY 5 devops-engineer (continuous per bd) → OPERATE 6 sre-engineer          (* = conditional)
 
 Triage routing: code/perf/security→2 · UI/design→1b · spec/AC/regulation→1a
 Clean + closure authority → tracker close + read-back (M8); unresolved at third review/fix iteration → STOP, checkpoint and escalate
@@ -91,19 +102,19 @@ Clean + closure authority → tracker close + read-back (M8); unresolved at thir
 
 ## 🛡️ Workflow Drift Defense (🔴 M2-M8 — M1 อยู่ใน `shode-house-discipline`)
 
-### M2 — Follow-up Classifier (Oliver auto-triage ทุก user message)
+### M2 — Follow-up Classifier (the router triages every user message)
 
 ```
-User message → Oliver classify (1-line caveman):
-  "ลองใหม่ / ไม่ work"   → inspect evidence → route affected owner/phase, track iteration; no blind retry
-  "เปลี่ยน X"             → assess acceptance delta → Bella/Sara where affected, not full replay
-  "ทำไม Y / ที่นี่ทำไม"   → quest   → answer, no phase change
-  "OK / ผ่าน / approve"   → approve → closure gate check
-  "เพิ่ม Z"               → new     → create child task
-  "เสร็จยัง"              → status  → read task record, no action
+User message → router classify (one line):
+  "retry / not working" → inspect evidence → route affected owner/phase, track iteration; no blind retry
+  "change X" → assess acceptance delta → business-analyst/solution-architect where affected, not full replay
+  "why Y" → quest → answer, no phase change
+  "OK / approve" → approve → closure gate check
+  "add Z" → new → create child task
+  "done yet?" → status → read task record, no action
 ```
 
-ห้าม Dave/Chris/Quinn proceed ก่อน Oliver classify
+ห้าม developer/code-reviewer/qa-engineer proceed ก่อน router classify
 
 ### M4 — User feedback invalidates the affected claim
 
@@ -115,26 +126,26 @@ Inspect feedback against acceptance and evidence:
   unresolved finding → hold closure; no automatic PASS after a worker's claim
 ```
 
-ห้าม Dave "OK เพิ่มให้ครับ" → fix ตรง ๆ โดยไม่ผ่าน iter counter
+ห้าม developer "OK เพิ่มให้ครับ" → fix ตรง ๆ โดยไม่ผ่าน iter counter
 
 ### M5 — Spec change = recorded acceptance revision
 
 ```
-User: "เปลี่ยน amount เป็น decimal"
-  ❌ WRONG: Dave fix code ตรง
+User: "make amount a decimal"
+  ❌ WRONG: developer fixes the code directly
   ✅ RIGHT:
-     Oliver  ▸ Bella  : spec change request
-     Bella   → revise canonical acceptance record, preserve prior revision/history
-     Bella ∥ Sara : Phase 1a redo (delta only — light)
+     router ▸ business-analyst : spec change request
+     business-analyst → revise canonical acceptance record, preserve prior revision/history
+     business-analyst ∥ solution-architect : Phase 1a redo (delta only — light)
      Gate: pre-spec-expand
      Revalidate affected phases/dependencies only; preserve unchanged approvals/evidence
 ```
 
 ### M7 — Direct-to-agent block
 
-ทุก agent ที่ไม่ใช่ Oliver ห้าม accept direct-from-user ใน active engagement — ส่งกลับ Oliver
+ทุก agent ที่ไม่ใช่ router ห้าม accept direct-from-user ใน active engagement — ส่งกลับ router
 
-M3: Worker "done"/FIXED = candidate; "ready merge" = Oliver only, after applicable independent reviews + triggered experts + current evidence + merge authority (detail → drift.md M3)
+M3: Worker "done"/FIXED = candidate; "ready merge" = router only, after applicable independent reviews + triggered experts + current evidence + merge authority (detail → drift.md M3)
 
 M1 → `shode-house-discipline` § M1 — Ingress Guard; เมื่อ drift เกิดจริง / จะ claim done / จะปิด task → โหลด `drift.md`: M3 Anti-Puppet "Done" table · M6 state pin · M8 Close-on-Done procedure · phase notes 0/6/7
 
@@ -142,13 +153,16 @@ M1 → `shode-house-discipline` § M1 — Ingress Guard; เมื่อ drift �
 
 ## 🤝 Smart Coop Pattern — parallel where independent, sequential gate where dependent
 
-🔴 **จะรัน pipeline จริง → โหลด `smart-coop.md` ก่อน**: phase pattern ต่อ phase · anti-pattern ที่จะถูก block · `state.json` schema + resume · **Lifecycle Hooks ต่อ phase** · **10 approval gates** · Phase 0 scope-clarify flow · worktree isolation · prompt template
-ห้าม orchestrate จากความจำ — เนื้อหาอยู่ในไฟล์แล้ว (NO MAGIC)
+🔴 **Before running a real pipeline, load `smart-coop.md`**: pattern per phase · blocked anti-patterns · `state.json` schema + resume · lifecycle conditions per phase · gate examples · Phase 0 scope-clarify flow · worktree isolation · prompt template. Never orchestrate from memory (NO MAGIC).
 
-## 📚 Reference Files (lazy-load; `*.md` = ข้าง SKILL.md นี้)
+## 📚 Reference Files (lazy-load; `*.md` = next to this SKILL.md)
 
-| ไฟล์ | โหลดเมื่อ |
+| File | Load when |
 |---|---|
-| `wayfinding.md` | งานใหญ่เกิน 1 session **และยังมองไม่เห็นทาง** — Map + decision ticket ก่อนเข้า Phase 0 |
-| `references/patterns/durable-agent-runtime.md` | Aaron/Sara generate runner ที่ต้องการ retry/checkpoint/journal |
-| `references/languages/<lang>.md` · `references/patterns/general.md` · `references/modern-stack.md` | ตาม stack ที่แตะ |
+| `wayfinding.md` | work larger than one session **with no visible path** — Map + decision ticket before Phase 0 |
+| `references/runbooks/router-engagement.md` | router: engagement plan template · Phase 0 discovery / 1c threat model / 6 operate · multi-sig pre-deploy gate |
+| `references/runbooks/router-clarify-estimate.md` | router: question format · frontier procedure · estimate exceptions |
+| `shode-house:shode-house-discipline` → `handoff.md` · `reporting.md` | router: handoff schema · `▸` broadcast · report and risk templates |
+| `shode-house:shode-house-routing` → `orchestration.md` · `ownership.md` | router: orchestration detail · ownership tables |
+| `shode-house:drain` → `execution.md` | router: batch-drain execution (isolated workers, serial merge, evidenced closure) |
+| `references/patterns/durable-agent-runtime.md` | devops-engineer/solution-architect generate a runner that needs retry/checkpoint/journal |

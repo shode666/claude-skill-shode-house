@@ -25,9 +25,9 @@
 # Production-bound gates (bd:shode-house-5cs.5) -- gate names matching "pre-deploy*",
 # "pre-merge*", "pre-data-migration*", "pre-destructive*", or exactly "production" --
 # additionally REFUSE to grant unless the working tree is CLEAN, full stop: `git status
-# --porcelain` must be empty. Production-bound gate list is authoritative at
-# output-styles/oliver.md:99 (that file is NO-list -- read-only, never edited here; cite
-# the line number so the next person does not have to rediscover it) -- it also names
+# --porcelain` must be empty. Production-bound gate list is authoritative in the router
+# style output-styles/shode-house.md, its "Never skip ..." gate line (that file is NO-list
+# -- read-only, never edited here; the 3.17 Oliver style it replaces is retired) -- it also names
 # pre-data-migration and pre-destructive, the two most irreversible gates in the system,
 # which the original iter0 pattern (pre-deploy*|pre-merge*|production only) missed.
 #
@@ -176,7 +176,7 @@ exit (verify): 0 ALLOW | 1 DENY (stale) | 2 NO_APPROVAL | 64 usage/dep error
 EOF
 }
 
-# production-bound gate names -- authoritative list: output-styles/oliver.md:99
+# production-bound gate names -- authoritative list: output-styles/shode-house.md "Never skip" line
 # (pre-spec-expand, pre-implement-ui, pre-ui-check, pre-code-review, pre-merge,
 # pre-merge-ui, pre-loop-exit, pre-deploy-*, pre-data-migration, pre-destructive). Only
 # the gates that gate an irreversible/production-facing action need the clean-tree check
