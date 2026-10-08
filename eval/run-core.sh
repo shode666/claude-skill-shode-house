@@ -12,8 +12,10 @@
 #          <id>.retry<n>. An INFRA result (429, credits, budget, error_during_execution) is kept, never counted,
 #          and stops the batch (exit 5): wait, then re-invoke the same command.
 # exit   : 0 every id has a scored run (PASS or FAIL) · 2 some id unscorable/incomplete · 3 refused · 5 stopped (infra)
-#          · 4 stopped: redaction failed (fail-closed) · 129/130/143 interrupted (HUP/INT/TERM)
-# redact : (UD U23 OD-2 A+) umask 077 for everything this batch writes (dirs 0700, files 0600). After run_one, the
+#          · 4 stopped: redaction failed (fail-closed), or an out-dir that cannot be made owner-only · 129/130/143
+#          interrupted (HUP/INT/TERM)
+# redact : (UD U23 OD-2 A+) umask 077 for everything this batch writes (dirs 0700, files 0600); an existing out-dir is
+#          tightened to the same modes before any run (redact_derived.py lockdown; symlink or odd entry = exit 4). After run_one, the
 #          derived files of the run (tools-seen.txt, score.txt, score.json, meta.json) are redacted in place,
 #          atomically, by eval/redact_derived.py (eval/evidence_redact.py rules); run.jsonl stays byte-exact (its
 #          sha256 is recorded in <run>/redaction.json and checked) and local-only, as do run.files/run.diff/run.stderr.
@@ -76,9 +78,11 @@ bash() {   # only run_one's fixture build is redirected; every other `bash` call
 mkdir -p "$OUT" || die "cannot create $OUT"
 OUT="$(cd "$OUT" && pwd -P)"
 [ -f "$OUT/SUMMARY.tsv" ] || [ -z "$(ls -A "$OUT")" ] || die "refuse: $OUT exists and is not a core batch (no SUMMARY.tsv)"
+# a batch begun before umask 077 (or touched by hand): every dir -> 0700, every file -> 0600, by descriptor, before any
+# run or read; a symlink / special / hard-linked / foreign entry refuses the batch with nothing changed (lockdown)
+python3 "$REDACT" lockdown "$OUT" || { echo "!! STOPPED: the out-dir cannot be made owner-only (reason above). Nothing ran." >&2
+  echo "!! Inspect it by hand (ls -laR), or start a NEW out-dir." >&2; exit 4; }
 [ -f "$OUT/SUMMARY.tsv" ] || printf 'id\trun\tmodel\tverdict\texit\tstate\troute\tseconds\tdir\n' > "$OUT/SUMMARY.tsv"
-chmod 700 "$OUT" && chmod 600 "$OUT/SUMMARY.tsv" || die "cannot restrict $OUT to its owner"   # a batch begun before umask 077
-[ ! -e "$OUT/log.txt" ] || chmod 600 "$OUT/log.txt" || die "cannot restrict $OUT/log.txt to its owner"
 exec > >(tee -a "$OUT/log.txt") 2>&1   # the console + log; run_one's job never holds it (see "isolate")
 echo "== $(utc) core batch set=$CORE_LABEL ($CORE) model=$MODEL plugin=${PLUGIN_REF:-WORKTREE}@${PLUGIN_SHA:0:7} ids: $IDS"
 

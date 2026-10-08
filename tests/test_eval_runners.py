@@ -1,7 +1,7 @@
 """Wiring tests for eval/run-e01.sh, eval/run-probes.sh and eval/run-core.sh (incl. its OD-2 A+ redaction) against tests/fake_claude.py.
 No model is called. These prove directory refusal, fixture-outside-repo, evidence files,
 meta.json fields and scorer exit propagation -- NOT the shape of a real `claude -p` trace."""
-import csv, json, os, re, shutil, stat, subprocess, sys, tempfile, time, unittest, unittest.mock
+import csv, inspect, json, os, re, shutil, stat, subprocess, sys, tempfile, time, unittest, unittest.mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -474,6 +474,281 @@ run_one() {
                 self.assertFalse(self.out.exists(), "stopped before the batch directory exists")
 
 
+def tree_modes(root):
+    """{relative path: (lstat mode bits, is link)} of every entry under root, root itself as "."."""
+    root = Path(root)
+    out = {".": (stat.S_IMODE(root.lstat().st_mode), False)}
+    for path in root.rglob("*"):
+        st = path.lstat()
+        out[str(path.relative_to(root))] = (stat.S_IMODE(st.st_mode), stat.S_ISLNK(st.st_mode))
+    return out
+
+
+def loosen(root):
+    """What a batch begun before umask 077 looks like: dirs 0755, files 0644 (links are left alone)."""
+    for path in [Path(root)] + list(Path(root).rglob("*")):
+        if not path.is_symlink():
+            path.chmod(0o755 if path.is_dir() else 0o644)
+
+
+@unittest.skipUnless(shutil.which("bash"), "needs bash")
+class CoreOutDirLockdownTest(unittest.TestCase):
+    """Resume of an existing out-dir (external review, Medium): every entry is tightened to 0700 / 0600 by descriptor
+    before any run, or the batch is refused (exit 4) with nothing changed when an entry is a symlink, a special file, a
+    hard-linked file, a redaction.json that is not what `seal` writes or a run.jsonl that no longer matches its
+    redaction.json. run.jsonl content is never changed."""
+
+    STUB_LIB = CoreRedactionControlTest.STUB_LIB
+    setUp = CoreRedactionControlTest.setUp
+    run_core = CoreRedactionControlTest.run_core
+    calls = CoreRedactionControlTest.calls
+    rows = CoreRedactionControlTest.rows
+
+    def old_batch(self):
+        """A finished E02 run, then every entry loosened: the state the finding describes."""
+        first = self.run_core("E02")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        loosen(self.out)
+        run = self.out / "E02"
+        self.assertEqual(stat.S_IMODE((run / "run.jsonl").stat().st_mode), 0o644)
+        return run, (run / "run.jsonl").read_bytes()
+
+    def assert_refused_untouched(self, done, before, raw, log):
+        self.assertEqual(done.returncode, 4, done.stdout + done.stderr)
+        self.assertIn("!! out-dir refused: ", done.stderr)
+        self.assertIn("STOPPED: the out-dir cannot be made owner-only", done.stderr)
+        self.assertNotIn(str(self.out), done.stdout + done.stderr, "static message: no path")
+        self.assertNotIn(TOKEN, done.stdout + done.stderr)
+        self.assertEqual(self.calls(), ["E02"], "nothing ran")
+        self.assertEqual(tree_modes(self.out), before, "refused: no mode changed")
+        self.assertEqual((self.out / "E02/run.jsonl").read_bytes(), raw)
+        self.assertEqual((self.out / "log.txt").read_bytes(), log, "refused before the console log is opened")
+
+    def test_resume_of_a_loose_batch_tightens_every_entry_and_keeps_run_jsonl(self):
+        run, raw = self.old_batch()
+        (run / "sub").mkdir()
+        (run / "sub/extra.txt").write_text("x")
+        loosen(self.out)
+        resumed = self.run_core("E02 E03")
+        self.assertEqual(resumed.returncode, 0, resumed.stdout + resumed.stderr)
+        self.assertEqual(self.calls(), ["E02", "E03"], "E02 kept, E03 ran")
+        for rel, (mode, is_link) in tree_modes(self.out).items():
+            self.assertFalse(is_link, rel)
+            self.assertEqual(mode, 0o700 if (self.out / rel).is_dir() else 0o600, rel)
+        self.assertEqual((run / "run.jsonl").read_bytes(), raw, "raw trace byte-exact")
+        self.assertEqual(json.loads((run / "redaction.json").read_text())["run_jsonl_sha256"], sha256_of(run / "run.jsonl"))
+
+    def test_a_symlink_anywhere_refuses_the_batch_and_its_target_is_untouched(self):
+        for name, make in (("file link", lambda run, outside: (run / "link.txt").symlink_to(outside / "target.txt")),
+                           ("dir link", lambda run, outside: (run / "linkdir").symlink_to(outside)),
+                           ("dangling link", lambda run, outside: (run / "gone").symlink_to(outside / "missing")),
+                           ("link at the top", lambda run, outside: (self.out / "E09").symlink_to(outside))):
+            with self.subTest(name):
+                self.setUp()
+                outside = self.repo / "outside"
+                outside.mkdir()
+                (outside / "target.txt").write_text("not evidence")
+                outside.chmod(0o755)
+                (outside / "target.txt").chmod(0o644)
+                run, raw = self.old_batch()
+                make(run, outside)
+                before, log = tree_modes(self.out), (self.out / "log.txt").read_bytes()
+                done = self.run_core("E02 E03")
+                self.assert_refused_untouched(done, before, raw, log)
+                self.assertIn("symlink", done.stderr)
+                self.assertEqual(stat.S_IMODE((outside / "target.txt").stat().st_mode), 0o644, "link target untouched")
+                self.assertEqual(stat.S_IMODE(outside.stat().st_mode), 0o755, "link target untouched")
+                self.assertEqual((outside / "target.txt").read_text(), "not evidence")
+
+    def test_special_hard_linked_or_tampered_entries_refuse_the_batch(self):
+        def fifo(run):
+            os.mkfifo(run / "pipe")
+
+        def hardlink(run):
+            os.link(run / "score.txt", self.repo / "score-copy.txt")
+
+        def tamper(run):
+            with open(run / "run.jsonl", "ab") as f:
+                f.write(b"{}\n")
+
+        def unreadable_file(run):
+            (run / "score.txt").chmod(0o000)
+            self.addCleanup((run / "score.txt").chmod, 0o600)   # runs before setUp's rmtree (cleanups are LIFO)
+
+        def unreadable_dir(run):
+            (run / "d").mkdir()
+            (run / "d/inner.txt").write_text("x")
+            (run / "d").chmod(0o300)   # write + search, no read: cannot be listed
+            self.addCleanup((run / "d").chmod, 0o700)
+        cases = [("fifo", fifo, "not a regular file"), ("hard link", hardlink, "hard link"),
+                 ("run.jsonl changed", tamper, "does not match the sha256")]
+        if os.geteuid() != 0:   # root reads a 0000 file and lists a 0300 directory: "unreadable" needs a non-root user
+            cases += [("unreadable file", unreadable_file, "no owner access"),
+                      ("unreadable dir", unreadable_dir, "no owner access")]
+        for name, make, reason in cases:
+            with self.subTest(name):
+                self.setUp()
+                run, _ = self.old_batch()
+                make(run)
+                raw = (run / "run.jsonl").read_bytes()
+                before, log = tree_modes(self.out), (self.out / "log.txt").read_bytes()
+                done = self.run_core("E02 E03")
+                self.assert_refused_untouched(done, before, raw, log)
+                self.assertIn(reason, done.stderr)
+
+    def test_a_redaction_json_that_is_not_what_seal_writes_refuses_the_batch(self):
+        """Every redaction.json is read, with or without a run.jsonl beside it (Sentinel 89 L1/L2). It must be an object
+        whose run_jsonl_sha256 is a 64-char lowercase hex sha256 when a run.jsonl is there and null when none is (what
+        `seal` writes); anything else refuses the batch in pass 1 with nothing changed and nothing run."""
+        def beside(text):   # E02's own redaction.json, next to its run.jsonl
+            return lambda run, sha: (run / "redaction.json").write_text(text(sha))
+
+        def orphan(text):   # a run dir with a redaction.json and no run.jsonl
+            def make(run, sha):
+                (self.out / "E07").mkdir()
+                (self.out / "E07/redaction.json").write_text(text(sha))
+            return make
+
+        def null_beside_tampered(run, sha):   # Sentinel case A: a null seal does not switch the hash check off
+            (run / "redaction.json").write_text('{"run_jsonl_sha256": null}')
+            with open(run / "run.jsonl", "ab") as f:
+                f.write(b"{}\n")
+
+        def odd_raw(make_raw):   # Chris 91 L-1: a recorded sha beside a run.jsonl that is not a regular file
+            def make(run, sha):
+                orphan(lambda sha: json.dumps({"run_jsonl_sha256": sha}))(run, sha)
+                make_raw(self.out / "E07/run.jsonl")
+            return make
+
+        def odd_record(make_record):   # Chris 91 S-1: a redaction.json that is not a regular file is never read
+            def make(run, sha):
+                (self.out / "E07").mkdir()
+                make_record(self.out / "E07/redaction.json")
+            return make
+        unparsable, invalid, missing = "does not parse", "no valid run_jsonl_sha256", "raw evidence missing"
+        not_regular, too_deep = "a redaction.json is a symlink or not a regular file", "nested too deeply"
+        cases = [("garbage", beside(lambda sha: "garbage"), unparsable),
+                 ("empty object", beside(lambda sha: "{}"), unparsable),
+                 ("array", beside(lambda sha: "[]"), unparsable),
+                 ("null beside a run.jsonl", null_beside_tampered, invalid),
+                 ("short sha", beside(lambda sha: json.dumps({"run_jsonl_sha256": sha[:63]})), invalid),
+                 ("uppercase sha", beside(lambda sha: json.dumps({"run_jsonl_sha256": sha.upper()})), invalid),
+                 ("non-hex sha", beside(lambda sha: json.dumps({"run_jsonl_sha256": "g" * 64})), invalid),
+                 ("number", beside(lambda sha: '{"run_jsonl_sha256": 1}'), invalid),
+                 ("unparsable, no run.jsonl", orphan(lambda sha: "garbage"), unparsable),   # Sentinel case B
+                 ("sha, no run.jsonl", orphan(lambda sha: json.dumps({"run_jsonl_sha256": sha})), missing),
+                 ("sha, run.jsonl is a directory", odd_raw(lambda raw: raw.mkdir()), missing),
+                 ("sha, run.jsonl is a FIFO", odd_raw(os.mkfifo), missing),
+                 ("redaction.json is a FIFO", odd_record(os.mkfifo), not_regular),
+                 ("redaction.json is a directory", odd_record(lambda record: record.mkdir()), not_regular),
+                 ("deeply nested redaction.json", orphan(lambda sha: "[" * 100000), too_deep)]   # Chris 91 S-2
+        for name, make, reason in cases:
+            with self.subTest(name):
+                self.setUp()
+                run, _ = self.old_batch()
+                make(run, sha256_of(run / "run.jsonl"))
+                loosen(self.out)
+                raw = (run / "run.jsonl").read_bytes()
+                before, log = tree_modes(self.out), (self.out / "log.txt").read_bytes()
+                done = self.run_core("E02 E03")
+                self.assert_refused_untouched(done, before, raw, log)
+                self.assertIn(reason, done.stderr)
+
+    def test_a_run_sealed_with_no_run_jsonl_is_accepted(self):
+        """`seal` of a run dir that never got a run.jsonl records run_jsonl_sha256 null: a valid seal, tightened, not
+        refused."""
+        run, raw = self.old_batch()
+        empty = self.out / "E07"
+        empty.mkdir()
+        load_redactor().seal(str(empty))
+        self.assertIsNone(json.loads((empty / "redaction.json").read_text())["run_jsonl_sha256"])
+        loosen(self.out)
+        resumed = self.run_core("E02 E03")
+        self.assertEqual(resumed.returncode, 0, resumed.stdout + resumed.stderr)
+        self.assertEqual(self.calls(), ["E02", "E03"], "E02 kept, E03 ran")
+        self.assertEqual(stat.S_IMODE((empty / "redaction.json").stat().st_mode), 0o600)
+        self.assertEqual(stat.S_IMODE(empty.stat().st_mode), 0o700)
+        self.assertEqual((run / "run.jsonl").read_bytes(), raw)
+
+    def test_an_entry_swapped_for_a_link_between_check_and_chmod_is_never_followed(self):
+        """TOCTOU: pass 1 sees a regular file; then, before pass 2 or between pass 2's lstat and its open, it is replaced
+        by a link to a file outside. The chmod is by descriptor opened with O_NOFOLLOW and compared by inode, so the swap
+        fails the lockdown and the outside file keeps its mode and content."""
+        for when in ("before pass 2", "between lstat and open"):
+            with self.subTest(when):
+                mod = load_redactor()
+                root = Path(tempfile.mkdtemp(prefix="batch.", dir=self.repo))
+                (root / "E02").mkdir()
+                victim = root / "E02/run.jsonl"
+                victim.write_text('{"type": "result"}\n')
+                outside = root.parent / (root.name + "-elsewhere")
+                outside.write_text("x")
+                outside.chmod(0o644)
+                loosen(root)
+                state = {"pass2": False, "swapped": False}
+                real_walk, real_check = mod._walk, mod._check_entry
+
+                def swap():
+                    if not state["swapped"]:
+                        victim.unlink()
+                        victim.symlink_to(outside)
+                        state["swapped"] = True
+
+                def walk(dir_fd, seen, tighten):
+                    state["pass2"] = tighten
+                    if tighten and when == "before pass 2":
+                        swap()
+                    return real_walk(dir_fd, seen, tighten)
+
+                def check(st):
+                    real_check(st)
+                    if state["pass2"] and when != "before pass 2" and stat.S_ISREG(st.st_mode):
+                        swap()   # the lstat just passed; the name now points elsewhere
+                with unittest.mock.patch.object(mod, "_walk", side_effect=walk), \
+                        unittest.mock.patch.object(mod, "_check_entry", side_effect=check):
+                    with self.assertRaises(mod.LockdownRefused):
+                        mod.lockdown(str(root))
+                self.assertTrue(state["swapped"])
+                self.assertEqual(stat.S_IMODE(outside.stat().st_mode), 0o644, "never followed")
+                self.assertEqual(outside.read_text(), "x")
+
+    def test_an_entry_added_between_the_two_passes_is_refused_and_left_as_it_was(self):
+        """An entry created after pass 1 is not one pass 1 recorded, so pass 2 refuses it before opening it. Behaviour
+        (stated, not 'nothing changed'): the batch is refused; pass 2 has already set the out-dir to 0700 and may have
+        tightened entries sorted before the new one; the new entry keeps its mode; nothing is loosened; nothing outside
+        the out-dir changes."""
+        mod = load_redactor()
+        root = Path(tempfile.mkdtemp(prefix="batch.", dir=self.repo))
+        (root / "E02").mkdir()
+        (root / "E02/run.jsonl").write_text('{"type": "result"}\n')
+        (root / "E02/score.txt").write_text("x")
+        outside = root.parent / (root.name + "-elsewhere")
+        outside.write_text("x")
+        outside.chmod(0o644)
+        loosen(root)
+        before = tree_modes(root)
+        late = root / "E02/run2.txt"   # sorts between run.jsonl and score.txt
+        real_walk = mod._walk
+
+        def walk(dir_fd, seen, tighten):
+            if tighten and not late.exists():
+                late.write_text("added after pass 1")
+                late.chmod(0o644)
+            return real_walk(dir_fd, seen, tighten)
+        with unittest.mock.patch.object(mod, "_walk", side_effect=walk):
+            with self.assertRaisesRegex(mod.LockdownRefused, "changed during the permission check"):
+                mod.lockdown(str(root))
+        self.assertEqual(stat.S_IMODE(late.stat().st_mode), 0o644, "the new entry was refused, not tightened")
+        self.assertEqual(late.read_text(), "added after pass 1")
+        self.assertEqual(stat.S_IMODE((root / "E02/run.jsonl").stat().st_mode), 0o600, "sorted before it: tightened")
+        self.assertEqual(stat.S_IMODE((root / "E02/score.txt").stat().st_mode), 0o644, "sorted after it: untouched")
+        after = tree_modes(root)
+        for rel, (mode, _) in before.items():
+            self.assertEqual(after[rel][0] & ~mode, 0, f"{rel}: never loosened")
+        self.assertEqual(stat.S_IMODE(outside.stat().st_mode), 0o644, "outside untouched")
+        self.assertEqual(outside.read_text(), "x")
+
+
 class RedactDerivedUnitTest(unittest.TestCase):
     def setUp(self):
         self.mod = load_redactor()
@@ -551,6 +826,55 @@ class RedactDerivedUnitTest(unittest.TestCase):
                               capture_output=True, text=True)
         self.assertEqual(done.returncode, 1)
         self.assertIn("redaction failed: RedactionError", done.stderr)
+
+    def test_an_entry_owned_by_another_user_is_refused(self):
+        """The per-entry owner rule (pass 1, and again on the opened descriptor), without needing a second account."""
+        other = os.geteuid() + 1
+        for kind in (stat.S_IFREG | 0o644, stat.S_IFDIR | 0o755):
+            with self.subTest(oct(kind)):
+                st = os.stat_result((kind, 1, 0, 1, other, 0, 0, 0, 0, 0))
+                with self.assertRaisesRegex(self.mod.LockdownRefused, "not owned by the user running the batch"):
+                    self.mod._check_entry(st)
+        self.mod._check_entry(os.stat_result((stat.S_IFREG | 0o644, 1, 0, 1, os.geteuid(), 0, 0, 0, 0, 0)))
+
+    def test_a_tree_nested_past_the_recursion_limit_is_refused_with_no_mode_changed(self):
+        """Chris 91 S-2: the walk recurses per directory level; a tree deeper than Python's recursion limit is a static
+        LockdownRefused in pass 1 (nothing changed), never a RecursionError traceback. The limit is lowered for the
+        test so the tree stays small (60 levels) and fast."""
+        root = self.dir / "batch"
+        deep = root
+        for _ in range(60):
+            deep = deep / "d"
+        deep.mkdir(parents=True)
+        (deep / "run.jsonl").write_text('{"type": "result"}\n')
+        loosen(root)
+        before = tree_modes(root)
+        limit = sys.getrecursionlimit()
+        frames = len(inspect.stack(0))
+        sys.setrecursionlimit(frames + 40)
+        try:
+            with self.assertRaisesRegex(self.mod.LockdownRefused, "^the out-dir or a redaction.json in it is nested too deeply$"):
+                self.mod.lockdown(str(root))
+        finally:
+            sys.setrecursionlimit(limit)
+        self.assertEqual(tree_modes(root), before, "refused in pass 1: no mode changed")
+
+    def test_an_out_dir_owned_by_another_user_is_refused_with_no_mode_changed(self):
+        """Root owner rule: with the effective uid seen as another user's, lockdown refuses at the out-dir itself
+        (before pass 1) and changes no mode -- for an empty out-dir too, where no per-entry rule could fire."""
+        full = self.dir / "batch"
+        (full / "E02").mkdir(parents=True)
+        (full / "E02/run.jsonl").write_text('{"type": "result"}\n')
+        empty = self.dir / "empty"
+        empty.mkdir()
+        for root in (full, empty):
+            with self.subTest(root.name):
+                loosen(root)
+                before = tree_modes(root)
+                with unittest.mock.patch.object(self.mod.os, "geteuid", return_value=os.geteuid() + 1):
+                    with self.assertRaisesRegex(self.mod.LockdownRefused, "the out-dir is not a directory owned"):
+                        self.mod.lockdown(str(root))
+                self.assertEqual(tree_modes(root), before, "refused: no mode changed")
 
 
 class ToolsSeenCutTest(unittest.TestCase):

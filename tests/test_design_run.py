@@ -2173,35 +2173,64 @@ def test_design_run_modules_not_a_directory_blocks(proj, dr):
 
 # S2-1: a tracked config with a custom testMatch makes Playwright load `.git/evil.e2e.ts`; the
 # default-pattern clause never looked at that name, so the `.git` clause blocks it by extension.
+# Last column: the E2 `not-ignored` entry git lists for the planted file when it does NOT fold case.
+# Git skips a directory whose name equals `.git` under `core.ignorecase` (on at `git init` on a
+# case-insensitive filesystem, so macOS; off on Linux): with it on, `tests/.GIT/` is hidden from
+# git like the real `.git` and the `.git` clause is the only guard; with it off, git lists it as an
+# ordinary untracked directory and E2 blocks it too (U24, CI run 37701653608). Both semantics are
+# pinned on every platform through IGNORECASE so neither OS can hide the other's failure.
 TESTMATCH_CASES = [
-    ("TM-GIT", "export default { testDir: '.', testMatch: '**/*.e2e.ts' };\n", ".git/evil.e2e.ts", RUN_DIFF),
-    ("TM2-GIT", "export default { testMatch: '**/*.e2e.ts' };\n", ".git/evil.e2e.ts", RUN_DIFF),
-    ("STATE-GIT", "export default {};\n", "tests/.GIT/helper.ts", RUN_STATE),   # case-folded, an E3 spec template
+    ("TM-GIT", "export default { testDir: '.', testMatch: '**/*.e2e.ts' };\n", ".git/evil.e2e.ts", RUN_DIFF, None),
+    ("TM2-GIT", "export default { testMatch: '**/*.e2e.ts' };\n", ".git/evil.e2e.ts", RUN_DIFF, None),
+    ("STATE-GIT", "export default {};\n", "tests/.GIT/helper.ts", RUN_STATE, "tests/.GIT/"),  # case-folded, E3 spec template
 ]
+IGNORECASE = ["ignorecase-true", "ignorecase-false"]
 
 
-def _custom_testmatch_fixture(proj, config, planted):
+def _custom_testmatch_fixture(proj, config, planted, ignorecase):
+    proj.git("config", "core.ignorecase", ignorecase.split("-")[1])
     proj.write("playwright.config.ts", config)
     proj.write("tests/home.e2e.ts", "// tracked custom-pattern test\n")
     proj.commit("custom testMatch")
     proj.write(planted, "require('fs').writeFileSync('PWNED', '1');\n")
+    # the fixture premise, checked rather than assumed: git hides the planted path only when it folds case
+    listed = proj.git("ls-files", "--others", "--directory").stdout.decode().split()
+    return [e for e in listed if planted.startswith(e)]
 
 
-@pytest.mark.parametrize("name,config,planted,run", TESTMATCH_CASES)
-def test_design_run_dot_git_test_extension_blocks_whatever_testmatch(proj, dr, name, config, planted, run):
-    _custom_testmatch_fixture(proj, config, planted)
+def _blocked_entries(err):
+    return set(err.strip()[len("BLOCKED: design-run-untrusted-input "):].split("; "))
+
+
+@pytest.mark.parametrize("ignorecase", IGNORECASE)
+@pytest.mark.parametrize("name,config,planted,run,e2_entry", TESTMATCH_CASES)
+def test_design_run_dot_git_test_extension_blocks_whatever_testmatch(proj, dr, name, config, planted, run,
+                                                                    e2_entry, ignorecase):
+    e2_listed = _custom_testmatch_fixture(proj, config, planted, ignorecase)
+    e2_expected = [e2_entry] if e2_entry and ignorecase == "ignorecase-false" else []
+    assert e2_listed == e2_expected
     o, s = proj.order([run])
     err = blocked(proj.run(dr, o, s), "design-run-untrusted-input")
-    assert err.strip() == "BLOCKED: design-run-untrusted-input %s (filter-collision)" % planted
+    # the `.git` clause fires on both semantics; E2 adds the untracked directory only where git lists it
+    assert _blocked_entries(err) == {"%s (filter-collision)" % planted} | set(e2_expected)
     assert proj.stub_calls("playwright") == [] and not (proj.root / "PWNED").exists()
 
 
-@pytest.mark.parametrize("name,config,planted,run", TESTMATCH_CASES)
-def test_mutation_dot_git_clause_off_turns_custom_testmatch_red(proj, dr, name, config, planted, run):
-    _custom_testmatch_fixture(proj, config, planted)
+@pytest.mark.parametrize("ignorecase", IGNORECASE)
+@pytest.mark.parametrize("name,config,planted,run,e2_entry", TESTMATCH_CASES)
+def test_mutation_dot_git_clause_off_turns_custom_testmatch_red(proj, dr, name, config, planted, run,
+                                                               e2_entry, ignorecase):
+    e2_listed = _custom_testmatch_fixture(proj, config, planted, ignorecase)
     o, s = proj.order([run])
     res = proj.run(dr, o, s, patches=[(dr, "_git_dir_test_files", lambda files: [])], audit=False)
-    assert res.code == 0 and proj.stub_calls("playwright")
+    if e2_listed:
+        # git lists the file, so E2 still blocks it with the clause off: the filter-collision line
+        # above came from the clause, and the two guards are independent
+        assert _blocked_entries(blocked(res, "design-run-untrusted-input")) == set(e2_listed)
+        assert proj.stub_calls("playwright") == [] and not (proj.root / "PWNED").exists()
+    else:
+        # git hides the file, so the clause is the only guard: without it the run goes through
+        assert res.code == 0 and proj.stub_calls("playwright")
 
 
 def test_git_dir_test_files_unit(dr):

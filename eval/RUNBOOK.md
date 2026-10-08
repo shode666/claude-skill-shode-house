@@ -308,7 +308,8 @@ PLUGIN_REF=<ref> bash eval/run-core.sh opus <new-out-dir>      # other model / p
 
 Resume: a complete run is skipped (never re-run); a crashed run is kept and the id re-runs into `<id>.retry<n>`;
 an infra result (429, credits, budget) is kept, not counted, and stops the batch with exit 5 — re-invoke later.
-Exit 0 = every id scored (PASS or FAIL) · 2 = some id unscorable · 3 = refused · 4 = stopped, redaction failed ·
+Exit 0 = every id scored (PASS or FAIL) · 2 = some id unscorable · 3 = refused · 4 = stopped, redaction failed or
+an out-dir that cannot be made owner-only ·
 5 = stopped (infra) · 129 / 130 / 143 = interrupted (HUP / INT / TERM). `<out>/SUMMARY.tsv`
 is append-only, one row per run. Static check without a model: `python3 -m pytest tests/test_core_scenarios.py -q`.
 
@@ -318,7 +319,43 @@ The frozen writers (`eval/run-lib.sh`, `scripts/team-run-check.py`) copy raw run
 `eval/run-core.sh` redacts after them, with `eval/redact_derived.py` (rules: `eval/evidence_redact.py`):
 
 - `umask 077` is set before the batch directory exists: directories 0700, files 0600, raw and derived alike, also in
-  the window before redaction. Re-invoking on a batch begun earlier restricts `<out>`, `SUMMARY.tsv` and `log.txt`.
+  the window before redaction.
+- **Existing out-dir (resume, or a batch begun before umask 077)**: before anything is read or run,
+  `python3 eval/redact_derived.py lockdown <out>` makes every entry owner-only: every directory 0700, every regular
+  file it finds 0600, `run.jsonl` included. It tightens rather than refuses a loose batch: the change only removes access,
+  never content, and a refusal would leave raw evidence readable until someone fixed it by hand. It first checks the
+  whole tree without changing anything and **refuses the batch (exit 4, nothing changed, nothing run)** when any entry
+  is a symlink (never followed, its target is never touched), a FIFO / socket / device, a file with more than one hard
+  link (its mode is shared with a path outside the out-dir), not owned by you, unreadable by you, a `redaction.json`
+  that is not what the seal writes, a `run.jsonl` that no longer matches the sha256 in its `redaction.json`, or a
+  tree (or a `redaction.json`) nested too deeply to walk. Every `redaction.json` is checked, with or without a
+  `run.jsonl` beside it: it must be a regular file (a FIFO, directory or link of that name is refused unread) and
+  parse as a JSON object with a `run_jsonl_sha256`: a 64-character lowercase hex sha256 when a regular-file
+  `run.jsonl` is beside it (anything else, `null` included, is refused), and `null` when none is (a run sealed before
+  it wrote one; any other value is refused as raw evidence missing, also when the entry named `run.jsonl` is a
+  directory, link or special file). The helper exits 1 with a static reason; `run-core.sh` turns any lockdown
+  failure into exit 4. The walk and the chmod go by descriptor (each name opened relative to its parent with `O_NOFOLLOW`, checked by inode
+  against the first pass, `fchmod` on that descriptor), so an entry swapped for a link mid-check fails the batch
+  instead of redirecting the chmod. An entry that appears or is replaced in a directory before pass 2 lists it, a
+  `run.jsonl` whose hash changes across its chmod, a `redaction.json` changed between the passes into one pass 1
+  would refuse, or an entry whose chmod fails refuses the batch (exit 4) in pass 2; entries already tightened then
+  stay tightened (nothing is loosened, nothing run). An entry the same user creates after its directory was listed is
+  not seen (neither refused nor tightened) but sits under a directory already 0700.
+  File content is never written, and is not compared between passes except a `run.jsonl` whose run has a
+  `redaction.json` (always a regular file, or the batch is refused), which is hashed against it before and after its
+  chmod; a `run.jsonl` in a run without one (for example a batch begun before A+) is neither hashed nor compared. The message is static (no path): inspect the
+  out-dir with `ls -laR <out>`, then act by reason. A `run.jsonl` that no longer matches its sha256 or changed during
+  the check, a `redaction.json` that is not a regular file, does not parse or has no valid `run_jsonl_sha256`, or raw
+  evidence missing is raw evidence: never delete or edit the `run.jsonl` or its `redaction.json`; keep the batch as it is, report it as not
+  final, and start a new out-dir. The out-dir changed during the permission check (something else wrote to it): stop
+  that writer, inspect, then re-run the batch; if it refuses again, act on the new reason, and never delete anything to
+  make it pass. A symlink, special file, hard link, foreign, unreadable or un-chmodable entry, or an out-dir nested
+  too deeply: keep it and start a new out-dir; remove or change it only with the user's confirmation (deleting anything under an out-dir needs that
+  confirmation, whatever the reason).
+  The lockdown changes modes, never content. **Resuming a batch begun before A+ redaction does not make it redacted or
+  final**: its completed runs are kept as they are (never re-run, never sealed, no `redaction.json`), and its `log.txt`
+  and `SUMMARY.tsv` keep the text they already hold, unredacted. For clean evidence start a new out-dir; to paste from
+  the old batch, redact a copy first.
 - **Derived, redacted in place** after each run: `tools-seen.txt`, `score.txt`, `score.json`, `meta.json` (`meta.json`
   carries `first_skill` / `first_agent` / `route` / `model_id` copied from the trace). JSON is parsed and only string
   values change, so a status, verdict, count or exit code never changes. Each file is replaced atomically: temporary
@@ -355,7 +392,9 @@ The frozen writers (`eval/run-lib.sh`, `scripts/team-run-check.py`) copy raw run
   before anything else, clears the marker and prints its redacted console output; no `SUMMARY.tsv` row is backfilled
   (as for any crash: a complete run is then kept, an incomplete one re-runs into `<id>.retry<n>`).
   **A run directory without `redaction.json`, or named in `.redact-pending`, is not final: do not read from it or
-  paste it until the batch has been re-invoked.**
+  paste it until the batch has been re-invoked.** Re-invoking finalises only a run the A+ runner was interrupted in;
+  a run completed before A+ stays unredacted, and so do the old lines of `log.txt` and `SUMMARY.tsv` (see "Existing
+  out-dir" above).
 
 `eval/run-e01.sh` and `eval/run-probes.sh` do not redact: redact their derived files before any paste as well.
 
