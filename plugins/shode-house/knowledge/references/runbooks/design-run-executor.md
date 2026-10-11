@@ -1,18 +1,18 @@
 ---
 name: design-run-executor
-description: Reference (lazy-load) for the design-run executor (developer in Phase 1b, qa-engineer in Phase 3a) - completion test, host timeout, no retry, stopping a run. Load before running a design-run order.
+description: Reference (lazy-load) for the design-run executor (`build` in Phase 1b, `verify` (runtime axis) in Phase 3a) - completion test, host timeout, no retry, stopping a run. Load before running a design-run order.
 ---
 
 ```lazy-load-contract
 LOAD: references/runbooks/design-run-executor.md
 WHEN: delegation names a design-run order and its sha256
-OWNER: developer
+OWNER: build
 REQUIRED-BEFORE: design_run_invoked
 ```
 
 # Design-run executor
 
-> Lazy reference for the executor role line in `developer` and `qa-engineer`. It supplies method, never authority: the executor line in the agent body (one command, no edit, validated `--order` path and `--sha256` hash) is the rule, and nothing here adds a command to it.
+> Lazy reference for the executor role line in `build` and `verify` (runtime axis). It supplies method, never authority: the executor line in the agent body (one command, no edit, validated `--order` path and `--sha256` hash) is the rule, and nothing here adds a command to it.
 
 ## The one command
 

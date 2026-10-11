@@ -4,21 +4,10 @@
 # v3.17 P6 agent-file simplification: all 19 keys ratcheted DOWN to measured file bytes (no agent relies on grace)
 # v4.0.0 switch (W10b): key `orchestrator` deleted with agents/orchestrator.md (retired type). No ratchet of the 18 keys yet:
 #   ledgers W5a/W5b hold it until the base-directory floor line decision (shode-house-v7u.14, +357 B per body)
-booking-expert=6527
-business-analyst=6707
-code-reviewer=8453
-developer=11520
-devops-engineer=12279
-ecommerce-expert=7138
-erp-expert=6491
-fintech-expert=6009
-insurance-expert=6467
-product-manager=13275
-qa-engineer=12987
-sap-expert=7753
-security-engineer=8182
-solution-architect=12616
-sre-engineer=6789
-staff-engineer=6441
-trading-expert=5777
-ux-ui-designer=12954
+# v4.0.1 consolidation (18 types -> 6, shode-house-jni): the 18 keys are deleted with their agent files; each new key is the measured body: plan <= business-analyst 6707, build <= staff-engineer 6441 (iter 2: the two near-identical pre-edit/pre-change threat-model gates became one), verify <= code-reviewer 8453, operate <= sre-engineer 6789, secure <= 8182, design <= 12954. Role detail moved to the lazy runbooks and references/domain/, not cut.
+build=6235
+design=9241
+operate=6599
+plan=6666
+secure=6432
+verify=8443

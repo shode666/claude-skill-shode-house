@@ -25,7 +25,7 @@ REQUIRED-BEFORE: map_creation
 - [จบ map แล้วไปไหนต่อ](#จบ-map-แล้วไปไหนต่อ)
 
 > Adapted จาก [mattpocock/skills · wayfinder](https://github.com/mattpocock/skills) (MIT) — port ไป tracker ที่ project ยืนยัน + PEV loop ของเรา
-> **Owner**: router (holds the map) + product-manager (destination + scope) · business-analyst/solution-architect (spec/architecture tickets) · domain expert (domain decisions)
+> **Owner**: router (holds the map) + `plan` (discover mode) (destination + scope) · `plan` (spec/architecture tickets) · domain expert (domain decisions)
 
 ## ปัญหาที่มันแก้ (ช่องที่ pipeline เดิมไม่มี)
 
@@ -38,7 +38,7 @@ Phase 0 Discover → Phase 1a Spec → ... → drain
 ```
 - `/design-system` สมมติว่า **รู้รูปงานแล้ว** — ผลิต spec ของ **1 bd** ไม่ใช่ของ initiative ทั้งก้อน
 - `shode-house:drain` ต้องการ item ที่ **verified + concrete + independent** อยู่แล้ว — ไม่ได้สร้าง ready set
-- ไม่มี Map → ได้ 2 ทางที่แย่ทั้งคู่: **spec ยักษ์ล่วงหน้า** (business-analyst เขียนทุกอย่างจากการเดา = anchoring + เขียนทิ้ง) หรือ **ค่อย ๆ ไหลไปเรื่อย ๆ** (SCOPE DRIFT ที่ไม่มีใครจับได้)
+- ไม่มี Map → ได้ 2 ทางที่แย่ทั้งคู่: **spec ยักษ์ล่วงหน้า** (`plan` (requirements mode) เขียนทุกอย่างจากการเดา = anchoring + เขียนทิ้ง) หรือ **ค่อย ๆ ไหลไปเรื่อย ๆ** (SCOPE DRIFT ที่ไม่มีใครจับได้)
 
 ## หลักการ
 
@@ -104,10 +104,10 @@ out of scope ไม่มีวัน graduate; จะกลับมาได�
 
 | Type | HITL? | ใครรับ | ใช้เมื่อ |
 |---|---|---|---|
-| **research** | AFK | Domain expert (regulation/business) · solution-architect (tech/vendor) — โหลด `shode-house:shode-house-discipline` § Project Evidence Protocol, **primary source เท่านั้น** | ต้องรู้ข้อเท็จจริงนอก working directory ก่อนตัดสินใจ |
-| **prototype** | HITL | ux-ui-designer (flow) · developer (logic) — isolated throwaway per `shode-house:dev-gate`; retain artifact/verdict, commit only if authorized | Resolve behavior/design uncertainty |
-| **grilling** | HITL | the router asks the user; business-analyst/product-manager/solution-architect return questions/options through the router using `shode-house-discipline/main-session.md` | Human decision needed |
-| **task** | ทั้งคู่ | devops-engineer (provision/access) · owner (สมัคร service, ขอสิทธิ์) | ไม่มีอะไรให้ตัดสินใจ แต่ decision ติดอยู่จนกว่างานนี้จะเสร็จ. ปิดแล้วบันทึก fact ที่ ticket หลังต้องใช้ (ที่อยู่ credential, URL ใหม่, จำนวนแถว) |
+| **research** | AFK | Domain expert (regulation/business) · `plan` (architecture mode) (tech/vendor) — โหลด `shode-house:shode-house-discipline` § Project Evidence Protocol, **primary source เท่านั้น** | ต้องรู้ข้อเท็จจริงนอก working directory ก่อนตัดสินใจ |
+| **prototype** | HITL | `design` (flow) · `build` (logic) — isolated throwaway per `shode-house:dev-gate`; retain artifact/verdict, commit only if authorized | Resolve behavior/design uncertainty |
+| **grilling** | HITL | the router asks the user; `plan` return questions/options through the router using `shode-house-discipline/main-session.md` | Human decision needed |
+| **task** | ทั้งคู่ | `operate` (deploy mode) (provision/access) · owner (สมัคร service, ขอสิทธิ์) | ไม่มีอะไรให้ตัดสินใจ แต่ decision ติดอยู่จนกว่างานนี้จะเสร็จ. ปิดแล้วบันทึก fact ที่ ticket หลังต้องใช้ (ที่อยู่ credential, URL ใหม่, จำนวนแถว) |
 
 ## เรียกด้วยชื่อ ห้ามเรียกด้วยเลข
 
@@ -147,6 +147,6 @@ Continue eligible authorized tickets with per-ticket evidence and ownership. Che
 ## จบ map แล้วไปไหนต่อ
 
 ทางชัด (ไม่เหลือ decision) → destination กลายเป็น input ของ pipeline ปกติ:
-- destination = spec → `/design-system` (business-analyst ∥ solution-architect) ต่อได้ทันที เพราะรูปงานนิ่งแล้ว
+- destination = spec → `/design-system` (`plan` (requirements mode) ∥ `plan` (architecture mode)) ต่อได้ทันที เพราะรูปงานนิ่งแล้ว
 - destination = ชุดงานที่ concrete + independent → `shode-house:drain`
 - destination = decision ล้วน ๆ (เช่นเลือก platform) → close map task + บันทึกเป็น ADR (`shode-house-deliverable/adr.md` § ADR Lifecycle)

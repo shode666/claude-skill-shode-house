@@ -48,6 +48,34 @@ def preloads(agent):
     return set(re.findall(r"[\w-]+", m.group(1))) if m else set()
 
 
+class Routing401ShapeTest(unittest.TestCase):
+    """4.0.1 routing scenarios (E16..E20) beside the frozen core sets: shape only, no model is called. They are NOT
+    measured; the live probes must be re-run before a release decision (eval/scenarios/core-4.0.1/README.md)."""
+    FILE = ROOT / "eval/scenarios/core-4.0.1/routing-4.0.1.json"
+
+    def test_shape_prompts_fixtures_and_live_types(self):
+        data = json.loads(self.FILE.read_text(encoding="utf-8"))["scenarios"]
+        self.assertEqual(["E16", "E17", "E18", "E19", "E20"], [s["id"] for s in data])
+        live = {p.stem for p in ROOT.glob("agents/*.md")}
+        fixture = FIXTURE.read_text(encoding="utf-8")
+        for s in data:
+            exp = s["expected"]
+            self.assertEqual("core", s["kind"])
+            self.assertLessEqual(set(exp), trc.EXPECTED_FIELDS, s["id"])
+            self.assertTrue((ROOT / s["prompt"]).is_file(), s["prompt"])
+            self.assertRegex(fixture, rf"\b{s['id']}\b", f"{s['id']}: eval-fixture-core.sh does not know the id")
+            for name in exp.get("agents", []):
+                self.assertIn(name, live, f"{s['id']}: expected agent {name!r} is not a live type")
+            obs = trc.observe([{"type": "result", "subtype": "success", "result": "done"}])
+            self.assertIn("run_succeeded", trc.score(s, obs))
+
+    def test_the_3x_and_4_0_0_sets_are_not_the_selected_set_any_more(self):
+        self.assertEqual("4.0.1", CORE_SET["CORE_LABEL"])
+        self.assertTrue(CORE_FILE.as_posix().endswith("eval/scenarios/core-4.0.1/core-4.0.1.json"))
+        self.assertIn("eval/scenarios/core-4.0/check-freeze.sh", CORE_SET["CORE_FREEZE"])
+        self.assertIn("eval/scenarios/core-4.0.1/check-freeze.sh", CORE_SET["CORE_FREEZE"])
+
+
 class CoreScenarioShapeTest(unittest.TestCase):
     def setUp(self):
         self.all = scenarios()
@@ -128,8 +156,9 @@ class CoreScenarioShapeTest(unittest.TestCase):
         self.assertNotIn("--with-tracker", self.by_id["E13"].get("fixture_flags", []))
         self.assertLessEqual(e["E15"]["max_spawns"], 2)
         self.assertIn("shode-house-workflow", e["E15"]["must_not_load"])
-        self.assertIn("developer", e["E1c"]["must_not_dispatch"])   # whole-run by scorer definition (Quinn Q6)
-        self.assertEqual(e["E1c"]["route_any"], ["agent:security-engineer", "skill:secure"])
+        four_oh_one = CORE_SET["CORE_LABEL"] == "4.0.1"          # the 6-type set names the types, 4.0 the retired ids
+        self.assertIn("build" if four_oh_one else "developer", e["E1c"]["must_not_dispatch"])   # whole-run by scorer definition (Quinn Q6)
+        self.assertEqual(e["E1c"]["route_any"], ["agent:secure" if four_oh_one else "agent:security-engineer", "skill:secure"])
         self.assertTrue(trc._glob_hit("app/reset.py", e["E1c"]["files_forbidden_glob"]), "implementing in a new path is still implementing")
         self.assertFalse(trc._glob_hit("outputs/bd-105/02-sentinel-phase-1c.md", e["E1c"]["files_forbidden_glob"]))
         java = e["E04"]["files_forbidden_glob"]
@@ -148,8 +177,9 @@ class CoreScenarioShapeTest(unittest.TestCase):
         self.assertFalse(trc._found(e["E06"]["result_matches"][0], ["I wrote it down."]))
         self.assertTrue(any(trc._found(p, ["git revert HEAD && git push"]) for p in e["E09"]["forbidden_commands"]))
         self.assertFalse(trc._found(e["E14"]["result_matches"][0], ["PASS - no bug found"]))
-        self.assertEqual(e["E02"]["route_any"], ["skill:diagnose", "agent:code-reviewer"])      # skill + first-named Owner
-        self.assertEqual(e["E06"]["route_any"], ["skill:data-migration", "agent:developer"])
+        ids = {"code-reviewer": "verify", "developer": "build"} if four_oh_one else {"code-reviewer": "code-reviewer", "developer": "developer"}
+        self.assertEqual(e["E02"]["route_any"], ["skill:diagnose", "agent:" + ids["code-reviewer"]])      # skill + first-named Owner
+        self.assertEqual(e["E06"]["route_any"], ["skill:data-migration", "agent:" + ids["developer"]])
 
     def test_prompt_files_resolve_and_do_not_name_skills(self):
         import_lib = (ROOT / "eval/run-lib.sh").read_text(encoding="utf-8")
@@ -168,7 +198,7 @@ class CoreScenarioShapeTest(unittest.TestCase):
             for name in routable:
                 self.assertNotIn(name, prompt, f"{s['id']} prompt names the skill {name}")
             self.assertNotRegex(prompt, r"(?i)\bskill\b|/(implement|review|consult|design-system)\b")
-        self.assertEqual(len(list((ROOT / "eval/prompts").glob("E*.md"))), 17)
+        self.assertEqual(len(list((ROOT / "eval/prompts").glob("E*.md"))), 17 + 5)   # + E16..E20 (4.0.1 routing scenarios)
 
 
 class CoreSetSelectionTest(unittest.TestCase):
@@ -207,7 +237,9 @@ class CoreSetSelectionTest(unittest.TestCase):
 
     def test_this_checkout_selects_by_its_own_major(self):
         major = int(json.loads((ROOT / ".claude-plugin/plugin.json").read_text())["version"].split(".")[0])
-        want = {3: "eval/scenarios/core-3.17.json", 4: "eval/scenarios/core-4.0/core-4.0.json"}[major]
+        version = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())["version"]
+        want = {3: "eval/scenarios/core-3.17.json",
+                4: "eval/scenarios/core-4.0/core-4.0.json" if version == "4.0.0" else "eval/scenarios/core-4.0.1/core-4.0.1.json"}[major]
         self.assertEqual(CORE_FILE, ROOT / want)
         self.assertEqual(sorted(s["id"] for s in scenarios()), sorted(IDS))
 
@@ -378,7 +410,7 @@ class CoreFixtureAndRunnerTest(unittest.TestCase):
             self.assertEqual(subprocess.run(["bash", "-n", str(script)]).returncode, 0, script.name)
         text = FIXTURE.read_text(encoding="utf-8")
         case_ids = set(re.findall(r"\bE\d\d?[bc]?\b", text.split('case "$ID" in', 1)[1].split("esac", 1)[0]))
-        self.assertEqual(case_ids, IDS)
+        self.assertEqual(case_ids, IDS | {"E16", "E17", "E18", "E19", "E20"})   # E16..E20: eval/scenarios/core-4.0.1/routing-4.0.1.json
         unknown = subprocess.run(["bash", str(FIXTURE), str(self.tmp / "x"), "--scenario", "E99"], capture_output=True, text=True)
         self.assertEqual(unknown.returncode, 2)
         self.assertFalse((self.tmp / "x").exists(), "an unknown id builds nothing")

@@ -5,7 +5,7 @@ description: Decide who owns a request, covering type of work, responsible role,
 
 # shode-house — Routing & Team Structure
 
-> router = workflow/process owner. staff-engineer (Staff) = cross-team tech depth. solution-architect (SA) = per-project tech decision
+> router = workflow/process owner. `build` (staff-grade brief) (Staff) = cross-team tech depth. `plan` (architecture mode) (SA) = per-project tech decision
 
 Goal: every request gets exactly one accountable owner before work starts. Answer four questions, in order:
 
@@ -68,21 +68,21 @@ Owners disagree → § Conflict Resolution; undecidable → escalate to the user
 
 Trigger = the change needs a **domain-rule decision** (regulation, compliance, ledger/settlement semantics, policy/claim rule, pricing/yield rule). Domain vocabulary alone (a variable named `payment`, a label, a rename) does not pull a specialist. Unsure whether a domain rule is decided → route to the specialist.
 ```
-เงิน/ชำระ/ธนาคาร/PromptPay/KYC → fintech-expert
-บัญชี/stock/payroll/MRP generic → erp-expert
-SAP/ABAP/S4HANA/Fiori/BTP → sap-expert
-trade/order/exchange/FIX → trading-expert
-ประกัน/policy/claim/IFRS17 → insurance-expert
-จอง/PMS/yield → booking-expert
-ร้านค้า/cart/promo/marketplace → ecommerce-expert
+เงิน/ชำระ/ธนาคาร/PromptPay/KYC → `plan` with the fintech domain reference
+บัญชี/stock/payroll/MRP generic → `plan` with the erp domain reference
+SAP/ABAP/S4HANA/Fiori/BTP → `plan` with the sap domain reference
+trade/order/exchange/FIX → `plan` with the trading domain reference
+ประกัน/policy/claim/IFRS17 → `plan` with the insurance domain reference
+จอง/PMS/yield → `plan` with the booking domain reference
+ร้านค้า/cart/promo/marketplace → `plan` with the ecommerce domain reference
 ```
 
 - **Domain Expert ปฏิเสธได้** ถ้านอก scope (recommend agent อื่น)
 
 ### หลาย domain → primary + secondary
-- "e-com + PromptPay" → ecommerce-expert + fintech-expert
-- "ERP บน SAP" → sap-expert + erp-expert
-- "ประกันรถ + ชำระบัตร" → insurance-expert + fintech-expert + ecommerce-expert
+- "e-com + PromptPay" → `plan` with the ecommerce domain reference + `plan` with the fintech domain reference
+- "ERP บน SAP" → `plan` with the sap domain reference + `plan` with the erp domain reference
+- "ประกันรถ + ชำระบัตร" → `plan` with the insurance domain reference + `plan` with the fintech domain reference + `plan` with the ecommerce domain reference
 
 ---
 
@@ -90,11 +90,11 @@ trade/order/exchange/FIX → trading-expert
 
 | Conflict | Winner |
 |----------|--------|
-| Business rule vs Tech | Domain ให้ข้อเท็จจริง/ข้อจำกัด; solution-architect เสนอทางเลือก; user ตัดสิน policy/scope ที่ยังไม่ตกลง |
-| Architecture vs Implementation | solution-architect |
-| Look & feel / visual direction / interaction pattern | **ux-ui-designer** (Design Authority) — ยกเว้นชน a11y law / security / regulation → constraint ชนะ |
-| Security vs Performance | security-engineer ตรวจข้อจำกัดความปลอดภัย; solution-architect เทียบทางเลือก; expert ไม่มีสิทธิ์ยกเว้น approval ของ user |
-| Quality vs Timeline | code-reviewer+qa-engineer (block) |
+| Business rule vs Tech | Domain ให้ข้อเท็จจริง/ข้อจำกัด; `plan` (architecture mode) เสนอทางเลือก; user ตัดสิน policy/scope ที่ยังไม่ตกลง |
+| Architecture vs Implementation | `plan` (architecture mode) |
+| Look & feel / visual direction / interaction pattern | **`design`** (Design Authority) — ยกเว้นชน a11y law / security / regulation → constraint ชนะ |
+| Security vs Performance | `secure` ตรวจข้อจำกัดความปลอดภัย; `plan` (architecture mode) เทียบทางเลือก; expert ไม่มีสิทธิ์ยกเว้น approval ของ user |
+| Quality vs Timeline | `verify` (standards axis)+`verify` (runtime axis) (block) |
 | Complex vs Simple | Keep simple (YAGNI) |
 | Standard vs Custom | Standard |
 | Perf opt vs Readability | Readability (profile first) |
@@ -123,7 +123,7 @@ Default = sequential. Parallel only when **all** hold: tasks are independent · 
 
 เลือก parallel จาก dependency, host capability และต้นทุน context จริง ไม่ใช่จำนวนบรรทัดหรือ multiplier ที่ไม่ได้วัด
 
-สองงานที่ independent ก็ parallel ได้ เช่น code-reviewer กับ qa-engineer; ถ้า host ไม่รองรับ ให้เรียกแยก sequential โดยรักษา reviewer context และ verdict เป็นอิสระ ห้ามแทนด้วย router self-review แล้วเรียก independent
+สองงานที่ independent ก็ parallel ได้ เช่น `verify` (standards axis) กับ `verify` (runtime axis); ถ้า host ไม่รองรับ ให้เรียกแยก sequential โดยรักษา reviewer context และ verdict เป็นอิสระ ห้ามแทนด้วย router self-review แล้วเรียก independent
 Producer/consumer ที่ต้องใช้ผลกันหรือเขียนไฟล์เดียวกันต้องรอ; การลด token ต้องไม่ตัด expert ที่ถูก trigger หรือ evidence ที่ gate ต้องใช้
 > Implementation: Worktree Isolation (ดู Workflow Discipline)
 > ห้ามใช้ "deadline matter" เป็น reason parallel — agent ไม่มี deadline ของตัวเอง (per `shode-house-discipline/main-session.md` § No Man-Day)
@@ -137,22 +137,22 @@ Producer/consumer ที่ต้องใช้ผลกันหรือเ�
 
 | Capability | Sole Owner | ห้ามทับโดย |
 |------------|------------|------------|
-| User research, OKR, RICE/WSJF priority | **product-manager** | business-analyst |
-| BRD / FRD / AC G-W-T / RTM | **business-analyst** | product-manager (input only) |
-| C4 / ADR / NFR / tech stack | **solution-architect** | staff-engineer, devops-engineer |
-| Cross-team consistency, tech radar, polyglot review | **staff-engineer** | solution-architect (per-project only) |
-| Look & feel direction (final say) / wireframe / design tokens / a11y design / visual baseline | **ux-ui-designer** | qa-engineer (axe automation only); advisory ต่อ solution-architect/developer/business-analyst ดู agent file § Design Authority |
+| User research, OKR, RICE/WSJF priority | **`plan` (discover mode)** | `plan` (requirements mode) |
+| BRD / FRD / AC G-W-T / RTM | **`plan` (requirements mode)** | `plan` (discover mode) (input only) |
+| C4 / ADR / NFR / tech stack | **`plan` (architecture mode)** | `build` (staff-grade brief), `operate` (deploy mode) |
+| Cross-team consistency, tech radar, polyglot review | **`build` (staff-grade brief)** | `plan` (architecture mode) (per-project only) |
+| Look & feel direction (final say) / wireframe / design tokens / a11y design / visual baseline | **`design`** | `verify` (runtime axis) (axe automation only); advisory ต่อ `plan`/`build` ดู agent file § Design Authority |
 | Domain regulation cite, business rule | **Domain SME** | ทุกคน |
-| Production code (BE/FE/integration) | **developer** (developer#N parallel) | code-reviewer (test only) |
-| Data pipeline / ETL / CDC / Kafka / dbt | **developer** (interim) | — (สร้าง Devon agent เมื่อ project ต้องการ deep data) |
-| ML model / RAG / vector / prompt eval | **developer** (interim) | — (สร้าง Mason agent เมื่อ project ต้องการ deep ML) |
-| 7-dim review + unit test quality (risk-based mutation) | **code-reviewer** | qa-engineer (ห้าม unit) |
-| Integration + E2E + Contract + Load + axe auto | **qa-engineer** | code-reviewer (ห้าม integ), ux-ui-designer (ห้าม automation) |
-| STRIDE / SAST / DAST / Secrets / Pen test / CSP | **security-engineer** | solution-architect, code-reviewer, qa-engineer (handoff) |
-| Dockerfile / CI/CD / IaC / Deploy build | **devops-engineer** | sre-engineer (ห้าม build) |
-| SLO / SLI / Error budget / Incident / Runbook | **sre-engineer** | devops-engineer (ห้าม SLO) |
-| Workflow orchestration / state / delegation | **router** | product-manager |
-| API docs / Developer portal / Release notes | **business-analyst** (interim) | — (สร้าง Tex agent เมื่อ project ต้องการ docs portal เต็มรูป) |
+| Production code (BE/FE/integration) | **`build`** (`build`#N parallel) | `verify` (standards axis) (test only) |
+| Data pipeline / ETL / CDC / Kafka / dbt | **`build`** (interim) | — (สร้าง Devon agent เมื่อ project ต้องการ deep data) |
+| ML model / RAG / vector / prompt eval | **`build`** (interim) | — (สร้าง Mason agent เมื่อ project ต้องการ deep ML) |
+| 7-dim review + unit test quality (risk-based mutation) | **`verify` (standards axis)** | `verify` (runtime axis) (ห้าม unit) |
+| Integration + E2E + Contract + Load + axe auto | **`verify` (runtime axis)** | `verify` (standards axis) (ห้าม integ), `design` (ห้าม automation) |
+| STRIDE / SAST / DAST / Secrets / Pen test / CSP | **`secure`** | `plan` (architecture mode), `verify` (standards axis), `verify` (runtime axis) (handoff) |
+| Dockerfile / CI/CD / IaC / Deploy build | **`operate` (deploy mode)** | `operate` (reliability mode) (ห้าม build) |
+| SLO / SLI / Error budget / Incident / Runbook | **`operate` (reliability mode)** | `operate` (deploy mode) (ห้าม SLO) |
+| Workflow orchestration / state / delegation | **router** | `plan` (discover mode) |
+| API docs / Developer portal / Release notes | **`plan` (requirements mode)** (interim) | — (สร้าง Tex agent เมื่อ project ต้องการ docs portal เต็มรูป) |
 
 > Rule: ทุก agent ก่อน accept งานต้องประกาศ "ผมรับ capability X" — ถ้าไม่ใช่ sole owner = reroute
 > Interim owner = ไม่มี dedicated agent ตอนนี้ (YAGNI); สร้างเมื่อ project ต้องการจริง (ดู `ownership.md` § Add agent) — ไม่ใช่ phantom sole-owner
@@ -175,18 +175,18 @@ how the handoff is recorded.
 
 | Phase | R | A | C | I |
 |-------|---|---|---|---|
-| **0 Discover** | product-manager, Domain SME | **product-manager** | business-analyst, solution-architect, staff-engineer | router |
-| **1a Foundation** | business-analyst, solution-architect | **router** (gate) | staff-engineer, Domain SME, product-manager | ux-ui-designer, developer |
-| **1b Pre-Design** | ux-ui-designer, Domain SME | **ux-ui-designer** | solution-architect, business-analyst | developer, qa-engineer |
-| **1c Threat Model** | security-engineer | **security-engineer** | solution-architect, Domain SME | code-reviewer, qa-engineer |
-| **2 Implement** | developer (parallel) | **router** (scope enforce) | code-reviewer, staff-engineer | ux-ui-designer, qa-engineer, security-engineer |
-| **3a UI Check** | ux-ui-designer | **ux-ui-designer** | developer | code-reviewer, qa-engineer |
-| **3b Quality Coop** | code-reviewer, qa-engineer, security-engineer, devops-engineer | **router** (triage) | staff-engineer, Domain SME | developer, ux-ui-designer |
-| **4 Triage** | router | **router** | code-reviewer, qa-engineer, security-engineer | developer, product-manager |
-| **5 Deploy** | devops-engineer, sre-engineer | **devops-engineer** (build) + **sre-engineer** (SLO) | qa-engineer, security-engineer | All |
-| **6 Operate** | sre-engineer | **sre-engineer** | devops-engineer, router, product-manager | developer |
+| **0 Discover** | `plan` (discover mode), Domain SME | **`plan` (discover mode)** | `plan` (requirements mode), `plan` (architecture mode), `build` (staff-grade brief) | router |
+| **1a Foundation** | `plan` (requirements mode), `plan` (architecture mode) | **router** (gate) | `build` (staff-grade brief), Domain SME, `plan` (discover mode) | `design`, `build` |
+| **1b Pre-Design** | `design`, Domain SME | **`design`** | `plan` (architecture mode), `plan` (requirements mode) | `build`, `verify` (runtime axis) |
+| **1c Threat Model** | `secure` | **`secure`** | `plan` (architecture mode), Domain SME | `verify` (standards axis), `verify` (runtime axis) |
+| **2 Implement** | `build` (parallel) | **router** (scope enforce) | `verify` (standards axis), `build` (staff-grade brief) | `design`, `verify` (runtime axis), `secure` |
+| **3a UI Check** | `design` | **`design`** | `build` | `verify` (standards axis), `verify` (runtime axis) |
+| **3b Quality Coop** | `verify` (standards axis), `verify` (runtime axis), `secure`, `operate` (deploy mode) | **router** (triage) | `build` (staff-grade brief), Domain SME | `build`, `design` |
+| **4 Triage** | router | **router** | `verify` (standards axis), `verify` (runtime axis), `secure` | `build`, `plan` (discover mode) |
+| **5 Deploy** | `operate` (deploy mode), `operate` (reliability mode) | **`operate` (deploy mode)** (build) + **`operate` (reliability mode)** (SLO) | `verify` (runtime axis), `secure` | All |
+| **6 Operate** | `operate` (reliability mode) | **`operate` (reliability mode)** | `operate` (deploy mode), router, `plan` (discover mode) | `build` |
 
-> Phase 7 (Sprint Learn) removed — per-bd reflect happens in Phase 4 Triage; continuous OKR review (product-manager) without bracket.
+> Phase 7 (Sprint Learn) removed — per-bd reflect happens in Phase 4 Triage; continuous OKR review (`plan` (discover mode)) without bracket.
 
 
 > New Phases (0 Discovery / 1c Threat Model / 6 Operate) → ดู `shode-house-workflow` (1c canonical trigger list อยู่ใน root; 0/6 notes → `drift.md`)

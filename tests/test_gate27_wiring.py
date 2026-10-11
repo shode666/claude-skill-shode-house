@@ -216,6 +216,12 @@ class W9WiringTest(unittest.TestCase):
         freeze = root / "eval/scenarios/core-4.0/check-freeze.sh"
         freeze.parent.mkdir(parents=True)
         freeze.write_text(f'echo "core-4.0 freeze stub"; exit {freeze_rc}\n')
+        freeze2 = root / "eval/scenarios/core-4.0.1/check-freeze.sh"      # 4.0.1: the 6-type set has its own freeze check
+        freeze2.parent.mkdir(parents=True)
+        freeze2.write_text('echo "core-4.0.1 freeze stub"; exit 0\n')
+        freeze3 = root / "eval/scenarios/battery-4.0.1/check-freeze.sh"    # 4.0.1: the routing-probe battery has its own freeze check
+        freeze3.parent.mkdir(parents=True)
+        freeze3.write_text('echo "battery-4.0.1 freeze stub"; exit 0\n')
         for d in ("eval/v4-security/tests", "eval/shadow-floor/tests"):
             (root / d).mkdir(parents=True)
         (root / "eval/v4-security/tests/test_w9_stub_a.py").write_text("def test_a():\n    assert True\n")
@@ -229,6 +235,8 @@ class W9WiringTest(unittest.TestCase):
             rc, out = run_a15(pathlib.Path(tmp), with_w9=True)
         self.assertIn("fail=1", out)
         for needle in ("W9 core-4.0 freeze: eval/scenarios/core-4.0/check-freeze.sh missing -- NOT CHECKED",
+                       "W9 core-4.0.1 freeze: eval/scenarios/core-4.0.1/check-freeze.sh missing -- NOT CHECKED",
+                       "W9 battery-4.0.1 freeze: eval/scenarios/battery-4.0.1/check-freeze.sh missing -- NOT CHECKED",
                        "W9 eval suite: eval/v4-security/tests missing -- NOT CHECKED",
                        "W9 eval suite: eval/shadow-floor/tests missing -- NOT CHECKED"):
             with self.subTest(needle=needle):
@@ -236,7 +244,8 @@ class W9WiringTest(unittest.TestCase):
 
     def test_each_missing_w9_part_alone_is_red(self):
         """FU-4: one part missing, the other two present and green -> still red, from that part's own err line."""
-        for missing in ("eval/scenarios/core-4.0/check-freeze.sh", "eval/v4-security/tests", "eval/shadow-floor/tests"):
+        for missing in ("eval/scenarios/core-4.0/check-freeze.sh", "eval/scenarios/core-4.0.1/check-freeze.sh",
+                        "eval/scenarios/battery-4.0.1/check-freeze.sh", "eval/v4-security/tests", "eval/shadow-floor/tests"):
             with self.subTest(missing=missing), tempfile.TemporaryDirectory() as tmp:
                 root = pathlib.Path(tmp)
                 env = this_python_env(root)
@@ -260,7 +269,7 @@ class W9WiringTest(unittest.TestCase):
         names = re.match(r"for t in ([\w ]+); do", loop[0]).group(1).split()
         self.assertEqual(["test_agent_tools_pin", "test_skill_names", "test_shipped_text_lint", "test_floor",
                           "test_gate27_wiring", "test_ci_wiring", "test_ux_design_runbooks", "test_eval_runners",
-                          "test_reference_toc"], names)
+                          "test_reference_toc", "test_core_roster", "test_probes_401", "test_battery_401"], names)
         for name in names:
             self.assertTrue((ROOT / "tests" / f"{name}.py").is_file(), name)
         self.assertIn('python3 tests/$t.py >/dev/null 2>&1 || { err "tests/$t.py red', body)
@@ -278,6 +287,8 @@ class W9WiringTest(unittest.TestCase):
                 if want is None:
                     self.assertIn("fail=0", out, out)
                     self.assertIn("ok W9 core-4.0 freeze stub", out)
+                    self.assertIn("ok W9 core-4.0.1 freeze stub", out)
+                    self.assertIn("ok W9 battery-4.0.1 freeze stub", out)
                     self.assertRegex(out, r"ok W9 eval suites \(2 passed")
                 else:
                     self.assertIn("fail=1", out, out)
@@ -285,7 +296,8 @@ class W9WiringTest(unittest.TestCase):
 
     def test_w9_runs_the_real_paths(self):
         w9 = w9_block()
-        for path in ("eval/scenarios/core-4.0/check-freeze.sh", "eval/v4-security/tests", "eval/shadow-floor/tests"):
+        for path in ("eval/scenarios/core-4.0/check-freeze.sh", "eval/scenarios/core-4.0.1/check-freeze.sh",
+                     "eval/scenarios/battery-4.0.1/check-freeze.sh", "eval/v4-security/tests", "eval/shadow-floor/tests"):
             self.assertIn(path, w9)
             self.assertTrue((ROOT / path).exists(), path)
 

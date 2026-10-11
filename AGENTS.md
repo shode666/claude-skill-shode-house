@@ -33,7 +33,7 @@ Use non-interactive shell operations in automated workflows; `cp`, `mv`, and `rm
 - `apt-get`: `-y`; `brew`: `HOMEBREW_NO_AUTO_UPDATE=1`
 - `bd`: never `bd edit` (opens an editor); use `bd update` flags
 
-## Repo Invariants (v4.0.0)
+## Repo Invariants (v4.0.1)
 
 > ทุก rule = invariant ที่ script ตรวจ. จะแหก → แก้ script ก่อน
 
@@ -67,14 +67,14 @@ The rules are stated in this file and nowhere else. The linked files add detail,
 ## Agents
 
 - 🔴 **Redact ก่อน paste** — secret/token/auth header/PII → `<REDACTED>` ทุกครั้งที่ paste evidence. Owner = the safety floor (`.safety-floor/body.md`, copied into every agent body and the router style by `scripts/floor.py`); detail `diagnose` § Redact
-- 🔴 **Review has 2 axes** — Standards (`code-reviewer`) and Spec (`business-analyst`) are separate sub-agents; never merge or rerank findings across axes. Every review pins its fixed point with `git diff <base>...HEAD` (three-dot) before fan-out. CI #19 checks dispatch only, not this.
+- 🔴 **Review has 2 axes** — Standards (`verify`, standards axis) and Spec (`plan`, spec axis) are separate fresh sub-agent spawns, as are the runtime (`verify`), security (`secure`), domain (`plan` + a domain reference) and ui (`design`) axes: one axis per spawn even where two axes share a type; never merge or rerank findings across axes. Every review pins its fixed point with `git diff <base>...HEAD` (three-dot) before fan-out. CI #19 checks dispatch only, not this.
 - 🔴 **Preload budget** — a preloaded skill must be something every branch uses; a role-specific rule lives in that role's agent file or is loaded at runtime with `Skill`. CI #16: hard cap 31,000 B/agent + per-agent key in `.preload-budget` (down only).
 - 🔴 **Catalog ≠ Evidence** — `references/design-intel` is a proposal; evidence is WCAG/axe/Lighthouse/Playwright output only. Standard beats catalog; never cite a CSV number at the level of tool output. CI #17 + the `check_contrast.py` gate before writing `tokens.json`.
 - 🔴 **`Skill` in `tools:` of every agent**, in addition to `skills:` — an explicit `tools:` list without it leaves the subagent unable to load any skill at all (CI #14).
-- 🔴 **A rule every agent must follow lives in `shode-house-discipline`** (the only skill preloaded by all 18). A rule for some roles must not go there — it goes in that role's skill or agent file.
+- 🔴 **A rule every agent must follow lives in `shode-house-discipline`** (the only skill preloaded by all 6). A rule for some roles must not go there — it goes in that role's skill or agent file.
 - 🔴 **`skills:` frontmatter on every agent** — a reference in the prompt body is not enough. Minimum `shode-house-discipline`, ≤ 3 skills, never pointing at `in-progress/` or `deprecated/` (silently skipped) (CI #13).
-- **Model frontmatter**: `claude-fable-5` (staff-engineer, solution-architect, security-engineer, ux-ui-designer only) | `opus` | `sonnet`; never a dated model string (CI #5). The model table exists only in README § Model Strategy (CI #6).
-- **Bias Discipline**: all 18 agents carry `## Bias Discipline`; no separate eval agent (`skills/in-progress/eval-harness/` is maintainer reference, not shipped). Source of truth = agent prompt + the discipline card in the router style `output-styles/shode-house.md`.
+- **Model frontmatter**: `claude-fable-5` (`secure`, `design` only) | `opus` | `sonnet`; never a dated model string (CI #5). The model table exists only in README § Model Strategy (CI #6).
+- **Bias Discipline**: all 6 agents carry `## Bias Discipline`; no separate eval agent (`skills/in-progress/eval-harness/` is maintainer reference, not shipped). Source of truth = agent prompt + the discipline card in the router style `output-styles/shode-house.md`.
 - **PEV Loop**: Plan → Execute → Verify → Triage per task (no sprint loop, no `/sprint`); phases 0 → 1a/1b/1c → 2 → 3a/3b → 4. Owner = `shode-house-workflow`
 
 ## Output styles
@@ -98,7 +98,7 @@ The rules are stated in this file and nowhere else. The linked files add detail,
 
 - README links every skill name to its SKILL.md (CI #11b). CHANGELOG gets an entry for every minor/major bump.
 - Every PR passes the CI gate (`.github/workflows/ci.yml`) before merge.
-- CI #27 (v4 gates) runs A1 tools pin, A8 skill names + spawn forms, A2 safety floor (`scripts/floor.py --check --require`), A16(a)/(b) shipped-text lint, the A15 design-runner suite, the W9 eval suites + `eval/scenarios/core-4.0/check-freeze.sh`, `test_floor`, `test_ci_wiring`, `test_ux_design_runbooks`, `test_eval_runners` and `test_reference_toc` (shipped reference > 100 lines has a TOC matching its headings); all required from `plugin.json` major ≥ 4 (`SHODE_REQUIRE_V4=1` rehearses it on 3.x).
+- CI #27 (v4 gates) runs A1 tools pin, A8 skill names + spawn forms, A2 safety floor (`scripts/floor.py --check --require`), A16(a)/(b) shipped-text lint, the A15 design-runner suite, the W9 eval suites + `eval/scenarios/core-4.0/check-freeze.sh`, `eval/scenarios/core-4.0.1/check-freeze.sh` and `eval/scenarios/battery-4.0.1/check-freeze.sh`, `test_floor`, `test_ci_wiring`, `test_ux_design_runbooks`, `test_eval_runners`, `test_reference_toc` (shipped reference > 100 lines has a TOC matching its headings) and `test_core_roster` (the 6-type roster, routing coverage, review-card axes, hook agent-type keys) and `test_battery_401` (the 4.0.1 routing-probe battery: derivation, freeze, runner wiring); all required from `plugin.json` major ≥ 4 (`SHODE_REQUIRE_V4=1` rehearses it on 3.x).
 
 ## Lazy ≠ Negligent
 
@@ -106,7 +106,7 @@ The rules are stated in this file and nowhere else. The linked files add detail,
 - **ห้ามตัด**: trust-boundary validation · data-loss handling · security control · accessibility (WCAG) · regulation/compliance
 - ทางลัดที่ defer → `shortcut(bd:<id>): <reason>; upgrade → <path>` → `grep -rn 'shortcut(bd' .` / `/review --debt`
 - Memory-file compress → เก็บ `<file>.full.md` + verify CI gate (push → CI เขียว) เหมือนเดิม
-- **Runtime guarantee = generate, don't ship**: the plugin ships only the contract (principle + method). The harness contract must be established on every project entry (`/init` rule 11 → `.shode-house/config.yaml`). A guarantee that must be enforced at runtime → **devops-engineer** (infra/CI-level; app-level → developer) generates a runner that fits the project, following the contract in `references/patterns/durable-agent-runtime.md`, into the **target project repo** (through dev-gate); never ship a generic script in the plugin. No need = no runner (YAGNI), but the contract must exist.
+- **Runtime guarantee = generate, don't ship**: the plugin ships only the contract (principle + method). The harness contract must be established on every project entry (`/init` rule 11 → `.shode-house/config.yaml`). A guarantee that must be enforced at runtime → **`operate`** (infra/CI-level; app-level → `build`) generates a runner that fits the project, following the contract in `references/patterns/durable-agent-runtime.md`, into the **target project repo** (through dev-gate); never ship a generic script in the plugin. No need = no runner (YAGNI), but the contract must exist.
 
 ## Budgets · rule conservation · generated tree (v3.17)
 

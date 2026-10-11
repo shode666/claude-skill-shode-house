@@ -7,7 +7,7 @@ Run: python3 tests/test_ux_design_runbooks.py   (also collected by pytest)
 import pathlib, re, unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-RUNBOOKS = ("references/runbooks/ux-ui-designer-phase-1b.md", "references/runbooks/ux-ui-designer-phase-3a.md")
+RUNBOOKS = ("references/runbooks/design-phase-1b.md", "references/runbooks/design-phase-3a.md")
 GENERATED = ("plugins/shode-house/knowledge",)
 
 

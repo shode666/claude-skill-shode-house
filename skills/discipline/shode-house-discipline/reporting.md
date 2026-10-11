@@ -36,9 +36,9 @@ REQUIRED-BEFORE: report_to_user
 ## 🏷️ Tag prefix — ตัวอย่าง
 
 ```
-[developer|state:phase-2|bd:42]
-[ux-ui-designer|state:adhoc|bd:none]
-developer ▸ code-reviewer : payment service implement เสร็จ พร้อม review (bd:42)
+[`build`|state:phase-2|bd:42]
+[`design`|state:adhoc|bd:none]
+`build` ▸ `verify` (standards axis) : payment service implement เสร็จ พร้อม review (bd:42)
 ```
 ไม่มี task → `bd:none` · ไม่มี phase → `state:adhoc`
 
@@ -60,20 +60,20 @@ Risk: [what] | Likelihood: L/M/H | Impact: L/M/H | Mitigation: [concrete] | Owne
 Worker results identify their owner; these examples are not a required prefix for every user-facing message:
 
 ```
-[router] รับงาน, triage → business-analyst + solution-architect
-[business-analyst] เก็บ requirement → 5 clarifying options
-[solution-architect] ออกแบบ C4 + ADR-01 ledger
-[developer#1] implementing POST /payments/create
-[developer#2] implementing POST /payments/refund (parallel)
-[code-reviewer] reviewing src/payment.py — 2 high finding
-[qa-engineer] running E2E checkout → 8/8 pass
-[devops-engineer] docker compose up → all healthy ✅
-[fintech-expert] validating ledger flow — double-entry ok
-[ux-ui-designer] Figma checkout v2 → handoff developer
+[router] รับงาน, triage → `plan` (requirements mode) + `plan` (architecture mode)
+[`plan` (requirements mode)] เก็บ requirement → 5 clarifying options
+[`plan` (architecture mode)] ออกแบบ C4 + ADR-01 ledger
+[`build`#1] implementing POST /payments/create
+[`build`#2] implementing POST /payments/refund (parallel)
+[`verify` (standards axis)] reviewing src/payment.py — 2 high finding
+[`verify` (runtime axis)] running E2E checkout → 8/8 pass
+[`operate` (deploy mode)] docker compose up → all healthy ✅
+[`plan` with the fintech domain reference] validating ledger flow — double-entry ok
+[`design`] Figma checkout v2 → handoff `build`
 ```
 
 **กติกา**:
-- Worker return tag = `[agent id]`; parallel developer = `[developer#1]`, `[developer#2]`
+- Worker return tag = `[agent id]`; parallel `build` = `[`build`#1]`, `[`build`#2]`
 - 1 message = 1 agent voice (ห้ามผสม)
 - Preserve owner, task ID and phase at handoffs and meaningful state changes.
 - Long output (BRD/ADR/code) → tag header + content ปกติ
@@ -84,10 +84,10 @@ Worker results identify their owner; these examples are not a required prefix fo
 
 ```
 [router|state:plan|engagement:E-42] รับงาน triage
-[developer#1|state:impl|task:bd-15|file:payment.py] writing handler
-[code-reviewer|state:review|finding:HIGH:2|MED:5] block merge
-[qa-engineer|state:test|suite:e2e|pass:8|fail:0] checkout flow ✅
-[devops-engineer|state:deploy|env:staging|health:200] live
+[`build`#1|state:impl|task:bd-15|file:payment.py] writing handler
+[`verify` (standards axis)|state:review|finding:HIGH:2|MED:5] block merge
+[`verify` (runtime axis)|state:test|suite:e2e|pass:8|fail:0] checkout flow ✅
+[`operate` (deploy mode)|state:deploy|env:staging|health:200] live
 ```
 
 **Standard keys**:
@@ -95,7 +95,7 @@ Worker results identify their owner; these examples are not a required prefix fo
 - `task` — task id (bd-N) หรือ tracker external id
 - `engagement` — E-N (router track)
 - `file` — file path ที่กำลังแก้
-- `finding` — severity:count (code-reviewer/qa-engineer)
+- `finding` — severity:count (`verify`)
 - `pass`/`fail` — test counter
 - `env` — dev/staging/uat/prod
 - `health` — HTTP status / pass/fail
@@ -105,7 +105,7 @@ Worker results identify their owner; these examples are not a required prefix fo
 
 ### Router caveman broadcast (1 บรรทัด ≤ 80 chars; when → `handoff.md` § Handoff Broadcast Protocol)
 ```
-[router] solution-architect+business-analyst → requirement
-[router] business-analyst done → solution-architect reviewing
+[router] `plan` (architecture mode)+`plan` (requirements mode) → requirement
+[router] `plan` (requirements mode) done → `plan` (architecture mode) reviewing
 [router] blocked: waiting auth spec
 ```

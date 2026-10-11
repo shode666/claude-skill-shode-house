@@ -1421,7 +1421,7 @@ def test_tool_missing(proj, dr):
     os.remove(proj.root / "node_modules/.bin/playwright")
     o, s = proj.order([RUN_UI])
     err = blocked(proj.run(dr, o, s), "design-run-tool-missing playwright")
-    assert "shode-house:devops-engineer" in err
+    assert "shode-house:operate" in err
     assert proj.hostiles() == []
 
 

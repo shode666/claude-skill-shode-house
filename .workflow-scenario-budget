@@ -12,15 +12,16 @@
 # 8ss.RC-1/E1c: output style 10,187 -> 10,152 B (dispatch floor [fast path = Dave alone, user decision 2026-09-21] + Phase 1c no-waiver paid by trimming restated filler) -> every scenario -35 B
 # 8ss floor v2 (report 27): output style 10,152 -> 10,131 B (trigger->action dispatch floor + 1c 'dispatch now', paid by trimming restated filler in oliver.md) -> every scenario -21 B
 # 8ss rc2 fixes (report 33): output style 10,131 -> 10,126 B (F1-F3 wording + identity sentence restored, paid by restated heading/gloss filler) -> every scenario -5 B
-consult=38793
-design-system-be=70991
-design-system-fe=126771
-implement-be=126815
-implement-ui=160928
-phase3b-base=105414
-phase3b-sensitive=149633
-review-cmd=100900
-diagnose-fast=47995
-diagnose-full=84410
-map-mode=89885
-full-fanout=461909
+# v4.0.1 consolidation (18 types -> 6, shode-house-jni): scenarios list one entry per SPAWN (verify twice = two spawns) and a domain spawn = a plan spawn + domain-core (the 4.0.0 experts preloaded it; the domain reference is the former catalogue, a lazy ref no 4.0.0 scenario counted). Every value re-measured and at or below its 4.0.0 value; the router style grew (+1.7 KB: 6-type table, review-card names, served-model and Formerly sentences) and the agent bodies shrank. Iter 2 (Standards F2): `build` now preloads discipline + deliverable (+3,165 B per build spawn), so the scenarios that spawn `build` moved UP from the iter-1 value (never above the 4.0.0 value); the others went down by 1-2 B.
+consult=33600
+design-system-be=65912
+design-system-fe=123762
+diagnose-fast=43305
+diagnose-full=74417
+full-fanout=139072
+implement-be=115975
+implement-ui=145783
+map-mode=48450
+phase3b-base=101370
+phase3b-sensitive=148444
+review-cmd=96327

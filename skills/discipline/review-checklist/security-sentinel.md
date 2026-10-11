@@ -1,16 +1,16 @@
 ---
 name: security-sentinel
-description: Reference (lazy-load) ของ `review-checklist` — security depth axis ของ security-engineer (SAST/SCA/secret scan/CSP/abuse case/pen test). โหลดเมื่อ diff แตะ auth/money/PII หรือเมื่อ secure skill ถูก trigger
+description: Reference (lazy-load) ของ `review-checklist` — security depth axis ของ `secure` (SAST/SCA/secret scan/CSP/abuse case/pen test). โหลดเมื่อ diff แตะ auth/money/PII หรือเมื่อ secure skill ถูก trigger
 ---
 
 ```lazy-load-contract
 LOAD: skills/discipline/review-checklist/security-sentinel.md
 WHEN: diff_touches in {auth,money,PII,crypto,secrets} OR secure_skill_triggered=true
-OWNER: security-engineer
+OWNER: secure
 REQUIRED-BEFORE: phase_3b_verdict
 ```
 
-# Security depth axis (security-engineer)
+# Security depth axis (`secure`)
 
 รันเมื่อ diff แตะ auth / money / PII / crypto / secret หรือเมื่อ `shode-house:secure` skill ถูก trigger — parallel กับ reviewers อื่นเมื่อ host รองรับและ scope อิสระ; serialize ได้โดยคง separate assignment และ independent verdict
 
@@ -26,7 +26,7 @@ REQUIRED-BEFORE: phase_3b_verdict
 **Verdict rule**: scanner finding ที่ยังไม่ triage = unresolved candidate; ตรวจ affected path และ evidence ก่อนกำหนด severity ตาม impact/acceptance ใน harness บันทึกเหตุผลทั้ง confirmed finding และ false positive ห้าม claim security PASS ขณะ required triage ยังไม่จบ
 ห้าม claim "security ผ่าน" โดยไม่ paste output ของ scanner ที่รันเอง
 
-The `[REVIEW DISPATCH CARD]` axis plan may live in the checkpoint/report. security-engineer
+The `[REVIEW DISPATCH CARD]` axis plan may live in the checkpoint/report. `secure`
 is DISPATCH when the WHEN condition above applies, otherwise SKIP with evidence.
 Verify an actual separate assignment; printing a card is not execution. Template:
 `commands/review.md` § Step 1.

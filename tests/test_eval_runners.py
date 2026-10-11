@@ -17,7 +17,7 @@ NEW = [s for s in GOLDEN if "expected" in s]
 EVAL_ENV = ("CLAUDE_BIN", "PLUGIN_REF", "BASE_REF", "ARM_SCOPE", "PROBE_FILE", "PROBE_IDS", "REPEATS", "MAX_RETRY",
             "ALLOW_UNFROZEN", "PROBE_BLOCK_SPAWN", "RUN_TIMEOUT_S", "MAX_BUDGET_USD", "CORE_IDS", "CORE_LABEL",
             "CORE_FILE", "CORE_E01", "CORE_FREEZE", "FREEZE_ROOT", "CHECK_ROOT", "FIXTURE_TODAY",
-            "FAKE_MODE", "FAKE_INFRA_ON", "FAKE_SKILL")
+            "FAKE_MODE", "FAKE_INFRA_ON", "FAKE_SKILL", "FAKE_PLAN_MODEL", "FAKE_PLAN_DOMAIN")
 GIT_REPO_ENV = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY", "GIT_COMMON_DIR",
                 "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE", "GIT_PREFIX")
 
@@ -1000,7 +1000,7 @@ class ArmDiffTest(unittest.TestCase):
         self.git("init", "-q"); self.git("config", "user.email", "t@t"); self.git("config", "user.name", "t")
         self.write("skills/workflow/diagnose/SKILL.md", self.SKILL)
         self.write("skills/ops/slo/SKILL.md", self.SKILL.replace("diagnose", "slo"))
-        self.write("agents/developer.md", "---\nname: developer\n---\nbody\n")
+        self.write("agents/build.md", "---\nname: developer\n---\nbody\n")
         self.write(".claude-plugin/plugin.json", '{\n  "name": "x",\n  "version": "1.0.0",\n  "skills": []\n}\n')
         self.write("eval/prompts/probes/P28.md", "# P28\n\n## Prompt\n\n```\nเครื่องผมรันได้ปกติแต่เครื่องเพื่อนพังเป็นบางครั้ง works on my laptop only\n```\n")
         self.write("eval/prompts/probes/P05.md", "# P05\n\n## Prompt\n\n```\nfrozen legacy prompt words here\n```\n")
@@ -1044,7 +1044,7 @@ class ArmDiffTest(unittest.TestCase):
             "other frontmatter key": lambda: self.write("skills/workflow/diagnose/SKILL.md", self.SKILL.replace("allowed-tools: Read", "allowed-tools: Read, Bash")),
             "name": lambda: self.write("skills/workflow/diagnose/SKILL.md", self.SKILL.replace("name: diagnose", "name: debug")),
             "key added": lambda: self.write("skills/workflow/diagnose/SKILL.md", self.SKILL.replace("allowed-tools: Read", "allowed-tools: Read\nmodel: opus")),
-            "agent file": lambda: self.write("agents/developer.md", "---\nname: developer\n---\nbody absorbing probe words\n"),
+            "agent file": lambda: self.write("agents/build.md", "---\nname: developer\n---\nbody absorbing probe words\n"),
             "output style added": lambda: self.write("output-styles/oliver.md", "x\n"),
             "skill deleted": lambda: (self.root / "skills/ops/slo/SKILL.md").unlink(),
             "skill renamed": lambda: (self.root / "skills/ops/slo").rename(self.root / "skills/ops/slo2"),
@@ -1102,7 +1102,35 @@ class HermeticEnvTest(unittest.TestCase):
                 self.assertEqual(env[kept], os.environ[kept])
 
 
+OWNERSHIP = ROOT / "skills/discipline/shode-house-routing/ownership.md"
+
+
+def formerly_ids(retired, text=None):
+    """Retired ids the frozen P01..P47 battery may still name: only those listed in ownership.md § Formerly (4.0.0 id column)."""
+    text = OWNERSHIP.read_text(encoding="utf-8") if text is None else text
+    table = text.split("## Formerly", 1)[1].split("\n## ", 1)[0].split("\n### ", 1)[0]
+    listed = set()
+    for row in table.splitlines():
+        cells = [c.strip() for c in row.strip().strip("|").split("|")]
+        if row.startswith("|") and len(cells) >= 2:
+            if re.fullmatch(r"[a-z][a-z-]*", cells[1]):
+                listed.add(cells[1])
+            listed.update(re.findall(r"`([a-z][a-z-]*)`", cells[1]))
+    return retired & listed
+
+
 class ScenarioDataTest(unittest.TestCase):
+    def test_retired_ids_in_the_frozen_battery_must_be_in_the_formerly_table(self):
+        sys.path.insert(0, str(ROOT / "tests"))
+        from test_team_package import RETIRED
+        retired = {Path(k).stem for k in RETIRED if k.startswith("agents/")}
+        listed = formerly_ids(retired)
+        self.assertEqual(retired, listed, "every retired id must have a Formerly row")
+        # an id that is neither live nor a Formerly row is rejected; a Formerly row without the id is not accepted
+        table = OWNERSHIP.read_text(encoding="utf-8")
+        self.assertNotIn("ghost-expert", formerly_ids(retired | {"ghost-expert"}, table))
+        self.assertNotIn("fintech-expert", formerly_ids(retired, table.replace("| fintech-expert |", "| gone |")))
+
     def test_ids_prompts_and_names_resolve(self):
         sys.path.insert(0, str(ROOT / "scripts"))
         import importlib
@@ -1121,7 +1149,7 @@ class ScenarioDataTest(unittest.TestCase):
         agents = {p.stem for p in ROOT.glob("agents/*.md")}
         sys.path.insert(0, str(ROOT / "tests"))
         from test_team_package import RETIRED
-        retired = {Path(k).stem for k in RETIRED if k.startswith("agents/")}
+        retired = formerly_ids({Path(k).stem for k in RETIRED if k.startswith("agents/")})
         workflow_ops_ui = {p.parent.name for g in ("workflow", "ops", "ui") for p in ROOT.glob(f"skills/{g}/*/SKILL.md")}
         for s in scenarios:
             self.assertFalse(set(s["expected"]) - trc.EXPECTED_FIELDS, s["id"])
@@ -1152,11 +1180,14 @@ class ScenarioDataTest(unittest.TestCase):
             for name in [r[6:] for r in routes if r.startswith("skill:")]:
                 self.assertIn(name, skills, f'{s["id"]}: unknown skill {name}')
             for name in s["expected"].get("agents", []) + [r[6:] for r in routes if r.startswith("agent:")]:
-                self.assertIn(name, agents, f'{s["id"]}: unknown agent {name}')
+                # golden.json is the frozen 3.17 probe battery: at 4.0.1 its agent names are the 18 retired 4.0.0 ids
+                # (a retired id names a type, not a typo); the strict live-type check of the selected core set (core-4.0.1,
+                # E16..E18) is tests/test_core_scenarios.py
+                self.assertTrue(name in agents or name in retired, f'{s["id"]}: unknown agent {name} (neither live nor in ownership.md Formerly)')
             for glob in s["expected"].get("must_not_dispatch", []):
                 # a retired agent type (tests/test_team_package.py RETIRED, e.g. `orchestrator` at 4.0.0) stays a valid
                 # must-not-dispatch name in the frozen 3.17 probe files: it names a type, not a typo
-                self.assertTrue(any(__import__("fnmatch").fnmatchcase(a, glob) for a in agents) or glob in retired,
+                self.assertTrue(any(__import__("fnmatch").fnmatchcase(a, glob) for a in agents | retired),
                                 f'{s["id"]}: {glob}')
 
 

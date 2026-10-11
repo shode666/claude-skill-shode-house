@@ -1,77 +1,77 @@
 {
   "_comment": "Milestone B capability registry (bd: shode-roadmap/C-B1, ROADMAP-runtime-10.md SS 3.1). Transcribed verbatim from the 3.17 router style's SS 4 'Routing (19 agents / 7 teams)' table -- one entry per table row (18 rows; the router itself is not a routed-to capability, so it is not listed here, and the orchestrator agent type is retired in 4.0.0, W8). No new capability invented. Read by scripts/route.sh only -- this file is NOT preloaded into any agent context (see delegation note on token budget).",
-  "_source": "3.17 router style (Oliver, retired in 4.0.0) SS 4 Routing (19 agents / 7 teams); the 18 owners are the 18 registered agent types",
+  "_source": "3.17 router style (Oliver, retired in 4.0.0) SS 4 Routing (19 agents / 7 teams), re-owned in 4.0.1 by the 6 agent types: an owner is `<type>` or `<type>:<domain>` where `<domain>` names references/domain/<domain>.md (a domain capability is owned by `plan` with that reference loaded)",
   "capabilities": {
     "discovery-okr": {
-      "owner": "product-manager",
+      "owner": "plan",
       "desc": "discovery / OKR / RICE / kill decision"
     },
     "requirement-brd": {
-      "owner": "business-analyst",
+      "owner": "plan",
       "desc": "requirement / BRD / user story / AC"
     },
     "architecture": {
-      "owner": "solution-architect",
+      "owner": "plan",
       "desc": "architecture / tech stack / NFR / ADR"
     },
     "cross-team-consistency": {
-      "owner": "staff-engineer",
+      "owner": "build",
       "desc": "cross-team consistency / tech radar / refactor strategy"
     },
     "security-threat-model": {
-      "owner": "security-engineer",
+      "owner": "secure",
       "desc": "threat model / STRIDE / CSP / secrets / pen test / prompt injection"
     },
     "production-code": {
-      "owner": "developer",
+      "owner": "build",
       "desc": "implement feature code (polyglot)"
     },
     "code-review": {
-      "owner": "code-reviewer",
+      "owner": "verify",
       "desc": "code review 7-dim + unit test + mutation"
     },
     "integration-test": {
-      "owner": "qa-engineer",
+      "owner": "verify",
       "desc": "integration / E2E / contract / load / a11y axe"
     },
     "devops-deploy": {
-      "owner": "devops-engineer",
+      "owner": "operate",
       "desc": "Docker / CI-CD / IaC / deploy / observability"
     },
     "ux-research": {
-      "owner": "ux-ui-designer",
+      "owner": "design",
       "desc": "UX research / wireframe / design system / WCAG"
     },
     "slo-incident": {
-      "owner": "sre-engineer",
+      "owner": "operate",
       "desc": "SLO / error budget / incident / postmortem"
     },
     "fintech-domain": {
-      "owner": "fintech-expert",
+      "owner": "plan:fintech",
       "desc": "payment / ledger / KYC-AML / BOT-SEC-PCI"
     },
     "erp-domain": {
-      "owner": "erp-expert",
+      "owner": "plan:erp",
       "desc": "GL / AR-AP / inventory / MRP / payroll"
     },
     "sap-domain": {
-      "owner": "sap-expert",
+      "owner": "plan:sap",
       "desc": "ECC / S4HANA / ABAP / Fiori / BAPI-IDoc"
     },
     "trading-domain": {
-      "owner": "trading-expert",
+      "owner": "plan:trading",
       "desc": "OMS / matching engine / market data / clearing"
     },
     "insurance-domain": {
-      "owner": "insurance-expert",
+      "owner": "plan:insurance",
       "desc": "policy admin / underwriting / claims / IFRS 17"
     },
     "booking-domain": {
-      "owner": "booking-expert",
+      "owner": "plan:booking",
       "desc": "inventory / availability / yield / channel manager"
     },
     "ecommerce-domain": {
-      "owner": "ecommerce-expert",
+      "owner": "plan:ecommerce",
       "desc": "catalog / cart / promotion / OMS / marketplace"
     }
   }

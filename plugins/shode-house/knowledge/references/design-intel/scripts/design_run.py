@@ -142,7 +142,7 @@ PLAYWRIGHT_CONFIGS = ("playwright.config.ts", "playwright.config.js", "playwrigh
 # Playwright 1.63 collectFilesForProject: the extensions a test file may have
 TEST_FILE_EXTS = ("js", "cjs", "mjs", "ts", "cts", "mts", "jsx", "tsx", "mjsx", "mtsx", "cjsx", "ctsx")
 TEXT_ARTIFACT_EXTS = (".json", ".txt", ".log")
-DEVOPS_HINT = "ask `shode-house:devops-engineer` to add `%s` to the project's dev dependencies and install it"
+DEVOPS_HINT = "ask `shode-house:operate` to add `%s` to the project's dev dependencies and install it"
 # Isolated mode keeps the script's own directory off sys.path, and search.py imports its siblings,
 # so plugin scripts start through this fixed bootstrap: it adds only the plugin script directory.
 BOOTSTRAP = ("import os,runpy,sys;s=sys.argv[1];sys.argv=sys.argv[1:];"

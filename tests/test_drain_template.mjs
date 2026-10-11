@@ -6,7 +6,7 @@ import test from 'node:test';
 const source = readFileSync(new URL('../skills/ops/drain/workflow-template.js', import.meta.url), 'utf8');
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 async function run(count, capacity, result = { verdict: 'FIXED', note: 'candidate' }, version = '4.0.0', iter = 1, ids = null) {
-  const items = Array.from({ length: count }, (_, i) => ({ id: ids ? ids[i] : `T-${i}`, type: 'developer', brief: 'bounded change' }));
+  const items = Array.from({ length: count }, (_, i) => ({ id: ids ? ids[i] : `T-${i}`, type: 'build', brief: 'bounded change' }));
   const body = source.replace('export const meta', 'const meta')
     .replace('const ITEMS = []', `const ITEMS = ${JSON.stringify(items)}`)
     .replace('const WORKER_LIMIT = 3', `const WORKER_LIMIT = ${JSON.stringify(capacity)}`)

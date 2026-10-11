@@ -3,7 +3,7 @@
 ```lazy-load-contract
 LOAD: skills/workflow/dev-gate/tdd.md
 WHEN: new_behavior=true OR bug_fix_regression_test=true
-OWNER: developer
+OWNER: build
 REQUIRED-BEFORE: first_test_written
 ```
 

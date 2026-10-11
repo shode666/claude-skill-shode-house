@@ -1,6 +1,6 @@
 # Diagnose — Full-path investigation
 
-Load only for Full diagnosis, before Step 2. Owner: the assigned developer, code-reviewer or qa-engineer.
+Load only for Full diagnosis, before Step 2. Owner: the assigned `build`, `verify` (standards axis) or `verify` (runtime axis).
 Use the core skill's redaction, scope and authorization constraints throughout.
 
 ### 2. Reproduce + Minimise

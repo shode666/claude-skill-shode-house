@@ -1,19 +1,19 @@
 ---
 name: resolve-merge-conflicts
-description: Reference (lazy-load) ของ developer/devops-engineer — วิธีแก้ git merge/rebase conflict ทีละ hunk ตาม intent ของแต่ละฝั่ง โหลดเฉพาะตอนมี conflict ค้างอยู่
+description: Reference (lazy-load) ของ `build`/`operate` — วิธีแก้ git merge/rebase conflict ทีละ hunk ตาม intent ของแต่ละฝั่ง โหลดเฉพาะตอนมี conflict ค้างอยู่
 ---
 
 ```lazy-load-contract
 LOAD: references/runbooks/resolve-merge-conflicts.md
 WHEN: git merge/rebase/cherry-pick in progress with unresolved conflicts
-OWNER: developer
+OWNER: build
 REQUIRED-BEFORE: git_continue_or_commit
 ```
 
 # Resolving merge / rebase conflicts
 
-Adapted from mattpocock/skills `resolving-merge-conflicts`; ownership stays with developer
-(code) and devops-engineer (CI/infra files). Do not abort merely to hide a conflict; honor an
+Adapted from mattpocock/skills `resolving-merge-conflicts`; ownership stays with `build`
+(code) and `operate` (deploy mode) (CI/infra files). Do not abort merely to hide a conflict; honor an
 explicit cancellation/abort request after inspecting the operation and user changes.
 
 1. **See the state** — `git status`, which operation is in progress, every conflicted file.

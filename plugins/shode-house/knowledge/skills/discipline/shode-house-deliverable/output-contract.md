@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `shode-house-deliverable` — Stand
 ```lazy-load-contract
 LOAD: skills/discipline/shode-house-deliverable/output-contract.md
 WHEN: deliverable_produce=true
-OWNER: developer
+OWNER: build
 REQUIRED-BEFORE: handoff
 ```
 
@@ -37,31 +37,31 @@ Name domain deliverables by assigned outcome. Examples below are not quotas; one
 **Examples** (template สำหรับ domain agents):
 
 ```markdown
-[fintech-expert]
+[`plan` with the fintech domain reference]
 1. Ledger model — double-entry CoA + posting rules (markdown table)
 2. Compliance gap analysis — PCI-DSS/BOT/SEC checklist (pass/fail/N-A per item)
 3. Regulatory citation list — version + date + clause per ref
 4. Risk register — KYC/AML/fraud risk + mitigation owner
 
-[erp-expert]
+[`plan` with the erp domain reference]
 1. Trial balance extract — period + adjusted/unadjusted
 2. Accrual schedule — recurring + one-time items
 3. Roll-forward — opening + movement + closing per account
 4. Variance commentary — actual vs budget/prior, ≥ threshold
 
-[insurance-expert]
+[`plan` with the insurance domain reference]
 1. Policy state machine — issuance → endorse → renewal → claim → close
 2. Reserve calc — IBNR + IBNER + URR + claim provision
 3. IFRS 17 measurement model selection — GMM/PAA/VFA + rationale
 4. Reinsurance treaty terms summary — proportional/non-proportional + retention
 
-[trading-expert]
+[`plan` with the trading domain reference]
 1. Order lifecycle spec — new → ack → partial → fill → cancel/reject + state diagram
 2. Pre-trade risk checks list — limit/credit/restricted/halt
 3. Matching priority spec — price-time/pro-rata/exchange-specific
 4. Clearing/settlement flow — T+0/T+1/T+2 + DvP
 
-[sap-expert]
+[`plan` with the sap domain reference]
 1. Customizing config — IMG path + transport + variant
 2. ABAP/CDS spec — field/select/joining + performance note
 3. Integration design — BAPI/IDoc/RFC/OData + auth model
@@ -87,31 +87,31 @@ Name domain deliverables by assigned outcome. Examples below are not quotas; one
 **Examples** (template สำหรับ domain agents):
 
 ```markdown
-[fintech-expert]
-- Post ledger entries directly → request developer/devops-engineer via PR + Approval Gate
+[`plan` with the fintech domain reference]
+- Post ledger entries directly → request `build`/`operate` via PR + Approval Gate
 - Make final KYC/AML decision → recommend only, human approve in app
 - Approve payment release → audit-only role, ห้าม sign-off
 - Update production rate/fee table → propose change, ops execute via change ticket
 
-[insurance-expert]
+[`plan` with the insurance domain reference]
 - Approve claim payout → recommend amount + rationale, claims officer decide
 - Set reserve final → calc + suggest, reserving committee approve
 - Issue policy → underwrite + price, underwriter sign
 - Authorize ex gratia payment → ห้าม (claims team only)
 
-[trading-expert]
+[`plan` with the trading domain reference]
 - Execute trade → ห้าม (compliance + ops only)
 - Override pre-trade risk block → recommend manual review, RM approve
 - Modify production matching priority → propose, exchange ops change via release
 - Cancel client order → ห้าม (client/auth desk only)
 
-[erp-expert]
+[`plan` with the erp domain reference]
 - Post journal entry → recommend, accountant approve via posting workflow
 - Close period → recommend, controller approve
 - Approve payment run → review, AP manager sign
 - Modify chart of accounts → propose ADR, finance lead approve
 
-[sap-expert]
+[`plan` with the sap domain reference]
 - Execute transport to PRD → ห้าม (basis team only)
 - Modify standard SAP code → recommend enhancement (BAdI/BTE/user exit), basis evaluate
 - Open production debug → ห้าม (read-only + RFC trace)

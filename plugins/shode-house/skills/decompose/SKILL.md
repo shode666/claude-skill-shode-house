@@ -5,7 +5,7 @@ description: Split an agreed, signed-off scope into small, independently verifia
 
 # Decompose (epic → leaf task)
 
-> **Owner**: business-analyst (จาก user story) + router (จาก XL triage).
+> **Owner**: `plan` (requirements mode) (จาก user story) + router (จาก XL triage).
 > Use the confirmed tracker/evidence home, including Markdown; Beads is optional. Planning does not authorize creating remote tickets: draft locally when writes are unavailable or unapproved, mark pending sync, and never claim remote creation.
 
 ## When NOT to use
@@ -24,10 +24,10 @@ description: Split an agreed, signed-off scope into small, independently verifia
 
 - [ ] **Spec หรือ BRD ที่ sign-off แล้ว** (Phase 1a) — แตกจาก AC/FR ไม่ใช่จากชื่อ feature
 - [ ] **Confirmed record location and write authority** — publish only where authorized; an explicitly labelled local draft can hold task IDs and dependencies until remote sync is available
-- [ ] **Interface contract** ถ้าข้าม service/module (solution-architect กำหนดก่อน ผ่าน `api-contract` — ดู § Chunk)
+- [ ] **Interface contract** ถ้าข้าม service/module (`plan` (architecture mode) กำหนดก่อน ผ่าน `api-contract` — ดู § Chunk)
 
 ขาดข้อใด → list สิ่งที่ขาด แล้วหยุด ห้ามเดา
-ยังไม่มี spec → `/design-system` (business-analyst ∥ solution-architect ผลิต BRD + ADR) ก่อน แล้วค่อยแตก
+ยังไม่มี spec → `/design-system` (`plan` (requirements mode) ∥ `plan` (architecture mode) ผลิต BRD + ADR) ก่อน แล้วค่อยแตก
 
 ## 🎯 Tracer bullet — เกณฑ์เดียวที่ตัดสินว่าแตกถูกหรือผิด
 
@@ -51,7 +51,7 @@ description: Split an agreed, signed-off scope into small, independently verifia
 - [ ] **verify ได้ด้วยตัวมันเอง** — มี test/หลักฐานที่บอกว่า "ใบนี้เสร็จ" โดยไม่ต้องรอใบอื่น; reference canonical AC IDs/revision and add slice-specific checks, do not duplicate the full spec
 - [ ] **Describe one outcome** for a user or named consumer; a layer name alone does not explain its acceptance or value
 
-ยังไม่ผ่าน 2 ข้อขึ้นไป → แตกต่อ. **แตกได้ ≤ 2 ชั้น** (epic → leaf); ลึกกว่านั้นแปลว่า outcome กว้างเกิน → กลับไปคุย scope กับ product-manager
+ยังไม่ผ่าน 2 ข้อขึ้นไป → แตกต่อ. **แตกได้ ≤ 2 ชั้น** (epic → leaf); ลึกกว่านั้นแปลว่า outcome กว้างเกิน → กลับไปคุย scope กับ `plan` (discover mode)
 
 ## 🔗 Blocking edge — ประกาศตอนสร้าง ไม่ใช่ค่อยไปเดาทีหลัง
 
@@ -65,7 +65,7 @@ description: Split an agreed, signed-off scope into small, independently verifia
 
 ## 🧩 Chunk — เมื่อต้องข้าม service/module
 
-solution-architect defines the interface contract before parallel implementation. An agreed contract can unblock independent coding against a test double, but does not remove real data, deployment, approval or integration dependencies.
+`plan` (architecture mode) defines the interface contract before parallel implementation. An agreed contract can unblock independent coding against a test double, but does not remove real data, deployment, approval or integration dependencies.
 
 contract เปลี่ยนกลางทาง = **spec change** → canonical record revision ตาม drift M5 ไม่ใช่แก้เงียบ ๆ
 

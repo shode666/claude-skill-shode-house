@@ -1,5 +1,5 @@
 ---
-description: "[shode-house] Init — scaffold project ใหม่. Default: interactive wizard (devops-engineer + business-analyst + tracker). `--quick <stack>`: direct devops-engineer Docker-first (replaces /setup-project)"
+description: "[shode-house] Init — scaffold project ใหม่. Default: interactive wizard (`operate` (deploy mode) + `plan` (requirements mode) + tracker). `--quick <stack>`: direct `operate` (deploy mode) Docker-first (replaces /setup-project)"
 allowed-tools: Read, Write, Edit, Bash, Task, Skill, AskUserQuestion
 argument-hint: '[project-name | --quick "stack description"]'
 ---
@@ -18,7 +18,7 @@ the harness checkpoint when no separate script runtime has been adopted.
 if [ -z "$ARGUMENTS" ] || [[ "$ARGUMENTS" != --quick* ]]; then
   MODE="interactive"   # Phase 1+2+3+4 (current /init wizard)
 else
-  MODE="quick"         # Skip Phase 1, jump to devops-engineer direct (replaces /setup-project)
+  MODE="quick"         # Skip Phase 1, jump to `operate` (deploy mode) direct (replaces /setup-project)
   STACK="${ARGUMENTS#--quick }"
 fi
 ```
@@ -90,7 +90,7 @@ Idempotent — รันซ้ำกี่ครั้งก็เหลือ r
 - มี `.gitignore` แต่ไม่มี rule นี้ (exact หรือ equivalent spelling) — รวมไฟล์ว่างหรือมีแต่บรรทัดว่าง → append
   ที่ท้ายไฟล์จริง (หลังบรรทัดว่างท้ายไฟล์) เก็บ entry และบรรทัดว่างเดิมไว้ครบ ไม่เรียงใหม่ ไม่ format ใหม่
 - รัน `/init` ซ้ำ (fresh หรือ brownfield) → เหลือ effective rule เดียวเสมอ ไม่มี duplicate line
-- เกิดก่อน Phase 2 scaffold (devops-engineer's `.gitignore` step ด้านล่างเติมรายการอื่นต่อจากที่นี่ ไม่ทับ)
+- เกิดก่อน Phase 2 scaffold (`operate` (deploy mode)'s `.gitignore` step ด้านล่างเติมรายการอื่นต่อจากที่นี่ ไม่ทับ)
 
 ---
 
@@ -117,13 +117,13 @@ Q2: Primary stack?
 
 Q3: Domain focus?
   A) Generic (no domain)
-  B) Fintech (fintech-expert lead)
-  C) ERP/Accounting (erp-expert)
-  D) SAP (sap-expert)
-  E) Booking (booking-expert)
-  F) Insurance (insurance-expert)
-  G) Trading (trading-expert)
-  H) E-commerce (ecommerce-expert)
+  B) Fintech (`plan` with the fintech domain reference lead)
+  C) ERP/Accounting (`plan` with the erp domain reference)
+  D) SAP (`plan` with the sap domain reference)
+  E) Booking (`plan` with the booking domain reference)
+  F) Insurance (`plan` with the insurance domain reference)
+  G) Trading (`plan` with the trading domain reference)
+  H) E-commerce (`plan` with the ecommerce domain reference)
 
 Q4: Tracker?
   A) beads (bd) (Recommended local)
@@ -144,11 +144,11 @@ Q6: Sandbox?
   D) Cloud (Codespaces/Vercel)
 ```
 
-### Phase 2: Scaffold (devops-engineer + business-analyst parallel)
+### Phase 2: Scaffold (`operate` (deploy mode) + `plan` (requirements mode) parallel)
 
 > 🔴 brownfield (Phase 0) → ADOPT mode: เขียนเฉพาะไฟล์ที่ยังไม่มี; ห้ามทับของเดิม; ชน → `*.shode-house.new` + ถาม
 
-[devops-engineer] รับ stack/sandbox → setup:
+[`operate` (deploy mode)] รับ stack/sandbox → setup:
 - Folder structure ตาม convention
 - Dockerfile + docker-compose (multi-stage, non-root, healthcheck)
 - Pre-commit hooks (format/lint/type/secret)
@@ -158,7 +158,7 @@ Q6: Sandbox?
 - README + CONTRIBUTING + CLAUDE.md (AI agent onboarding)
 - **UI test toolchain** (auto ถ้า Q1=Web app/Full-stack monorepo): Playwright + @axe-core/playwright + visual baseline + `make ui-test/ui-baseline/ui-test-ui` + ui-test CI job (required check on main, blocks `pre-merge-ui` gate)
 
-[business-analyst] รับ domain → seed:
+[`plan` (requirements mode)] รับ domain → seed:
 - BRD template (`outputs/brd.md`) + sample FR
 - Tracker: reuse the confirmed tracker (harness contract; Markdown fallback) — no install/migrate
 - Sample BR/FR/Story tracker entry
@@ -175,7 +175,7 @@ if the project explicitly adopted the script runtime, its config may be:
   stack: typescript
   ```
 
-### Phase 3: Verify (devops-engineer — anti-puppet)
+### Phase 3: Verify (`operate` (deploy mode) — anti-puppet)
 
 ```bash
 make dev                     # ต้อง up healthy
@@ -208,13 +208,13 @@ Next steps:
 
 ตัวอย่าง: `/init --quick "FastAPI + Postgres + Redis"`
 
-### 0. Prerequisite (devops-engineer)
+### 0. Prerequisite (`operate` (deploy mode))
 - `brew install beads node` + `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - ยืนยัน `bd`, `npx`, `uv` พร้อมใช้
 
-### 1. Mini-clarify (devops-engineer prepares; router asks — up to 2 unresolved questions)
+### 1. Mini-clarify (`operate` (deploy mode) prepares; router asks — up to 2 unresolved questions)
 
-devops-engineer returns missing decisions to the router. Reuse confirmed answers; only the router
+`operate` (deploy mode) returns missing decisions to the router. Reuse confirmed answers; only the router
 asks the user, using the host's available question channel.
 - Deploy target (VPS / ECS / K8s / Cloud Run)
 - CI (GitHub Actions / GitLab / CircleCI)
@@ -273,7 +273,7 @@ Default: **Caddy** (auto HTTPS, simple)
 8. **Observability from day 1** → log/metric/trace
 9. บังคับ verify (anti-puppet) — paste output จริง
 10. Save confirmed defaults in the existing record home; `.shode-house/config.yaml` is only for an explicitly adopted script runtime.
-11. **Harness contract** — establish coordination using the host tools and confirmed checkpoint described in `skills/discipline/shode-house-workflow/harness.md`. Do not require marker/config files, hooks or a generated runner merely to satisfy the plugin. devops-engineer generates a project runner only for an authorized concrete runtime need; preserve brownfield structure and existing guidance.
+11. **Harness contract** — establish coordination using the host tools and confirmed checkpoint described in `skills/discipline/shode-house-workflow/harness.md`. Do not require marker/config files, hooks or a generated runner merely to satisfy the plugin. `operate` (deploy mode) generates a project runner only for an authorized concrete runtime need; preserve brownfield structure and existing guidance.
 12. ตอบภาษาเดียวกับที่ user เขียนมาล่าสุด (`shode-house-discipline` § Response Language); code/path/command/log verbatim
 
 ## Skill composition

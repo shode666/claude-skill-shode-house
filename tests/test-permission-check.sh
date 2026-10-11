@@ -53,58 +53,64 @@ assert_rc "$rc" 0 "jq empty on the three registries"
 # 1. engagement guard: no .shode-house/ -> exit 0, NO stdout (workflow-state.sh rule)
 # =============================================================================
 t_start "engagement guard: silent no-op without .shode-house/"
-out=$(PERMCHECK_ROOT="$SANDBOX/bare" bash "$SCRIPT" developer deploy_prod); rc=$?
+out=$(PERMCHECK_ROOT="$SANDBOX/bare" bash "$SCRIPT" build deploy_prod); rc=$?
 assert_rc "$rc" 0 "guard exit code"
 assert_empty "$out" "guard stdout"
 
 # =============================================================================
 # 2. tool-grant layer
 # =============================================================================
-t_start "ALLOW: developer run_commands (Bash in frontmatter)"
-out=$(run_pc developer run_commands); rc=$?
+t_start "ALLOW: build run_commands (Bash in frontmatter)"
+out=$(run_pc build run_commands); rc=$?
 assert_rc "$rc" 0 "exit"
 assert_contains "$out" "ALLOW" "verdict"
 
-t_start "DENY: business-analyst run_commands (no Bash grant)"
-out=$(run_pc business-analyst run_commands); rc=$?
+t_start "DENY: plan run_commands (no Bash grant)"
+out=$(run_pc plan run_commands); rc=$?
 assert_rc "$rc" 1 "exit"
 assert_contains "$out" "DENY" "verdict"
 
-t_start "DENY: developer network (no WebSearch/WebFetch grant)"
-out=$(run_pc developer network); rc=$?
+t_start "DENY: build network (no WebSearch/WebFetch grant)"
+out=$(run_pc build network); rc=$?
 assert_rc "$rc" 1 "exit"
 
 # =============================================================================
 # 3. policy layer -- write_code / deploy / deploy_prod
 # =============================================================================
-t_start "ALLOW: developer write_code"
-out=$(run_pc developer write_code); rc=$?
+t_start "ALLOW: build write_code"
+out=$(run_pc build write_code); rc=$?
 assert_rc "$rc" 0 "exit"
 
-t_start "DENY: business-analyst write_code (SS 11.1 write_code: false)"
-out=$(run_pc business-analyst write_code); rc=$?
+t_start "DENY: plan write_code (SS 11.1 write_code: false)"
+out=$(run_pc plan write_code); rc=$?
 assert_rc "$rc" 1 "exit"
 assert_contains "$out" "least privilege" "reason names the principle"
 
-t_start "ALLOW: devops-engineer deploy_prod (SS 11.1 deploy_prod: true)"
-out=$(run_pc devops-engineer deploy_prod); rc=$?
+t_start "ALLOW: operate deploy_prod (SS 11.1 deploy_prod: true)"
+out=$(run_pc operate deploy_prod); rc=$?
 assert_rc "$rc" 0 "exit"
 
-t_start "DENY: developer deploy_prod (SS 11.1 deploy_prod: false)"
-out=$(run_pc developer deploy_prod); rc=$?
+t_start "DENY: build deploy_prod (SS 11.1 deploy_prod: false)"
+out=$(run_pc build deploy_prod); rc=$?
 assert_rc "$rc" 1 "exit"
 assert_contains "$out" "DENY" "verdict"
 
-t_start "DENY: sre-engineer deploy (deploy capability owner is devops-engineer only)"
-out=$(run_pc sre-engineer deploy); rc=$?
+t_start "ALLOW: operate deploy (4.0.1: one type holds the devops deploy cap AND the sre reliability work -- recorded widening, SEC-5)"
+out=$(run_pc operate deploy); rc=$?
+assert_rc "$rc" 0 "exit"
+t_start "operate carries an explicit _widening record naming the sre delta and the reason (a silent policy union is a FAIL, SEC-5)"
+w=$(jq -r '.profiles.operate._widening | tojson' "$PROFILES")
+for word in sre-engineer deploy_prod write_code reason; do assert_contains "$w" "$word" "_widening names $word"; done
+t_start "DENY: plan deploy (no Bash grant, no policy cap)"
+out=$(run_pc plan deploy); rc=$?
 assert_rc "$rc" 1 "exit"
 
 t_start "DENY: policy true cannot override missing tool prerequisite"
-# doctored profiles: give product-manager deploy_prod=true in policy -- it has no Bash
+# doctored profiles: give plan deploy_prod=true in policy -- it has no Bash
 # grant, so the prerequisite check must still DENY (policy typo can never widen access)
 doctored="$SANDBOX/doctored-profiles.json"
-jq '.profiles["product-manager"].policy.deploy_prod = true' "$PROFILES" > "$doctored"
-out=$(PERMCHECK_ROOT="$SANDBOX/engaged" PERMCHECK_PROFILES="$doctored" bash "$SCRIPT" product-manager deploy_prod); rc=$?
+jq '.profiles["plan"].policy.deploy_prod = true' "$PROFILES" > "$doctored"
+out=$(PERMCHECK_ROOT="$SANDBOX/engaged" PERMCHECK_PROFILES="$doctored" bash "$SCRIPT" plan deploy_prod); rc=$?
 assert_rc "$rc" 1 "exit"
 assert_contains "$out" "run_commands" "reason names the missing prerequisite"
 
@@ -112,51 +118,63 @@ assert_contains "$out" "run_commands" "reason names the missing prerequisite"
 # 4. delegation layer -- spawn
 # =============================================================================
 t_start "UNKNOWN: orchestrator is retired (W8) -- no profile, so it is not a registered agent (exit 2, never an ALLOW)"
-out=$(run_pc orchestrator spawn developer); rc=$?
+out=$(run_pc orchestrator spawn build); rc=$?
 assert_rc "$rc" 2 "exit"
 assert_contains "$out" "UNKNOWN" "verdict"
 
-t_start "DENY: developer spawn code-reviewer (no Task tool -- anti recursive fan-out)"
-out=$(run_pc developer spawn code-reviewer); rc=$?
+t_start "UNKNOWN: each of the 18 agent ids retired in 4.0.1 -> exit 2 with roster-neutral wording (SEC-7), as agent and as spawn target"
+bad=""
+for old in product-manager business-analyst solution-architect staff-engineer developer ux-ui-designer code-reviewer qa-engineer security-engineer devops-engineer sre-engineer fintech-expert erp-expert sap-expert trading-expert insurance-expert booking-expert ecommerce-expert; do
+  out=$(run_pc "$old" write_files); rc=$?
+  [ "$rc" -eq 2 ] || bad="$bad $old(rc=$rc)"
+  case "$out" in UNKNOWN*) : ;; *) bad="$bad $old(no UNKNOWN)" ;; esac
+  case "$out" in *"18 registered"*|*"one of the 18"*) bad="$bad $old(roster count in message)" ;; esac
+  out=$(run_pc build spawn "$old"); rc=$?
+  [ "$rc" -eq 2 ] || bad="$bad spawn-$old(rc=$rc)"
+done
+assert_eq "$bad" "" "retired ids that were not UNKNOWN"
+
+t_start "DENY: build spawn verify (no Task tool -- anti recursive fan-out)"
+out=$(run_pc build spawn verify); rc=$?
 assert_rc "$rc" 1 "exit"
 assert_contains "$out" "fan-out" "reason names the rule"
 assert_contains "$out" "main session" "reason names the only dispatcher (the router in the main session)"
 
-t_start "DENY: no registered agent may spawn (every profile x spawn developer)"
+t_start "DENY: no registered agent may spawn (every profile x spawn build)"
 bad=""
 for a in $(jq -r '.profiles | keys[]' "$PROFILES"); do
-  run_pc "$a" spawn developer >/dev/null; rc=$?
+  run_pc "$a" spawn build >/dev/null; rc=$?
   [ "$rc" -eq 1 ] || bad="$bad $a(rc=$rc)"
 done
 assert_eq "$bad" "" "agents that may spawn"
 
-t_start "UNKNOWN: developer spawn nonexistent agent"
-out=$(run_pc developer spawn mechanical-helper); rc=$?
+t_start "UNKNOWN: build spawn nonexistent agent"
+out=$(run_pc build spawn mechanical-helper); rc=$?
 assert_rc "$rc" 2 "exit"
 assert_contains "$out" "UNKNOWN" "verdict"
 
 # =============================================================================
 # 5. trust cascade -- claim_trust
 # =============================================================================
-t_start "ALLOW: developer claim_trust outputs/x.md:generated (equal to class)"
-out=$(run_pc developer claim_trust "outputs/x.md:generated"); rc=$?
+t_start "ALLOW: build claim_trust outputs/x.md:generated (equal to class)"
+out=$(run_pc build claim_trust "outputs/x.md:generated"); rc=$?
 assert_rc "$rc" 0 "exit"
 
-t_start "DENY: developer claim_trust outputs/x.md:canonical (elevation of own output)"
-out=$(run_pc developer claim_trust "outputs/x.md:canonical"); rc=$?
+t_start "DENY: build claim_trust outputs/x.md:canonical (elevation of own output)"
+out=$(run_pc build claim_trust "outputs/x.md:canonical"); rc=$?
 assert_rc "$rc" 1 "exit"
 assert_contains "$out" "elevate" "reason names the cascade rule"
 
-t_start "DENY: qa-engineer claim_trust README.md:external (unclassified defaults to untrusted)"
-out=$(run_pc qa-engineer claim_trust "README.md:external"); rc=$?
+t_start "DENY: verify claim_trust README.md:external (unclassified defaults to untrusted)"
+out=$(run_pc verify claim_trust "README.md:external"); rc=$?
 assert_rc "$rc" 1 "exit"
 
-t_start "ALLOW: security-engineer claim_trust src/notes.log:untrusted (no elevation)"
-out=$(run_pc security-engineer claim_trust "src/notes.log:untrusted"); rc=$?
+t_start "ALLOW: secure claim_trust src/notes.log:untrusted (no elevation)"
+out=$(run_pc secure claim_trust "src/notes.log:untrusted"); rc=$?
 assert_rc "$rc" 0 "exit"
 
 t_start "UNKNOWN: bogus trust level"
-out=$(run_pc developer claim_trust "outputs/x.md:sacred"); rc=$?
+out=$(run_pc build claim_trust "outputs/x.md:sacred"); rc=$?
 assert_rc "$rc" 2 "exit"
 
 # =============================================================================
@@ -171,87 +189,87 @@ PLUG="$SANDBOX/plugin root"          # contains a space on purpose
 PRJ="$SANDBOX/engaged"
 mkdir -p "$PLUG/agents" "$PLUG/references" "$PLUG/skills/workflow/x" "$PLUG/hooks" \
          "$PRJ/references" "$PRJ/agents-real" "$SANDBOX/outside"
-: > "$PLUG/agents/developer.md"; : > "$PLUG/references/x.md"; : > "$PLUG/skills/workflow/x/SKILL.md"
+: > "$PLUG/agents/build.md"; : > "$PLUG/references/x.md"; : > "$PLUG/skills/workflow/x/SKILL.md"
 : > "$PLUG/hooks/h.sh"; : > "$PLUG/README.md"; : > "$PRJ/references/x.md"; : > "$PRJ/notes.md"
 run_pcp() { CLAUDE_PLUGIN_ROOT="$PLUG" PERMCHECK_ROOT="$PRJ" bash "$SCRIPT" "$@"; }
 run_pc_noroot() { env -u CLAUDE_PLUGIN_ROOT PERMCHECK_ROOT="$PRJ" bash "$SCRIPT" "$@"; }
 
 t_start "F-13 ALLOW: a file under the plugin root claims canonical (plugin root set, path with a space)"
-out=$(run_pcp developer claim_trust "$PLUG/agents/developer.md:canonical"); rc=$?
+out=$(run_pcp build claim_trust "$PLUG/agents/build.md:canonical"); rc=$?
 assert_rc "$rc" 0 "exit"
 for p in "$PLUG/references/x.md" "$PLUG/skills/workflow/x/SKILL.md" "$PLUG/hooks/h.sh"; do
-  out=$(run_pcp developer claim_trust "$p:canonical"); rc=$?
+  out=$(run_pcp build claim_trust "$p:canonical"); rc=$?
   assert_rc "$rc" 0 "canonical under the plugin root: $p"
 done
 
 t_start "trust-class-project-shadow: references/x.md under the PROJECT root -> DENY canonical, class untrusted (relative and absolute)"
-out=$(run_pcp developer claim_trust "references/x.md:canonical"); rc=$?
+out=$(run_pcp build claim_trust "references/x.md:canonical"); rc=$?
 assert_rc "$rc" 1 "relative project path"
 assert_contains "$out" '"untrusted"' "class named"
-out=$(run_pcp developer claim_trust "$PRJ/references/x.md:canonical"); rc=$?
+out=$(run_pcp build claim_trust "$PRJ/references/x.md:canonical"); rc=$?
 assert_rc "$rc" 1 "absolute project path"
-out=$(run_pcp developer claim_trust "agents/developer.md:operational"); rc=$?
+out=$(run_pcp build claim_trust "agents/build.md:operational"); rc=$?
 assert_rc "$rc" 1 "a project agents/ file cannot claim operational either"
-out=$(run_pcp developer claim_trust "references/x.md:untrusted"); rc=$?
+out=$(run_pcp build claim_trust "references/x.md:untrusted"); rc=$?
 assert_rc "$rc" 0 "no elevation is fine"
 
 t_start "plugin-root-unset: CLAUDE_PLUGIN_ROOT unset -> even a real plugin file is untrusted (no \$PWD fallback)"
-out=$(run_pc_noroot developer claim_trust "$PLUG/agents/developer.md:canonical"); rc=$?
+out=$(run_pc_noroot build claim_trust "$PLUG/agents/build.md:canonical"); rc=$?
 assert_rc "$rc" 1 "unset root"
 assert_contains "$out" '"untrusted"' "class named"
-out=$(cd "$PLUG" && env -u CLAUDE_PLUGIN_ROOT PERMCHECK_ROOT="$PRJ" bash "$SCRIPT" developer claim_trust "$PLUG/agents/developer.md:canonical"); rc=$?
+out=$(cd "$PLUG" && env -u CLAUDE_PLUGIN_ROOT PERMCHECK_ROOT="$PRJ" bash "$SCRIPT" build claim_trust "$PLUG/agents/build.md:canonical"); rc=$?
 assert_rc "$rc" 1 "unset root, cwd = plugin root"
 
 t_start "plugin-root-unset: empty, relative and nonexistent CLAUDE_PLUGIN_ROOT -> untrusted"
-out=$(CLAUDE_PLUGIN_ROOT="" PERMCHECK_ROOT="$PRJ" bash "$SCRIPT" developer claim_trust "$PLUG/agents/developer.md:canonical"); rc=$?
+out=$(CLAUDE_PLUGIN_ROOT="" PERMCHECK_ROOT="$PRJ" bash "$SCRIPT" build claim_trust "$PLUG/agents/build.md:canonical"); rc=$?
 assert_rc "$rc" 1 "empty root"
-out=$(cd "$SANDBOX" && CLAUDE_PLUGIN_ROOT="plugin root" PERMCHECK_ROOT="$PRJ" bash "$SCRIPT" developer claim_trust "$PLUG/agents/developer.md:canonical"); rc=$?
+out=$(cd "$SANDBOX" && CLAUDE_PLUGIN_ROOT="plugin root" PERMCHECK_ROOT="$PRJ" bash "$SCRIPT" build claim_trust "$PLUG/agents/build.md:canonical"); rc=$?
 assert_rc "$rc" 1 "relative root (would resolve against \$PWD)"
-out=$(CLAUDE_PLUGIN_ROOT="$SANDBOX/no-such-root" PERMCHECK_ROOT="$PRJ" bash "$SCRIPT" developer claim_trust "$PLUG/agents/developer.md:canonical"); rc=$?
+out=$(CLAUDE_PLUGIN_ROOT="$SANDBOX/no-such-root" PERMCHECK_ROOT="$PRJ" bash "$SCRIPT" build claim_trust "$PLUG/agents/build.md:canonical"); rc=$?
 assert_rc "$rc" 1 "nonexistent root"
 
 t_start "plugin-root-unset: project root == plugin root and the root unset -> agents/ is untrusted, not canonical"
 mkdir -p "$PLUG/.shode-house"
-out=$(env -u CLAUDE_PLUGIN_ROOT PERMCHECK_ROOT="$PLUG" bash "$SCRIPT" developer claim_trust "agents/developer.md:canonical"); rc=$?
+out=$(env -u CLAUDE_PLUGIN_ROOT PERMCHECK_ROOT="$PLUG" bash "$SCRIPT" build claim_trust "agents/build.md:canonical"); rc=$?
 assert_rc "$rc" 1 "no fallback to the project root"
-out=$(CLAUDE_PLUGIN_ROOT="$PLUG" PERMCHECK_ROOT="$PLUG" bash "$SCRIPT" developer claim_trust "agents/developer.md:canonical"); rc=$?
+out=$(CLAUDE_PLUGIN_ROOT="$PLUG" PERMCHECK_ROOT="$PLUG" bash "$SCRIPT" build claim_trust "agents/build.md:canonical"); rc=$?
 assert_rc "$rc" 0 "with the root set, the plugin's own checkout is canonical"
 rm -rf "$PLUG/.shode-house"
 
 t_start "F-13 traversal: a path that normalises out of the plugin root is not canonical"
-out=$(run_pcp developer claim_trust "$PLUG/agents/../../outside/x.md:canonical"); rc=$?
+out=$(run_pcp build claim_trust "$PLUG/agents/../../outside/x.md:canonical"); rc=$?
 assert_rc "$rc" 1 "absolute traversal"
-out=$(run_pcp developer claim_trust "agents/../../../etc/passwd:canonical"); rc=$?
+out=$(run_pcp build claim_trust "agents/../../../etc/passwd:canonical"); rc=$?
 assert_rc "$rc" 1 "relative traversal"
-out=$(run_pc developer claim_trust "agents/../outputs/x.md:canonical"); rc=$?
+out=$(run_pc build claim_trust "agents/../outputs/x.md:canonical"); rc=$?
 assert_rc "$rc" 1 "relative traversal into outputs/ -> generated"
-out=$(run_pcp developer claim_trust "$PLUG/agents/no-such-dir/../../../engaged/notes.md:canonical"); rc=$?
+out=$(run_pcp build claim_trust "$PLUG/agents/no-such-dir/../../../engaged/notes.md:canonical"); rc=$?
 assert_rc "$rc" 1 "traversal through a nonexistent component (physical resolution alone cannot see it)"
 
 t_start "F-13 symlink leaf inside the plugin root pointing at a project file -> not canonical"
 ln -sf "$PRJ/notes.md" "$PLUG/references/link.md"
-out=$(run_pcp developer claim_trust "$PLUG/references/link.md:canonical"); rc=$?
+out=$(run_pcp build claim_trust "$PLUG/references/link.md:canonical"); rc=$?
 assert_rc "$rc" 1 "leaf symlink"
 rm -f "$PLUG/references/link.md"
 
 t_start "F-13 symlinked ancestor: a project dir that is a symlink INTO the plugin root resolves physically -> canonical"
 ln -s "$PLUG/agents" "$PRJ/agents"
-out=$(run_pcp developer claim_trust "agents/developer.md:canonical"); rc=$?
+out=$(run_pcp build claim_trust "agents/build.md:canonical"); rc=$?
 assert_rc "$rc" 0 "physical resolution"
 rm -f "$PRJ/agents"
 
 t_start "F-13 a plugin-root file outside every shipped class -> untrusted"
-out=$(run_pcp developer claim_trust "$PLUG/README.md:canonical"); rc=$?
+out=$(run_pcp build claim_trust "$PLUG/README.md:canonical"); rc=$?
 assert_rc "$rc" 1 "unclassified plugin file"
 
 t_start "F-13 project-rooted classes unchanged: outputs/ generated, .shode-house/ operational, CLAUDE.md canonical"
-out=$(run_pcp developer claim_trust "outputs/x.md:generated"); rc=$?
+out=$(run_pcp build claim_trust "outputs/x.md:generated"); rc=$?
 assert_rc "$rc" 0 "outputs"
-out=$(run_pcp developer claim_trust "outputs/x.md:external"); rc=$?
+out=$(run_pcp build claim_trust "outputs/x.md:external"); rc=$?
 assert_rc "$rc" 1 "outputs cannot be raised"
-out=$(run_pcp developer claim_trust ".shode-house/notes:operational"); rc=$?
+out=$(run_pcp build claim_trust ".shode-house/notes:operational"); rc=$?
 assert_rc "$rc" 0 ".shode-house"
-out=$(run_pcp developer claim_trust "CLAUDE.md:canonical"); rc=$?
+out=$(run_pcp build claim_trust "CLAUDE.md:canonical"); rc=$?
 assert_rc "$rc" 0 "project CLAUDE.md"
 
 t_start "F-13 registry: every path class names its root, and the shipped directories are plugin-rooted"
@@ -265,22 +283,22 @@ assert_eq "$pc" "CLAUDE.md" "the only project-rooted canonical class"
 t_start "F-13 mutation: a class without a root fails closed (exit 64), never defaults to the project root"
 doctored_trust="$SANDBOX/doctored-trust.json"
 jq '(.path_classes[] | select(.pattern == "references/*")) |= del(.root)' "$TRUST" > "$doctored_trust"
-out=$(CLAUDE_PLUGIN_ROOT="$PLUG" PERMCHECK_ROOT="$PRJ" PERMCHECK_TRUST="$doctored_trust" bash "$SCRIPT" developer claim_trust "references/x.md:canonical" 2>&1); rc=$?
+out=$(CLAUDE_PLUGIN_ROOT="$PLUG" PERMCHECK_ROOT="$PRJ" PERMCHECK_TRUST="$doctored_trust" bash "$SCRIPT" build claim_trust "references/x.md:canonical" 2>&1); rc=$?
 assert_rc "$rc" 64 "missing root"
 
 t_start "F-13 corrupt registry is detected up front (Chris W8 F2): a rootless class appended AFTER every real class -> exit 64 even for a path an earlier class matches"
 doctored_trust2="$SANDBOX/doctored-trust-2.json"
 jq '.path_classes += [{"pattern":"zz/*","trust":"canonical"}]' "$TRUST" > "$doctored_trust2"
-out=$(CLAUDE_PLUGIN_ROOT="$PLUG" PERMCHECK_ROOT="$PRJ" PERMCHECK_TRUST="$doctored_trust2" bash "$SCRIPT" developer claim_trust "outputs/a.md:generated" 2>&1); rc=$?
+out=$(CLAUDE_PLUGIN_ROOT="$PLUG" PERMCHECK_ROOT="$PRJ" PERMCHECK_TRUST="$doctored_trust2" bash "$SCRIPT" build claim_trust "outputs/a.md:generated" 2>&1); rc=$?
 assert_rc "$rc" 64 "earlier-matching path, corrupt later class"
 assert_contains "$out" "corrupt registry" "names the cause"
 jq '.path_classes += [{"pattern":"zz/*","trust":"canonical","root":"elsewhere"}]' "$TRUST" > "$doctored_trust2"
-out=$(CLAUDE_PLUGIN_ROOT="$PLUG" PERMCHECK_ROOT="$PRJ" PERMCHECK_TRUST="$doctored_trust2" bash "$SCRIPT" developer claim_trust "outputs/a.md:generated" 2>&1); rc=$?
+out=$(CLAUDE_PLUGIN_ROOT="$PLUG" PERMCHECK_ROOT="$PRJ" PERMCHECK_TRUST="$doctored_trust2" bash "$SCRIPT" build claim_trust "outputs/a.md:generated" 2>&1); rc=$?
 assert_rc "$rc" 64 "an invalid root value"
 jq '.path_classes = {}' "$TRUST" > "$doctored_trust2"
-out=$(CLAUDE_PLUGIN_ROOT="$PLUG" PERMCHECK_ROOT="$PRJ" PERMCHECK_TRUST="$doctored_trust2" bash "$SCRIPT" developer claim_trust "outputs/a.md:generated" 2>&1); rc=$?
+out=$(CLAUDE_PLUGIN_ROOT="$PLUG" PERMCHECK_ROOT="$PRJ" PERMCHECK_TRUST="$doctored_trust2" bash "$SCRIPT" build claim_trust "outputs/a.md:generated" 2>&1); rc=$?
 assert_rc "$rc" 64 "path_classes not an array"
-out=$(run_pcp developer claim_trust "outputs/a.md:generated"); rc=$?
+out=$(run_pcp build claim_trust "outputs/a.md:generated"); rc=$?
 assert_rc "$rc" 0 "control: the shipped registry passes the up-front check"
 
 t_start "lexnorm restores the caller's noglob state (Chris W8 S3)"
@@ -296,11 +314,11 @@ assert_rc "$rc" 2 "exit"
 assert_contains "$out" "UNKNOWN" "verdict"
 
 t_start "UNKNOWN: unsupported action"
-out=$(run_pc developer teleport); rc=$?
+out=$(run_pc build teleport); rc=$?
 assert_rc "$rc" 2 "exit"
 
 t_start "usage error: missing action -> exit 64"
-out=$(run_pc developer 2>/dev/null); rc=$?
+out=$(run_pc build 2>/dev/null); rc=$?
 assert_rc "$rc" 64 "exit"
 
 # =============================================================================
@@ -314,7 +332,7 @@ frontmatter_tools() { # $1 = agent file -> the raw JSON array from its `tools:` 
 # router is the main session's output style and is not a registered agent). The 4.0.0 switch
 # (W10b) deleted their files; they are excluded from the drift comparison below and must have
 # no profile, no delegation entry and no agents/<name>.md file.
-RETIRED_AGENTS="orchestrator"
+RETIRED_AGENTS="orchestrator product-manager business-analyst solution-architect staff-engineer developer ux-ui-designer code-reviewer qa-engineer security-engineer devops-engineer sre-engineer fintech-expert erp-expert sap-expert trading-expert insurance-expert booking-expert ecommerce-expert"
 is_retired() { case " $RETIRED_AGENTS " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 
 t_start "retired agents have no agents/<name>.md file (Chris W8 F4: the exclusion cannot outlive the file)"
@@ -332,9 +350,9 @@ for a in $RETIRED_AGENTS; do
 done
 assert_eq "$bad" "" "retired agents still registered"
 
-t_start "drift: every live agents/*.md has a profile and vice versa (18/18 both ways)"
+t_start "drift: every live agents/*.md has a profile and vice versa (6/6 both ways)"
 agents_fs=$(for f in "$REPO_ROOT"/agents/*.md; do a=$(basename "$f" .md); is_retired "$a" || printf '%s\n' "$a"; done | sort)
-assert_eq "$(printf '%s\n' "$agents_fs" | grep -c .)" "18" "live agent count"
+assert_eq "$(printf '%s\n' "$agents_fs" | grep -c .)" "6" "live agent count"
 agents_pf=$(jq -r '.profiles | keys[]' "$PROFILES" | sort)
 assert_eq "$agents_pf" "$agents_fs" "profile keys vs agents/ filenames"
 agents_dl=$(jq -r '.delegation | keys[]' "$DELEGATION" | sort)
@@ -377,11 +395,11 @@ for f in "$REPO_ROOT"/agents/*.md; do
 done
 assert_eq "$bad" "" "delegation entries that contradict the Task grant"
 
-t_start "drift: policy never wider than SS 11.1 anchors (deploy_prod true only for devops-engineer)"
+t_start "drift: policy never wider than SS 11.1 anchors (deploy_prod true only for operate, the devops-deploy owner; widening recorded)"
 extra=$(jq -r '[.profiles | to_entries[] | select(.value.policy.deploy_prod == true) | .key] | join(",")' "$PROFILES")
-assert_eq "$extra" "devops-engineer" "deploy_prod=true set"
+assert_eq "$extra" "operate" "deploy_prod=true set"
 extra=$(jq -r '[.profiles | to_entries[] | select(.value.policy.deploy == true) | .key] | join(",")' "$PROFILES")
-assert_eq "$extra" "devops-engineer" "deploy=true set"
+assert_eq "$extra" "operate" "deploy=true set"
 
 t_start "drift: trust levels enum matches roadmap SS 12 exactly"
 lv=$(jq -r '.levels | keys_unsorted | join(",")' "$TRUST")

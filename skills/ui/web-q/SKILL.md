@@ -6,7 +6,7 @@ description: Audit and improve a public-facing website across Core Web Vitals, p
 # Web-Q (Web Quality discipline — CWV + SEO + Sec headers)
 
 > Port + adapt จาก [`addyosmani/web-quality-skills`](https://github.com/addyosmani/web-quality-skills) (MIT)
-> **Owners cross-cutting**: ux-ui-designer (Phase 1b AC + 3a Lighthouse) + developer (impl) + qa-engineer (Phase 3b CI gate) + devops-engineer + **security-engineer** (security headers)
+> **Owners cross-cutting**: `design` (Phase 1b AC + 3a Lighthouse) + `build` (impl) + `verify` (runtime axis) (Phase 3b CI gate) + `operate` (deploy mode) + **`secure`** (security headers)
 
 ## When NOT to use
 
@@ -41,7 +41,7 @@ or require unrelated infrastructure changes.
 
 ## 1. Core Web Vitals
 
-### LCP fix (developer/ux-ui-designer audit)
+### LCP fix (`build`/`design` audit)
 
 ```html
 <!-- ✅ Preload + fetchpriority -->
@@ -84,7 +84,7 @@ startTransition(() => setFilter(newFilter))
 <div class="ad-slot" style="min-height: 250px"></div> <!-- reserve space -->
 ```
 
-### Measure (Bash mandatory — ux-ui-designer 3a + devops-engineer 5)
+### Measure (Bash mandatory — `design` 3a + `operate` (deploy mode) 5)
 
 ```bash
 # Lab (per-build CI)
@@ -119,7 +119,7 @@ onLCP(m => sendBeacon('/metrics/lcp', m.value))
 }]
 ```
 
-devops-engineer CI (`.lighthouserc.json`):
+`operate` (deploy mode) CI (`.lighthouserc.json`):
 ```json
 {"ci": {
   "collect": {"numberOfRuns": 3, "settings": {"budgetPath": "./lighthouse-budget.json"}},
@@ -131,7 +131,7 @@ Validate budget keys against the installed Lighthouse version. Track INP from re
 
 ---
 
-## 3. SEO (ecommerce-expert + booking-expert + ux-ui-designer public-facing)
+## 3. SEO (`plan` with the ecommerce domain reference + `plan` with the booking domain reference + `design` public-facing)
 
 ### Must-have
 ```html
@@ -147,10 +147,10 @@ Validate budget keys against the installed Lighthouse version. Track INP from re
 ### JSON-LD per domain (mandatory)
 | Domain | Schema |
 |--------|--------|
-| ecommerce-expert product page | `Product` + `Offer` + `AggregateRating` + `BreadcrumbList` |
-| ecommerce-expert category | `BreadcrumbList` + `ItemList` |
-| booking-expert property | `LodgingBusiness` / `Hotel` + `aggregateRating` |
-| booking-expert confirmation | `Reservation` |
+| `plan` with the ecommerce domain reference product page | `Product` + `Offer` + `AggregateRating` + `BreadcrumbList` |
+| `plan` with the ecommerce domain reference category | `BreadcrumbList` + `ItemList` |
+| `plan` with the booking domain reference property | `LodgingBusiness` / `Hotel` + `aggregateRating` |
+| `plan` with the booking domain reference confirmation | `Reservation` |
 | Org-wide | `Organization` + `WebSite` + `SearchAction` |
 | Article/blog | `Article` + `Author` |
 
@@ -167,7 +167,7 @@ Validate budget keys against the installed Lighthouse version. Track INP from re
 
 ---
 
-## 4. Security Headers (security-engineer + devops-engineer)
+## 4. Security Headers (`secure` + `operate` (deploy mode))
 
 ```nginx
 # Example for self-hosted external scripts/styles; adapt and test report-only first
@@ -232,16 +232,16 @@ npx observatory-cli example.com           # grade ≥ A
 
 ## Phase wiring (where this skill activates)
 
-- **Phase 1a business-analyst**: AC template เพิ่ม CWV target + SEO must-have row
-- **Phase 1a solution-architect**: ADR เพิ่ม "Performance budget" + CSP rollout date
-- **Phase 1b ux-ui-designer**: Lighthouse target ใน AC + Structured Data spec per page
-- **Phase 1c security-engineer**: CSP/Trusted Types/SRI policy + headers spec
-- **Phase 2 developer**: implement ตาม Universal Rules + smoke `npx lhci collect`
-- **Phase 3a ux-ui-designer POST**: Lighthouse Bash + paste JSON + 4-axis breakdown
-- **Phase 3b qa-engineer**: Lighthouse CI perf ≥ 90 + budget pass gate
-- **Phase 3b security-engineer**: mozilla-observatory grade ≥ A + securityheaders ≥ A
-- **Phase 5 devops-engineer**: prod Lighthouse (mobile+desktop) + observatory pre-deploy gate
-- **Phase 6 sre-engineer**: web-vitals RUM live + p75 alarm
+- **Phase 1a `plan` (requirements mode)**: AC template เพิ่ม CWV target + SEO must-have row
+- **Phase 1a `plan` (architecture mode)**: ADR เพิ่ม "Performance budget" + CSP rollout date
+- **Phase 1b `design`**: Lighthouse target ใน AC + Structured Data spec per page
+- **Phase 1c `secure`**: CSP/Trusted Types/SRI policy + headers spec
+- **Phase 2 `build`**: implement ตาม Universal Rules + smoke `npx lhci collect`
+- **Phase 3a `design` POST**: Lighthouse Bash + paste JSON + 4-axis breakdown
+- **Phase 3b `verify` (runtime axis)**: Lighthouse CI perf ≥ 90 + budget pass gate
+- **Phase 3b `secure`**: mozilla-observatory grade ≥ A + securityheaders ≥ A
+- **Phase 5 `operate` (deploy mode)**: prod Lighthouse (mobile+desktop) + observatory pre-deploy gate
+- **Phase 6 `operate` (reliability mode)**: web-vitals RUM live + p75 alarm
 
 ---
 

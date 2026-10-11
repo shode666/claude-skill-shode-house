@@ -38,29 +38,67 @@ def formerly_map(root=ROOT):
     return dict(re.findall(r"^\| ([A-Z][a-z]+) \| ([a-z][a-z-]*)", table, re.M))
 
 
+# 4.0.1 (shode-house-jni): the 18 agent ids became 6 types. The same pinned rename, one step further: each 4.0.0 id as it
+# reads in the 3.x row becomes the phrase the 4.0.1 text uses for it (type + mode/axis/reference). Pinned here on purpose,
+# like PERSONA_TO_AGENT, so a dropped owner/phase/domain row still turns red after the roster change.
+AGENT_TO_TYPE = {
+    "developer": "`build`", "staff-engineer": "`build` (staff-grade brief)",
+    "product-manager": "`plan` (discover mode)", "business-analyst": "`plan` (requirements mode)",
+    "solution-architect": "`plan` (architecture mode)",
+    "code-reviewer": "`verify` (standards axis)", "qa-engineer": "`verify` (runtime axis)",
+    "security-engineer": "`secure`", "ux-ui-designer": "`design`",
+    "devops-engineer": "`operate` (deploy mode)", "sre-engineer": "`operate` (reliability mode)",
+    **{f"{d}-expert": f"`plan` with the {d} domain reference" for d in
+       ("fintech", "erp", "sap", "trading", "insurance", "booking", "ecommerce")},
+}
+
+
 def v4_names(line):
-    """Old pinned rows are compared after the explicit rename; a no-op on a 3.x tree (no `formerly` table)."""
+    """Old pinned rows are compared after the explicit renames (persona -> 4.0.0 id -> 4.0.1 type); a no-op on a 3.x tree."""
     if not formerly_map():
         return line
     pat = re.compile(r"(?<![A-Za-z0-9_.-])(" + "|".join(map(re.escape, PERSONA_TO_AGENT)) + r")(?![A-Za-z0-9_])")
-    return pat.sub(lambda m: PERSONA_TO_AGENT[m.group(1)], line)
+    line = pat.sub(lambda m: PERSONA_TO_AGENT[m.group(1)], line)
+    ids = "|".join(sorted(AGENT_TO_TYPE, key=len, reverse=True))
+    # a run `a/b/c` of ids is the unique list of their types; `agents/<id>.md` is `agents/<type>.md`
+    run = re.compile(r"(?<![\w./:-])((?:%s)(?:/(?:%s))+)(?![\w/-])" % (ids, ids))
+    kind = lambda n: re.match(r"`(\w+)`", AGENT_TO_TYPE[n]).group(1)
+
+    def runfix(m):
+        seen = []
+        for n in m.group(1).split("/"):
+            seen += [kind(n)] if kind(n) not in seen else []
+        return "/".join("`%s`" % s for s in seen)
+    line = run.sub(runfix, line)
+    line = re.sub(r"agents/(%s)\.md" % ids, lambda m: "agents/%s.md" % kind(m.group(1)), line)
+    bare = re.compile(r"(?<![\w./:-])(`?)(%s)(`?)(?![\w/-]|\.md|\.json|\.sh)" % ids)
+    return bare.sub(lambda m: AGENT_TO_TYPE[m.group(2)], line)
 
 
 # 3.x lines the 4.0 tree rewrites rather than renames: each one is replaced by the pinned 4.0 line(s),
 # asserted in its place (never just skipped).
-V4_ROSTER = {  # superseded by the 4.0 roster + § Formerly
+V4_ROSTER = {  # superseded by the 4.0.1 roster + § Formerly
     "- **Core (12)**": (
         "- **Router**: the main session under `output-styles/shode-house.md`; routes, gates, relays and closes. "
         "It is not a spawnable agent.",
-        "- **Core (11)**: staff-engineer · product-manager · business-analyst · solution-architect · "
-        "ux-ui-designer · developer (parallel #N) · code-reviewer · qa-engineer · security-engineer · "
-        "devops-engineer · sre-engineer"),
+        "- `plan` \u2014 discover (Why + What) \u00b7 requirements + AC \u00b7 architecture/ADR/NFR \u00b7 the spec review axis \u00b7 "
+        "domain consult and the domain review axis (a `references/domain/<domain>.md` reference loaded through "
+        "`shode-house:domain-core`)",
+        "- `build` \u2014 implementation (parallel `build#N`) \u00b7 refactor \u00b7 behaviour tests \u00b7 staff-grade briefs "
+        "(cross-team consistency, tech radar, refactor strategy)",
+        "- `verify` \u2014 the standards axis and the runtime axis (always two separate spawns)",
+        "- `operate` \u2014 CI/CD, IaC, deploy (Phase 5) \u00b7 SLO, incident, runbook, postmortem (Phase 6)",
+        "- `secure` \u2014 Phase 1c threat model \u00b7 the security axis \u00b7 secrets, pen test",
+        "- `design` \u2014 UX, design system, WCAG \u00b7 the ui axis (Phase 3a) \u00b7 design-run requests (no Bash)"),
     "- **Domain (7, pluggable)**": (
-        "- **Domain (7, pluggable)**: fintech-expert · erp-expert · sap-expert · trading-expert · "
-        "insurance-expert · booking-expert · ecommerce-expert",),
+        "- **Domain (7, pluggable)**: `references/domain/<domain>.md` for fintech \u00b7 erp \u00b7 sap \u00b7 trading \u00b7 "
+        "insurance \u00b7 booking \u00b7 ecommerce, loaded by a `plan` spawn through `shode-house:domain-core` "
+        "(no domain agent exists).",),
 }
 V4_REWRITTEN = dict(V4_ROSTER, **{
-    "## 👥 ทีม (19 agents": ("## 👥 Team (18 agents = 11 core + 7 domain, plus the router)",),  # 18 agents + router style
+    "## 👥 ทีม (19 agents": ("## 👥 Team (6 agent types, plus the router)",),  # 6 agent types + router style
+    # A8 (tests/test_skill_names.py) reads a backticked agent type after a load verb ("Lazy-load") as a skill load
+    "- **Lazy-load**: Dave": ("- **Lazy-load**: build agent อ่าน `references/languages/<lang>.md` เฉพาะภาษาที่ใช้; skill โหลดเมื่อ trigger เท่านั้น",),
     # pointer re-aimed: the orchestrator Harness Contract section is retired
     "long run = หลาย bd ต่อเนื่อง.": ("long run = หลาย bd ต่อเนื่อง. enforce ด้วย harness contract (ดู `/init` rule 11 + "
                                        "`shode-house-workflow/harness.md`):",),
@@ -68,7 +106,7 @@ V4_REWRITTEN = dict(V4_ROSTER, **{
 
 
 def v4_replacement(line):
-    """-> the pinned 4.0 lines that replace a rewritten 3.x line, or None (line must survive as renamed)."""
+    """-> the pinned 4.0.1 lines that replace a rewritten 3.x line, or None (line must survive as renamed)."""
     if not formerly_map():
         return None
     return next((new for prefix, new in V4_REWRITTEN.items() if line.startswith(prefix)), None)
@@ -278,7 +316,9 @@ class TeamEntryTest(unittest.TestCase):
                     self.assertIn(line, ownership)
                 # owner coverage: every 3.x persona of the row still has its agent (or the router) in the roster
                 for persona in re.findall(r"\b([A-Z][a-z]+) \(", row.split("**:", 1)[1]):
-                    self.assertIn(PERSONA_TO_AGENT[persona], " ".join(new).lower(), persona)
+                    agent = PERSONA_TO_AGENT[persona]
+                    want = "router" if agent == "router" else re.match(r"`(\w+)`", AGENT_TO_TYPE[agent]).group(1)
+                    self.assertIn(want, " ".join(new).lower(), persona)
         if formerly_map():
             self.assertEqual(PERSONA_TO_AGENT, formerly_map())  # the explicit rename map == ownership.md § Formerly
         core = (ROOT / d / "SKILL.md").read_text()
@@ -364,17 +404,17 @@ class TeamEntryTest(unittest.TestCase):
         self.assertEqual([], entry_errors(self.entry, self.contents))
 
     def test_missing_domain_route_is_detected(self):
-        mutated = self.entry.replace("| fintech-expert.md |", "| absent.md |")
-        self.assertIn("unrouted: agents/fintech-expert.md", entry_errors(mutated, self.contents))
+        mutated = self.entry.replace("| plan.md |", "| absent.md |")
+        self.assertIn("unrouted: agents/plan.md", entry_errors(mutated, self.contents))
 
     def test_missing_domain_knowledge_is_detected(self):
         mutated = dict(self.contents)
-        mutated["agents/booking-expert.md"] = ""
-        self.assertIn("missing role: agents/booking-expert.md", entry_errors(self.entry, mutated))
+        mutated["agents/plan.md"] = ""
+        self.assertIn("missing role: agents/plan.md", entry_errors(self.entry, mutated))
 
     def test_missing_prerequisite_is_detected(self):
         mutated = dict(self.contents)
-        mutated.pop("skills/discipline/domain-core/SKILL.md")
+        mutated.pop("skills/discipline/shode-house-deliverable/SKILL.md")   # preloaded by plan
         self.assertTrue(any("missing prerequisite:" in e for e in entry_errors(self.entry, mutated)))
 
     HARNESS_INVARIANTS = (
@@ -405,14 +445,14 @@ class TeamEntryTest(unittest.TestCase):
 
     def test_namespaced_prerequisite_resolves_and_dangling_one_is_detected(self):
         mutated = dict(self.contents)
-        body = mutated["agents/developer.md"]
+        body = mutated["agents/build.md"]
 
         def with_skills(names):  # rewrite the whole line: works on bare (3.x) and namespaced (4.0.0) trees
             return re.sub(r"^skills:.*$", "skills: " + json.dumps(names), body, count=1, flags=re.M)
-        mutated["agents/developer.md"] = with_skills([PLUGIN + ":shode-house-discipline", PLUGIN + ":shode-house-deliverable"])
+        mutated["agents/build.md"] = with_skills([PLUGIN + ":shode-house-discipline", PLUGIN + ":shode-house-deliverable"])
         self.assertEqual([], entry_errors(self.entry, mutated))
-        mutated["agents/developer.md"] = with_skills([PLUGIN + ":shode-house-discipline", PLUGIN + ":code-index"])
-        self.assertEqual(["missing prerequisite: agents/developer.md: %s:code-index" % PLUGIN], entry_errors(self.entry, mutated))
+        mutated["agents/build.md"] = with_skills([PLUGIN + ":shode-house-discipline", PLUGIN + ":code-index"])
+        self.assertEqual(["missing prerequisite: agents/build.md: %s:code-index" % PLUGIN], entry_errors(self.entry, mutated))
 
     def test_new_agent_on_disk_must_be_routed(self):
         mutated = dict(self.contents)

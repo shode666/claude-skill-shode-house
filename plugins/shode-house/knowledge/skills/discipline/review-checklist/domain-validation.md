@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `review-checklist` — กติก
 ```lazy-load-contract
 LOAD: skills/discipline/review-checklist/domain-validation.md
 WHEN: diff_touches_business_rule=true OR diff_touches in {money,regulation,PII}
-OWNER: code-reviewer
+OWNER: verify
 REQUIRED-BEFORE: merge_approval
 ```
 
@@ -17,13 +17,13 @@ money / regulation = **ห้าม merge โดยไม่มีลายเ�
 
 | keyword ใน diff | expert |
 |---|---|
-| payment · ledger · settlement · wallet | fintech-expert |
-| policy · claim · premium · underwriting | insurance-expert |
-| SAP · ABAP · IDoc · BAPI | sap-expert |
-| order · matching · orderbook · position | trading-expert |
-| accounting · GL · inventory · costing | erp-expert |
-| booking · availability · yield · overbooking | booking-expert |
-| cart · promotion · checkout · catalog | ecommerce-expert |
+| payment · ledger · settlement · wallet | `plan` with the fintech domain reference |
+| policy · claim · premium · underwriting | `plan` with the insurance domain reference |
+| SAP · ABAP · IDoc · BAPI | `plan` with the sap domain reference |
+| order · matching · orderbook · position | `plan` with the trading domain reference |
+| accounting · GL · inventory · costing | `plan` with the erp domain reference |
+| booking · availability · yield · overbooking | `plan` with the booking domain reference |
+| cart · promotion · checkout · catalog | `plan` with the ecommerce domain reference |
 
 ตารางเต็ม + tie-break เมื่อ diff แตะหลาย domain → `report-format.md` § Domain routing
 

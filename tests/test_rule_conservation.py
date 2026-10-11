@@ -142,7 +142,7 @@ class RuleConservationTest(unittest.TestCase):
     # AC3 -- every shipped bucket, reference files and agents (old scope = discipline SKILL.md only)
     def test_all_buckets_references_and_agents_are_in_scope(self):
         paths = [f"skills/{b}/s/SKILL.md" for b in ("workflow", "ops", "ui", "style", "discipline")]
-        paths += ["skills/ops/s/runbook.md", "agents/developer.md"]
+        paths += ["skills/ops/s/runbook.md", "agents/build.md"]
         for path in paths:
             with self.subTest(path=path):
                 repo = self.repo({path: doc(RULE, FILLER)})
@@ -208,6 +208,23 @@ class RuleConservationTest(unittest.TestCase):
         repo = self.tier_repo()
         repo.write({"agents/reviewer.md": doc(RULE)})
         self.assert_ok(repo.run("--base", repo.base))
+
+    # 4.0.1 -- references/domain/ hosts the domain rules and catalogues that were runbooks until the 18 -> 6 consolidation
+    DOMAIN_REF = "references/domain/fintech.md"
+    DOMAIN_LAZY = "<!-- lazy-load-contract -->\nLOAD: references/domain/fintech.md\n\n"
+
+    def test_a_rule_moved_into_a_domain_reference_is_conserved(self):
+        repo = self.repo({OTHER: doc(RULE, FILLER)})
+        repo.write({OTHER: doc(FILLER), self.DOMAIN_REF: self.DOMAIN_LAZY + "# Fintech\n\n" + RULE + "\n"})
+        self.assert_ok(repo.run("--base", repo.base))
+
+    def test_a_root_only_rule_moved_into_a_domain_reference_is_still_red(self):
+        repo = self.tier_repo()
+        repo.write({REF: LAZY + "# Detail\n", self.DOMAIN_REF: self.DOMAIN_LAZY + "# Fintech\n\n" + RULE + "\n"})
+        self.assert_lost(repo.run("--base", repo.base), "root tier", ANCHOR)
+
+    def test_the_corpus_lists_the_domain_directory(self):
+        self.assertIn("'references/domain/'", (ROOT / "scripts/rule-conservation.py").read_text().split("HOST = ", 1)[1].split("\n", 1)[0])
 
     def test_skill_md_carrying_load_block_is_not_root_tier(self):
         repo = self.tier_repo()

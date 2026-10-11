@@ -106,7 +106,7 @@
 #                  may call it something else -- this script does not care what it is
 #                  called upstream)
 #   role        -- an opaque, harness-issued TYPE-level name (today's one adapter's hook
-#                  payload calls this `agent_type`, e.g. "shode-house:developer") --
+#                  payload calls this `agent_type`, e.g. "shode-house:build") --
 #                  recorded verbatim, NEVER used to derive a label. The label stays the
 #                  one thing `bind` actually establishes.
 #   label       -- the human-facing instance name ("Dave#1") a Scope Contract was written

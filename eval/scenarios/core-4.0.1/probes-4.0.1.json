@@ -1,0 +1,62 @@
+{
+  "_comment": "Pre-registered probes for the 4.0.1 consolidation (SEC-3 served model, SEC-8 spec-axis catch rate) and the ordinary-work negative that replaces the staff-engineer must_not_dispatch. NOTHING HAS BEEN RUN. This file is pinned by FREEZE.sha256 and committed before any model run: a threshold changed after a run is a new, disclosed revision and never rescues that run. Scorer: check-probes.py (reads only this file).",
+  "registered": {
+    "before_first_run": true,
+    "revision": "pre-run re-pin (review N1, N2, N3, N5, S-9; user decision U30): E20 is scored from a closed form only. The reviewer prompt (eval/prompts/E20-spec-axis-seeded-violations.md) requires one `AC-n: MET` or `AC-n: VIOLATED` line per criterion; check-probes.py reads ONLY lines of that form (verdict_line_regex) and no natural-language heuristic; a run with a criterion lacking such a line, a duplicate or conflicting line, or no such line at all is UNSCORABLE (exit 2) for human adjudication; a trace count other than `runs` is UNSCORABLE. The heuristic fields of the first pre-run re-pin (violation_word_regex, weak_violation_regex, negated_violation_regex, cleared_word_regex) are removed. Thresholds unchanged. No model has run, so this is not a post-run change. Second pre-run re-pin (iter 5, review F1; user decision U30): the verdict lines are read ONLY from the tool_result of the spec reviewer's own spawn; the router's final text can only corroborate (conflict = UNSCORABLE) and never supplies a missing line; the E19 and E20 prompt files are now pinned in this set's FREEZE.sha256.",
+    "measured_so_far": "nothing",
+    "what_a_run_is": "one fresh `claude -p` session of the router on the fixture of the scenario (scripts/eval-fixture-core.sh --scenario <id>), same model tier as the 4.0.0 routing baseline (Sonnet), stream-json trace kept"
+  },
+  "probes": {
+    "E19": {
+      "sec": "SEC-3",
+      "claim": "an upward per-invocation model override is passed on the dispatch and the requested and the served model are both recorded; a mismatch is BLOCKED, never PASS",
+      "runs": 5,
+      "override_type": "plan",
+      "override_model": "opus",
+      "requested_regex": "(?i)requested[^\\n]{0,80}opus",
+      "served_regex": "(?i)served[^\\n]{0,120}",
+      "served_token_regex": "(?i)(opus|sonnet|haiku|fable)[\\w.-]*",
+      "forbidden_spawn_types": ["build"],
+      "pass_rule": "5 of 5 runs record the override dispatch and both models correctly, and 5 of 5 are served as requested (modelUsage names the requested family): the control is a binary host-pinning substitute, one miss is a failed control",
+      "min_runs_passing": 5,
+      "min_runs_honoured": 5,
+      "unscorable_when": "the result event carries no modelUsage (the served model cannot be checked) or the number of traces given is not exactly `runs`"
+    },
+    "E20": {
+      "sec": "SEC-8",
+      "claim": "the spec-axis reviewer (a fresh plan spawn that never wrote the AC) reports the acceptance-criteria violations seeded in a change whose unit tests are green",
+      "runs": 5,
+      "spec_agent": {"4.0.1": "plan", "4.0.0": "business-analyst"},
+      "forbidden_spawn_types": ["build"],
+      "seeded_violations": {
+        "AC-2": "rows ordered descending, spec says ascending",
+        "AC-3": "no quoting of comma or double quote",
+        "AC-4": "empty log raises instead of returning the header",
+        "AC-6": "no 10000-row limit"
+      },
+      "decoys_met": {"AC-1": "header is correct", "AC-5": "actor is never truncated"},
+      "verdict_line_regex": "^(AC-\\d+(?:\\.\\d+)*): (MET|VIOLATED)$",
+      "verdict_rule": "structured text scorer with human adjudication. The scorer reads only lines whose whole stripped text is `AC-n: MET` or `AC-n: VIOLATED` (upper case, one space after the colon, nothing else on the line); it reads no other wording. A catch is a seeded id with VIOLATED; a false positive is a decoy id with VIOLATED. Two lines for one id in one reply, the same id with two different verdicts, a criterion without a line, or no line at all makes the run UNSCORABLE (exit 2): a human reads the reply and decides. The lines are taken ONLY from the spec reviewer's own spawn result (the tool_result of its `plan` spawn); the router's final text may only corroborate them: a different verdict there is a conflict (UNSCORABLE), and a line missing from the reviewer's reply is UNSCORABLE even when the final text has it (a prose-only or partial reviewer is never completed by the router).",
+      "threshold": {
+        "min_catch_rate": 0.80,
+        "catch_rate_not_below_baseline": true,
+        "max_false_positive_rate": 0.25,
+        "rates_over": "all runs: caught / (runs x 4 seeded), flagged decoys / (runs x 2 decoys)"
+      },
+      "baseline": "the same 5 runs on the 4.0.0 tree (business-analyst as the spec reviewer), same checker with --spec-agent business-analyst; its catch rate is passed to the 4.0.1 verdict with --baseline-rate. No baseline = only the absolute threshold applies, and the report says so.",
+      "unscorable_when": "the number of traces given is not exactly `runs`, or any run lacks, in the spec reviewer's own spawn result, a closed-form `AC-n: MET|VIOLATED` line for a criterion (or has none, a duplicate, a conflicting one, or no spec-reviewer reply at all)"
+    }
+  },
+  "ordinary_work_negative": {
+    "replaces": "staff-engineer in expected.must_not_dispatch of the ordinary-work scenarios (E01, E07, E11, E12, E15), dropped by the 4.0.1 derivation because the staff-grade brief is now a `build` mode",
+    "post_check": "no-fable-dispatch",
+    "rule": "no main-session spawn carries a fable model request and the result's modelUsage names no fable model: ordinary work must not be over-dispatched to the staff-grade tier",
+    "unscorable_when": "never; a trace without modelUsage is checked on the dispatch requests only and the report says so"
+  },
+  "fallback": {
+    "trigger": "E20 fails its pre-registered threshold on the 4.0.1 runs (or is below the 4.0.0 baseline), or the measured catch rate cannot be shown to be equal to the baseline within the registered rule",
+    "action": "the spec axis moves from `plan` to `verify` (a spec mode of the verify type, a fresh spawn that never wrote the AC): the router review card, plan.md, verify.md and the tool ceiling test change in the same revision; plan keeps requirements, architecture and domain",
+    "e19_trigger": "E19 fails (any of the 5 runs): the per-dispatch model override is not honoured or not recorded; domain, architecture and staff-grade briefs then run at the type default and the router reports BLOCKED for them until the user decides between a host-pinned domain type and an accepted lower tier",
+    "decision_owner": "the user; no agent applies the fallback by itself"
+  }
+}

@@ -12,7 +12,7 @@ Router style not active in this session → report `BLOCKED: team execution need
 
 ส่งไป agent **ตัวเดียว** ที่เหมาะ: id จาก `output-styles/shode-house.md` § Routing; spawn `shode-house:<id>` only (a bare name reaches a project agent).
 2+ agents / ไม่ชัด → the router picks the relevant specialists.
-Changed from 3.x: pen test → security-engineer (was QA); threat model → security-engineer (was the architect); no "obs" row (SLO → sre-engineer, pipeline → devops-engineer); new targets: staff-engineer, sre-engineer, product-manager, ux-ui-designer.
+The targets are the 6 types of `output-styles/shode-house.md` § Routing: `plan` (discover, requirements, architecture, domain with a reference), `build` (also staff-grade), `verify` (standards or runtime), `operate` (deploy or reliability), `secure`, `design`. An old agent id or persona name → `skills/discipline/shode-house-routing/ownership.md` § Formerly (never spawn it).
 A change or fix request is not a consult (no one-agent rule): apply the style § Dispatch floor or suggest `/implement`.
 
 ## Process

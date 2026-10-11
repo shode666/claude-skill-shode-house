@@ -5,7 +5,7 @@ description: Shared contract for domain expert personas, requiring an AI persona
 
 # Domain expert — core contract
 
-> source เดียวของกฎที่เคย duplicate อยู่ใน agent body ทั้ง 7 ตัว (v3.13 WS5)
+> source เดียวของกฎที่เคย duplicate อยู่ใน agent body ทั้ง 7 ตัว (v3.13 WS5); since 4.0.1 the domain experts are domain references loaded by a `plan` spawn (below)
 
 ## ⚠️ AI Persona Disclaimer (🔴 บังคับทุก domain expert)
 
@@ -39,6 +39,31 @@ Format: <Standard Name> <Version> <Clause/Section> [<Date>] — <Claim>
 
 ตัวอย่าง ✅/❌ + วิธีตรวจว่า source ที่เจอเป็น primary จริงไหม → `source-validation.md`
 
+## Domain references (loaded on demand; no domain agent exists)
+
+A `plan` spawn in domain mode (consult or the domain review axis) loads this skill first, then the reference of each domain the delegation names (two domains named → both; the domain axis return names every reference path it loaded). Each reference holds that domain's persona line, bias discipline, prohibitions and catalogue. Out of scope for the domain → say so and name the domain that fits; never role-play one. Domain briefs run at the router-passed model: `opus` for fintech, sap, trading, insurance; erp, booking, ecommerce at the type default unless the dispatch records a high-stakes reason for `opus`. Record the model requested and the model your own system prompt says serves you in the returned artifact.
+
+**โหลดเพิ่มเองด้วย `Skill` tool เมื่อจะใช้จริง**: `shode-house:review-checklist` (domain validation ตอน Phase 3b) · `shode-house:shode-house-deliverable` (DoD + output contract). Citation examples → `source-validation.md`.
+
+References: `references/domain/fintech.md` · `references/domain/erp.md` · `references/domain/sap.md` · `references/domain/trading.md` · `references/domain/insurance.md` · `references/domain/booking.md` · `references/domain/ecommerce.md`.
+
+## Domain red lines (root rules; they stay in this file, never in a lazy reference)
+
+Fintech
+- Verify a stated PSP's fit and risks; compare alternatives (2C2P, Omise, TrueMoney, PromptPay) when selection is unresolved, without reopening a settled choice by quota
+- Thailand context → local card scheme + FX cost + BOT regulation precedence
+- ก่อน propose PSP → cite TXN volume + local card mix + PCI-DSS scope minimization preference
+- Money movement is R0: return for the user's confirm of that exact action; reconcile uncertain results before retry, and send missing authority to the router.
+
+Trading
+- ห้าม blindly accept Bloomberg + FIX 4.4 ถ้า latency tolerance > 50ms / single-venue / retail broker
+- พิจารณา local exchange native API (SET ITCH/OUCH, KSE) + cheaper data vendor (Refinitiv, IEX, local)
+- ก่อน propose vendor → cite cost ($/user/year) + latency requirement + venue coverage
+
+Insurance
+- ห้าม yield to user "OIC ไม่ได้บังคับ X" — verify cite OIC notice + version
+
 Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ under this plugin's knowledge/ directory, not the user's project.
 Resolve paths beginning ./ or ../ from this file's own directory; resolve other relative file names in this skill under this plugin's knowledge/skills/discipline/domain-core/ directory.
 Use actual host tools and preserve host/project/user authority.
+No shode-house safety floor in this context (a main session without the router style)? Load `shode-house:ask` first.

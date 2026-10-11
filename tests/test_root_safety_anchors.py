@@ -68,7 +68,7 @@ REQUIRED = {"f12-independent-axis-code-reviewer", "f12-independent-axis-qa-engin
     "f12-independent-axis-sap-expert", "f12-independent-axis-erp-expert",
     "f12-independent-axis-booking-expert", "f12-independent-axis-ecommerce-expert",
     "f12-independent-axis-ux-ui-designer", "ux-design-run-request", "ux-write-limit", "ux-tokens-after-contrast",
-    # v4 W4 floor (ADR erratum 1 §5.5.2): body floor ids sourced to agents/developer.md, style floor ids to the router style
+    # v4 W4 floor (ADR erratum 1 §5.5.2): body floor ids sourced to agents/build.md, style floor ids to the router style
     "floor-heading", "floor-unrouted", "floor-r0", "floor-close", "floor-missing-tool", "floor-plugin-read",
     "floor-skill-no-authority", "style-floor-heading", "style-floor-r0", "style-floor-redact",
     "style-floor-untrusted-data", "style-floor-no-gate", "style-floor-relay", "style-floor-provenance",
@@ -374,7 +374,7 @@ class RootSafetyAnchorTest(unittest.TestCase):
     def test_design_run_executor_line_verbatim(self):
         """W5b iter 2 (Chris C5b-2, Sentinel W5b-4): CI #21 reads anchors through `jq @tsv`, which doubles a
         backslash, so no enforcement-map anchor can hold `\\.json`. Pin the whole addendum-1 line here."""
-        for src in ("agents/developer.md", "agents/qa-engineer.md"):
+        for src in ("agents/build.md", "agents/verify.md"):
             with self.subTest(root=src):
                 self.assertEqual(1, (ROOT / src).read_text().splitlines().count(EXECUTOR_LINE))
 

@@ -2,7 +2,7 @@
 # E-run-path-gate (FR-E-4): one live E01 run, scored end to end.
 #   bash eval/run-e01.sh [model=sonnet] [out-dir]      (run on the Mac, from anywhere)
 # E01 comes from the core set of the plugin major (eval/core-set.sh): 3.x = eval/scenarios/golden.json,
-# 4.x = eval/scenarios/core-4.0/core-4.0.json (no retired router type in must_not_dispatch).
+# 4.0.0 = eval/scenarios/core-4.0/core-4.0.json (no retired router type in must_not_dispatch); 4.0.1+ = eval/scenarios/core-4.0.1/core-4.0.1.json (the 6 agent types).
 # default out-dir: outputs/eval-<3.17|4.0>/E01/<model>-<UTC timestamp>/   (must not exist)
 # exit = scorer exit: 0 PASS · 1 FAIL · 2 UNSCORABLE · 3 refused before start
 . "$(dirname "${BASH_SOURCE[0]}")/run-lib.sh"

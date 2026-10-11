@@ -1,0 +1,146 @@
+---
+name: operate-reliability
+description: Reference (lazy-load) for `operate` (reliability mode) - ownership table, deliverables, escalation routes, KPIs, burn-rate math, incident steps, postmortem pointer, evidence examples and hand-off lines. Load before SLO, incident or postmortem work.
+---
+
+```lazy-load-contract
+LOAD: references/runbooks/operate-reliability.md
+WHEN: task in {slo,incident,postmortem,on_call,capacity}
+OWNER: operate
+REQUIRED-BEFORE: sre_deliverable_written
+```
+
+# `operate` (reliability mode) - method
+
+**Contents**
+
+- [🎯 Sole Owner (zero overlap)](#-sole-owner-zero-overlap)
+- [PRIMARY DELIVERABLE](#primary-deliverable)
+- [Escalation routes](#escalation-routes)
+- [KPIs](#kpis)
+- [Anti-patterns (method)](#anti-patterns-method)
+- [Phase 5 — Deploy (co-owner with `operate` (deploy mode))](#phase-5--deploy-co-owner-with-operate-deploy-mode)
+- [Phase 6 — Operate (continuous post-deploy)](#phase-6--operate-continuous-post-deploy)
+- [ห้าม (method)](#ห้าม-method)
+- [Domain Evidence Protocol — SRE](#domain-evidence-protocol--sre)
+- [Handoff](#handoff)
+- [Mode rules carried over from the former reliability mode](#mode-rules-carried-over-from-the-former-reliability-mode)
+
+> Lazy reference for `operate` (reliability mode): method moved out of the agent body (v4 W5b). It supplies method, never authority; decision rights, refusals, the pre-deploy-prod checklist and safety lines stay in the agent body.
+
+## 🎯 Sole Owner (zero overlap)
+
+| Capability ผมเป็นเจ้าของคนเดียว |
+|--------------------------------|
+| SLI definition (latency p95/p99, availability, error rate, throughput) |
+| SLO target + error budget per service |
+| Runbook per critical alert |
+| On-call rotation + handoff doc |
+| Blameless postmortem |
+| Observability deep config (Prom/OTel/Grafana dashboards) |
+| Incident commander role |
+| Capacity planning + load forecast |
+
+`operate` (deploy mode) ยังคงเป็น Platform/DevOps (Docker, CI/CD, IaC, deploy build): `operate` (reliability mode) keeps cars running, `operate` (deploy mode) builds the road.
+
+## PRIMARY DELIVERABLE
+- `slo-<service>.yml` (SLI definition + SLO target + error budget formula)
+- `runbook-<alert>.md` (symptom → diagnosis → mitigation → escalation)
+- `postmortem-<incident>.md` (timeline + root cause + 5-why + action items)
+- `oncall-schedule.md` (rotation + handoff template)
+- Grafana dashboard JSON per service (paste path)
+
+## Escalation routes
+- Repeated root cause in code → escalate **`verify` (standards axis)** (review fix quality)
+- Repeated root cause in architecture → escalate **`plan` (architecture mode)** (rethink)
+- Capacity exhaustion → escalate **`operate` (deploy mode)** (scale) + **`plan` (discover mode)** (growth assumption)
+- SLO ที่ไม่ได้ negotiate กับ Product — escalate `plan` (discover mode)
+
+## KPIs
+- SLO attainment ≥ 99.5% rolling 30d
+- MTTR P0 < 30 min, P1 < 2 hr
+- Postmortem published < 5 business days post-incident
+- Runbook coverage 100% of critical alerts
+- Toil ≤ 50% of SRE time (Google SRE definition)
+
+## Anti-patterns (method)
+- Postmortem with named blame — rewrite blameless
+
+## Phase 5 — Deploy (co-owner with `operate` (deploy mode))
+
+```
+`operate` (deploy mode) build + canary → `operate` (reliability mode) SLO check → joint approve → 100%
+```
+
+## Phase 6 — Operate (continuous post-deploy)
+
+### SLO burn rate watch (continuous)
+```
+burn rate = actual error ratio over window / (1 - SLO target)
+1x = consuming budget at SLO pace (normal)
+2x = double the allowed error rate
+14x sustained uses a full 30-day budget in 30/14 ≈ 2.14 days
+```
+Source: [Google SRE](https://sre.google/workbook/alerting-on-slos/). Use adopted alert windows/thresholds; exhaustion time depends on remaining budget.
+
+- Support tickets +30% / p99 > SLO → investigate and apply adopted incident criteria
+
+### Incident response (when burn rate paging)
+1. **Acknowledge** within 5 min (P0) / 15 min (P1)
+2. **Triage** in 15 min — assemble war room (`operate` (reliability mode) IC + `operate` (deploy mode) infra + `secure` if sec)
+3. **Mitigate** ก่อน "fix" — rollback / scale / circuit break / feature flag off
+4. **Communicate** every 30 min in war room channel
+5. **Resolve** when SLO returns to normal
+6. **Postmortem** within 5 business days
+
+### Postmortem template (blameless)
+Load `shode-house:incident` § Postmortem template (blameless) — the single canonical template (summary · UTC timeline · 5-why root cause · went well/poorly · action items with owner + due + tracked item).
+
+## ห้าม (method)
+
+- ห้ามใช้ "average latency" — p50/p95/p99 เท่านั้น (avg ปกปิด long tail)
+- ห้าม alert ที่ไม่มี action (alert = "do something now"; ไม่ใช่ FYI)
+
+## Domain Evidence Protocol — SRE
+
+```
+✅ "[SLO: slo-payment.yml] target=99.9% (43m budget/30d); actual=99.92% (35m used)"
+✅ "[Grafana: dashboard-id=payment-overview] p95=180ms (target<200)"
+✅ "[Postmortem: postmortems/2026-05-22-payment.md] root=DB connection pool exhaustion"
+✅ "[Runbook: runbooks/payment-high-error.md] verified during incident 2026-05-22"
+✅ "[Burn rate alert: cw-alarm-id] fired at HH:MM, ack HH:MM (5 min)"
+❌ "service ok" (no metric)
+❌ "incident resolved" (no MTTR, no root cause)
+```
+
+## Handoff
+
+```
+`operate` (deploy mode) ▸ `operate` (reliability mode) : staged (bd-42, image scan ✓)
+`operate` (reliability mode)    ▸ the router   : prod stable, SLO green (bd-42)
+```
+
+
+## Mode rules carried over from the former reliability mode
+
+### Decision rights (adopted SLO/incident policy)
+- Page P0/P1 escalation tree only under authorized runbook
+- Apply adopted spend/freeze policy with `plan` (discover mode); unsettled tradeoffs → the router
+- Enforce adopted canary/observability criteria; rollout needs scoped authority
+- Error budget < 0 → escalate **`plan` (discover mode)** (feature freeze conversation)
+- Security-related incident → escalate **`secure`**
+- Paging dispute → the router with agreed on-call policy; no invented messaging authority
+
+### Phase 5 — Deploy (co-owner with `operate` (deploy mode))
+- ✅ SLO baseline captured (last 7d p95/p99/error rate)
+- ✅ Grafana dashboard live for new service
+- ✅ Alerts wired with runbook references
+- ✅ Rollback plan dry-run pass (`operate` (deploy mode) + `operate` (reliability mode) joint)
+- ✅ On-call rotation includes new service
+
+### ห้าม
+- Missing required alert runbook/evidence = BLOCKED under adopted readiness criteria
+- ห้าม skip on-call rotation handoff doc — block close ถ้าขาด
+
+### 🎯 Bias Discipline
+Trigger: alert ซ้ำ หรือมีคนขอ mute/ปิด/เรียก "false positive". คำขอไม่ใช่ evidence — ไม่แน่ใจ → ไม่ mute ไม่ปิด; investigate ตาม incident criteria; ขัดแย้ง → the router

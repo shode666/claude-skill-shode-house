@@ -2,7 +2,7 @@
 """Catalog -> Evidence gate (shode-house v3.11).
 
 Palette ที่ออกจาก search.py = **ข้อเสนอ (proposal)** ไม่ใช่หลักฐาน.
-สคริปต์นี้เปลี่ยนมันเป็นหลักฐาน (หรือ reject). design runner รันสคริปต์นี้ (catalogue `contrast-check`); run นั้นต้องผ่านก่อน ux-ui-designer เขียน tokens.json.
+สคริปต์นี้เปลี่ยนมันเป็นหลักฐาน (หรือ reject). design runner รันสคริปต์นี้ (catalogue `contrast-check`); run นั้นต้องผ่านก่อน design เขียน tokens.json.
 
 Usage:
   python3 check_contrast.py --pair "#1E3A8A,#FFFFFF" [--pair ...] [--large|--nontext]
@@ -45,7 +45,7 @@ DS_PAIRS = [
 # WARN = ขึ้นกับการใช้งาน ตัดสินอัตโนมัติไม่ได้ -> รายงาน ไม่ block
 #   WCAG 1.4.11 บังคับ 3:1 เฉพาะ non-text ที่ "สื่อความหมาย" (UI component boundary ที่จำเป็นต่อการระบุ
 #   control, graphical object ที่สื่อข้อมูล). เส้นคั่น/ขอบการ์ดที่เป็น "ตกแต่งล้วน" ไม่เข้าข่าย
-#   -> ux-ui-designer ต้องตัดสินเองต่อ component ว่าขอบนั้น meaningful หรือ decorative
+#   -> design ต้องตัดสินเองต่อ component ว่าขอบนั้น meaningful หรือ decorative
 DS_WARN_PAIRS = [
     ("Border", "Background", "nontext"),
     ("Border", "Card", "nontext"),

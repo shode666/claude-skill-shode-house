@@ -61,10 +61,10 @@ PUPPET_HINT = ('เสร็จแล้ว', 'เสร็จเรียบร
 # Moved here (top-of-file, ahead of its first use) in iter13 so PERSONA_AGENT_TYPE (relay-evidence
 # roster below, in the Evidence section) can build directly on it without a definition-order issue.
 CARD_AGENT_TYPE = {
-    'Chris': 'shode-house:code-reviewer',
-    'Quinn': 'shode-house:qa-engineer',
-    'Bella': 'shode-house:business-analyst',
-    'Sentinel': 'shode-house:security-engineer',
+    'Chris': 'shode-house:verify',
+    'Quinn': 'shode-house:verify',
+    'Bella': 'shode-house:plan',
+    'Sentinel': 'shode-house:secure',
 }
 
 
@@ -582,13 +582,29 @@ OLIVER_RELAY_PREFIX_RE = re.compile(r'^\[Oliver\|')
 # that Oliver can plausibly relay a verdict for.
 PERSONA_AGENT_TYPE = dict(CARD_AGENT_TYPE)
 PERSONA_AGENT_TYPE.update({
-    'Dave': 'shode-house:developer',
-    'Uma': 'shode-house:ux-ui-designer',
-    'Sara': 'shode-house:solution-architect',
-    'Aaron': 'shode-house:devops-engineer',
-    'Patrick': 'shode-house:product-manager',
-    'Felix': 'shode-house:fintech-expert',
+    'Dave': 'shode-house:build',
+    'Uma': 'shode-house:design',
+    'Sara': 'shode-house:plan',
+    'Aaron': 'shode-house:operate',
+    'Patrick': 'shode-house:plan',
+    'Felix': 'shode-house:plan',
 })
+# 4.0.1: the maps above name the 6 live types. Transcripts recorded at 4.0.0 (and the frozen 3.x/4.0 scenarios scored from
+# them) spawned the 18 retired ids; a persona is also evidenced by its own retired id, so old traces keep scoring.
+PERSONA_LEGACY_TYPE = {
+    'Chris': 'shode-house:code-reviewer', 'Quinn': 'shode-house:qa-engineer', 'Bella': 'shode-house:business-analyst',
+    'Sentinel': 'shode-house:security-engineer', 'Dave': 'shode-house:developer', 'Uma': 'shode-house:ux-ui-designer',
+    'Sara': 'shode-house:solution-architect', 'Aaron': 'shode-house:devops-engineer',
+    'Patrick': 'shode-house:product-manager', 'Felix': 'shode-house:fintech-expert',
+}
+
+
+def _persona_types(name):
+    """-> {live type, retired 4.0.0 id} a persona's spawn may carry (empty for an unknown persona)."""
+    live = PERSONA_AGENT_TYPE.get(name)
+    return {t for t in (live, PERSONA_LEGACY_TYPE.get(name)) if t}
+
+
 PERSONA_NAME_RE = re.compile(r'\b(' + '|'.join(sorted(PERSONA_AGENT_TYPE, key=len, reverse=True)) + r')\b')
 
 
@@ -606,6 +622,15 @@ def _relay_persona_agent_type(text):
     return PERSONA_AGENT_TYPE.get(m.group(1))
 
 
+def _relay_persona_types(text):
+    """-> the set of agent types that evidence a relay line (live type + retired id), or None (see _relay_persona_agent_type)."""
+    live = _relay_persona_agent_type(text)
+    if not live:
+        return None
+    name = PERSONA_NAME_RE.search(text).group(1)
+    return _persona_types(name)
+
+
 def _agent_type_spawned_before(records, before_index, agent_type):
     """-> True if an Agent/Task tool_use declaring `subagent_type == agent_type` appears anywhere
     in records[:before_index] -- UNBOUNDED backward scan (iter13 fix (b), intentionally not
@@ -616,7 +641,7 @@ def _agent_type_spawned_before(records, before_index, agent_type):
             continue
         for c in ((rec.get('message') or {}).get('content') or []):
             if (isinstance(c, dict) and c.get('type') == 'tool_use' and c.get('name') in SPAWN_NAMES
-                    and (c.get('input') or {}).get('subagent_type') == agent_type):
+                    and (c.get('input') or {}).get('subagent_type') in ({agent_type} if isinstance(agent_type, str) else agent_type)):
                 return True
     return False
 
@@ -661,8 +686,8 @@ def find_claim_violations(records, pattern, is_main=False):
                 for c in ((rec.get('message') or {}).get('content') or []))
             has_evidence = window_evidence or same_record_tool_use
             if not has_evidence and is_main:  # iter13 fix (b)
-                persona_agent_type = _relay_persona_agent_type(text)
-                if persona_agent_type and _agent_type_spawned_before(records, i, persona_agent_type):
+                persona_agent_types = _relay_persona_types(text)
+                if persona_agent_types and _agent_type_spawned_before(records, i, persona_agent_types):
                     has_evidence = True
             if not has_evidence:
                 violations.append((rec.get('uuid'), text[:120]))  # (c): quote the flagged line
@@ -755,11 +780,13 @@ def dispatch_card_check(scenario, session):
         atype = CARD_AGENT_TYPE.get(label)
         if atype is None:
             continue  # unrecognized label -- not mappable, don't false-fail on it
-        spawned = atype in spawn_types
+        types = _persona_types(label)
+        spawned = bool(types & set(spawn_types))
+        shown = ' / '.join(repr(t) for t in sorted(types))
         if verdict == 'DISPATCH' and not spawned:
-            mismatches.append(f'{label}: DISPATCH in card but {atype!r} never spawned')
+            mismatches.append(f'{label}: DISPATCH in card but {shown} never spawned')
         elif verdict == 'SKIP' and spawned:
-            mismatches.append(f'{label}: SKIP in card but {atype!r} WAS spawned anyway')
+            mismatches.append(f'{label}: SKIP in card but {shown} WAS spawned anyway')
     if mismatches:
         return 'FAIL', '; '.join(mismatches)
     dispatch_labels = sorted(label for label, v in card.items() if v == 'DISPATCH')

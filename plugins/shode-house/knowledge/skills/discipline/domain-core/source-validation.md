@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `domain-core` — ตัวอย�
 ```lazy-load-contract
 LOAD: skills/discipline/domain-core/source-validation.md
 WHEN: domain_claim_about in {regulation,standard,protocol,tax_rule}
-OWNER: fintech-expert
+OWNER: plan
 REQUIRED-BEFORE: domain_claim_stated
 ```
 

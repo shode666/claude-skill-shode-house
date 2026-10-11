@@ -118,25 +118,30 @@ def agent(name):
 
 
 # scenario = command + output style + agents ที่ถูก dispatch + lazy ref ที่ required ใน scenario นั้น
+# 4.0.1: the 18 role ids became 6 types. A scenario lists one entry per SPAWN (a name twice = two fresh spawns of that
+# type, e.g. `verify` for the standards axis and again for the runtime axis), and a domain spawn is a `plan` spawn plus
+# the domain-core skill it loads (the 4.0.0 domain experts preloaded it, so it is counted like that preload). The domain
+# reference itself is the former domain catalogue, a lazy reference that no 4.0.0 scenario counted either.
+DOMAIN = ['skills/discipline/domain-core/SKILL.md']
 SCENARIOS = {
-    'consult':            ('commands/consult.md',       ['solution-architect'], []),
-    'design-system-be':   ('commands/design-system.md', ['business-analyst','solution-architect'], []),
-    'design-system-fe':   ('commands/design-system.md', ['business-analyst','solution-architect','ux-ui-designer','fintech-expert'],
-                           ['references/runbooks/ux-ui-designer-phase-1b.md']),
-    'implement-be':       ('commands/implement.md',     ['developer','code-reviewer','qa-engineer','business-analyst'],
+    'consult':            ('commands/consult.md',       ['plan'], []),
+    'design-system-be':   ('commands/design-system.md', ['plan','plan'], []),
+    'design-system-fe':   ('commands/design-system.md', ['plan','plan','design','plan'],
+                           ['references/runbooks/design-phase-1b.md'] + DOMAIN),
+    'implement-be':       ('commands/implement.md',     ['build','verify','verify','plan'],
                            ['skills/discipline/review-checklist/spec-axis.md']),
-    'implement-ui':       ('commands/implement.md',     ['developer','ux-ui-designer','code-reviewer','qa-engineer','business-analyst'],
-                           ['references/runbooks/ux-ui-designer-phase-3a.md','skills/discipline/review-checklist/spec-axis.md']),
-    'phase3b-base':       ('commands/implement.md',     ['code-reviewer','qa-engineer','business-analyst'],
+    'implement-ui':       ('commands/implement.md',     ['build','design','verify','verify','plan'],
+                           ['references/runbooks/design-phase-3a.md','skills/discipline/review-checklist/spec-axis.md']),
+    'phase3b-base':       ('commands/implement.md',     ['verify','verify','plan'],
                            ['skills/discipline/review-checklist/spec-axis.md','skills/discipline/review-checklist/report-format.md']),
-    'phase3b-sensitive':  ('commands/implement.md',     ['code-reviewer','qa-engineer','business-analyst','security-engineer','fintech-expert'],
-                           ['skills/discipline/review-checklist/spec-axis.md','skills/discipline/review-checklist/report-format.md']),
-    'review-cmd':         ('commands/review.md',        ['code-reviewer','qa-engineer','business-analyst'],
+    'phase3b-sensitive':  ('commands/implement.md',     ['verify','verify','plan','secure','plan'],
+                           ['skills/discipline/review-checklist/spec-axis.md','skills/discipline/review-checklist/report-format.md'] + DOMAIN),
+    'review-cmd':         ('commands/review.md',        ['verify','verify','plan'],
                            ['skills/discipline/review-checklist/spec-axis.md']),
-    'diagnose-fast':      (None,                         ['developer'], ['skills/workflow/diagnose/SKILL.md']),
-    'diagnose-full':      (None,                         ['developer','qa-engineer'],
+    'diagnose-fast':      (None,                         ['build'], ['skills/workflow/diagnose/SKILL.md']),
+    'diagnose-full':      (None,                         ['build','verify'],
                            ['skills/workflow/diagnose/SKILL.md','skills/workflow/diagnose/full-investigation.md','skills/workflow/diagnose/loop-ladder.md']),
-    'map-mode':           (None,                         ['?orchestrator','product-manager'],
+    'map-mode':           (None,                         ['?orchestrator','plan'],
                            ['skills/discipline/shode-house-workflow/wayfinding.md']),
     'full-fanout':        (None,                         sorted(os.path.basename(p)[:-3] for p in glob.glob('agents/*.md')), []),
 }
@@ -151,15 +156,15 @@ def present(agents):
 
 def scenario(cmd, agents, refs):
     agents = present(agents)
-    a = {n: agent(n) for n in agents}
+    a = [agent(n) for n in agents]          # one entry per spawn (a type listed twice is two spawns)
     command = required_size(cmd) if cmd else 0
     lazy = sum(required_size(r) for r in refs)
     return {
         'command': command,
         'output_style': OUTPUT_STYLE,
-        'agents': sum(v['total'] for v in a.values()),
+        'agents': sum(v['total'] for v in a),
         'lazy_refs': lazy,
-        'total': command + OUTPUT_STYLE + sum(v['total'] for v in a.values()) + lazy,
+        'total': command + OUTPUT_STYLE + sum(v['total'] for v in a) + lazy,
         'agent_count': len(agents),
     }
 

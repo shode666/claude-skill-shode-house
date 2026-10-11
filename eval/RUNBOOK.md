@@ -200,6 +200,37 @@ USD 0.48 / 115 s for a core id (means over every `meta.json` in this repo). One 
 and 2–4 h; both arms ≈ USD 90–110 and 4–8 h; a held-out
 set of 12 adds 60 runs per arm (≈ USD 10–14, 0.5–1 h). Hard ceiling USD 1 per run. Rate limiting can stretch the time.
 
+### 4.0.1 routing-probe battery (P01..P47 mapped to the 6 types; additive, not run)
+
+The P01..P47 battery above is the **historical baseline** (3.17 / 4.0.0): `eval/scenarios/golden.json`, `eval/prompts/probes/` and
+`eval/run-probes.sh` + `eval/run-lib.sh` stay frozen (`eval/FREEZE.sha256`) and unedited. For a 4.0.1 tree the retired agent ids in
+`expected` cannot match, so a separate battery maps the intent of each probe to the six types:
+
+- Battery and rule: `eval/scenarios/battery-4.0.1/` (`battery-4.0.1.json`, `README.md`, `check-freeze.sh`, `check-domain.py`,
+  `FREEZE.sha256`); runner `eval/run-battery-4.0.1.sh`. The battery is frozen (`bash eval/scenarios/battery-4.0.1/check-freeze.sh`, in CI
+  #27) before any run; a change is a new disclosed revision and never rescues a run.
+- **Same prompt, same model, same N as the baseline:** the prompts are the baseline's files byte for byte, the model is `sonnet`, N is 5
+  (`REPEATS=5` is the runner's default), 46 applicable probes (P21 refused), 6 turns, USD 1 cap per run, the spawn-blocking hook, and the
+  same `SUMMARY.tsv` / `AGG.tsv`. Read the k/N per probe next to the baseline's; no threshold is registered and the decision is the user's.
+
+```bash
+bash eval/run-battery-4.0.1.sh sonnet outputs/eval-4.0.1/battery/sonnet-<date>      # one new directory per batch; resume with the SAME command
+```
+
+- The runner refuses to start unless `bash eval/check-freeze.sh` and the battery freeze are both green (`ALLOW_UNFROZEN=1` only for
+  dry runs), refuses `PROBE_FILE`, and has no arm-diff guard (it compares nothing by itself).
+- Owner-only and redacted like the core matrix (SEC-13): `umask 077` before the out-dir exists, a symlinked out-dir is refused, an existing
+  out-dir is locked down first (`redact_derived.py lockdown`, exit 4 when it cannot be made owner-only), and each run's derived files,
+  `domain-check.txt`, the buffered console output, `SUMMARY.tsv` and `AGG.tsv` are redacted in place while `run.jsonl` stays byte-exact.
+- The 7 single-domain probes also get `domain-check.txt` (report-only): the `plan` spawn must name its own `references/domain/<d>.md` and
+  follow the pinned model tier. Modes of one type (discover / requirements / architecture) are not separable by spawn type; see the
+  battery README.
+- Sharing rules of the baseline apply unchanged; the battery runner itself redacts its derived files as above (the baseline runners
+  `run-e01.sh` / `run-probes.sh` do not), and `run.jsonl` is never shared.
+- Disclosed gaps of the battery runner's SEC-13 controls: no background-job descriptor isolation and no signal traps (it runs in the
+  foreground). The residual is bounded by the owner-only modes (dirs 0700, files 0600) and by seal-on-next-invocation: a run killed
+  between `run_one` and its redaction is sealed, with its buffered console output, before anything else when the same command is re-invoked.
+
 ## Historical v3.13 procedure (not current installation instructions)
 
 The commands and version names below document the original campaign only. Do not
@@ -291,11 +322,13 @@ exit 0 PASS · 1 FAIL · 2 UNSCORABLE (input หาย — ไม่ใช่ PA
 
 ## Core matrix — 17 core scenarios (`eval/run-core.sh`)
 
-The set follows the plugin major of the checkout (`eval/core-set.sh`, the one selector both runners use): 4.x scores
-E01..E15, E10b, E1c from `eval/scenarios/core-4.0/core-4.0.json` (frozen by its own `FREEZE.sha256`, derived from the
-3.17 files: `bash eval/scenarios/core-4.0/check-freeze.sh`) and writes to `outputs/eval-4.0/`; 3.x scores
+The set follows the plugin version of the checkout (`eval/core-set.sh`, the one selector both runners use): 4.0.1 and later
+4.x score E01..E15, E10b, E1c from `eval/scenarios/core-4.0.1/core-4.0.1.json` (the 6 agent types; frozen by its own
+`FREEZE.sha256`, derived from the frozen 4.0 set: `bash eval/scenarios/core-4.0.1/check-freeze.sh`) and write to
+`outputs/eval-4.0.1/`; 4.0.0 scores `eval/scenarios/core-4.0/core-4.0.json` (frozen by its own `FREEZE.sha256`, derived from the
+3.17 files: `bash eval/scenarios/core-4.0/check-freeze.sh`) into `outputs/eval-4.0/`; 3.x scores
 E01 (frozen `eval/scenarios/golden.json`) + E02–E15, E10b, E1c (`eval/scenarios/core-3.17.json`) into `outputs/eval-3.17/`.
-Any other major is refused. Never mix core-3.17 and core-4.0 results in one comparison (the batch log names the set). Fixture per
+Any other major is refused. Never mix core-3.17, core-4.0 and core-4.0.1 results in one comparison (the batch log names the set). Fixture per
 scenario = `scripts/eval-fixture-core.sh --scenario <id>` (frozen fixture + that scenario's assets only). Same
 rules as above: fresh fixture under `$TMPDIR`, evidence never overwritten, every started run kept, a FAIL is never retried.
 

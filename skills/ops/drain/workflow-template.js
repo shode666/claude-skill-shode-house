@@ -17,8 +17,8 @@ HARD RULES: TDD for code. Run targeted project checks; shared integration/E2E re
 VERIFY BEFORE DONE: paste the real test PASS line. If FALSE POSITIVE or BLOCKED, say so with evidence - do NOT invent a fix.
 Return structured: verdict, branch, commit_sha only if created, files, test_cmd, test_result, note (patch/revision, outstanding checks and questions). FIXED means candidate only; independent review and integrated checks are still required.`
 
-// { id, type: 'shode-house:developer' | 'shode-house:qa-engineer' | 'shode-house:code-reviewer'
-//            | 'shode-house:devops-engineer' | 'shode-house:security-engineer' | 'shode-house:ux-ui-designer',
+// { id, type: 'shode-house:build' | 'shode-house:verify' | 'shode-house:operate'
+//            | 'shode-house:secure' | 'shode-house:design' | 'shode-house:plan',
 //   brief: 'finding + file:line + fix direction' }
 // One entry per FILE-DISJOINT item. Items sharing files must be merged into ONE entry.
 const ITEMS = []

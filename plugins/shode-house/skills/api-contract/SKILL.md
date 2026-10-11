@@ -5,7 +5,7 @@ description: Protect compatibility when changing a shared or public interface, s
 
 # API Contract (versioning + deprecation + consumer contract)
 
-> **Owner**: solution-architect (policy/ADR) + developer (implement) + qa-engineer (contract test). Cross-team → staff-engineer. Payload ที่มี money/PII → Domain expert + security-engineer
+> **Owner**: `plan` (architecture mode) (policy/ADR) + `build` (implement) + `verify` (runtime axis) (contract test). Cross-team → `build` (staff-grade brief). Payload ที่มี money/PII → Domain expert + `secure`
 > หลัก: **ผู้บริโภคที่คุณไม่รู้จักคือผู้บริโภคที่คุณจะพัง** — ถ้าออกนอกขอบ deploy unit ของคุณ = public
 
 ## When NOT to use
@@ -13,7 +13,7 @@ description: Protect compatibility when changing a shared or public interface, s
 - **Internal function/class ในโมดูลเดียวกัน** — refactor ได้เสรี ใช้ `dev-gate`
 - **API ที่ยังไม่มี consumer จริง** (pre-launch, consumer = ตัวเอง) — เร่ง iterate ได้ แต่ต้องประกาศ `v0`/unstable ชัดเจน
 - **Internal DB schema ที่ไม่มีใครนอกทีมอ่าน** — ใช้ `data-migration`
-- **UI component props** — ให้ ux-ui-designer ดู design-system/component contract (`agents/ux-ui-designer.md`)
+- **UI component props** — ให้ `design` ดู design-system/component contract (`agents/design.md`)
 
 ## Required inputs — for the affected contract decision/release
 
@@ -62,7 +62,7 @@ The actual window follows the adopted consumer agreement and external/partner SL
 these examples do not replace an existing agreement.
 **ห้ามลบก่อน T2 เพราะ "ไม่น่ามีใครใช้แล้ว"** — ใช้ metric ไม่ใช่ความรู้สึก
 
-## Consumer-driven contract test (qa-engineer)
+## Consumer-driven contract test (`verify` (runtime axis))
 
 - Consumer เขียน expectation → publish (Pact broker / schema registry / committed fixture)
 - Producer CI ต้อง verify กับ expectation ทุกตัวก่อน merge → **แดง = block merge**
@@ -78,7 +78,7 @@ these examples do not replace an existing agreement.
 □ contract test เขียว — paste output
 □ ถ้า breaking: version bump + ทั้งสอง version รันคู่ได้ + Deprecation/Sunset header + ADR
 □ รายชื่อ consumer + ช่องทางที่แจ้ง
-□ payload มี money/PII → Domain expert + security-engineer sign
+□ payload มี money/PII → Domain expert + `secure` sign
 ```
 
 ## Evidence
@@ -104,11 +104,11 @@ these examples do not replace an existing agreement.
 | Situation | Next skill |
 |---|---|
 | เขียน implement + unit test | → `dev-gate` |
-| ตั้ง contract test ใน CI | → `automate-test` (qa-engineer pyramid + gate) |
+| ตั้ง contract test ใน CI | → `automate-test` (`verify` (runtime axis) pyramid + gate) |
 | review PR ที่แตะ contract | → `review-checklist` |
 | เปลี่ยน API พร้อม schema | → `data-migration` (ทำคู่กัน expand-contract) |
-| auth scope / rate limit เปลี่ยน | → `secure` (security-engineer abuse case) |
-| หลาย service ใช้คนละ convention | → staff-engineer (`shode-house-routing` cross-team) |
+| auth scope / rate limit เปลี่ยน | → `secure` (`secure` abuse case) |
+| หลาย service ใช้คนละ convention | → `build` (staff-grade brief) (`shode-house-routing` cross-team) |
 
 Resolve source-root paths beginning agents/, skills/, references/, commands/ or output-styles/ under this plugin's knowledge/ directory, not the user's project.
 Resolve paths beginning ./ or ../ from this file's own directory; resolve other relative file names in this skill under this plugin's knowledge/skills/workflow/api-contract/ directory.

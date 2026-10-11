@@ -176,7 +176,7 @@
 #   }
 #
 # Output (stdout, one compact JSON line):
-#   {"primary":"developer","required":["fintech-expert"],"phases":["phase_0","phase_1b","phase_3b"]}
+#   {"primary":"build","required":["plan:fintech"],"phases":["phase_0","phase_1b","phase_3b"]}
 #
 # Deps: bash + jq only (ADR-C3 style -- no python3 in this hot path).
 

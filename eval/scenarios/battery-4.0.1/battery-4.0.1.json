@@ -1,0 +1,1613 @@
+{
+ "_comment": "4.0.1 routing-probe battery: P01..P47 mapped to the 6 types, derived (see README.md); frozen by FREEZE.sha256 in this directory.",
+ "derived_from": {
+  "eval/scenarios/golden.json": "28a55abb9d1772ff2f60722def7684bed9ead0e7923b126512bc1e181122014d"
+ },
+ "domain_tier": {
+  "opus": [
+   "fintech",
+   "sap",
+   "trading",
+   "insurance"
+  ],
+  "default": [
+   "erp",
+   "booking",
+   "ecommerce"
+  ]
+ },
+ "scenarios": [
+  {
+   "id": "P01",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "dev-gate vs diagnose/incident",
+   "prompt": "eval/prompts/probes/P01.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:dev-gate",
+     "agent:build"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "source": "trig-tdd",
+   "type_4_0_1": "build",
+   "mode_4_0_1": "build: implement a small behaviour test-first (skill dev-gate)"
+  },
+  {
+   "id": "P02",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "diagnose vs incident",
+   "prompt": "eval/prompts/probes/P02.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:diagnose"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "operate"
+    ]
+   },
+   "source": "trig-bug",
+   "type_4_0_1": "-",
+   "mode_4_0_1": "skill diagnose (bug root cause); no operate spawn"
+  },
+  {
+   "id": "P03",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "incident vs diagnose",
+   "prompt": "eval/prompts/probes/P03.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:incident",
+     "agent:operate"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "build"
+    ]
+   },
+   "source": "trig-prod-outage",
+   "type_4_0_1": "operate",
+   "mode_4_0_1": "operate, reliability mode (incident); not build"
+  },
+  {
+   "id": "P04",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "data-migration (positive)",
+   "prompt": "eval/prompts/probes/P04.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:data-migration"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "type_4_0_1": "-",
+   "mode_4_0_1": "skill data-migration"
+  },
+  {
+   "id": "P05",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "api-contract (positive)",
+   "prompt": "eval/prompts/probes/P05.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:api-contract",
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, architecture mode (interface contract)"
+  },
+  {
+   "id": "P06",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "secure trigger (positive)",
+   "prompt": "eval/prompts/probes/P06.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:secure",
+     "agent:secure"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "build"
+    ]
+   },
+   "source": "trig-threat-model",
+   "type_4_0_1": "secure",
+   "mode_4_0_1": "secure (threat model)"
+  },
+  {
+   "id": "P07",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "ui-test vs web-q",
+   "prompt": "eval/prompts/probes/P07.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:ui-test",
+     "agent:verify"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "web-q"
+    ]
+   },
+   "source": "trig-e2e",
+   "fixture_flags": [
+    "--with-ui"
+   ],
+   "type_4_0_1": "verify",
+   "mode_4_0_1": "verify, runtime axis (UI end-to-end)"
+  },
+  {
+   "id": "P08",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "decompose vs drain",
+   "prompt": "eval/prompts/probes/P08.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:decompose",
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, requirements mode (decompose)"
+  },
+  {
+   "id": "P09",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "drain vs decompose",
+   "prompt": "eval/prompts/probes/P09.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:drain"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "type_4_0_1": "-",
+   "mode_4_0_1": "skill drain"
+  },
+  {
+   "id": "P10",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "ask = team entry (meeting merges into ask in 3.17)",
+   "prompt": "eval/prompts/probes/P10.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:ask"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": []
+   },
+   "dropped_4_0_1": [
+    "orchestrator: not a spawn type"
+   ],
+   "type_4_0_1": "-",
+   "mode_4_0_1": "skill ask (team entry); no router spawn"
+  },
+  {
+   "id": "P11",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "slo vs incident",
+   "prompt": "eval/prompts/probes/P11.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:slo",
+     "agent:operate"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "source": "trig-slo",
+   "type_4_0_1": "operate",
+   "mode_4_0_1": "operate, reliability mode (SLO)"
+  },
+  {
+   "id": "P12",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "web-q vs ui-test",
+   "prompt": "eval/prompts/probes/P12.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:web-q",
+     "agent:design"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test"
+    ]
+   },
+   "source": "trig-cwv",
+   "type_4_0_1": "design",
+   "mode_4_0_1": "design (web quality / Core Web Vitals)"
+  },
+  {
+   "id": "P13",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "automate-test vs ui-test/dev-gate",
+   "prompt": "eval/prompts/probes/P13.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:automate-test",
+     "agent:verify"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "type_4_0_1": "verify",
+   "mode_4_0_1": "verify, runtime axis (test automation)"
+  },
+  {
+   "id": "P14",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "review entry",
+   "prompt": "eval/prompts/probes/P14.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:review-checklist",
+     "agent:verify"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "build"
+    ]
+   },
+   "type_4_0_1": "verify",
+   "mode_4_0_1": "verify, standards axis (review entry)"
+  },
+  {
+   "id": "P15",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "domain expert: fintech ledger rule",
+   "prompt": "eval/prompts/probes/P15.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": []
+   },
+   "source": "route-ledger",
+   "dropped_4_0_1": [
+    "trading-expert: same type as the required route (plan)",
+    "insurance-expert: same type as the required route (plan)",
+    "erp-expert: same type as the required route (plan)",
+    "ecommerce-expert: same type as the required route (plan)",
+    "booking-expert: same type as the required route (plan)",
+    "sap-expert: same type as the required route (plan)"
+   ],
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, domain mode (fintech ledger rule)",
+   "domain_4_0_1": "fintech"
+  },
+  {
+   "id": "P16",
+   "kind": "probe",
+   "class": "negative",
+   "desc": "NEGATIVE plain SQL query is not data-migration",
+   "prompt": "eval/prompts/probes/P16.md",
+   "max_turns": 6,
+   "expected": {
+    "max_spawns": 0,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "type_4_0_1": "-",
+   "mode_4_0_1": "negative: plain SQL query, no spawn, no data-migration"
+  },
+  {
+   "id": "P17",
+   "kind": "probe",
+   "class": "negative",
+   "desc": "NEGATIVE private function is not api-contract",
+   "prompt": "eval/prompts/probes/P17.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:build"
+    ],
+    "max_spawns": 1,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "related": [
+    "dev-gate"
+   ],
+   "type_4_0_1": "build",
+   "mode_4_0_1": "negative: private function, build alone"
+  },
+  {
+   "id": "P18",
+   "kind": "probe",
+   "class": "negative",
+   "desc": "NEGATIVE local refactor is not a secure trigger",
+   "prompt": "eval/prompts/probes/P18.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:build"
+    ],
+    "max_spawns": 1,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "secure"
+    ]
+   },
+   "related": [
+    "dev-gate"
+   ],
+   "type_4_0_1": "build",
+   "mode_4_0_1": "negative: local refactor, build alone, no secure"
+  },
+  {
+   "id": "P19",
+   "kind": "probe",
+   "class": "negative",
+   "desc": "NEGATIVE backend-only test is not ui-test",
+   "prompt": "eval/prompts/probes/P19.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:verify",
+     "skill:automate-test"
+    ],
+    "must_not_load": [
+     "api-contract",
+     "data-migration",
+     "decompose",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "related": [
+    "automate-test",
+    "dev-gate"
+   ],
+   "type_4_0_1": "verify",
+   "mode_4_0_1": "negative: backend-only test, verify (standards) or automate-test, no ui-test"
+  },
+  {
+   "id": "P20",
+   "kind": "probe",
+   "class": "negative",
+   "desc": "NEGATIVE variable merely named payment is not a fintech trigger",
+   "prompt": "eval/prompts/probes/P20.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:build"
+    ],
+    "max_spawns": 1,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q",
+     "domain-core"
+    ],
+    "must_not_dispatch": [
+     "plan"
+    ]
+   },
+   "related": [
+    "dev-gate"
+   ],
+   "type_4_0_1": "build",
+   "mode_4_0_1": "negative: variable named payment, build alone, no plan"
+  },
+  {
+   "id": "P21",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "legacy: caveman",
+   "prompt": "eval/prompts/probes/P21.md",
+   "max_turns": 6,
+   "expected": {
+    "skills": [
+     "caveman"
+    ]
+   },
+   "source": "trig-compress",
+   "not_applicable": "style skill: live baseline adopted caveman mode in 1 turn with no tool_use (description is enough); not observable as Skill/Agent routing, excluded from PROBE_IDS=all",
+   "type_4_0_1": "-",
+   "mode_4_0_1": "not applicable (style skill caveman)"
+  },
+  {
+   "id": "P22",
+   "kind": "probe",
+   "class": "negative",
+   "desc": "legacy NEGATIVE smalltalk",
+   "prompt": "eval/prompts/probes/P22.md",
+   "max_turns": 6,
+   "expected": {
+    "max_spawns": 0,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "source": "trig-negative-smalltalk",
+   "type_4_0_1": "-",
+   "mode_4_0_1": "negative: smalltalk, no spawn"
+  },
+  {
+   "id": "P23",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "legacy routing: trading-expert",
+   "prompt": "eval/prompts/probes/P23.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": []
+   },
+   "source": "route-matching-engine",
+   "dropped_4_0_1": [
+    "fintech-expert: same type as the required route (plan)",
+    "insurance-expert: same type as the required route (plan)",
+    "erp-expert: same type as the required route (plan)",
+    "ecommerce-expert: same type as the required route (plan)",
+    "booking-expert: same type as the required route (plan)",
+    "sap-expert: same type as the required route (plan)"
+   ],
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, domain mode (trading matching engine)",
+   "domain_4_0_1": "trading"
+  },
+  {
+   "id": "P24",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "legacy routing: insurance-expert",
+   "prompt": "eval/prompts/probes/P24.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": []
+   },
+   "source": "route-policy-admin",
+   "dropped_4_0_1": [
+    "fintech-expert: same type as the required route (plan)",
+    "trading-expert: same type as the required route (plan)",
+    "erp-expert: same type as the required route (plan)",
+    "ecommerce-expert: same type as the required route (plan)",
+    "booking-expert: same type as the required route (plan)",
+    "sap-expert: same type as the required route (plan)"
+   ],
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, domain mode (insurance policy admin)",
+   "domain_4_0_1": "insurance"
+  },
+  {
+   "id": "P25",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "legacy routing: ux-ui-designer",
+   "prompt": "eval/prompts/probes/P25.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:design"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "build"
+    ]
+   },
+   "source": "route-checkout",
+   "type_4_0_1": "design",
+   "mode_4_0_1": "design (checkout UX)"
+  },
+  {
+   "id": "P26",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "legacy routing: devops-engineer",
+   "prompt": "eval/prompts/probes/P26.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:operate"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "build",
+     "plan"
+    ]
+   },
+   "source": "route-docker-ci",
+   "related": [
+    "automate-test"
+   ],
+   "type_4_0_1": "operate",
+   "mode_4_0_1": "operate, deploy mode (Docker/CI)"
+  },
+  {
+   "id": "P27",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "legacy routing: code-reviewer",
+   "prompt": "eval/prompts/probes/P27.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:review-checklist",
+     "agent:verify"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "build"
+    ]
+   },
+   "source": "route-unit-test",
+   "type_4_0_1": "verify",
+   "mode_4_0_1": "verify, standards axis (unit-test review)"
+  },
+  {
+   "id": "P28",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "paraphrase diagnose: works-on-my-machine flaky behaviour, not yet released",
+   "prompt": "eval/prompts/probes/P28.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:diagnose"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "operate"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "type_4_0_1": "-",
+   "mode_4_0_1": "skill diagnose (paraphrase); no operate spawn"
+  },
+  {
+   "id": "P29",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "paraphrase incident: customers affected right now after a release",
+   "prompt": "eval/prompts/probes/P29.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:incident",
+     "agent:operate"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "build"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "type_4_0_1": "operate",
+   "mode_4_0_1": "operate, reliability mode (live customer impact)"
+  },
+  {
+   "id": "P30",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "paraphrase dev-gate: build one small, clear behaviour",
+   "prompt": "eval/prompts/probes/P30.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:dev-gate",
+     "agent:build"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "type_4_0_1": "build",
+   "mode_4_0_1": "build: one small clear behaviour (paraphrase)"
+  },
+  {
+   "id": "P31",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "paraphrase data-migration: change stored shape of 40M rows while live",
+   "prompt": "eval/prompts/probes/P31.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:data-migration",
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "skill data-migration or plan, domain mode (fintech) for a live 40M-row change"
+  },
+  {
+   "id": "P32",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "paraphrase api-contract: rename+require a field other teams/partners consume",
+   "prompt": "eval/prompts/probes/P32.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:api-contract",
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, architecture mode (consumed field rename)"
+  },
+  {
+   "id": "P33",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "paraphrase secure: internal-only capability opened to outside parties",
+   "prompt": "eval/prompts/probes/P33.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:secure",
+     "agent:secure"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "build"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "related": [
+    "api-contract"
+   ],
+   "type_4_0_1": "secure",
+   "mode_4_0_1": "secure (internal capability opened to outsiders)"
+  },
+  {
+   "id": "P34",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "paraphrase ui-test: screen changed, want repeatable check of behaviour",
+   "prompt": "eval/prompts/probes/P34.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:ui-test",
+     "agent:verify"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "web-q"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "fixture_flags": [
+    "--with-ui"
+   ],
+   "type_4_0_1": "verify",
+   "mode_4_0_1": "verify, runtime axis (repeatable UI check)"
+  },
+  {
+   "id": "P35",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "paraphrase slo: how much unreliability is acceptable, and what happens when exceeded",
+   "prompt": "eval/prompts/probes/P35.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:slo",
+     "agent:operate"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "type_4_0_1": "operate",
+   "mode_4_0_1": "operate, reliability mode (error budget)"
+  },
+  {
+   "id": "P36",
+   "kind": "probe",
+   "class": "description-sensitive",
+   "desc": "paraphrase decompose: agreed large scope into owned, checkable, ordered pieces",
+   "prompt": "eval/prompts/probes/P36.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "skill:decompose",
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, requirements mode (decompose an agreed scope)"
+  },
+  {
+   "id": "P37",
+   "kind": "probe",
+   "class": "negative",
+   "desc": "paraphrase NEGATIVE rename a variable to payment_row is not a domain decision (SPEC §70)",
+   "prompt": "eval/prompts/probes/P37.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:build"
+    ],
+    "max_spawns": 1,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q",
+     "domain-core"
+    ],
+    "must_not_dispatch": [
+     "plan"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "related": [
+    "dev-gate"
+   ],
+   "type_4_0_1": "build",
+   "mode_4_0_1": "negative: rename a variable, build alone, no plan"
+  },
+  {
+   "id": "P38",
+   "kind": "probe",
+   "class": "negative",
+   "desc": "paraphrase NEGATIVE the word production/deploy in a README note is not an incident",
+   "prompt": "eval/prompts/probes/P38.md",
+   "max_turns": 6,
+   "expected": {
+    "max_spawns": 1,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "operate"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "type_4_0_1": "-",
+   "mode_4_0_1": "negative: the word production in a README note, no operate"
+  },
+  {
+   "id": "P39",
+   "kind": "probe",
+   "class": "negative",
+   "desc": "paraphrase NEGATIVE 'test' meaning a user comprehension test of wording is not test automation",
+   "prompt": "eval/prompts/probes/P39.md",
+   "max_turns": 6,
+   "expected": {
+    "max_spawns": 1,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "build",
+     "verify"
+    ]
+   },
+   "source": "paraphrase-v1 (Bella, keyword-free)",
+   "type_4_0_1": "-",
+   "mode_4_0_1": "negative: a wording comprehension test, no build or verify"
+  },
+  {
+   "id": "P40",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "unmeasured owner: Patrick — discovery / is this worth building + priority order",
+   "prompt": "eval/prompts/probes/P40.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "build"
+    ]
+   },
+   "source": "authored-blind-3.17 (unmeasured owner coverage)",
+   "dropped_4_0_1": [
+    "business-analyst: same type as the required route (plan)",
+    "solution-architect: same type as the required route (plan)"
+   ],
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, discover mode (is it worth building, priority)"
+  },
+  {
+   "id": "P41",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "unmeasured owner: Stan — error-handling convention standard + tech radar + refactor strategy (grounded in src/)",
+   "prompt": "eval/prompts/probes/P41.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:build"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": [
+     "plan"
+    ]
+   },
+   "source": "authored-blind-3.17 (unmeasured owner coverage; rewritten after validation 53, re-grounded after BASE adjudication 54)",
+   "dropped_4_0_1": [
+    "developer: same type as the required route (build)"
+   ],
+   "type_4_0_1": "build",
+   "mode_4_0_1": "build, staff-grade brief (error-handling convention, radar, refactor strategy)"
+  },
+  {
+   "id": "P42",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "unmeasured owner: Elena — ERP business-rule decision (period-close accrual, GR without invoice)",
+   "prompt": "eval/prompts/probes/P42.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": []
+   },
+   "source": "authored-blind-3.17 (unmeasured owner coverage)",
+   "dropped_4_0_1": [
+    "fintech-expert: same type as the required route (plan)",
+    "trading-expert: same type as the required route (plan)",
+    "insurance-expert: same type as the required route (plan)",
+    "ecommerce-expert: same type as the required route (plan)",
+    "booking-expert: same type as the required route (plan)",
+    "sap-expert: same type as the required route (plan)"
+   ],
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, domain mode (erp period-close)",
+   "domain_4_0_1": "erp"
+  },
+  {
+   "id": "P43",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "unmeasured owner: Sam — SAP decision (standard append vs Z table before ECC->S/4HANA conversion)",
+   "prompt": "eval/prompts/probes/P43.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": []
+   },
+   "source": "authored-blind-3.17 (unmeasured owner coverage)",
+   "dropped_4_0_1": [
+    "fintech-expert: same type as the required route (plan)",
+    "trading-expert: same type as the required route (plan)",
+    "insurance-expert: same type as the required route (plan)",
+    "ecommerce-expert: same type as the required route (plan)",
+    "booking-expert: same type as the required route (plan)"
+   ],
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, domain mode (sap Z table vs append)",
+   "domain_4_0_1": "sap"
+  },
+  {
+   "id": "P44",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "unmeasured owner: Brooke — booking/inventory rule decision (channel allotment, decrement point, overbooking)",
+   "prompt": "eval/prompts/probes/P44.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": []
+   },
+   "source": "authored-blind-3.17 (unmeasured owner coverage)",
+   "dropped_4_0_1": [
+    "fintech-expert: same type as the required route (plan)",
+    "trading-expert: same type as the required route (plan)",
+    "insurance-expert: same type as the required route (plan)",
+    "erp-expert: same type as the required route (plan)",
+    "ecommerce-expert: same type as the required route (plan)",
+    "sap-expert: same type as the required route (plan)"
+   ],
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, domain mode (booking allotment)",
+   "domain_4_0_1": "booking"
+  },
+  {
+   "id": "P45",
+   "kind": "probe",
+   "class": "control-agent-table",
+   "desc": "unmeasured owner: Emma — e-commerce rule decision (promotion stacking + discount order vs tax/shipping)",
+   "prompt": "eval/prompts/probes/P45.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:plan"
+    ],
+    "max_skills": 2,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "dev-gate",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q"
+    ],
+    "must_not_dispatch": []
+   },
+   "source": "authored-blind-3.17 (unmeasured owner coverage)",
+   "dropped_4_0_1": [
+    "fintech-expert: same type as the required route (plan)",
+    "trading-expert: same type as the required route (plan)",
+    "insurance-expert: same type as the required route (plan)",
+    "erp-expert: same type as the required route (plan)",
+    "booking-expert: same type as the required route (plan)",
+    "sap-expert: same type as the required route (plan)"
+   ],
+   "type_4_0_1": "plan",
+   "mode_4_0_1": "plan, domain mode (ecommerce promotion stacking)",
+   "domain_4_0_1": "ecommerce"
+  },
+  {
+   "id": "P46",
+   "kind": "probe",
+   "class": "negative",
+   "desc": "NEGATIVE over-dispatch guard: a one-line message fix in src/validators.py pitched as top business priority stays Dave alone",
+   "prompt": "eval/prompts/probes/P46.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:build"
+    ],
+    "max_spawns": 1,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q",
+     "domain-core"
+    ],
+    "must_not_dispatch": [
+     "plan"
+    ]
+   },
+   "source": "authored-blind-3.17 (over-dispatch guard; re-pointed at src/validators.py:5 after BASE adjudication 54)",
+   "related": [
+    "dev-gate"
+   ],
+   "dropped_4_0_1": [
+    "staff-engineer: same type as the required route (build)",
+    "orchestrator: not a spawn type"
+   ],
+   "type_4_0_1": "build",
+   "mode_4_0_1": "negative: one-line message fix pitched as top priority, build alone"
+  },
+  {
+   "id": "P47",
+   "kind": "probe",
+   "class": "negative",
+   "desc": "NEGATIVE over-dispatch guard: renaming RETRY in src/notification.py framed as project-wide consistency stays Dave alone",
+   "prompt": "eval/prompts/probes/P47.md",
+   "max_turns": 6,
+   "expected": {
+    "route_any": [
+     "agent:build"
+    ],
+    "max_spawns": 1,
+    "must_not_load": [
+     "api-contract",
+     "automate-test",
+     "data-migration",
+     "decompose",
+     "diagnose",
+     "drain",
+     "incident",
+     "secure",
+     "slo",
+     "ui-test",
+     "web-q",
+     "domain-core"
+    ],
+    "must_not_dispatch": [
+     "plan"
+    ]
+   },
+   "source": "authored-blind-3.17 (over-dispatch guard; re-pointed at src/notification.py:3 after BASE adjudication 54)",
+   "related": [
+    "dev-gate"
+   ],
+   "dropped_4_0_1": [
+    "staff-engineer: same type as the required route (build)",
+    "orchestrator: not a spawn type"
+   ],
+   "type_4_0_1": "build",
+   "mode_4_0_1": "negative: renaming a constant framed as project-wide consistency, build alone"
+  }
+ ]
+}

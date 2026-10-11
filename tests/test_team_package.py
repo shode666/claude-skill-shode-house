@@ -25,6 +25,26 @@ RETIRED = {
     # v4.0.0 switch (ADR iter 5 §5.2/§5.3): the router is the output style; no stub agent, no old style.
     "agents/orchestrator.md": "output-styles/shode-house.md",  # tombstone-allow
     "output-styles/oliver.md": "output-styles/shode-house.md",  # tombstone-allow
+    # v4.0.1 consolidation (18 agent types -> 6; shode-house-jni, router decisions R93): no stub agent files. Old id -> the
+    # type that owns its work now (the axis / skill / reference is in skills/discipline/shode-house-routing/ownership.md).
+    "agents/product-manager.md": "agents/plan.md",  # tombstone-allow
+    "agents/business-analyst.md": "agents/plan.md",  # tombstone-allow
+    "agents/solution-architect.md": "agents/plan.md",  # tombstone-allow
+    "agents/staff-engineer.md": "agents/build.md",  # tombstone-allow
+    "agents/developer.md": "agents/build.md",  # tombstone-allow
+    "agents/ux-ui-designer.md": "agents/design.md",  # tombstone-allow
+    "agents/code-reviewer.md": "agents/verify.md",  # tombstone-allow
+    "agents/qa-engineer.md": "agents/verify.md",  # tombstone-allow
+    "agents/security-engineer.md": "agents/secure.md",  # tombstone-allow
+    "agents/devops-engineer.md": "agents/operate.md",  # tombstone-allow
+    "agents/sre-engineer.md": "agents/operate.md",  # tombstone-allow
+    "agents/fintech-expert.md": "agents/plan.md",  # tombstone-allow
+    "agents/erp-expert.md": "agents/plan.md",  # tombstone-allow
+    "agents/sap-expert.md": "agents/plan.md",  # tombstone-allow
+    "agents/trading-expert.md": "agents/plan.md",  # tombstone-allow
+    "agents/insurance-expert.md": "agents/plan.md",  # tombstone-allow
+    "agents/booking-expert.md": "agents/plan.md",  # tombstone-allow
+    "agents/ecommerce-expert.md": "agents/plan.md",  # tombstone-allow
 }
 
 
@@ -32,8 +52,8 @@ RETIRED = {
 RENAMED = {
     "references/runbooks/oliver-clarify-estimate.md": "references/runbooks/router-clarify-estimate.md",
     "references/runbooks/oliver-engagement.md": "references/runbooks/router-engagement.md",
-    "references/runbooks/uma-phase-1b.md": "references/runbooks/ux-ui-designer-phase-1b.md",
-    "references/runbooks/uma-phase-3a.md": "references/runbooks/ux-ui-designer-phase-3a.md",
+    "references/runbooks/uma-phase-1b.md": "references/runbooks/design-phase-1b.md",
+    "references/runbooks/uma-phase-3a.md": "references/runbooks/design-phase-3a.md",
 }
 
 

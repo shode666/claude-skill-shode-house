@@ -305,17 +305,19 @@ class TeamCandidateTest(unittest.TestCase):
         self.assertEqual(20, len(skills))
         self.assertTrue(all(len(Path(p).parts) == 3 for p in skills))
 
-    def test_role_count_follows_the_retired_orchestrator(self):
-        # 19 while agents/orchestrator.md exists (3.17.2, S1-S2); 18 after the W10 switch deletes it.
+    def test_role_set_is_the_six_types(self):
+        # 4.0.1 (shode-house-jni): the 18 agent types of 4.0.0 are 6; the packer pins the set by name, so a missing,
+        # extra or retired role fails the build instead of shipping.
         _, source = pack.collect()
         roles, _ = pack.roles_and_skills(source)
-        self.assertEqual(19 if pack.RETIRED_ROLE in source else 18, len(roles))
-        if pack.RETIRED_ROLE in source:
-            trimmed = {k: v for k, v in source.items() if k != pack.RETIRED_ROLE}
-            self.assertEqual(18, len(pack.roles_and_skills(trimmed)[0]))
-            dropped = {k: v for k, v in trimmed.items() if k != "agents/developer.md"}
-            with self.assertRaises(ValueError):
-                pack.roles_and_skills(dropped)
+        self.assertEqual(sorted(pack.ROLES), sorted(Path(r).stem for r in roles))
+        self.assertEqual(6, len(roles))
+        dropped = {k: v for k, v in source.items() if k != "agents/build.md"}
+        with self.assertRaises(ValueError):
+            pack.roles_and_skills(dropped)
+        revived = dict(source, **{"agents/" + "developer" + ".md": source["agents/build.md"]})   # a retired id comes back
+        with self.assertRaises(ValueError):
+            pack.roles_and_skills(revived)
 
     # --- §5.8.1: floor carrier, pointer lines, /ask wrapper -------------------------------------
     def test_ask_skill_carries_the_style_floor_byte_equal_and_nothing_else_does(self):
@@ -398,7 +400,7 @@ class TeamCandidateTest(unittest.TestCase):
                          entries["knowledge/skills/workflow/ask/SKILL.md"])
 
     def test_relocation_rule(self):
-        agent, skill = "agents/developer.md", "skills/discipline/shode-house-routing/SKILL.md"
+        agent, skill = "agents/build.md", "skills/discipline/shode-house-routing/SKILL.md"
         self.assertEqual("see `../knowledge/references/scope-lock.md`.\n",
                          pack.relocate("see `../references/scope-lock.md`.\n", agent))
         self.assertEqual("read ../knowledge/references/a.md.\n", pack.relocate("read ../references/a.md.\n", agent))
@@ -479,11 +481,11 @@ class TeamCandidateTest(unittest.TestCase):
     def test_relative_reference_in_an_agent_or_command_source_is_refused_with_source_line(self):
         # S21-3: an agent system prompt / command body has no file location; `../x` would resolve from the project.
         _, source = pack.collect()
-        for name in ("agents/security-engineer.md", "commands/review.md"):
+        for name in ("agents/secure.md", "commands/review.md"):
             body = terminated(source[name])
             line = body.count("\n") + 1
             # S23-1: a dotfile reference (`./.env`, `../.claude/...`) is a reference too
-            for ref in ("../references/runbooks/", "./developer.md", "./.env", "../.claude/settings.json"):
+            for ref in ("../references/runbooks/", "./build.md", "./.env", "../.claude/settings.json"):
                 with self.assertRaises(ValueError) as caught:
                     pack.generate(name, (body + f"Read `{ref}`.\n").encode(), source, set())
                 self.assertIn(f"{name}:{line}: relative reference `{ref}` {pack.LOCATION_FREE_RULE}",
@@ -495,9 +497,9 @@ class TeamCandidateTest(unittest.TestCase):
             fenced = (body + "```bash\n./mvnw test && cat ../a.md\n```\n").encode()
             pack.generate(name, fenced, source, set())                     # project shell text: allowed
         # floor text is the same system prompt: refused there too (Sentinel F3b)
-        agent = put_body_floor(source["agents/sre-engineer.md"], "## Safety floor (t)\n- `./developer.md`\n")
-        with self.assertRaisesRegex(ValueError, r"agents/sre-engineer\.md:\d+: relative reference `\./developer\.md`"):
-            pack.generate("agents/sre-engineer.md", agent, source, set())
+        agent = put_body_floor(source["agents/operate.md"], "## Safety floor (t)\n- `./build.md`\n")
+        with self.assertRaisesRegex(ValueError, r"agents/operate\.md:\d+: relative reference `\./build\.md`"):
+            pack.generate("agents/operate.md", agent, source, set())
 
     def test_project_path_in_skill_prose_is_refused_at_the_source_line(self):
         # C15-2: `./mvnw` in prose used to fail as a relocated tree reference at a tree line.
@@ -558,7 +560,7 @@ class TeamCandidateTest(unittest.TestCase):
                 ("_../.claude/settings.json_", "../.claude/settings.json"), ("../ไทย.md", "../ไทย.md"),
                 ("../@x", "../@x"), ("./~x", "./~x"), ("./-x.md", "./-x.md"),
                 ("~~../.ssh/id_rsa~~", "../.ssh/id_rsa~~"), ("~../.env~", "../.env~"))   # S23-11
-        for name, rule in (("agents/developer.md", pack.LOCATION_FREE_RULE), ("commands/review.md",
+        for name, rule in (("agents/build.md", pack.LOCATION_FREE_RULE), ("commands/review.md",
                            pack.LOCATION_FREE_RULE), ("skills/ops/slo/SKILL.md", "names no shipped file")):
             body = terminated(source[name])
             line = body.count("\n") + 1
@@ -582,7 +584,7 @@ class TeamCandidateTest(unittest.TestCase):
         paths = ("references/../../../../.ssh/id_rsa", "${CLAUDE_PLUGIN_ROOT}/../../.ssh/id_rsa",
                  "$CLAUDE_PLUGIN_ROOT/../x", "skills/../../../x", "knowledge/references//../../x",
                  "agents/../commands/review.md", "output-styles/../../x")
-        for name in ("agents/developer.md", "commands/review.md", "skills/ops/slo/SKILL.md"):
+        for name in ("agents/build.md", "commands/review.md", "skills/ops/slo/SKILL.md"):
             body = terminated(source[name])
             line = body.count("\n") + 1
             for path in paths:
@@ -695,7 +697,7 @@ class TeamCandidateTest(unittest.TestCase):
     def test_every_root_file_needs_frontmatter(self):
         # Chris W2 S-7: the 3.17 packer refused a role or skill without frontmatter; so does generate().
         _, source = pack.collect()
-        for name in ("skills/ops/slo/SKILL.md", "agents/developer.md", "commands/review.md"):
+        for name in ("skills/ops/slo/SKILL.md", "agents/build.md", "commands/review.md"):
             with self.assertRaises(ValueError) as caught:
                 pack.generate(name, b"no frontmatter here\n", source, set())
             self.assertIn(f"missing frontmatter: {name}", str(caught.exception))
@@ -706,13 +708,13 @@ class TeamCandidateTest(unittest.TestCase):
         _, source = pack.collect()
         self.assertEqual(preloaded_on_disk(), pack.preloaded(source))   # the packer agrees with json.loads
         quoted = 'skills: ["shode-house:shode-house-discipline"'   # v4 W5b: preloads are namespaced
-        self.assertIn(quoted.encode(), source["agents/developer.md"])
+        self.assertIn(quoted.encode(), source["agents/build.md"])
         for bad in ('skills: [ask, shode-house-discipline', 'skills:\n  - ask\n  - "shode-house-discipline"\n#'):
             trial = dict(source)
-            trial["agents/developer.md"] = source["agents/developer.md"].replace(quoted.encode(), bad.encode(), 1)
+            trial["agents/build.md"] = source["agents/build.md"].replace(quoted.encode(), bad.encode(), 1)
             with self.assertRaises(ValueError) as caught:
                 pack.preloaded(trial)
-            self.assertIn("agents/developer.md: `skills:` must be a JSON-style quoted single-line list",
+            self.assertIn("agents/build.md: `skills:` must be a JSON-style quoted single-line list",
                           str(caught.exception))
 
     def test_footer_wording_is_pinned_literally(self):
@@ -743,7 +745,7 @@ class TeamCandidateTest(unittest.TestCase):
         out = pack.rewrite(EXECUTOR)
         self.assertIn(EXECUTOR_TREE, out)
         entries = {"knowledge/references/design-intel/scripts/design_run.py": b""}
-        self.assertEqual([], pack._script_problems("agents/developer.md", out, entries))
+        self.assertEqual([], pack._script_problems("agents/build.md", out, entries))
 
     # --- style --------------------------------------------------------------------------------------
     def test_generated_tree_carries_the_output_styles_verbatim_at_the_top_level(self):
@@ -849,16 +851,16 @@ class PackagingContractMutationTest(unittest.TestCase):
         self.assertEqual([], pack.audit(self.entries, self.source))
 
     def test_model_inherit_is_red(self):
-        model = re.search(r"^model: .*$", self.entries["agents/developer.md"].decode(), re.M).group(0)
-        self.red(self.edit("agents/developer.md", model, "model: inherit"), "agents/developer.md: `model:` not kept")
+        model = re.search(r"^model: .*$", self.entries["agents/build.md"].decode(), re.M).group(0)
+        self.red(self.edit("agents/build.md", model, "model: inherit"), "agents/build.md: `model:` not kept")
 
     def test_three_line_adapter_instead_of_verbatim_body_is_red(self):
         entries = dict(self.entries)
-        header = entries["agents/qa-engineer.md"].decode().split("---", 2)[1]
-        entries["agents/qa-engineer.md"] = ("---" + header + "---\n\nRead [qa-engineer](../knowledge/agents/"
-                                            "qa-engineer.md) in full.\n" + pack.AGENT_FOOTER).encode()
+        header = entries["agents/verify.md"].decode().split("---", 2)[1]
+        entries["agents/verify.md"] = ("---" + header + "---\n\nRead [verify](../knowledge/agents/"
+                                            "verify.md) in full.\n" + pack.AGENT_FOOTER).encode()
         # "differs from its source" today; "floor marker layout differs" once the body carries floor markers
-        self.red(entries, "agents/qa-engineer.md: ")
+        self.red(entries, "agents/verify.md: ")
 
     def test_missing_footer_is_red(self):
         self.red(self.edit("commands/review.md", pack.COMMAND_FOOTER, "\n"), "commands/review.md: does not end")
@@ -873,25 +875,25 @@ class PackagingContractMutationTest(unittest.TestCase):
         source = dict(self.source)
         floor = ("<!-- floor:begin -->\n## Safety floor (t)\n- `${CLAUDE_PLUGIN_ROOT}/references/x.md`\n"
                  "<!-- floor:end -->\n")
-        source["agents/developer.md"] = put_body_floor(source["agents/developer.md"],
+        source["agents/build.md"] = put_body_floor(source["agents/build.md"],
                                                        "## Safety floor (t)\n- `${CLAUDE_PLUGIN_ROOT}/references/x.md`\n")
         entries = dict(self.entries)
-        good = pack.generate("agents/developer.md", source["agents/developer.md"], source, set())
+        good = pack.generate("agents/build.md", source["agents/build.md"], source, set())
         self.assertIn(floor, good)
-        entries["agents/developer.md"] = good.encode()
+        entries["agents/build.md"] = good.encode()
         self.assertEqual([], pack.audit(entries, source))
         bad = good.replace("${CLAUDE_PLUGIN_ROOT}/references/x.md", "${CLAUDE_PLUGIN_ROOT}/knowledge/references/x.md")
-        entries["agents/developer.md"] = bad.encode()
+        entries["agents/build.md"] = bad.encode()
         self.red(entries, "floor bytes differ from source", source)
 
     def test_unrewritten_and_unanchored_executor_paths_are_red(self):
         source = dict(self.source)
-        source["agents/qa-engineer.md"] = source["agents/qa-engineer.md"] + EXECUTOR.encode()
+        source["agents/verify.md"] = source["agents/verify.md"] + EXECUTOR.encode()
         entries = dict(self.entries)
         entries["knowledge/references/design-intel/scripts/design_run.py"] = b"#"
-        good = pack.generate("agents/qa-engineer.md", source["agents/qa-engineer.md"], source, set())
+        good = pack.generate("agents/verify.md", source["agents/verify.md"], source, set())
         self.assertIn(EXECUTOR_TREE, good)
-        entries["agents/qa-engineer.md"] = good.encode()
+        entries["agents/verify.md"] = good.encode()
         self.assertEqual([], pack.audit(entries, source))
         for bad, needle in (
                 (good.replace(EXECUTOR_TREE, '"${CLAUDE_PLUGIN_ROOT}/references/design-intel/scripts/design_run.py"'),
@@ -900,9 +902,9 @@ class PackagingContractMutationTest(unittest.TestCase):
                  "not root-anchored"),
                 (good.replace(EXECUTOR_TREE, "${CLAUDE_PLUGIN_ROOT}/knowledge/references/design-intel/scripts/"
                                              "design_run.py"), "not root-anchored")):
-            entries["agents/qa-engineer.md"] = bad.encode()
+            entries["agents/verify.md"] = bad.encode()
             self.red(entries, needle, source)
-        entries["agents/qa-engineer.md"] = good.encode()
+        entries["agents/verify.md"] = good.encode()
         del entries["knowledge/references/design-intel/scripts/design_run.py"]
         self.red(entries, "does not resolve to a file in the tree", source)
 
@@ -930,9 +932,9 @@ class PackagingContractMutationTest(unittest.TestCase):
 
     def test_a_role_preloading_ask_is_red(self):
         source = dict(self.source)
-        source["agents/developer.md"] = source["agents/developer.md"].replace(
+        source["agents/build.md"] = source["agents/build.md"].replace(
             b'skills: ["shode-house:shode-house-discipline"', b'skills: ["shode-house:ask", "shode-house:shode-house-discipline"', 1)
-        self.assertNotEqual(source["agents/developer.md"], self.source["agents/developer.md"])
+        self.assertNotEqual(source["agents/build.md"], self.source["agents/build.md"])
         self.red(self.entries, "a role preloads `ask`", source)
 
     def test_ask_wrapper_repointed_to_knowledge_is_red(self):
@@ -982,18 +984,18 @@ class PackagingContractMutationTest(unittest.TestCase):
         # Chris W2 S-1: the old lossy inverse (knowledge/ -> plugin root) accepted a tree that also moved
         # paths the tree keeps at its root (skills/ask/, agents/) to knowledge/, where skills/ask/ does not exist.
         source = dict(self.source)
-        line = ("See `${CLAUDE_PLUGIN_ROOT}/skills/ask/SKILL.md`, `${CLAUDE_PLUGIN_ROOT}/agents/qa-engineer.md` "
+        line = ("See `${CLAUDE_PLUGIN_ROOT}/skills/ask/SKILL.md`, `${CLAUDE_PLUGIN_ROOT}/agents/verify.md` "
                 "and `${CLAUDE_PLUGIN_ROOT}/references/scope-lock.md`.\n")
-        source["agents/developer.md"] = source["agents/developer.md"] + line.encode()
-        good = pack.generate("agents/developer.md", source["agents/developer.md"], source, set())
+        source["agents/build.md"] = source["agents/build.md"] + line.encode()
+        good = pack.generate("agents/build.md", source["agents/build.md"], source, set())
         self.assertIn("`${CLAUDE_PLUGIN_ROOT}/knowledge/references/scope-lock.md`", good)
         entries = dict(self.entries)
-        entries["agents/developer.md"] = good.encode()
+        entries["agents/build.md"] = good.encode()
         self.assertEqual([], pack.audit(entries, source))
-        for wrong in ("skills/ask/SKILL.md", "agents/qa-engineer.md"):
-            entries["agents/developer.md"] = good.replace("${CLAUDE_PLUGIN_ROOT}/" + wrong,
+        for wrong in ("skills/ask/SKILL.md", "agents/verify.md"):
+            entries["agents/build.md"] = good.replace("${CLAUDE_PLUGIN_ROOT}/" + wrong,
                                                           "${CLAUDE_PLUGIN_ROOT}/knowledge/" + wrong).encode()
-            self.red(entries, "agents/developer.md: rewrites a plugin-root path outside the F-4 set", source)
+            self.red(entries, "agents/build.md: rewrites a plugin-root path outside the F-4 set", source)
 
     def test_source_ask_skill_carrying_the_style_floor_is_red(self):
         # Chris W2 S-3 (M14): the carrier is the generated tree skill only; a source copy would reach it twice.
@@ -1018,10 +1020,10 @@ class PackagingContractMutationTest(unittest.TestCase):
         # Sentinel W2 S2: `skills: [ask, x]` is valid YAML the host preloads; it must not read as "no ask".
         for bad in (b'skills: [ask, shode-house-discipline', b'skills:\n  - ask\n  - "shode-house-discipline"\n#'):
             source = dict(self.source)
-            source["agents/developer.md"] = source["agents/developer.md"].replace(
+            source["agents/build.md"] = source["agents/build.md"].replace(
                 b'skills: ["shode-house:shode-house-discipline"', bad, 1)   # v4 W5b: preloads are namespaced
-            self.assertNotEqual(source["agents/developer.md"], self.source["agents/developer.md"])
-            self.red(self.entries, "agents/developer.md: `skills:` must be a JSON-style quoted", source)
+            self.assertNotEqual(source["agents/build.md"], self.source["agents/build.md"])
+            self.red(self.entries, "agents/build.md: `skills:` must be a JSON-style quoted", source)
 
     def test_command_without_the_pointer_or_ask_wrapper_with_it_is_red(self):
         # Sentinel W2 S1.
@@ -1088,9 +1090,9 @@ class PackagingContractMutationTest(unittest.TestCase):
                                 for p in pack._reference_problems(self.edit(path, "\n# ", "\n" + opener + "# "))))
 
     def test_relative_reference_in_a_tree_agent_or_command_is_red_even_when_it_resolves(self):
-        # S21-3 (Sentinel mutant): `../knowledge/agents/developer.md` resolves from agents/, but an agent system
+        # S21-3 (Sentinel mutant): `../knowledge/agents/build.md` resolves from agents/, but an agent system
         # prompt or a command body has no file location, so the host would resolve it from the project.
-        for path, ref in (("agents/security-engineer.md", "../knowledge/agents/developer.md"),
+        for path, ref in (("agents/secure.md", "../knowledge/agents/build.md"),
                           ("commands/review.md", "../knowledge/references/runbooks/")):
             footer = pack.AGENT_FOOTER if path.startswith("agents/") else pack.COMMAND_FOOTER
             entries = self.edit(path, footer, f"\nRead `{ref}`.\n" + footer)
@@ -1099,14 +1101,14 @@ class PackagingContractMutationTest(unittest.TestCase):
         fenced = self.edit("commands/review.md", pack.COMMAND_FOOTER, "\n```bash\n./mvnw test\n```\n" + pack.COMMAND_FOOTER)
         self.assertEqual([], pack._reference_problems(fenced))
         # the knowledge/ copy is read as a file, so a resolving reference there is fine
-        knowledge = self.edit("knowledge/agents/security-engineer.md", "\n## ", "\nsee ./developer.md\n## ")
+        knowledge = self.edit("knowledge/agents/secure.md", "\n## ", "\nsee ./build.md\n## ")
         self.assertEqual([], pack._reference_problems(knowledge))
 
     def test_dotfile_reference_in_the_tree_is_red(self):
         # S23-1 (Sentinel e2e): `./.env` in an agent or command, and an escaping `.ssh` reference in a skill or a
         # knowledge/ copy, passed --tree and --check.
-        for path, ref in (("agents/developer.md", "./.env"), ("commands/review.md", "./.env"),
-                          ("agents/developer.md", "../.claude/settings.json")):
+        for path, ref in (("agents/build.md", "./.env"), ("commands/review.md", "./.env"),
+                          ("agents/build.md", "../.claude/settings.json")):
             footer = pack.AGENT_FOOTER if path.startswith("agents/") else pack.COMMAND_FOOTER
             entries = self.edit(path, footer, f"\nRead {ref} first.\n" + footer)
             self.red(entries, f"{path}:{self.line_of(entries, path, ref)}: relative reference `{ref}` "
@@ -1120,7 +1122,7 @@ class PackagingContractMutationTest(unittest.TestCase):
     def test_relative_reference_in_an_output_style_is_red_even_when_it_resolves(self):
         # R59: an output style is the main-session system prompt, with no file location (same class as S21-3).
         for path in ("output-styles/shode-house.md",):  # v4 S3: output-styles/shode-house.md is deleted (rename map)
-            for ref in ("../agents/developer.md", "../knowledge/agents/developer.md", "./shode-house.md",
+            for ref in ("../agents/build.md", "../knowledge/agents/build.md", "./shode-house.md",
                         "../.claude/settings.json"):
                 entries = dict(self.entries)
                 entries[path] = entries[path] + f"\nRead {ref} first.\n".encode()
@@ -1151,11 +1153,11 @@ class PackagingContractMutationTest(unittest.TestCase):
         # S23-7 / S23-10 (Sentinel r2 e2e), S23-11 (r3 e2e): these spellings passed --tree and --check in an agent,
         # a command, a skill and a style.
         cases = (("..//.ssh/id_rsa", "..//.ssh/id_rsa"), (".//.env", ".//.env"), (".././/.env", ".././/.env"),
-                 ("_../.claude/settings.json_", "../.claude/settings.json"), ("..//agents/developer.md",
-                 "..//agents/developer.md"), ("../ไทย.md", "../ไทย.md"), ("../@x", "../@x"), ("./~x", "./~x"),
+                 ("_../.claude/settings.json_", "../.claude/settings.json"), ("..//agents/build.md",
+                 "..//agents/build.md"), ("../ไทย.md", "../ไทย.md"), ("../@x", "../@x"), ("./~x", "./~x"),
                  ("./-x.md", "./-x.md"), ("~~../.ssh/id_rsa~~", "../.ssh/id_rsa~~"), ("~../.env~", "../.env~"),
-                 ("~~..//agents/developer.md~~", "..//agents/developer.md~~"))   # S23-11 (Sentinel r3 e2e)
-        for path in ("agents/developer.md", "commands/review.md", "output-styles/shode-house.md"):
+                 ("~~..//agents/build.md~~", "..//agents/build.md~~"))   # S23-11 (Sentinel r3 e2e)
+        for path in ("agents/build.md", "commands/review.md", "output-styles/shode-house.md"):
             for written, ref in cases:
                 entries, line = self.append(path, f"Read {written} before routing.\n")
                 self.red(entries, f"{path}:{line}: relative reference `{ref}` {pack.LOCATION_FREE_RULE}")
@@ -1171,7 +1173,7 @@ class PackagingContractMutationTest(unittest.TestCase):
         # S23-9: an agent, command, skill root, style and a knowledge/ reference document, in prose or fenced code.
         paths = ("references/../../../../.ssh/id_rsa", "${CLAUDE_PLUGIN_ROOT}/../../.ssh/id_rsa",
                  "${CLAUDE_PLUGIN_ROOT}/knowledge/references/../../../x", "knowledge/skills/../../x")
-        for path in ("agents/developer.md", "commands/review.md", "skills/slo/SKILL.md", "output-styles/shode-house.md",
+        for path in ("agents/build.md", "commands/review.md", "skills/slo/SKILL.md", "output-styles/shode-house.md",
                      "knowledge/references/runbooks/resolve-merge-conflicts.md"):
             for climbing in paths:
                 for added in (f"Read `{climbing}` first.\n", f"```bash\ncat \"{climbing}\"\n```\n"):
@@ -1181,10 +1183,10 @@ class PackagingContractMutationTest(unittest.TestCase):
 
     def test_damaged_tree_frontmatter_is_reported_not_raised(self):
         # Chris W2 S-5: one damaged file is a problem line; the other problems are still reported.
-        entries = self.edit("agents/developer.md", "---\n", "--- \n")
+        entries = self.edit("agents/build.md", "---\n", "--- \n")
         entries = self.edit("commands/review.md", pack.COMMAND_FOOTER, "\n", entries)
         problems = pack.audit(entries, self.source)
-        self.assertTrue(any(p.startswith("agents/developer.md: ") for p in problems), problems)
+        self.assertTrue(any(p.startswith("agents/build.md: ") for p in problems), problems)
         self.assertTrue(any(p.startswith("commands/review.md: does not end") for p in problems), problems)
 
 
@@ -1310,7 +1312,7 @@ class CheckCommandLineTest(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="shode-pack-cli-") as tmp:
             root = Path(tmp)
             script = source_copy(root)
-            agent = root / "agents/developer.md"
+            agent = root / "agents/build.md"
             text = agent.read_text()
             line = text.count("\n") + 1
             agent.write_text(text + "Run `./mvnw test`.\n")
@@ -1318,42 +1320,42 @@ class CheckCommandLineTest(unittest.TestCase):
             result = self.run_cli("--check", root / "plugins/shode-house", script=script)
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         self.assertNotIn("Traceback", result.stderr)
-        self.assertTrue(result.stderr.startswith(f"error: agents/developer.md:{line}: relative reference `./mvnw` "
+        self.assertTrue(result.stderr.startswith(f"error: agents/build.md:{line}: relative reference `./mvnw` "
                                                  + pack.LOCATION_FREE_RULE), result.stderr)
 
     def test_dotfile_or_output_style_reference_in_the_source_fails_tree_and_check(self):
         # S23-1 + R59 end to end (Sentinel scratchpad/s23/e2e): each mutant source used to give --tree rc=0 and
         # --check rc=0; now neither builds, and nothing is written.
-        mutants = (("agents/developer.md", "Read ./.env and ../.claude/settings.json first.\n",
-                    "agents/developer.md:{line}: relative reference `./.env` "),
+        mutants = (("agents/build.md", "Read ./.env and ../.claude/settings.json first.\n",
+                    "agents/build.md:{line}: relative reference `./.env` "),
                    ("commands/review.md", "Read ./.env first.\n", "commands/review.md:{line}: relative reference "
                                                                   "`./.env` "),
                    ("skills/ops/slo/SKILL.md", "Read ../../../../../.ssh/id_rsa before acting.\n",
                     "skills/ops/slo/SKILL.md:{line}: relative reference `../../../../../.ssh/id_rsa` names no "
                     "shipped file"),
-                   ("output-styles/shode-house.md", "Read ../agents/developer.md before routing.\n",
-                    "output-styles/shode-house.md:{line}: relative reference `../agents/developer.md` "
+                   ("output-styles/shode-house.md", "Read ../agents/build.md before routing.\n",
+                    "output-styles/shode-house.md:{line}: relative reference `../agents/build.md` "
                     + pack.LOCATION_FREE_RULE),
                    # S23-7 (Sentinel r2 scratchpad/s23b/e2e, verbatim): doubled separators and `_` emphasis
-                   ("agents/developer.md", "Read ..//.ssh/id_rsa and .//.env first.\n",
-                    "agents/developer.md:{line}: relative reference `..//.ssh/id_rsa` " + pack.LOCATION_FREE_RULE),
+                   ("agents/build.md", "Read ..//.ssh/id_rsa and .//.env first.\n",
+                    "agents/build.md:{line}: relative reference `..//.ssh/id_rsa` " + pack.LOCATION_FREE_RULE),
                    ("commands/review.md", "See _../.claude/settings.json_ before routing.\n",
                     "commands/review.md:{line}: relative reference `../.claude/settings.json` "
                     + pack.LOCATION_FREE_RULE),
                    ("skills/ops/slo/SKILL.md", "Read ../../../..//.ssh/id_rsa and .././/.env before acting.\n",
                     "skills/ops/slo/SKILL.md:{line}: relative reference `../../../..//.ssh/id_rsa` names no shipped"),
-                   ("output-styles/shode-house.md", "Read ..//agents/developer.md before routing.\n",
-                    "output-styles/shode-house.md:{line}: relative reference `..//agents/developer.md` "
+                   ("output-styles/shode-house.md", "Read ..//agents/build.md before routing.\n",
+                    "output-styles/shode-house.md:{line}: relative reference `..//agents/build.md` "
                     + pack.LOCATION_FREE_RULE),
                    # S23-11 (Sentinel r3 scratchpad/s23c/e2e, verbatim): a `~~` strikethrough wrapper
-                   ("agents/developer.md", "Read ~~../.ssh/id_rsa~~ first.\n",
-                    "agents/developer.md:{line}: relative reference `../.ssh/id_rsa~~` " + pack.LOCATION_FREE_RULE),
+                   ("agents/build.md", "Read ~~../.ssh/id_rsa~~ first.\n",
+                    "agents/build.md:{line}: relative reference `../.ssh/id_rsa~~` " + pack.LOCATION_FREE_RULE),
                    # S23-10: a first name starting with a non-ASCII letter
                    ("skills/ops/slo/SKILL.md", "Read ../ไทย.md first.\n",
                     "skills/ops/slo/SKILL.md:{line}: relative reference `../ไทย.md` names no shipped file"),
                    # S23-9: a plugin-root or source-root path that climbs, in prose or fenced, in any shipped Markdown
-                   ("agents/developer.md", "Read `references/../../../../.ssh/id_rsa` first.\n",
-                    "agents/developer.md:{line}: path `references/../../../../.ssh/id_rsa` " + pack.ROOTED_RULE),
+                   ("agents/build.md", "Read `references/../../../../.ssh/id_rsa` first.\n",
+                    "agents/build.md:{line}: path `references/../../../../.ssh/id_rsa` " + pack.ROOTED_RULE),
                    ("references/runbooks/resolve-merge-conflicts.md",
                     "Run `cat \"${CLAUDE_PLUGIN_ROOT}/../../.ssh/id_rsa\"`.\n",
                     "knowledge/references/runbooks/resolve-merge-conflicts.md:{line}: path "
@@ -1843,14 +1845,14 @@ class CheckCommandLineTest(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="shode-pack-cli-") as tmp:
             root = Path(tmp)
             script = source_copy(root)
-            agent = root / "agents/developer.md"
+            agent = root / "agents/build.md"
             agent.write_bytes(put_body_floor(agent.read_bytes(), "text\n").replace(b"<!-- floor:end -->\n", b"", 1))
             (root / "plugins/shode-house").mkdir(parents=True)
             result = self.run_cli("--check", root / "plugins/shode-house", script=script)
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         self.assertNotIn("Traceback", result.stderr)
         self.assertEqual(1, len(result.stderr.splitlines()), result.stderr)
-        self.assertTrue(result.stderr.startswith("error: agents/developer.md: malformed floor markers"), result.stderr)
+        self.assertTrue(result.stderr.startswith("error: agents/build.md: malformed floor markers"), result.stderr)
 
 
 class SourceSymlinkRefusalTest(unittest.TestCase):

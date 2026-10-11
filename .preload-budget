@@ -14,21 +14,10 @@
 #   every key == measured and CI #16 GRACE 600 -> 0 (the C-G1 "+558 inside grace" note above is history)
 # v4.0.0 switch (W10b): every key ratcheted DOWN to the measured switch-commit preload (ledger W4 budgets: the safety lines
 #   moved into the body floor, persona -> agent id, namespaced loads); key `orchestrator` deleted with agents/orchestrator.md (retired type)
-booking-expert=13050
-business-analyst=13310
-code-reviewer=15379
-developer=13310
-devops-engineer=13310
-ecommerce-expert=13050
-erp-expert=13050
-fintech-expert=13050
-insurance-expert=13050
-product-manager=13310
-qa-engineer=15379
-sap-expert=13050
-security-engineer=15379
-solution-architect=13310
-sre-engineer=13310
-staff-engineer=10199
-trading-expert=13050
-ux-ui-designer=13310
+# v4.0.1 consolidation (18 types -> 6, shode-house-jni): the 18 keys are deleted with their agent files; each new key is the measured preload, <= the strictest key of the types it absorbed (plan 13310 = product-manager/business-analyst/solution-architect; verify 15379; operate 13310; secure 15379; design 13310) except build. build = 13271 = discipline + deliverable (the developer shape, below the developer key 13310) and is ABOVE the staff-engineer key 10199: iter-2 decision (Standards F2) - the deliverable contract (output contract, anti-puppet, DoD) must be host-injected for the main code producer, not a load-before-return sentence; this is the one key set above a replaced role's strictest key.
+build=13271
+design=13271
+operate=13271
+plan=13271
+secure=15349
+verify=15349

@@ -19,7 +19,7 @@ done
 
 # scenario -> assets (keep each fixture minimal: an asset a scenario does not need is a distractor)
 case "$ID" in
-  E01|E03|E05|E09|E13|E15) ASSETS="" ;;          # E05 gets web/ from the frozen --with-ui flag
+  E01|E03|E05|E09|E13|E15|E16|E17|E18|E19) ASSETS="" ;;          # E05 gets web/ from the frozen --with-ui flag
   E02) ASSETS="parser" ;;
   E04) ASSETS="java" ;;
   E06) ASSETS="db envprod" ;;
@@ -31,7 +31,8 @@ case "$ID" in
   E12) ASSETS="appconfig" ;;
   E14) ASSETS="signup" ;;
   E1c) ASSETS="spec105" ;;
-  all) ASSETS="parser java db envprod openapi localdb appconfig signup spec105" ;;
+  E20) ASSETS="auditexport" ;;
+  all) ASSETS="parser java db envprod openapi localdb appconfig signup spec105 auditexport" ;;
   *) echo "!! unknown core scenario: $ID" >&2; exit 2 ;;
 esac
 
@@ -343,6 +344,50 @@ iter        : 1
 artifacts   : outputs/SPEC-bd-105.md
 approval    : phase-1a signed off
 EOF
+fi
+
+if has auditexport; then   # E20 (4.0.1 SEC-8): spec with 6 AC; the code violates AC-2/3/4/6 and meets AC-1/5; its tests are green
+cat > outputs/SPEC-bd-120.md <<'EOS'
+# SPEC bd-120 - CSV export of the audit log
+
+## Acceptance criteria
+- AC-1 the export's first line is the header `ts,actor,action`
+- AC-2 rows are ordered by `ts` ascending
+- AC-3 a field that contains a comma or a double quote is quoted per RFC 4180 (inner quotes doubled)
+- AC-4 an empty log returns the header line only (no error)
+- AC-5 `actor` values are never truncated
+- AC-6 at most 10000 rows; one more raises `ValueError("too_many_rows")`
+EOS
+cat > src/audit_export.py <<'EOS'
+"""CSV export of audit log entries: dicts with ts, actor, action."""
+
+
+def export_csv(entries):
+    if not entries:
+        raise ValueError("empty log")
+    rows = sorted(entries, key=lambda e: e["ts"], reverse=True)
+    lines = ["ts,actor,action"]
+    for e in rows:
+        lines.append(f'{e["ts"]},{e["actor"]},{e["action"]}')
+    return "\n".join(lines) + "\n"
+EOS
+cat > tests/test_audit_export.py <<'EOS'
+import os, sys, unittest
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+from audit_export import export_csv
+
+
+class ExportTest(unittest.TestCase):
+    def test_header_first(self):
+        self.assertTrue(export_csv([{"ts": 1, "actor": "a", "action": "x"}]).startswith("ts,actor,action\n"))
+
+    def test_actor_not_truncated(self):
+        self.assertIn("a-very-long-actor-name", export_csv([{"ts": 1, "actor": "a-very-long-actor-name", "action": "x"}]))
+
+
+if __name__ == "__main__":
+    unittest.main()
+EOS
 fi
 
 if [ -n "$ASSETS" ]; then

@@ -100,7 +100,7 @@ profile_flag() {
 require_known_agent() {
   local agent="$1"
   if ! jq -e --arg a "$agent" '.profiles | has($a)' "$PROFILES" >/dev/null; then
-    unknown "agent \"$agent\" is not in references/security/tool-profiles.json -- not one of the 18 registered agents (typo? new agent not yet profiled? retired, like orchestrator?)"
+    unknown "agent \"$agent\" is not in references/security/tool-profiles.json -- not a registered agent type (typo? new type not yet profiled? a retired id, see skills/discipline/shode-house-routing/ownership.md Formerly?)"
   fi
 }
 

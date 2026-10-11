@@ -98,10 +98,10 @@ class DataDrivenBudgetTest(unittest.TestCase):
         # both forms must resolve to the same preloaded skills (Chris W5a C-6: the test must still compare two forms)
         prefix = self.plugin + ":"
         self.assertGreater(self.rewrite_preloads(lambda n: n[len(prefix):] if n.startswith(prefix) else n), 0)
-        self.assertIn('"shode-house-discipline"', (self.root / "agents/developer.md").read_text())
+        self.assertIn('"shode-house-discipline"', (self.root / "agents/build.md").read_text())
         bare = self.json_ok()
         self.assertGreater(self.rewrite_preloads(lambda n: n if n.startswith(prefix) else prefix + n), 0)
-        self.assertIn('"%s:shode-house-discipline"' % self.plugin, (self.root / "agents/developer.md").read_text())
+        self.assertIn('"%s:shode-house-discipline"' % self.plugin, (self.root / "agents/build.md").read_text())
         after = self.json_ok()   # bodies grow by the prefix bytes; the preload must resolve to the same skills
         for key in ("preload", "skills"):
             self.assertEqual({k: v[key] for k, v in bare["agents"].items()},
@@ -111,18 +111,18 @@ class DataDrivenBudgetTest(unittest.TestCase):
         self.assertTrue(all(v["preload"] > 0 for v in after["agents"].values()))
 
     def deliverable_preload(self):
-        text = (self.root / "agents/developer.md").read_text()
+        text = (self.root / "agents/plan.md").read_text()
         for form in ('"%s:shode-house-deliverable"' % self.plugin, '"shode-house-deliverable"'):
             if form in text:
                 return form
-        self.fail("agents/developer.md preloads no shode-house-deliverable")
+        self.fail("agents/plan.md preloads no shode-house-deliverable")
 
     def test_unknown_preload_is_an_error_not_zero_bytes(self):
-        self.edit("agents/developer.md", self.deliverable_preload(), '"%s:code-index"' % self.plugin)
-        self.assert_error("developer: preload ['code-index'] is not a shipped skill")
+        self.edit("agents/plan.md", self.deliverable_preload(), '"%s:code-index"' % self.plugin)
+        self.assert_error("plan: preload ['code-index'] is not a shipped skill")
 
     def test_preload_from_unshipped_bucket_is_an_error(self):
-        self.edit("agents/developer.md", self.deliverable_preload(), '"eval-harness"')
+        self.edit("agents/plan.md", self.deliverable_preload(), '"eval-harness"')
         self.assertTrue(any((self.root / "skills").glob("*/eval-harness/SKILL.md")))   # exists, but not shipped
         self.assert_error("not a shipped skill")
 
@@ -176,7 +176,7 @@ class DataDrivenBudgetTest(unittest.TestCase):
         # the optional branch: counted while present, dropped once removed (the test used to skip at 4.0.0).
         orch = self.root / "agents/orchestrator.md"
         self.assertFalse(orch.exists(), "agents/orchestrator.md is retired in 4.0.0")
-        shutil.copy2(self.root / "agents/product-manager.md", orch)
+        shutil.copy2(self.root / "agents/plan.md", orch)
         present = self.json_ok()
         added = present["agents"]["orchestrator"]["total"]
         self.assertGreater(added, 0)
@@ -188,8 +188,8 @@ class DataDrivenBudgetTest(unittest.TestCase):
         after = self.json_ok()["scenarios"]
         self.assertEqual(present["scenarios"]["map-mode"]["total"] - removed, after["map-mode"]["total"])
         self.assertEqual(present["scenarios"]["map-mode"]["agent_count"] - 1, after["map-mode"]["agent_count"])
-        (self.root / "agents/product-manager.md").unlink()
-        self.assert_error("agent file missing: agents/product-manager.md")
+        (self.root / "agents/plan.md").unlink()
+        self.assert_error("agent file missing: agents/plan.md")
 
     def test_missing_lazy_reference_is_an_error(self):
         (self.root / "skills/workflow/diagnose/loop-ladder.md").unlink()

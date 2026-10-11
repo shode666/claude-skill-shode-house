@@ -5,7 +5,8 @@
 reviewed change to this pin, never a side effect of a body edit. The agent set is read from
 agents/*.md, never from a count: every agent file must have a pin and every pin a file.
 
-Two pins, selected by DATA (ADR §7 W1/W10 -- the 4.0.0 switch flips them, nobody edits a flag):
+v4.0.1: the roster is 6 types (plan build verify operate secure design); PIN_4X below is their pin and PIN_4_0_0 the
+retired 18-id roster whose per-role tools are the ceilings. Two pins, selected by DATA (ADR §7 W1/W10 -- the 4.0.0 switch flips them, nobody edits a flag):
   PIN_3X  = today's tools (3.17.x), the active pin while .claude-plugin/plugin.json major < 4.
   PIN_4X  = ADR §5.2 roster: `orchestrator` retired, `ux-ui-designer` without Bash, no type holds
             `Task` or `Agent`. Active from 4.0.0, or now with SHODE_REQUIRE_V4=1 (rehearsal).
@@ -53,11 +54,29 @@ PIN_3X = {
     "erp-expert": {R, W, E, G, GL, WS, SK},
     "orchestrator": {R, W, E, GL, G, T, B, SK},
 }
-PIN_4X = {k: set(v) for k, v in PIN_3X.items() if k != "orchestrator"}
-PIN_4X["ux-ui-designer"] = PIN_3X["ux-ui-designer"] - {B}   # UD R16: design scripts run in a separate spawn
+# 4.0.0 roster (18 types), kept as DATA: the per-role ceilings the 4.0.1 types may not exceed (AC-5.1, tool ceilings per type)
+PIN_4_0_0 = {k: set(v) for k, v in PIN_3X.items() if k != "orchestrator"}
+PIN_4_0_0["ux-ui-designer"] = PIN_3X["ux-ui-designer"] - {B}   # UD R16: design scripts run in a separate spawn
+# 4.0.1 roster: 6 agent types (outputs/v4-core-reduce/02-sara-adr.md §2, router decisions R93). One `tools:` allowlist per type.
+PIN_4X = {
+    "plan": {R, W, E, G, GL, WS, WF, SK},
+    "build": IMPLEMENT,
+    "verify": IMPLEMENT,
+    "operate": IMPLEMENT,
+    "secure": {R, W, E, G, GL, B, WS, SK},
+    "design": {R, W, E, G, GL, WS, WF, SK},
+}
+# which 4.0.0 ids each 4.0.1 type absorbed: the tool ceiling of a type is the widest member, never the union with a wider type
+MERGED_FROM = {
+    "plan": ["product-manager", "business-analyst", "solution-architect", "fintech-expert", "erp-expert", "sap-expert",
+             "trading-expert", "insurance-expert", "booking-expert", "ecommerce-expert"],
+    "build": ["developer", "staff-engineer"], "verify": ["code-reviewer", "qa-engineer"],
+    "operate": ["devops-engineer", "sre-engineer"], "secure": ["security-engineer"], "design": ["ux-ui-designer"],
+}
 NEVER_4X = {"Task", "Agent"}                                   # ADR §5.2: no type spawns another
 
-# What the 4.0.0 pin reports on the 3.17.2 tree -- the reason A1-4x is wired, not yet required (ADR §7 W1).
+# Historic (3.17.x -> 4.0.0 staging): what the 4.0.0 pin reported on the 3.17.2 tree. Kept for the staged-ratchet tests below,
+# which only run while plugin.json major < 4 (never again on a 4.x tree).
 EXPECTED_3X_GAP = {
     "ux-ui-designer: tools: has Bash, not in the pin",
     "orchestrator: agent file has no pin (new or retired type? update the pin in a reviewed change)",
@@ -156,7 +175,7 @@ class AgentToolsPinTest(unittest.TestCase):
     def test_tree_matches_active_pin(self):
         found = scan()
         if v4_required():
-            self.assertEqual([], found, "pin = 4.0.0")
+            self.assertEqual([], found, "pin = 4.0.1 roster")
         elif found:
             self.skipTest(f"A1 tree check advisory until 4.0.0 (ADR §7 W1), {len(found)} finding(s): " + " | ".join(found))
 
@@ -164,51 +183,73 @@ class AgentToolsPinTest(unittest.TestCase):
         self.assertTrue(self.tools)
         self.assertEqual({p.stem for p in (ROOT / "agents").glob("*.md")}, set(self.tools))
 
-    # --- mutations (ADR A1: "mutation adds Bash to business-analyst -> red"), under both pins ---
-    def test_bash_added_to_business_analyst_is_red(self):
-        for pin in (PIN_3X, PIN_4X):
+    # --- mutations (ADR A1: "mutation adds Bash to plan -> red"), under the 4.0.1 pin and the 4.0.0 / 3.x data ---
+    def test_bash_added_to_plan_is_red(self):
+        errs = self.errors_with("plan", list(PIN_4X["plan"]) + [B], PIN_4X)
+        self.assertIn("plan: tools: has Bash, not in the pin", errs)
+        for pin in (PIN_3X, PIN_4_0_0):    # the retired role it came from (data): same mutation, same finding
             errs = self.errors_with("business-analyst", list(pin["business-analyst"]) + [B], pin)
             self.assertIn("business-analyst: tools: has Bash, not in the pin", errs)
 
     def test_skill_removed_is_red(self):
-        tools = [t for t in self.tools["developer"] if t != SK]
-        self.assertIn("developer: tools: lacks Skill, which the pin requires", self.errors_with("developer", tools))
+        tools = [t for t in self.tools["build"] if t != SK]
+        self.assertIn("build: tools: lacks Skill, which the pin requires", self.errors_with("build", tools))
 
     def test_unpinned_new_agent_is_red(self):
         self.assertIn("new-role: agent file has no pin (new or retired type? update the pin in a reviewed change)",
                       self.errors_with("new-role", [R, SK]))
 
     def test_deleted_pinned_agent_is_red(self):
-        mutated = {k: v for k, v in self.tools.items() if k != "erp-expert"}
+        mutated = {k: v for k, v in self.tools.items() if k != "design"}
         pin = active()[0]
-        self.assertIn("erp-expert: pinned type has no agents/erp-expert.md", pin_errors(mutated, pin))
+        self.assertIn("design: pinned type has no agents/design.md", pin_errors(mutated, pin))
+
+    def test_retired_id_with_a_file_is_red(self):
+        """A retired 4.0.0 id coming back as an agent file has no pin (the tombstone test names the same ids)."""
+        for old in sorted(PIN_4_0_0):
+            with self.subTest(old=old):
+                self.assertIn(f"{old}: agent file has no pin (new or retired type? update the pin in a reviewed change)",
+                              self.errors_with(old, [R, SK], PIN_4X, NEVER_4X))
 
     def test_omitted_or_malformed_tools_is_red(self):
         for bad in ("no `tools:` line (an omitted tools: inherits every tool)", "tools: is not a one-line JSON array of strings"):
-            self.assertIn("developer: " + bad, self.errors_with("developer", bad))
+            self.assertIn("build: " + bad, self.errors_with("build", bad))
 
     def test_duplicate_tool_is_red(self):
-        self.assertIn("developer: tools: lists a tool twice",
-                      self.errors_with("developer", list(self.tools["developer"]) + [R]))
+        self.assertIn("build: tools: lists a tool twice",
+                      self.errors_with("build", list(self.tools["build"]) + [R]))
 
     def test_v4_forbids_task_and_agent_everywhere(self):
         for t in sorted(NEVER_4X):
-            errs = self.errors_with("developer", sorted(PIN_4X["developer"]) + [t], PIN_4X, NEVER_4X)
-            self.assertIn(f"developer: tools: has {t}, which no 4.0.0 type may hold", errs)
+            errs = self.errors_with("build", sorted(PIN_4X["build"]) + [t], PIN_4X, NEVER_4X)
+            self.assertIn(f"build: tools: has {t}, which no 4.0.0 type may hold", errs)
 
-    def test_v4_pin_is_3x_minus_the_planned_changes_only(self):
-        no_bash_3x = {k for k, v in PIN_3X.items() if B not in v}
-        no_bash_4x = {k for k, v in PIN_4X.items() if B not in v}
-        self.assertEqual(no_bash_3x | {"ux-ui-designer"}, no_bash_4x)    # ADR §5.2: no-Bash set grows by ux only
-        self.assertEqual(set(PIN_3X) - {"orchestrator"}, set(PIN_4X))
-        self.assertEqual({k: v for k, v in PIN_3X.items() if k not in ("orchestrator", "ux-ui-designer")},
-                         {k: v for k, v in PIN_4X.items() if k != "ux-ui-designer"})
+    # --- tool ceilings per type (AC-5.1 / AC-5.2 / AC-10.4): a merged type is no wider than its widest member ---
+    def test_each_new_type_is_no_wider_than_its_widest_replaced_role(self):
+        for new, members in MERGED_FROM.items():
+            with self.subTest(type=new):
+                self.assertTrue(any(PIN_4X[new] <= PIN_4_0_0[m] for m in members),
+                                f"{new}: tools {sorted(PIN_4X[new])} exceed every replaced role {members}")
+                self.assertTrue(PIN_4X[new] <= set().union(*(PIN_4_0_0[m] for m in members)))
+
+    def test_every_retired_role_has_exactly_one_new_home(self):
+        homes = [m for ms in MERGED_FROM.values() for m in ms]
+        self.assertEqual(sorted(homes), sorted(PIN_4_0_0), "every 4.0.0 id lands in exactly one 4.0.1 type")
+        self.assertEqual(set(MERGED_FROM), set(PIN_4X))
+
+    def test_named_boundaries_of_the_six_types(self):
+        self.assertNotIn(B, PIN_4X["plan"], "plan must not gain Bash")
+        self.assertNotIn(B, PIN_4X["design"], "design keeps no Bash (UD R16)")
+        for name in ("verify", "build", "operate"):
+            self.assertFalse({WS, WF} & PIN_4X[name], f"{name} stays offline")
         self.assertFalse(any(NEVER_4X & v for v in PIN_4X.values()))
+        self.assertTrue(all(SK in v for v in PIN_4X.values()))
+        self.assertEqual({"plan", "build", "verify", "operate", "secure", "design"}, set(PIN_4X))
 
     def test_v4_pin_on_today_tree_reports_only_the_planned_switch(self):
         """Required ratchet while the tree check is advisory: only the planned 4.0.0 changes may differ."""
         if v4_required():
-            self.skipTest("4.0.0 pin is the active pin; covered by test_tree_matches_active_pin")
+            self.skipTest("4.x pin is the active pin; covered by test_tree_matches_active_pin")
         self.assertTrue(set(scan(force_v4=True)) <= EXPECTED_3X_GAP, scan(force_v4=True))
 
     # --- Sentinel W1 follow-up F5: duplicate / variant tools key, parameterised spawn tools ---
@@ -224,35 +265,33 @@ class AgentToolsPinTest(unittest.TestCase):
             with self.subTest(variant=variant):
                 self.assertEqual("tools key is not spelled `tools:` at column 0", parse_tools(head + variant + tail))
 
-    def test_duplicate_tools_key_on_a_pinned_agent_breaks_the_ratchet(self):
-        """F5 mutation on a real 4.0.0 type: its pinned `tools:` line + a second `tools: [... Task ...]` must not stay
-        green. Re-targeted from agents/orchestrator.md (retired in 4.0.0; the router is an output style with no
-        `tools:` key, so it has no pin to break) to agents/developer.md, so the check runs instead of skipping."""
-        text = (ROOT / "agents/developer.md").read_text()
+    def test_duplicate_tools_key_on_a_pinned_agent_breaks_the_pin(self):
+        """F5 mutation on a real 4.0.1 type: its pinned `tools:` line + a second `tools: [... Task ...]` must not stay
+        green (the router is an output style with no `tools:` key, so it has no pin to break)."""
+        text = (ROOT / "agents/build.md").read_text()
         line = next(l for l in text.splitlines() if l.startswith("tools:"))
         mutated = text.replace(line, line + '\ntools: ["Read", "Task", "Skill"]', 1)
         self.assertNotEqual(text, mutated)
-        tools = dict(self.tools, developer=parse_tools(mutated))
-        self.assertFalse(set(pin_errors(tools, PIN_4X, NEVER_4X)) <= EXPECTED_3X_GAP)
-        self.assertIn("developer: tools key appears 2 times (duplicate or variant spelling: a host may read either one)",
+        tools = dict(self.tools, build=parse_tools(mutated))
+        self.assertIn("build: tools key appears 2 times (duplicate or variant spelling: a host may read either one)",
                       pin_errors(tools, PIN_4X, NEVER_4X))
-        self.assertIn("developer: tools key appears 2 times (duplicate or variant spelling: a host may read either one)",
-                      pin_errors(tools, PIN_3X))
 
-    def test_parameterised_spawn_tool_is_red_in_4x_and_breaks_the_ratchet(self):
-        for spawn in ("Agent(worker)", "Task(*)", "Task(code-reviewer)"):
+    def test_parameterised_spawn_tool_is_red_in_4x(self):
+        for spawn in ("Agent(worker)", "Task(*)", "Task(verify)"):
             with self.subTest(spawn=spawn):
-                errs = self.errors_with("developer", sorted(PIN_4X["developer"]) + [spawn], PIN_4X, NEVER_4X)
-                self.assertIn(f"developer: tools: has {spawn}, which no 4.0.0 type may hold", errs)
-                router = dict(self.tools, orchestrator=sorted(PIN_3X["orchestrator"] - {T}) + [spawn])
-                self.assertFalse(set(pin_errors(router, PIN_4X, NEVER_4X)) <= EXPECTED_3X_GAP)
+                errs = self.errors_with("build", sorted(PIN_4X["build"]) + [spawn], PIN_4X, NEVER_4X)
+                self.assertIn(f"build: tools: has {spawn}, which no 4.0.0 type may hold", errs)
 
-    def test_ratchet_catches_unplanned_drift_and_passes_the_staged_ux_change(self):
-        """G2: W5a's staged ux-without-Bash stays green; Bash added to business-analyst stays red."""
-        staged = dict(self.tools, **{"ux-ui-designer": sorted(PIN_4X["ux-ui-designer"])})
-        self.assertTrue(set(pin_errors(staged, PIN_4X, NEVER_4X)) <= EXPECTED_3X_GAP)
-        drift = dict(self.tools, **{"business-analyst": sorted(PIN_3X["business-analyst"] | {B})})
-        self.assertFalse(set(pin_errors(drift, PIN_4X, NEVER_4X)) <= EXPECTED_3X_GAP)
+    # --- historic staging ratchet (3.17.2 -> 4.0.0), run on DATA (the 3.17.2 roster), never on the live tree ---
+    def test_staged_ratchet_on_the_3x_roster(self):
+        tools_3x = {k: sorted(v) for k, v in PIN_3X.items()}
+        staged = dict(tools_3x, **{"ux-ui-designer": sorted(PIN_4_0_0["ux-ui-designer"])})
+        self.assertTrue(set(pin_errors(staged, PIN_4_0_0, NEVER_4X)) <= EXPECTED_3X_GAP)
+        drift = dict(tools_3x, **{"business-analyst": sorted(PIN_3X["business-analyst"] | {B})})
+        self.assertFalse(set(pin_errors(drift, PIN_4_0_0, NEVER_4X)) <= EXPECTED_3X_GAP)
+        for spawn in ("Agent(worker)", "Task(*)", "Task(code-reviewer)"):
+            router = dict(tools_3x, orchestrator=sorted(PIN_3X["orchestrator"] - {T}) + [spawn])
+            self.assertFalse(set(pin_errors(router, PIN_4_0_0, NEVER_4X)) <= EXPECTED_3X_GAP)
 
     # --- Chris W10a-S1: the two `tools:` readers (this file's A1 parse_tools, rule-conservation's spawn_tools) agree ---
     TOOLS_CASES = ('tools: ["Read", "Skill"]\n', 'tools: ["Read", "Task", "Skill"]\n', 'tools: ["Agent(worker)"]\n',

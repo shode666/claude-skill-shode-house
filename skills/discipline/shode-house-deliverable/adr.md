@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `shode-house-deliverable` — ADR l
 ```lazy-load-contract
 LOAD: skills/discipline/shode-house-deliverable/adr.md
 WHEN: adr_create_or_edit=true
-OWNER: solution-architect
+OWNER: plan
 REQUIRED-BEFORE: adr_commit
 ```
 
@@ -20,11 +20,11 @@ REQUIRED-BEFORE: adr_commit
 
 ```markdown
 # ADR-014: เลือก PostgreSQL เป็น primary store
-**Status**: Superseded by ADR-031 (2026-07-30)   **Date**: 2026-02-11   **Owner**: solution-architect
+**Status**: Superseded by ADR-031 (2026-07-30)   **Date**: 2026-02-11   **Owner**: `plan` (architecture mode)
 ## Context / Options / Decision / Consequences
 ```
 
 - เปลี่ยนใจ = **เขียน ADR ใหม่ที่ supersede** ห้ามแก้ ADR เดิมย้อนหลัง (ประวัติการตัดสินใจคือคุณค่าของ ADR)
 - ADR ใหม่ต้องอ้าง `Supersedes: ADR-NNN` และ ADR เก่าต้องถูกอัปเดต `Status` ในคอมมิตเดียวกัน — 2 ทิศทางเสมอ
-- solution-architect owns one id/title/status/superseded-by index in the confirmed decision home (`outputs/adr/INDEX.md` is an example).
+- `plan` (architecture mode) owns one id/title/status/superseded-by index in the confirmed decision home (`outputs/adr/INDEX.md` is an example).
 - ห้าม implement ตาม ADR ที่ยัง `Proposed` — ต้อง `Accepted` ก่อน Phase 2

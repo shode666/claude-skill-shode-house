@@ -55,8 +55,11 @@ BUCKETS = ("workflow", "ops", "ui", "style", "discipline")
 # commands/<name>.md is NOT published until it is named here (the packer refuses a
 # mismatch), so "should users get this?" is answered on purpose.
 PUBLISHED_COMMANDS = ("ask", "consult", "design-system", "implement", "init", "review")
-# 3.17.2 ships 19 roles; the 4.0.0 switch deletes the retired orchestrator (ADR §5.2).
+# 3.17.2 shipped 19 roles; the 4.0.0 switch deleted the retired orchestrator (ADR §5.2).
 RETIRED_ROLE = "agents/orchestrator.md"
+# 4.0.1: the 18 agent types of 4.0.0 became these 6 (shode-house-jni). The set is pinned by name, not by a count that could
+# drift; tests/test_core_roster.py holds the same list as the approved roster.
+ROLES = frozenset({"plan", "build", "verify", "operate", "secure", "design"})
 
 # Floor markers: taken from scripts/floor.py, which owns the grammar and the check; the packer only
 # refuses to touch what lies between them.
@@ -417,10 +420,10 @@ def collect(root=ROOT):
 def roles_and_skills(source_entries):
     roles = sorted(p for p in source_entries if p.startswith("agents/") and p.endswith(".md"))
     skills = sorted(p for p in source_entries if p.endswith("/SKILL.md"))
-    want = 19 if RETIRED_ROLE in source_entries else 18
-    if len(roles) != want or len(skills) != 20:
-        raise ValueError(f"candidate must ship exactly {want} roles and the 20 skills (incl. ask); "
-                         f"found {len(roles)} roles, {len(skills)} skills")
+    names = {Path(r).stem for r in roles}
+    if names != ROLES or len(skills) != 20:
+        raise ValueError(f"candidate must ship exactly the {len(ROLES)} roles {sorted(ROLES)} and the 20 skills (incl. ask); "
+                         f"found roles {sorted(names)}, {len(skills)} skills")
     return roles, skills
 
 

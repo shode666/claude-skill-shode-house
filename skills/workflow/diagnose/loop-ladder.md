@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `diagnose` — 10 วิธีส�
 ```lazy-load-contract
 LOAD: skills/workflow/diagnose/loop-ladder.md
 WHEN: feedback_loop_method_1_3_failed=true OR loop_slow_flaky_or_nondeterministic=true
-OWNER: developer
+OWNER: build
 REQUIRED-BEFORE: hypothesis_step
 ```
 

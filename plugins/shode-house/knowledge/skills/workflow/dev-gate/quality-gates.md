@@ -3,7 +3,7 @@
 ```lazy-load-contract
 LOAD: skills/workflow/dev-gate/quality-gates.md
 WHEN: gate_failed=true OR gate_criterion_unclear=true OR new_module_or_interface=true OR suppression_or_shortcut_considered=true OR gate_verification=true
-OWNER: developer
+OWNER: build
 REQUIRED-BEFORE: handoff_phase_2_to_3
 ```
 
@@ -30,7 +30,7 @@ Tool selection per stack → [tool-matrix.md](tool-matrix.md) (only when a gate 
 
 ### Gate 0: Architecture self-check
 
-> Tool ตรวจ Gate 1-10 ได้ครบ แต่ **SOLID/cohesion/readable ต้องคนตัดสิน**. developer self-check ก่อน hand-off ลด round-trip กับ code-reviewer
+> Tool ตรวจ Gate 1-10 ได้ครบ แต่ **SOLID/cohesion/readable ต้องคนตัดสิน**. `build` self-check ก่อน hand-off ลด round-trip กับ `verify` (standards axis)
 
 **SOLID — apply to actual responsibilities, not an abstraction quota**:
 - [ ] **SRP** — group behavior with one reason to change; the word "and" alone does not require splitting.
@@ -59,7 +59,7 @@ Tool selection per stack → [tool-matrix.md](tool-matrix.md) (only when a gate 
 
 **Self-check format ตอน hand-off**:
 ```
-developer ▸ code-reviewer : impl bd-42 (dev-gate passed 1-10)
+`build` ▸ `verify` (standards axis) : impl bd-42 (dev-gate passed 1-10)
 - Gate 0 self-check:
   - SOLID: SRP ✓ OCP ✓ LSP ✓ ISP ✓ DIP ✓
   - Cohesion: high (1 module = 1 concern)
@@ -67,7 +67,7 @@ developer ▸ code-reviewer : impl bd-42 (dev-gate passed 1-10)
 - Trade-off documented: <link to comment line:N> (if any)
 ```
 
-> ถ้า self-check fail → refactor ก่อน hand-off ห้าม "code-reviewer จะ review ให้". code-reviewer จะ reject + bd revision รอบใหม่
+> ถ้า self-check fail → refactor ก่อน hand-off ห้าม "`verify` (standards axis) จะ review ให้". `verify` (standards axis) จะ reject + bd revision รอบใหม่
 
 ### Gate 1: Format
 - Auto-format on save (IDE) + pre-commit hook + CI gate (3 จุด)
@@ -120,7 +120,7 @@ are examples, not authority to replace a verified checker or install another one
 - ห้าม magic number/string → constant + comment "why"
 
 ### Gate 8: Test
-- Unit coverage per adopted target (example ≥ 80% business logic; code-reviewer's responsibility; developer smoke ก่อน hand-off)
+- Unit coverage per adopted target (example ≥ 80% business logic; `verify` (standards axis)'s responsibility; `build` smoke ก่อน hand-off)
 - AAA pattern + G-W-T naming
 - Edge case + error path
 - ห้าม skipped/disabled test ไม่มี ticket
@@ -129,7 +129,7 @@ are examples, not authority to replace a verified checker or install another one
 - SAST per language (ดู matrix Gate 9 column)
 - Secret scan (gitleaks / `git-secrets`) — block commit ที่มี API key / password / cert
 - Dependency audit (`npm audit` / `pip-audit` / `cargo audit`) — block critical/high vulns
-- **ห้าม**: ignore security warning โดยไม่ security-engineer approve
+- **ห้าม**: ignore security warning โดยไม่ `secure` approve
 
 ### Gate 10: Doc
 - Docstring/JSDoc สำหรับ public API (signature + example + edge case)
@@ -156,7 +156,7 @@ are examples, not authority to replace a verified checker or install another one
 ## Pre-Push Checklist (all 11 gates)
 
 ```bash
-# Gate 0 — Architecture self-check (developer answers each checkbox above ก่อนรัน mechanical gates)
+# Gate 0 — Architecture self-check (`build` answers each checkbox above ก่อนรัน mechanical gates)
 
 make fmt          # Gate 1 — auto-format
 make imports      # Gate 2 — organize imports
@@ -174,11 +174,11 @@ make doc-check    # Gate 10 — public API docstring present
 ```makefile
 # Makefile snippet
 pre-push: fmt imports clean-unused lint typecheck complexity test security doc-check
-	@echo "✅ Gates 1-10 pass — developer: confirm Gate 0 self-check before push"
+	@echo "✅ Gates 1-10 pass — `build`: confirm Gate 0 self-check before push"
 ```
 
 ทุก check ผ่าน → ค่อย push. CI ก็ต้องรันชุดเดียวกัน (pre-commit + GitHub Actions / GitLab CI / CircleCI)
 
-> **Gate 0 ไม่อยู่ใน Makefile** — ตั้งใจให้ developer หยุดคิด 30 วินาทีก่อน push, ไม่ใช่ auto-pass. มันคือ judgment ไม่ใช่ tool
+> **Gate 0 ไม่อยู่ใน Makefile** — ตั้งใจให้ `build` หยุดคิด 30 วินาทีก่อน push, ไม่ใช่ auto-pass. มันคือ judgment ไม่ใช่ tool
 
 ---

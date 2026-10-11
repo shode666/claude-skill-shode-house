@@ -5,7 +5,7 @@ description: Automated browser-level end-to-end, visual regression and accessibi
 
 # UI Test (E2E + Visual + a11y automation)
 
-> **Owner**: qa-engineer (E2E + a11y) + ux-ui-designer (visual regression spec) + developer (test ID hooks)
+> **Owner**: `verify` (runtime axis) (E2E + a11y) + `design` (visual regression spec) + `build` (test ID hooks)
 
 ## 🔴 Universal UX/UI Quality Rules (บังคับทุก frontend agent — ย้ายมาจาก `shode-house-discipline` v3.10)
 
@@ -54,11 +54,11 @@ axe-core includes WCAG 2.2 AA rule tags; coverage depends on version and enabled
 
 | ชั้น | ครอบ | ใครรับผิดชอบ |
 |---|---|---|
-| axe-core ใน CI | contrast, alt, label, ARIA misuse, heading order, landmark | qa-engineer (gate) |
-| Playwright assertion เขียนเอง | 2.4.11 focus not obscured · 2.5.8 target size ≥24×24 CSS px | qa-engineer (เขียน) + developer (test id) |
-| Manual walkthrough + paste evidence | 2.5.7 dragging alternative · 3.3.7 redundant entry · 3.3.8 accessible auth (paste + password manager) | ux-ui-designer (Phase 3a) |
+| axe-core ใน CI | contrast, alt, label, ARIA misuse, heading order, landmark | `verify` (runtime axis) (gate) |
+| Playwright assertion เขียนเอง | 2.4.11 focus not obscured · 2.5.8 target size ≥24×24 CSS px | `verify` (runtime axis) (เขียน) + `build` (test id) |
+| Manual walkthrough + paste evidence | 2.5.7 dragging alternative · 3.3.7 redundant entry · 3.3.8 accessible auth (paste + password manager) | `design` (Phase 3a) |
 
-ดูรายละเอียด criterion + วิธีตรวจต่อข้อที่ `agents/ux-ui-designer.md` § 5. Accessibility
+ดูรายละเอียด criterion + วิธีตรวจต่อข้อที่ `agents/design.md` § 5. Accessibility
 
 ## 🌐 Visual evidence ladder
 
@@ -67,7 +67,7 @@ axe-core includes WCAG 2.2 AA rule tags; coverage depends on version and enabled
 plugin **ไม่ได้จัดหา** browser MCP และชื่อ tool ต่างกันตาม config ของผู้ใช้ → บังคับ MCP ตรง ๆ = ออกแบบให้ block ด้วยของที่ agent ใช้ไม่ได้
 
 ไล่จากบนลงล่าง หยุดที่ตัวแรกที่ใช้ได้จริง:
-1. **Playwright script ผ่าน `Bash`** (พึ่งพาได้เสมอ — `Bash` อยู่ใน `tools:` ของ code-reviewer/qa-engineer อยู่แล้ว): navigate → screenshot → `console` + network log → paste path + บรรทัดที่มี signal
+1. **Playwright script ผ่าน `Bash`** (พึ่งพาได้เสมอ — `Bash` อยู่ใน `tools:` ของ `verify` อยู่แล้ว): navigate → screenshot → `console` + network log → paste path + บรรทัดที่มี signal
 2. **browser MCP** ถ้า session นั้นมีจริง (เช็คว่ามี tool ชื่อขึ้นต้น `mcp__` ที่เป็น browser ก่อนเรียก — ห้าม hardcode ชื่อ)
 3. ทำทั้งสองทางไม่ได้ → **verdict = BLOCKED ไม่ใช่ PASS** + ระบุว่าขาด browser automation แล้วขอจาก user
 
@@ -76,7 +76,7 @@ plugin **ไม่ได้จัดหา** browser MCP และชื่อ t
 ## Selector Strategy (🔴)
 
 **Priority**:
-1. `data-testid` (developer add ตอน implement) — stable
+1. `data-testid` (`build` add ตอน implement) — stable
 2. ARIA role + accessible name (`getByRole('button', {name: 'Pay'})`)
 3. Text (i18n-aware: alias text key)
 4. ❌ CSS class / xpath (brittle — break เมื่อ CSS เปลี่ยน)
@@ -111,7 +111,7 @@ plugin **ไม่ได้จัดหา** browser MCP และชื่อ t
 
 ## Completion boundary
 
-- PASS = every applicable check has evidence from this run, no open a11y blocker, and any visual diff reviewed by ux-ui-designer.
+- PASS = every applicable check has evidence from this run, no open a11y blocker, and any visual diff reviewed by `design`.
 - No reachable UI, no browser automation, or a missing input for an applicable check → that check is BLOCKED, not PASS; report what is missing.
 - This skill yields evidence and a verdict for the Phase 3a / QA gate owner; it does not approve release. Stop and report instead of changing product code, adding test hooks or updating a baseline without authorization.
 
@@ -122,6 +122,6 @@ plugin **ไม่ได้จัดหา** browser MCP และชื่อ t
 - ห้าม shared state ระหว่าง test
 - ห้าม test order dependency
 - ห้าม skip a11y check on critical page
-- ห้าม baseline visual diff โดย ux-ui-designer ไม่ได้ review
+- ห้าม baseline visual diff โดย `design` ไม่ได้ review
 - ห้าม commit failing snapshot (ใช้ `--update-snapshots` มี ticket review)
 - ห้าม disable test silently → ticket + retry plan

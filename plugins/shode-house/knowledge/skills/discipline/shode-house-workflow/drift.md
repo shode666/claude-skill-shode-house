@@ -33,12 +33,12 @@ M1 บังคับที่ **ทุก agent** ไม่ใช่แค่ r
 
 ### M2/M4/M5/M7 — why + M7 example (detection rules themselves stay in SKILL.md root)
 
-แก้ปัญหา **agent หลุด workflow ใน follow-up message** — developer บอก "เสร็จแล้ว" โดยไม่ผ่าน Verify, fix ตรงโดยไม่ผ่าน Phase 1a
+แก้ปัญหา **agent หลุด workflow ใน follow-up message** — `build` บอก "เสร็จแล้ว" โดยไม่ผ่าน Verify, fix ตรงโดยไม่ผ่าน Phase 1a
 
 ```
-User direct ping → developer (bypass router):
-  ❌ WRONG: developer "OK ครับ" ทำ
-  ✅ RIGHT: developer ▸ "ผมต้อง escalate router ก่อน — message นอก phase context
+User direct ping → `build` (bypass router):
+  ❌ WRONG: `build` "OK ครับ" ทำ
+  ✅ RIGHT: `build` ▸ "ผมต้อง escalate router ก่อน — message นอก phase context
                    (bd-42 state:review-pending). Classify ก่อน"
   → router ingest, re-classify (M2)
 ```
@@ -47,13 +47,13 @@ User direct ping → developer (bypass router):
 
 | Agent | Can say | Can NOT say |
 |-------|---------|-------------|
-| developer | "code edited", "smoke ✓" | "feature done", "ready merge" |
-| code-reviewer | "7-dim clean", "unit ≥ 80%" | "ready merge", "ready prod" |
-| qa-engineer | "E2E green", "load p95 ok" | "ready prod" |
-| security-engineer | "STRIDE pass", "0 critical" | "secure" (without observability proof) |
-| ux-ui-designer | "UI verdict PASS" | "shipped" |
+| `build` | "code edited", "smoke ✓" | "feature done", "ready merge" |
+| `verify` (standards axis) | "7-dim clean", "unit ≥ 80%" | "ready merge", "ready prod" |
+| `verify` (runtime axis) | "E2E green", "load p95 ok" | "ready prod" |
+| `secure` | "STRIDE pass", "0 critical" | "secure" (without observability proof) |
+| `design` | "UI verdict PASS" | "shipped" |
 | **router** | "ready merge" only with applicable independent reviews and triggered experts per harness tier, current evidence and merge authority | — |
-| **sre-engineer** | "✓ prod stable" — ต้อง SLO 2hr observed | — |
+| **`operate` (reliability mode)** | "✓ prod stable" — ต้อง SLO 2hr observed | — |
 
 ### M6 — Conversation State pin (persistent)
 
@@ -61,14 +61,14 @@ router maintain current checkpoint ใน record ที่ project ยืนย�
 ```
 Active Engagement: E-1 "Refund flow"
 Active bd issues:
-  - bd-42 : state:review-pending  iter:2  last:code-reviewer-3b
-  - bd-43 : state:impl             iter:1  last:developer#2
+  - bd-42 : state:review-pending  iter:2  last:verify-3b
+  - bd-43 : state:impl             iter:1  last:build#2
 
 Last handoff:
-  developer ▸ Verify (bd-42, iter:2)
+  `build` ▸ Verify (bd-42, iter:2)
 
 Pending gates:
-  - pre-loop-exit (bd-42) : waiting qa-engineer + security-engineer notes
+  - pre-loop-exit (bd-42) : waiting `verify` (runtime axis) + `secure` notes
 ```
 
 ทุก agent อ่าน current task record ที่ router ส่งมาและ artifacts ที่เกี่ยวข้องก่อนลงมือ; ไม่บังคับโหลด checkpoint ทุก task หรือ history ทั้งหมด
@@ -87,7 +87,7 @@ In the confirmed tracker (Beads commands → harness.md § Beads example):
 | Agent | Can say | Can NOT say |
 |-------|---------|-------------|
 | **router** | "bd-42 CLOSED [paste tracker read-back]" | "ปิด bd แล้ว" / "เคลียร์ backlog แล้ว" (ไม่มี output) |
-| developer/code-reviewer/qa-engineer | "verdict FIXED, sha a1b2c3d, 214 passed" | "ปิด bd ให้แล้ว" (close = router Phase 4 เท่านั้น) |
+| `build`/`verify` | "verdict FIXED, sha a1b2c3d, 214 passed" | "ปิด bd ให้แล้ว" (close = router Phase 4 เท่านั้น) |
 
 For any tracker, the router updates the canonical task after required acceptance and
 authorized closure, then reads it back. Record the revision and actual evidence.
@@ -105,20 +105,20 @@ or claim CLOSED without the authoritative result.
 ## 🆕 New Phases
 
 ### Phase 0 — Discovery (NEW)
-- **Owner**: 🔍 Discover Team (product-manager + Domain SME)
+- **Owner**: 🔍 Discover Team (`plan` (discover mode) + Domain SME)
 - **Trigger**: New initiative, no task yet (continuous — not sprint-bound)
 - **Output**: OKR + opportunity sizing + RICE/WSJF priority + Domain pain validation
 - **Gate**: `pre-spec` — sign-off ก่อน Phase 1a Foundation
 - **Why**: validate the opportunity before speculative specification work
 
 ### Phase 6 — Operate (NEW — continuous post-deploy)
-- **Owner**: 🚀 sre-engineer (lead) + devops-engineer (infra) + router (escalation routing)
+- **Owner**: 🚀 `operate` (reliability mode) (lead) + `operate` (deploy mode) (infra) + router (escalation routing)
 - **Trigger**: post-deploy continuous
 - **Output**: SLO burn rate watch + incident response + blameless postmortem + runbook update
-- **Escalation**: error budget < 0 → ping product-manager (PM) for feature freeze conversation
+- **Escalation**: error budget < 0 → ping `plan` (discover mode) (PM) for feature freeze conversation
 
 ### ~~Phase 7 — Learn (REMOVED v3.3)~~
 - **v3.3 change**: Phase 7 sprint retro deprecated — per-bd reflect in Phase 4 Triage (router records the lesson in the checkpoint retro per `harness.md`)
-- **product-manager OKR review**: continuous (per-bd contribution to OKR; no sprint bracket)
-- **Tech debt RICE**: continuous backlog priority by product-manager (staff-engineer tech-debt input)
+- **`plan` (discover mode) OKR review**: continuous (per-bd contribution to OKR; no sprint bracket)
+- **Tech debt RICE**: continuous backlog priority by `plan` (discover mode) (`build` (staff-grade brief) tech-debt input)
 - **ห้ามใช้** `/sprint close retro` — command removed

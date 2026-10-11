@@ -1,6 +1,6 @@
-# Shode House 4.0.0 host notes
+# Shode House 4.0.1 host notes
 
-All 18 role sources and 20 skills are preserved under knowledge/. The agent files, skill roots and commands at the plugin root are those sources with plugin-root and `./`/`../` references re-pointed to their knowledge/ copies, plus a generated resolution footer; `/ask` is the pinned wrapper of the ask skill. Use ask as the entry.
+All 6 role sources and 20 skills are preserved under knowledge/. The agent files, skill roots and commands at the plugin root are those sources with plugin-root and `./`/`../` references re-pointed to their knowledge/ copies, plus a generated resolution footer; `/ask` is the pinned wrapper of the ask skill. Use ask as the entry.
 
 - Claude Code: `.claude-plugin` manifest, flat skills, agents, the authored commands (`/ask` is the entry). Team execution (the router style delegating to specialist agents) is supported here only.
 - Codex, Cursor, Antigravity: skills run in one session; there is no router style. Agent spawns return `BLOCKED: unrouted` by design; never replace delegation with role-play.

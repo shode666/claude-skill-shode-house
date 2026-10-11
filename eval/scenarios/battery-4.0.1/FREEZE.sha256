@@ -1,0 +1,5 @@
+3b24d3ac1ce2c32ae4721d45b1200b998aa68958030eb02fb986df5e5324d47f  eval/scenarios/battery-4.0.1/battery-4.0.1.json
+acea6f60470b3aa1157b0f2209cce249ea689ceb50c8a9466c2bbc070cf7204c  eval/scenarios/battery-4.0.1/README.md
+231e82da005b0af2f3a57237cb7da89116ce3c362a4b7e472b62e438386320a7  eval/scenarios/battery-4.0.1/check-freeze.sh
+80615fb7c4b0428f866845e1bd71d02e20ca62389e4acd62f54b8967884c0a13  eval/scenarios/battery-4.0.1/check-domain.py
+5634112df11061d5a32d8e9f12d4ff2a0066613bdaf5e8ad657747ad8336fe95  eval/run-battery-4.0.1.sh

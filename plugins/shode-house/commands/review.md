@@ -109,7 +109,7 @@ printout is not a blocker; missing scope/required ownership is.
 
 กติกาที่ command นี้เพิ่มจาก card (บังคับทั้ง 4 ข้อ):
 1. An explicitly requested full review dispatches runtime too. Otherwise runtime is DISPATCH when the
-   harness risk tier includes qa-engineer (`skills/discipline/shode-house-workflow/harness.md`: every
+   harness risk tier includes `verify` (runtime axis) (`skills/discipline/shode-house-workflow/harness.md`: every
    Standard feature), when the change crosses a process/network/storage boundary, or when project
    requirements ask for it. Record any omission.
 2. security SKIP ได้ **เหตุผลเดียว**: SKIP("no trigger keyword") — ต้อง scan keyword list ตาม
@@ -123,13 +123,13 @@ printout is not a blocker; missing scope/required ownership is.
    remains BLOCKED. The plan may be in the checkpoint rather than repeated in chat.
 
 Kickoff: pin fixed point ก่อน (Step 0.5, `skills/discipline/review-checklist/intake.md`) แล้ว dispatch ตาม card; method ต่อแกน:
-- standards → `shode-house:code-reviewer` — 7 มิติ (Correctness/Security/SOLID/Perf/Maintain/Test/Observ)
-- runtime → `shode-house:qa-engineer` — Security scan section (SAST/SCA/secret/OWASP manual) + integration
-- security → `shode-house:security-engineer` — `skills/discipline/review-checklist/security-sentinel.md`
-- domain → matching domain type — `skills/discipline/review-checklist/domain-validation.md`
-- ui → `shode-house:ux-ui-designer` — rendered change; in `/implement` Phase 3b a Phase 3a ux verdict that covers the
+- standards → `shode-house:verify` (name: verify-standards) — 7 มิติ (Correctness/Security/SOLID/Perf/Maintain/Test/Observ)
+- runtime → `shode-house:verify` (name: verify-runtime, a separate spawn from standards) — integration/E2E/contract/load/a11y automation
+- security → `shode-house:secure` — `skills/discipline/review-checklist/security-sentinel.md`
+- domain → `shode-house:plan` with the matching `references/domain/<domain>.md`, domain model tier (name: plan-domain) — `skills/discipline/review-checklist/domain-validation.md`; BLOCKED without the loaded reference path, domain-core citations and the requested/served model record
+- ui → `shode-house:design` — rendered change; in `/implement` Phase 3b a Phase 3a ux verdict that covers the
   current revision is the ui verdict — dispatch again only if UI files changed after 3a
-- spec → `shode-house:business-analyst` — Spec axis, `skills/discipline/review-checklist/spec-axis.md`;
+- spec → `shode-house:plan` (name: plan-spec, never the spawn that wrote the AC) — Spec axis, `skills/discipline/review-checklist/spec-axis.md`;
   spec source ตามลำดับ: Jira/task description → path ที่ user ส่ง → outputs/SPEC-*.md → ถาม user;
   ไม่มี spec (รวม Pattern C bug description) → spec spawn รายงาน `BLOCKED: no-spec` ("no spec available")
   พร้อม sources ที่ตรวจแล้ว = missing acceptance ที่ router relay ให้ user — ไม่ใช่ spec PASS และไม่ใช่เหตุผลให้ SKIP spec
@@ -157,7 +157,7 @@ tools; missing service access remains pending sync, never claimed posted.
 ## ⚠️ Rules
 
 - Security Critical/High = **block merge**
-- Domain-sensitive = บังคับผ่าน matching domain type
+- Domain-sensitive = บังคับผ่าน `plan` with the matching domain reference
 - อ่านโค้ดจริงทุกไฟล์ (prefer `Grep` > `Read` full file)
 - Run static analysis ถ้ามี (Bash)
 - A Jira key alone does not authorize posting; return proposed updates to the router if authority is missing.

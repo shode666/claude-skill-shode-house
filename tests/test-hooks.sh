@@ -421,13 +421,13 @@ EOF
 MFB="$SBB/.shode-house/scope/bd-h1.json"
 
 t_start "B1 canonical bind shape, real agent_id + agent_type -> ALLOW exit 0, manifest records the platform-neutral binding (bd: shode-house-5cs.4 iter 1, C1)"
-payload=$(jq -n '{tool_name:"Bash",agent_id:"agentid-AAA",agent_type:"shode-house:developer",tool_input:{command:"scripts/scope-check.sh bd-h1 Dave#1 --bind"}}')
+payload=$(jq -n '{tool_name:"Bash",agent_id:"agentid-AAA",agent_type:"shode-house:build",tool_input:{command:"scripts/scope-check.sh bd-h1 Dave#1 --bind"}}')
 res=$(scope_guard_run "$SBB" "$payload")
 assert_eq "${res%%$'\t'*}" "0" "B1 exit code"
 bnd_label=$(jq -r '.bindings["agentid-AAA"].label // empty' "$MFB")
 assert_eq "$bnd_label" "Dave#1" "B1 binding label actually recorded"
 bnd_role=$(jq -r '.bindings["agentid-AAA"].role // empty' "$MFB")
-assert_eq "$bnd_role" "shode-house:developer" "B1 binding records role verbatim from agent_type"
+assert_eq "$bnd_role" "shode-house:build" "B1 binding records role verbatim from agent_type"
 bnd_platform=$(jq -r '.bindings["agentid-AAA"].platform // empty' "$MFB")
 assert_eq "$bnd_platform" "claude" "B1 binding records the adapter's own literal platform string"
 
@@ -497,7 +497,7 @@ init_scope_state "$SBW" "bd-h2" <<'EOF'
     {"agent": "Dave#1", "allowed_roots": ["src/payment/**"], "owns": ["src/payment/refund.ts"]},
     {"agent": "Dave#2", "allowed_roots": ["src/orders/**"], "owns": []}
   ],
-  "bindings": {"agentid-AAA": {"platform": "claude", "role": "shode-house:developer", "label": "Dave#1"}}
+  "bindings": {"agentid-AAA": {"platform": "claude", "role": "shode-house:build", "label": "Dave#1"}}
 }
 EOF
 
@@ -573,10 +573,10 @@ echo "-- multi-bd resolution: subagent write when more than one bd is in_progres
 
 SBM=$(sandbox)
 init_scope_state "$SBM" "bd-h3" <<'EOF'
-{"schema_version":1,"bd_id":"bd-h3","agents":[{"agent":"Dave#1","allowed_roots":["src/a/**"],"owns":["src/a/x.ts"]}],"bindings":{"agentid-A3":{"platform":"claude","role":"shode-house:developer","label":"Dave#1"}}}
+{"schema_version":1,"bd_id":"bd-h3","agents":[{"agent":"Dave#1","allowed_roots":["src/a/**"],"owns":["src/a/x.ts"]}],"bindings":{"agentid-A3":{"platform":"claude","role":"shode-house:build","label":"Dave#1"}}}
 EOF
 init_scope_state "$SBM" "bd-h4" <<'EOF'
-{"schema_version":1,"bd_id":"bd-h4","agents":[{"agent":"Dave#1","allowed_roots":["src/b/**"],"owns":["src/b/y.ts"]}],"bindings":{"agentid-A4":{"platform":"claude","role":"shode-house:developer","label":"Dave#1"}}}
+{"schema_version":1,"bd_id":"bd-h4","agents":[{"agent":"Dave#1","allowed_roots":["src/b/**"],"owns":["src/b/y.ts"]}],"bindings":{"agentid-A4":{"platform":"claude","role":"shode-house:build","label":"Dave#1"}}}
 EOF
 
 t_start "M1 two bds in_progress, agent_id is bound in exactly ONE of them -> resolves to that one, ordinary check applies"
@@ -993,7 +993,7 @@ rm -rf "$SBN"
 echo
 echo "== guard-scope-write.sh: ux path set (W8; ADR iter 5 5.7 V1.2 + addendum-1 X8) -- only where hooks execute =="
 
-UX_TYPE="shode-house:ux-ui-designer"
+UX_TYPE="shode-house:design"
 # ux_write <proj> <tool_name> <path> [agent_type] -- prints "rc<TAB>stderr"
 ux_write() {
   local proj="$1" tool="$2" p="$3" at="${4:-$UX_TYPE}" payload
@@ -1229,7 +1229,7 @@ for mode in bare engaged; do
   if [ -n "$SJIS_LOCALE" ]; then
     hira_a=$(printf '\343\201\202')
     for sj in "outputs/${hira_a}design-run-order.json" "outputs/t-1/${hira_a}de${long_s}ign-run-order.json"; do
-      sj_payload=$(jq -n --arg p "$SBU/$sj" '{tool_name:"Write",agent_id:"agentid-UX",agent_type:"shode-house:ux-ui-designer",tool_input:{file_path:$p}}')
+      sj_payload=$(jq -n --arg p "$SBU/$sj" '{tool_name:"Write",agent_id:"agentid-UX",agent_type:"shode-house:design",tool_input:{file_path:$p}}')
       sj_out=$(CLAUDE_PROJECT_DIR="$SBU" env LC_ALL="$SJIS_LOCALE" "$SCOPE_GUARD" 2>&1 <<<"$sj_payload"); sj_rc=$?
       assert_eq "$sj_rc" "2" "SJIS locale: $sj"
       assert_contains "$sj_out" "ux-order" "SJIS locale reason token: $sj"
@@ -1249,21 +1249,21 @@ for mode in bare engaged; do
   res=$(ux_write "$SBU" NotebookEdit "$SBU/outputs/t-1/nb.ipynb")
   assert_eq "${res%%$'\t'*}" "2" "notebook is not a data extension"
 
-  t_start "[$mode] agent_type JSON-escaped (\\u002d) still decodes to the designer -> DENY exit 2"
-  esc_payload=$(printf '{"tool_name":"Write","agent_id":"agentid-UX","agent_type":"shode-house:ux\\u002dui-designer","tool_input":{"file_path":"%s/tests/visual/e.spec.ts"}}' "$SBU")
+  t_start "[$mode] agent_type JSON-escaped (\\u0067) still decodes to the designer -> DENY exit 2"
+  esc_payload=$(printf '{"tool_name":"Write","agent_id":"agentid-UX","agent_type":"shode-house:desi\\u0067n","tool_input":{"file_path":"%s/tests/visual/e.spec.ts"}}' "$SBU")
   res=$(scope_guard_run "$SBU" "$esc_payload")
   assert_eq "${res%%$'\t'*}" "2" "escaped agent_type"
 
-  t_start "[$mode] control: shode-house:developer Write tests/visual/x.spec.ts -> ALLOW exit 0 (ux set applies to the designer only)"
-  res=$(ux_write "$SBU" Write "$SBU/tests/visual/x.spec.ts" "shode-house:developer")
-  assert_eq "${res%%$'\t'*}" "0" "developer unaffected"
+  t_start "[$mode] control: shode-house:build Write tests/visual/x.spec.ts -> ALLOW exit 0 (ux set applies to the designer only)"
+  res=$(ux_write "$SBU" Write "$SBU/tests/visual/x.spec.ts" "shode-house:build")
+  assert_eq "${res%%$'\t'*}" "0" "build unaffected"
 
   t_start "[$mode] control: main session (no agent_type) Write tests/visual/x.spec.ts -> ALLOW exit 0"
   res=$(scope_guard_run "$SBU" "$(jq -n --arg p "$SBU/tests/visual/x.spec.ts" '{tool_name:"Write",tool_input:{file_path:$p}}')")
   assert_eq "${res%%$'\t'*}" "0" "main session unaffected"
 
   t_start "[$mode] control: designer Bash call -> not judged by the ux path set (exit 0)"
-  res=$(scope_guard_run "$SBU" "$(jq -n '{tool_name:"Bash",agent_id:"agentid-UX",agent_type:"shode-house:ux-ui-designer",tool_input:{command:"ls"}}')")
+  res=$(scope_guard_run "$SBU" "$(jq -n '{tool_name:"Bash",agent_id:"agentid-UX",agent_type:"shode-house:design",tool_input:{command:"ls"}}')")
   assert_eq "${res%%$'\t'*}" "0" "Bash is outside the Write/Edit branch"
 
   rm -rf "$SBU"
@@ -1271,7 +1271,7 @@ done
 
 t_start "bare project: a non-designer write stays silent and exits 0 (engagement guard unchanged for everyone else)"
 SBU2=$(sandbox)
-res=$(scope_guard_run "$SBU2" "$(jq -n --arg p "$SBU2/x.ts" '{tool_name:"Write",agent_id:"a",agent_type:"shode-house:developer",tool_input:{file_path:$p}}')")
+res=$(scope_guard_run "$SBU2" "$(jq -n --arg p "$SBU2/x.ts" '{tool_name:"Write",agent_id:"a",agent_type:"shode-house:build",tool_input:{file_path:$p}}')")
 assert_eq "$res" "0"$'\t' "silent allow"
 [ ! -e "$SBU2/.shode-house" ] && t_ok || t_fail "the guard must never create .shode-house in a bare project"
 
@@ -1281,7 +1281,7 @@ for b in bash date dirname basename tr sed cat env grep; do
   src=$(command -v "$b" 2>/dev/null) && ln -s "$src" "$FAKEBIN3/$b"
 done
 # Here-string, not a pipe (Chris pre-release r2 R2-2): the payload is built before PATH changes.
-nojq_payload=$(jq -n --arg p "$SBU2/tests/x.spec.ts" '{tool_name:"Write",agent_id:"a",agent_type:"shode-house:ux-ui-designer",tool_input:{file_path:$p}}')
+nojq_payload=$(jq -n --arg p "$SBU2/tests/x.spec.ts" '{tool_name:"Write",agent_id:"a",agent_type:"shode-house:design",tool_input:{file_path:$p}}')
 out=$(CLAUDE_PROJECT_DIR="$SBU2" PATH="$FAKEBIN3" bash "$SCOPE_GUARD" 2>&1 <<<"$nojq_payload"); rc=$?
 assert_rc "$rc" 0 "jq-absent fail-open"
 rm -rf "$FAKEBIN3"
@@ -1384,8 +1384,8 @@ git_write() {
   local payload
   case "$3" in
     main) payload=$(jq -n --arg p "$2" '{tool_name:"Write",tool_input:{file_path:$p}}') ;;
-    dev)  payload=$(jq -n --arg p "$2" '{tool_name:"Edit",agent_id:"agentid-G",agent_type:"shode-house:developer",tool_input:{file_path:$p}}') ;;
-    ux)   payload=$(jq -n --arg p "$2" '{tool_name:"Write",agent_id:"agentid-G",agent_type:"shode-house:ux-ui-designer",tool_input:{file_path:$p}}') ;;
+    dev)  payload=$(jq -n --arg p "$2" '{tool_name:"Edit",agent_id:"agentid-G",agent_type:"shode-house:build",tool_input:{file_path:$p}}') ;;
+    ux)   payload=$(jq -n --arg p "$2" '{tool_name:"Write",agent_id:"agentid-G",agent_type:"shode-house:design",tool_input:{file_path:$p}}') ;;
   esac
   scope_guard_run "$1" "$payload"
 }
@@ -2240,7 +2240,7 @@ ev_run() {   # <guard> <NAME=value[|NAME=value...]> <json> -> the guard's exit c
   (cd "$EV" && CLAUDE_PROJECT_DIR="$EV" env "${ev_a[@]}" "$1" >/dev/null 2>&1 <<<"$3"); rc=$?; printf '%s' "$rc"
 }
 ev_w() { jq -n --arg p "$EV/$1" '{tool_name:"Write",tool_input:{file_path:$p}}'; }
-ev_s() { jq -n --arg p "$EV/$1" '{tool_name:"Write",tool_input:{file_path:$p},agent_id:"agent-ev",agent_type:"developer"}'; }
+ev_s() { jq -n --arg p "$EV/$1" '{tool_name:"Write",tool_input:{file_path:$p},agent_id:"agent-ev",agent_type:"build"}'; }
 for ev_e in "HOME=$EV/jh" FUNCNEST=1 FUNCNEST=2 FUNCNEST=3 TMOUT=0.000001 SHELLOPTS=errexit SHELLOPTS=keyword SHELLOPTS=noglob \
     'SHELLOPTS=xtrace|PS4=$((tool_name=0))' 'SHELLOPTS=xtrace|PS4=$((path=0))' 'SHELLOPTS=xtrace|PS4=$((rc=0,rb_rc=0))' \
     'SHELLOPTS=xtrace|PS4=${GLOBIGNORE:=*}' 'SHELLOPTS=xtrace|PS4=${EXECIGNORE:=*}' 'SHELLOPTS=xtrace|PS4=${CDPATH:=/}' CDPATH=/ \
@@ -2283,7 +2283,7 @@ chmod +x "$UXT/scripts/scope-check.sh"
 printf '{"bd_id":"bd-ux","current_phase":"2-implement","phases":{"2-implement":{"status":"in_progress"}}}\n' > "$UXP/.shode-house/state/bd-ux.json"
 printf '{"schema_version":1,"bd_id":"bd-ux","agents":[{"agent":"Dave#2","allowed_roots":["src/a/**"],"owns":["src/a/**"]}],"bindings":{"agent-ux":{"label":"Dave#2"}}}\n' > "$UXP/.shode-house/scope/bd-ux.json"
 ux_main=$(jq -n --arg p "$UXP/src/a/x.ts" '{tool_name:"Write",tool_input:{file_path:$p}}')
-ux_sub=$(jq -n --arg p "$UXP/src/a/x.ts" '{tool_name:"Write",tool_input:{file_path:$p},agent_id:"agent-ux",agent_type:"developer"}')
+ux_sub=$(jq -n --arg p "$UXP/src/a/x.ts" '{tool_name:"Write",tool_input:{file_path:$p},agent_id:"agent-ux",agent_type:"build"}')
 ux_run() {   # <rc.main> <rc.rb> <rc.check> <input> -> "rc<TAB>stderr"
   local out rc
   printf '%s' "$1" > "$UXT/scripts/rc.main"; printf '%s' "$2" > "$UXT/scripts/rc.rb"; printf '%s' "$3" > "$UXT/scripts/rc.check"
@@ -2660,9 +2660,9 @@ assert_eq "${res%%$'\t'*}" "2" "shadow-colon Skill deny"
 assert_contains "${res#*$'\t'}" '<untrusted source="collision-scan">' "deny wraps the list"
 assert_contains "${res#*$'\t'}" '".claude/skills/shode-house:secure"' "deny names the entry, quoted"
 t_start "shadow-colon: spawn of any shode-house: type is denied too (a shadowed preload has no Skill event)"
-res=$(cs_run "$CS" "$(cs_agent shode-house:developer)")
+res=$(cs_run "$CS" "$(cs_agent shode-house:build)")
 assert_eq "${res%%$'\t'*}" "2" "shadow-colon Agent deny"
-res=$(cs_run "$CS" "$(jq -n '{hook_event_name:"PreToolUse",tool_name:"Task",tool_input:{subagent_type:"shode-house:qa-engineer"}}')")
+res=$(cs_run "$CS" "$(jq -n '{hook_event_name:"PreToolUse",tool_name:"Task",tool_input:{subagent_type:"shode-house:verify"}}')")
 assert_eq "${res%%$'\t'*}" "2" "legacy Task tool name"
 t_start "shadow-colon: loads outside the shode-house: namespace are not blocked"
 res=$(cs_run "$CS" "$(cs_skill other-plugin:thing)"); assert_eq "${res%%$'\t'*}" "0" "foreign Skill"
@@ -2683,7 +2683,7 @@ res=$(cs_run "$CS" "$(cs_skill shode-house:secure)")
 assert_eq "${res%%$'\t'*}" "2" "nested command deny"
 assert_contains "${res#*$'\t'}" '.claude/commands/shode-house/ask.md' "names the nested command"
 rm -rf "$CS/.claude/commands/shode-house"; : > "$CS/.claude/commands/shode-house:review.md"
-res=$(cs_run "$CS" "$(cs_agent shode-house:code-reviewer)")
+res=$(cs_run "$CS" "$(cs_agent shode-house:verify)")
 assert_eq "${res%%$'\t'*}" "2" "colon command deny"
 rm -rf "$CS"
 
@@ -2846,9 +2846,9 @@ rm -rf "$CS"
 
 t_start "wall-time cap before any shadow is confirmed (UD R67): shadow only in .claude/commands/shode-house/, cap hit after skills -> allow exit 0 with a warning"
 CS=$(sandbox); mkdir -p "$CS/.claude/commands/shode-house"; : > "$CS/.claude/commands/shode-house/x.md"
-res=$(cs_run "$CS" "$(cs_agent shode-house:developer)" 5)
+res=$(cs_run "$CS" "$(cs_agent shode-house:build)" 5)
 assert_eq "${res%%$'\t'*}" "2" "control: without the cap the same shadow is denied"
-res=$(PATH="$CS_CLOCK:$PATH" cs_run "$CS" "$(cs_agent shode-house:developer)" 5)
+res=$(PATH="$CS_CLOCK:$PATH" cs_run "$CS" "$(cs_agent shode-house:build)" 5)
 assert_eq "${res%%$'\t'*}" "0" "nothing confirmed before the cap, not blocked"
 assert_contains "${res#*$'\t'}" "wall-time cap reached before any shadow was confirmed" "PreToolUse warns on stderr"
 assert_not_contains "${res#*$'\t'}" "DENY" "no deny text"
@@ -2885,7 +2885,7 @@ assert_contains "${res#*$'\t'}" "Settings.json" "names the settings file"
 rm -f "$CS/.claude/Settings.json"; mkdir -p "$CS/.claude/skills/Shode-House:secure"
 res=$(cs_run "$CS" "$(cs_skill shode-house:secure)"); assert_eq "${res%%$'\t'*}" "2" "Shode-House: skill dir"
 rm -rf "$CS/.claude/skills"; mkdir -p "$CS/.claude/commands/SHODE-HOUSE"; : > "$CS/.claude/commands/SHODE-HOUSE/x.MD"
-res=$(cs_run "$CS" "$(cs_agent shode-house:developer)"); assert_eq "${res%%$'\t'*}" "2" "SHODE-HOUSE/ commands dir"
+res=$(cs_run "$CS" "$(cs_agent shode-house:build)"); assert_eq "${res%%$'\t'*}" "2" "SHODE-HOUSE/ commands dir"
 rm -rf "$CS/.claude/commands"; mkdir -p "$CS/.claude/skills/Secure"
 res=$(cs_run "$CS" "$(cs_skill shode-house:secure)"); assert_eq "$res" "0"$'\t' "a bare case variant still only warns"
 res=$(cs_run "$CS" "$CS_SS"); assert_contains "$(cs_ctx "${res#*$'\t'}")" '".claude/skills/Secure"' "bare case variant warned"
@@ -3458,11 +3458,11 @@ rm -f "$LMP/.shode-house/state/bd-lm2.json" "$LMP/.shode-house/scope/bd-lm2.json
 # A bound subagent's own ownership check (evaluate_ownership) has the same budget: its loop
 # over the other agents' owns entries, and its loop over its own allowed_roots.
 t_start "F7-2 [bound subagent Dave#2]: 2000 non-ASCII owns entries of Dave#3 before its own root -> Dave#2 writing NFD zz/u<U+0308>.ts is DENIED (budget or verdict), <= the ceiling; 2000 upper-case allowed_roots entries before zz/** -> Dave#2 writing zz/x.ts is DENIED (budget, or NEEDS_AMENDMENT), <= the ceiling"
-jq -n '{schema_version:1, bd_id:"bd-lm", bindings:{"agent-d2":{platform:"claude", role:"shode-house:developer", label:"Dave#2"}}, agents:[
+jq -n '{schema_version:1, bd_id:"bd-lm", bindings:{"agent-d2":{platform:"claude", role:"shode-house:build", label:"Dave#2"}}, agents:[
   {agent:"Dave#3", allowed_roots:["src/d3/**"], owns:[range(2000) | "src/d3/f\(.)-\u00fcber.ts"]},
   {agent:"Dave#2", allowed_roots:["zz/**"], owns:[]}]}' > "$LMP/.shode-house/scope/bd-lm.json"
 lm_check "$(lm_write "$LMP" "$lm_nfdz" agent-d2)" "bound Dave#2, 2000 owns: NFD zz/u..ts" 2
-jq -n '{schema_version:1, bd_id:"bd-lm", bindings:{"agent-d2":{platform:"claude", role:"shode-house:developer", label:"Dave#2"}}, agents:[
+jq -n '{schema_version:1, bd_id:"bd-lm", bindings:{"agent-d2":{platform:"claude", role:"shode-house:build", label:"Dave#2"}}, agents:[
   {agent:"Dave#2", allowed_roots:([range(2000) | "LIB/D\(.)/**"] + ["zz/**"]), owns:[]}]}' > "$LMP/.shode-house/scope/bd-lm.json"
 lm_check "$(lm_write "$LMP" zz/x.ts agent-d2)" "bound Dave#2, 2000 allowed_roots: zz/x.ts" 2
 

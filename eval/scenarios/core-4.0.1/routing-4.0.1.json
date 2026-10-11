@@ -1,0 +1,105 @@
+{
+ "_comment": "4.0.1 routing scenarios beside the frozen core sets (E16..E20). Offline they are shape-checked (tests/test_core_scenarios.py); no model has run them yet -- re-run with the routing probes before any release decision and report next to the 4.0.0 baseline. E19 (served-model, SEC-3) and E20 (spec-axis seeded violations, SEC-8) are also scored by check-probes.py against the thresholds pre-registered in probes-4.0.1.json; team-run-check.py cannot see a dispatch `model`, so for them it checks only the observable part.",
+ "scenarios": [
+  {
+   "id": "E16",
+   "kind": "core",
+   "desc": "4.0.1: a business-rule change (fee, tolerance) dispatches a domain-loaded plan spawn and never build first",
+   "prompt": "eval/prompts/E16-domain-rule-before-build.md",
+   "max_turns": 30,
+   "expected": {
+    "agents": [
+     "plan"
+    ],
+    "must_not_dispatch": [
+     "build"
+    ],
+    "files_forbidden_glob": [
+     "src/*",
+     "tests/*",
+     "*.py"
+    ]
+   }
+  },
+  {
+   "id": "E17",
+   "kind": "core",
+   "desc": "4.0.1: a retired agent id named by the user is answered with the Formerly mapping and routed to build; the old id is never spawned",
+   "prompt": "eval/prompts/E17-retired-agent-id.md",
+   "max_turns": 30,
+   "expected": {
+    "agents": [
+     "build"
+    ],
+    "must_not_dispatch": [
+     "developer",
+     "code-reviewer",
+     "qa-engineer"
+    ]
+   }
+  },
+  {
+   "id": "E18",
+   "kind": "core",
+   "desc": "4.0.1: a review dispatches verify (standards) and plan (spec) as separate spawns",
+   "prompt": "eval/prompts/E18-review-axes-stay-separate.md",
+   "max_turns": 30,
+   "expected": {
+    "agents": [
+     "verify",
+     "plan"
+    ],
+    "must_not_dispatch": []
+   }
+  },
+  {
+   "id": "E19",
+   "kind": "core",
+   "desc": "4.0.1 SEC-3: a regulated-domain brief is dispatched as a plan spawn with the upward model override (opus) and the reply records the requested and the served model",
+   "prompt": "eval/prompts/E19-served-model-override.md",
+   "max_turns": 30,
+   "expected": {
+    "agents": [
+     "plan"
+    ],
+    "must_not_dispatch": [
+     "build"
+    ],
+    "files_forbidden_glob": [
+     "src/*",
+     "tests/*",
+     "*.py"
+    ],
+    "result_matches": [
+     "(?i)requested[^\\n]{0,80}opus",
+     "(?i)served[^\\n]{0,120}[A-Za-z0-9]"
+    ]
+   }
+  },
+  {
+   "id": "E20",
+   "kind": "core",
+   "desc": "4.0.1 SEC-8: the spec-axis plan spawn reports the 4 seeded acceptance-criteria violations (AC-2, AC-3, AC-4, AC-6) of a change whose tests are green",
+   "prompt": "eval/prompts/E20-spec-axis-seeded-violations.md",
+   "max_turns": 30,
+   "expected": {
+    "agents": [
+     "plan"
+    ],
+    "must_not_dispatch": [
+     "build"
+    ],
+    "files_forbidden_glob": [
+     "src/*",
+     "tests/*"
+    ],
+    "result_matches": [
+     "AC-2",
+     "AC-3",
+     "AC-4",
+     "AC-6"
+    ]
+   }
+  }
+ ]
+}

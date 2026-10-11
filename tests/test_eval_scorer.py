@@ -1404,7 +1404,20 @@ def test_iter13_markdown_emphasis_stripped_before_matching():
 
 def test_iter13_relay_persona_agent_type_parses_real_line():
     stripped = scorer._strip_markdown_emphasis(REAL_RELAY_LINE)
-    assert scorer._relay_persona_agent_type(stripped) == 'shode-house:qa-engineer'
+    assert scorer._relay_persona_agent_type(stripped) == 'shode-house:verify'      # 4.0.1: the live type
+    assert scorer._relay_persona_types(stripped) == {'shode-house:verify', 'shode-house:qa-engineer'}   # + the retired 4.0.0 id
+
+
+def test_4_0_1_persona_maps_name_only_live_types_and_a_live_spawn_evidences_a_card():
+    live = {'build', 'design', 'operate', 'plan', 'secure', 'verify'}
+    assert {t.split(':')[1] for t in scorer.CARD_AGENT_TYPE.values()} <= live
+    assert {t.split(':')[1] for t in scorer.PERSONA_AGENT_TYPE.values()} == live
+    scenario = {'required_main_phrases': ['[REVIEW DISPATCH CARD]']}
+    session = _card_session(FULL_CARD_TEXT, ['shode-house:verify', 'shode-house:secure', 'shode-house:fintech-expert'])
+    assert scorer.dispatch_card_check(scenario, session)[0] == 'PASS'
+    session = _card_session(FULL_CARD_TEXT, ['shode-house:verify', 'shode-house:fintech-expert'])
+    verdict, detail = scorer.dispatch_card_check(scenario, session)
+    assert verdict == 'FAIL' and 'Sentinel' in detail and 'shode-house:secure' in detail
 
 
 def test_iter13_relay_prefix_requires_oliver_tag():

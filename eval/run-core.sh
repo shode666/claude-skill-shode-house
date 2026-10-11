@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Core matrix: live runs of the core scenarios, sequential, every run kept. This script records; it does not judge.
 # The set follows the plugin major (eval/core-set.sh): 3.x = E01 from golden.json + E02..E15, E10b, E1c from
-# eval/scenarios/core-3.17.json (frozen); 4.x = all 17 from eval/scenarios/core-4.0/core-4.0.json (its own freeze).
+# eval/scenarios/core-3.17.json (frozen); 4.0.0 = all 17 from eval/scenarios/core-4.0/core-4.0.json (its own freeze); 4.0.1+ = the same 17 for the 6 agent types from eval/scenarios/core-4.0.1/core-4.0.1.json (its own freeze).
 #   bash eval/run-core.sh [model=sonnet] [out-dir]          (run on the Mac, from anywhere)
 #   CORE_IDS="E02 E10b" | all     default all (17 ids)
 #   CLAUDE_BIN / PLUGIN_REF / RUN_TIMEOUT_S / MAX_BUDGET_USD: as in eval/run-lib.sh
@@ -146,7 +146,7 @@ for ID in $IDS; do
   done
   if [ -n "$DONE" ]; then echo "== $ID kept: $DONE is complete (never re-run)"; continue; fi
   [ -n "$TARGET" ] || die "$ID: too many incomplete attempts under $OUT"
-  if [ "$ID" = E01 ]; then SCENARIOS="$GOLDEN"; else SCENARIOS="$CORE"; fi   # 4.x: both are core-4.0.json
+  if [ "$ID" = E01 ]; then SCENARIOS="$GOLDEN"; else SCENARIOS="$CORE"; fi   # 4.x: both are the one 4.x core file (core-4.0 / core-4.0.1)
   CORE_ID="$ID"
   printf '%s\n' "$(basename "$TARGET")" > "$PENDING.tmp" && mv -f "$PENDING.tmp" "$PENDING" || redact_fail "cannot write $PENDING"
   echo "== $(utc) $ID -> $TARGET (its console output is printed after redaction)"

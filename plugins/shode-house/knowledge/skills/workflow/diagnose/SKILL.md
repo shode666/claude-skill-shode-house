@@ -7,7 +7,7 @@ description: Debug an error, crash, failing test, wrong output, regression or sl
 
 > Inspired by mattpocock/skills (engineering/diagnose) — adapted for shode-house
 
-> **Owner**: code-reviewer (review) + qa-engineer (test) + developer (implement)
+> **Owner**: `verify` (standards axis) (review) + `verify` (runtime axis) (test) + `build` (implement)
 
 **Goal**: identify the cause of an unresolved failure and verify the smallest justified fix.
 
@@ -28,9 +28,9 @@ skill นี้บังคับให้ paste command/output/artifact เป�
 
 ## When NOT to use
 
-- Bug อยู่ใน **production** และยังมี customer impact หรือ SLO burn → `incident` ก่อน (sre-engineer IC + war room — diagnose ไม่มี comms/severity); mitigate แล้วค่อยกลับมา
+- Bug อยู่ใน **production** และยังมี customer impact หรือ SLO burn → `incident` ก่อน (`operate` (reliability mode) IC + war room — diagnose ไม่มี comms/severity); mitigate แล้วค่อยกลับมา
 - ยังไม่มี symptom ที่ reproduce ได้และไม่มี log/error — ไปเก็บหลักฐานก่อน
-- Feature request ที่ถูกเรียกว่า "bug" — นั่นคืองานของ business-analyst/product-manager
+- Feature request ที่ถูกเรียกว่า "bug" — นั่นคืองานของ `plan`
 - Known issue ที่มี ticket + root cause แล้ว — fix ตรง ๆ
 
 ## Inputs and decision boundaries
@@ -87,7 +87,7 @@ promote to Full and load this reference if the first fix fails or another sympto
 
 เขียน regression test **ก่อน** fix — แต่เฉพาะเมื่อมี **seam ที่ถูกต้อง** คือ seam ที่ test ได้เจอ bug pattern จริงอย่างที่มันเกิดที่ call site
 
-**ไม่มี seam ที่ถูกต้อง = นั่นแหละคือ finding** — ถ้า seam ที่มีตื้นเกินไป (unit test ที่ replicate chain ที่ trigger bug ไม่ได้ / test caller เดียวทั้งที่ bug ต้องมีหลาย caller) การเขียน test ตรงนั้นให้ **false confidence**. บันทึกว่า **architecture กันไม่ให้ล็อค bug ตัวนี้ได้** แล้ว route ต่อ (solution-architect/staff-engineer) — อย่าฝืนเขียน
+**ไม่มี seam ที่ถูกต้อง = นั่นแหละคือ finding** — ถ้า seam ที่มีตื้นเกินไป (unit test ที่ replicate chain ที่ trigger bug ไม่ได้ / test caller เดียวทั้งที่ bug ต้องมีหลาย caller) การเขียน test ตรงนั้นให้ **false confidence**. บันทึกว่า **architecture กันไม่ให้ล็อค bug ตัวนี้ได้** แล้ว route ต่อ (`plan`/`build`) — อย่าฝืนเขียน
 
 มี seam ที่ถูก:
 1. เปลี่ยน repro ที่ minimise แล้วเป็น failing test ที่ seam นั้น
@@ -109,11 +109,11 @@ promote to Full and load this reference if the first fix fails or another sympto
 
 ## Hand-off / next skill
 
-Diagnose finished → code-reviewer: review fix + regression unit test · qa-engineer: integration test เผื่อ pattern อื่น · devops-engineer: monitoring/alert ถ้าเป็น infra · Domain Expert: ถ้า business rule ผิด
+Diagnose finished → `verify` (standards axis): review fix + regression unit test · `verify` (runtime axis): integration test เผื่อ pattern อื่น · `operate` (deploy mode): monitoring/alert ถ้าเป็น infra · Domain Expert: ถ้า business rule ผิด
 
 | Situation | Next skill | Reason |
 |---|---|---|
 | Diagnosis เสร็จ → จะเขียน fix code | → `dev-gate` | TDD + 11-gate |
 | Bug เกิดเพราะ test gap | → `automate-test` | เพิ่ม regression coverage + CI gate |
 | Bug ใน frontend (visual/a11y) | → `ui-test` | Playwright + axe + visual diff |
-| Bug เกี่ยวกับ security vuln | → `secure` | security-engineer STRIDE + abuse case
+| Bug เกี่ยวกับ security vuln | → `secure` | `secure` STRIDE + abuse case

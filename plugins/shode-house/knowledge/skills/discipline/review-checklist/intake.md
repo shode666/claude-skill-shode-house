@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `review-checklist` — เงื่
 ```lazy-load-contract
 LOAD: skills/discipline/review-checklist/intake.md
 WHEN: review_request_received=true AND scope_or_spec_unconfirmed=true
-OWNER: code-reviewer
+OWNER: verify
 REQUIRED-BEFORE: review_start
 ```
 

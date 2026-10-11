@@ -300,18 +300,9 @@ PINS = {
     # W10b (shode-house-v7u.4.44): filled after the last text change and the W7-S3 renames, from Sentinel's FINAL
     # 60-unit table (outputs/shode-house-v7u/33-sentinel-w10a-fix2-review.md); --scan b re-measured at the switch
     # commit = 49 units. TP/reword units carry his wording; no unit outside the table appeared.
-    ("agents/developer.md",
+    ("agents/build.md",
      "d4c32dad16ad9dfa73b68d49707c71beec32ef33b8c68dcfd0ae1133d97cae6c"):
         "TP (Low), reworded: Sentinel W10a fix-2 table #37 (TP), reworded in W10b with his wording, so the TP is closed; still a lexical hit, pinned per the table (TP: pin only if it still hits after the edit) -- sha confirmed in Sentinel's W10b pins review",
-    ("agents/devops-engineer.md",
-     "ab25ed62f08be30c0d44078e9081d0fdd032bd1cf684acfb96bc4e1616935136"):
-        "FP: Sentinel W10a fix-2 final table #1 (security-axis read; unchanged text)",
-    ("agents/devops-engineer.md",
-     "6bee0f0f35b61ce4880a120812281f956e50957b027bc0ea4acf7ebe9697f0b5"):
-        "FP: Sentinel W10a fix-2 final table #2 (security-axis read; unchanged text)",
-    ("agents/sre-engineer.md",
-     "84f89438f05a53c84ddf4b3864f8e9955b0e713f78be1ea8872de1161eeb17e4"):
-        "FP: Sentinel W10a fix-2 final table #40 (security-axis read; unchanged text)",
     ("output-styles/shode-house.md",
      "9b789a3fb337342165865f95470d77ee539e9365fba8975c31d0ebf467dfd83b"):
         "FP: Sentinel W10a fix-2 table #41; re-pinned after a mechanical change only (persona -> agent id, Oliver -> router, the S3 force-for-plugin flip or '\u00a7 Safety' -> 'the Safety floor') -- Sentinel confirms the new sha",
@@ -333,7 +324,7 @@ PINS = {
     ("references/runbooks/router-engagement.md",
      "3be5b9ba5b2f87396d0e1037bda1bb062b61643744e0c1f619a2391a218eb66c"):
         "FP: Sentinel W10a fix-2 final table #33 (security-axis read; unchanged text)",
-    ("references/runbooks/solution-architect-method.md",
+    ("references/runbooks/plan-architecture.md",
      "77e5c55ff3ff9defcc45e13ebf1f4cf5fa101bfb9fa0be51ee096869bef3a81b"):
         "reword before pin: Sentinel W10a fix-2 table #58, reworded in W10b with his wording; still a lexical hit, pinned per the table (TP: pin only if it still hits after the edit) -- Sentinel confirms the new sha",
     ("references/scope-lock.md",
@@ -447,6 +438,48 @@ PINS = {
     ("skills/workflow/diagnose/SKILL.md",
      "2201bd640d9de6708dfce90d1615fcdf3e51045fdf57619a979029b57a321ba0"):
         "FP: Sentinel W10a fix-2 final table #60 (security-axis read; unchanged text)",
+
+    # 4.0.1 (shode-house-jni): entries keyed to a retired agent file were pruned (inert, their files are gone); the units below
+    # are the current shas of the same lexical hits after the 18 -> 6 consolidation. Security-axis review required to confirm.
+    ("agents/operate.md",
+     "9578a422cc0e8ad3152aa37eb0938509632e0b88b36d244d4106db04296fc535"):
+        "4.0.1 consolidation (shode-house-jni): unit moved from the retired devops-engineer / sre-engineer body into the merged operate body (same lexical hit as the W10b pin it replaces; the old pin was pruned); security-axis confirmation of the new sha required",
+    ("agents/operate.md",
+     "ac173ff9e3b6210b9aba61381e8a8512f1b28ef90380ae2a22e0c0707b2ea234"):
+        "4.0.1 consolidation (shode-house-jni): unit moved from the retired devops-engineer / sre-engineer body into the merged operate body (same lexical hit as the W10b pin it replaces; the old pin was pruned); security-axis confirmation of the new sha required",
+    ("agents/operate.md",
+     "ff6b299e8df7e1fb5c344d6f37b34279726661d39da98cf08e2a8d5ddcd9df5c"):
+        "4.0.1 consolidation (shode-house-jni): unit moved from the retired devops-engineer / sre-engineer body into the merged operate body (same lexical hit as the W10b pin it replaces; the old pin was pruned); security-axis confirmation of the new sha required",
+    ("agents/secure.md",
+     "a1ae8359e3f0a7c5fe6462ef81d4f44ecd3b5f8c99110e2f4342d9a9629203f7"):
+        "4.0.1 consolidation (shode-house-jni): frontmatter description of the renamed type (was security-engineer, same wording class as the lexical hit already pinned); security-axis confirmation required",
+    ("agents/verify.md",
+     "4de3f48fc2ed1d1ca042c0cc9b22ac79ffaf08341aab667ebc7ca4572ee2af06"):
+        "4.0.1 consolidation (shode-house-jni): Prohibitions pointer of the merged verify body (code-reviewer + qa-engineer prohibitions moved to references/runbooks/verify-standards.md); security-axis confirmation required",
+    ("references/runbooks/build-method.md",
+     "d4c32dad16ad9dfa73b68d49707c71beec32ef33b8c68dcfd0ae1133d97cae6c"):
+        "4.0.1 consolidation (shode-house-jni): re-pinned after a mechanical rename only (retired role id -> 6-type name, runbook rename or a heading edit) of a unit pinned at W10a/W10b; same lexical hit, no new relaxing text; security-axis confirmation of the new sha required",
+    ("references/runbooks/router-engagement.md",
+     "439ad5a26ee6dbd687ac59bca55e939f9038b22ac04d8153e1890366aea0c629"):
+        "4.0.1 consolidation (shode-house-jni): re-pinned after a mechanical rename only (retired role id -> 6-type name, runbook rename or a heading edit) of a unit pinned at W10a/W10b; same lexical hit, no new relaxing text; security-axis confirmation of the new sha required",
+    ("references/scope-lock.md",
+     "082041060e2b88b28610dc3d32e9a0c36cc738ed035a4073ed810d3ec3a0d417"):
+        "4.0.1 consolidation (shode-house-jni): re-pinned after a mechanical rename only (retired role id -> 6-type name, runbook rename or a heading edit) of a unit pinned at W10a/W10b; same lexical hit, no new relaxing text; security-axis confirmation of the new sha required",
+    ("references/scope-lock.md",
+     "8f5a17e33818e9f2eac5c4285e312d653f8185ba8c3900c384fdaba91495f6ad"):
+        "4.0.1 consolidation (shode-house-jni): re-pinned after a mechanical rename only (retired role id -> 6-type name, runbook rename or a heading edit) of a unit pinned at W10a/W10b; same lexical hit, no new relaxing text; security-axis confirmation of the new sha required",
+    ("skills/discipline/shode-house-deliverable/adr.md",
+     "1936d19e7abd21a6a5a0717887a9829f59e9f13d92fd69b70d42ed9e8b9c866e"):
+        "4.0.1 consolidation (shode-house-jni): re-pinned after a mechanical rename only (retired role id -> 6-type name, runbook rename or a heading edit) of a unit pinned at W10a/W10b; same lexical hit, no new relaxing text; security-axis confirmation of the new sha required",
+    ("skills/discipline/shode-house-deliverable/definition-of-done.md",
+     "762e635a227f3affe078775add742286e1e7fc927e85f7af95994e1ac1ced28f"):
+        "4.0.1 consolidation (shode-house-jni): re-pinned after a mechanical rename only (retired role id -> 6-type name, runbook rename or a heading edit) of a unit pinned at W10a/W10b; same lexical hit, no new relaxing text; security-axis confirmation of the new sha required",
+    ("skills/workflow/decompose/SKILL.md",
+     "6c18b164ed8fd8d4d0a6f050eccb66f04093476df353693c8762d6f8444181ed"):
+        "4.0.1 consolidation (shode-house-jni): re-pinned after a mechanical rename only (retired role id -> 6-type name, runbook rename or a heading edit) of a unit pinned at W10a/W10b; same lexical hit, no new relaxing text; security-axis confirmation of the new sha required",
+    ("skills/workflow/dev-gate/SKILL.md",
+     "d51ceb83322fa2c3e9e8a5970b4d957d896476ec08b91b9c525d52509d594261"):
+        "4.0.1 consolidation (shode-house-jni): re-pinned after a mechanical rename only (retired role id -> 6-type name, runbook rename or a heading edit) of a unit pinned at W10a/W10b; same lexical hit, no new relaxing text; security-axis confirmation of the new sha required",
 }
 
 # Same files and markers as scripts/floor.py (W4); used when that script cannot be imported.
@@ -714,7 +747,7 @@ class ShippedTextLintTest(unittest.TestCase):
         nor its generated copy carries a default or an A16(a) finding, and the README root aborts on an unset root."""
         found = fallback_findings()
         self.assertIn("${CLAUDE_PLUGIN_ROOT:?", (ROOT / "references/design-intel/README.md").read_text())
-        for rel in ("references/design-intel/README.md", "references/runbooks/ux-ui-designer-phase-1b.md"):
+        for rel in ("references/design-intel/README.md", "references/runbooks/design-phase-1b.md"):
             with self.subTest(file=rel):
                 self.assertNotIn("CLAUDE_PLUGIN_ROOT:-", (ROOT / rel).read_text())
                 self.assertFalse([f for f in found if rel in f], found)
@@ -848,9 +881,9 @@ class ShippedTextLintTest(unittest.TestCase):
             (root / "agents").mkdir()
             (root / ".claude-plugin").mkdir()
             shutil.copy(ROOT / ".claude-plugin/plugin.json", root / ".claude-plugin/plugin.json")
-            shutil.copy(ROOT / "agents/developer.md", root / "agents/developer.md")
+            shutil.copy(ROOT / "agents/build.md", root / "agents/build.md")
             before = relax_findings(root)
-            with open(root / "agents/developer.md", "a") as f:
+            with open(root / "agents/build.md", "a") as f:
                 f.write("\nThe floor does not apply to tasks labelled X.\n")
             after = relax_findings(root)
             self.assertEqual(len(before) + 1, len(after), after)
@@ -901,7 +934,7 @@ class ShippedTextLintTest(unittest.TestCase):
     def test_references_and_flat_generated_skills_are_in_scope(self):
         paths = {p.relative_to(ROOT).as_posix() for _, _, ps in scope() for p in ps}
         self.assertIn("references/runbooks/resolve-merge-conflicts.md", paths)
-        self.assertIn("references/runbooks/ux-ui-designer-phase-1b.md", paths)  # W7 S3 rename of uma-phase-1b.md
+        self.assertIn("references/runbooks/design-phase-1b.md", paths)  # W7 S3 rename of uma-phase-1b.md
         if (ROOT / "plugins/shode-house/knowledge/references").is_dir():
             self.assertTrue(any(p.startswith("plugins/shode-house/knowledge/references/") for p in paths))
         if (ROOT / "plugins/shode-house/skills/dev-gate/SKILL.md").is_file():

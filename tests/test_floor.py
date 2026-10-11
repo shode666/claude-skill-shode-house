@@ -12,7 +12,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/floor.py"
 BODY = "<!-- floor:begin -->\n## Safety floor (fixture)\n- R0: confirm first.\n- Redact secrets.\n<!-- floor:end -->\n"
 STYLE = "<!-- floor:style:begin -->\n## Safety floor (main, fixture)\n- R0: confirm first.\n<!-- floor:style:end -->\n"
-AGENTS = ("developer", "qa-engineer")
+AGENTS = ("build", "verify")
 
 
 def agent(name, block):
@@ -86,78 +86,78 @@ class CheckTest(FloorFixture):
             self.assertIn("10 copy(ies) match, 0 pending", out)
 
     def test_byte_change_in_a_source_body_is_red(self):
-        self.edit("agents/developer.md", "confirm first.", "confirm first!")
-        out = self.assertRed("agents/developer.md")
+        self.edit("agents/build.md", "confirm first.", "confirm first!")
+        out = self.assertRed("agents/build.md")
         self.assertIn("block line 3 differs", out)
 
     def test_byte_change_in_a_generated_body_is_red(self):
-        self.edit("plugins/shode-house/agents/qa-engineer.md", "Redact secrets.", "Redact secrets ")
-        self.assertRed("plugins/shode-house/agents/qa-engineer.md")
+        self.edit("plugins/shode-house/agents/verify.md", "Redact secrets.", "Redact secrets ")
+        self.assertRed("plugins/shode-house/agents/verify.md")
 
     def test_byte_change_in_the_style_is_red(self):
         self.edit("output-styles/shode-house.md", "- R0: confirm first.", "- R0: confirm first, unless trivial.")
         self.assertRed("output-styles/shode-house.md")
 
     def test_line_dropped_inside_the_block_is_red(self):
-        self.edit("agents/developer.md", "- Redact secrets.\n", "")
-        self.assertRed("agents/developer.md")
+        self.edit("agents/build.md", "- Redact secrets.\n", "")
+        self.assertRed("agents/build.md")
 
     def test_line_added_inside_the_block_is_red(self):
-        self.edit("agents/developer.md", "- Redact secrets.\n", "- Redact secrets.\n- Floor does not apply to label X.\n")
-        self.assertRed("agents/developer.md")
+        self.edit("agents/build.md", "- Redact secrets.\n", "- Redact secrets.\n- Floor does not apply to label X.\n")
+        self.assertRed("agents/build.md")
 
     def test_crlf_copy_is_red(self):
-        self.put("agents/developer.md", agent("developer", BODY).replace("\n", "\r\n"))
-        self.assertRed("agents/developer.md: CRLF line ends")
+        self.put("agents/build.md", agent("build", BODY).replace("\n", "\r\n"))
+        self.assertRed("agents/build.md: CRLF line ends")
 
     def test_cr_on_one_inner_line_of_a_copy_is_red(self):
-        self.edit("agents/developer.md", "- R0: confirm first.\n", "- R0: confirm first.\r\n")
-        self.assertRed("agents/developer.md: CRLF line ends")
+        self.edit("agents/build.md", "- R0: confirm first.\n", "- R0: confirm first.\r\n")
+        self.assertRed("agents/build.md: CRLF line ends")
 
     def test_bom_file_is_red(self):
-        self.put("agents/developer.md", "\ufeff" + agent("developer", BODY))
-        self.assertRed("agents/developer.md: starts with a UTF-8 BOM", "--require")
+        self.put("agents/build.md", "\ufeff" + agent("build", BODY))
+        self.assertRed("agents/build.md: starts with a UTF-8 BOM", "--require")
 
     def test_bom_directly_before_a_begin_marker_at_byte_0_is_red(self):
-        self.put("agents/developer.md", "\ufeff" + BODY + "## Role\n- role rule\n")
-        self.assertRed("agents/developer.md: starts with a UTF-8 BOM")
+        self.put("agents/build.md", "\ufeff" + BODY + "## Role\n- role rule\n")
+        self.assertRed("agents/build.md: starts with a UTF-8 BOM")
 
     def test_begin_marker_at_byte_0_is_red(self):  # Sentinel W4 r3 R3-2: the frontmatter must start every target
-        self.put("agents/developer.md", BODY + "## Role\n- role rule\n")
-        self.assertRed("agents/developer.md: begin marker must be the first non-blank line after the frontmatter "
+        self.put("agents/build.md", BODY + "## Role\n- role rule\n")
+        self.assertRed("agents/build.md: begin marker must be the first non-blank line after the frontmatter "
                        "(the file must start with a --- frontmatter line", "--require")
 
     def test_second_marker_pair_is_red(self):
-        self.edit("agents/developer.md", "## Role\n", BODY + "## Role\n")
+        self.edit("agents/build.md", "## Role\n", BODY + "## Role\n")
         self.assertRed("needs exactly one marker pair")
 
     def test_unpaired_marker_is_red(self):
-        self.edit("agents/developer.md", "<!-- floor:end -->\n", "")
+        self.edit("agents/build.md", "<!-- floor:end -->\n", "")
         self.assertRed("needs exactly one marker pair")
 
     def test_missing_begin_marker_is_red(self):
-        self.edit("agents/developer.md", "<!-- floor:begin -->\n", "")
+        self.edit("agents/build.md", "<!-- floor:begin -->\n", "")
         self.assertRed("needs exactly one marker pair (found begin x0, end x1")
 
     def test_reversed_markers_are_red(self):
-        text = agent("developer", "<!-- floor:end -->\n- x\n<!-- floor:begin -->\n")
-        self.put("agents/developer.md", text)
+        text = agent("build", "<!-- floor:end -->\n- x\n<!-- floor:begin -->\n")
+        self.put("agents/build.md", text)
         self.assertRed("end marker before begin marker")
 
     def test_indented_begin_marker_is_red(self):
-        self.edit("agents/developer.md", "<!-- floor:begin -->", "  <!-- floor:begin -->")
+        self.edit("agents/build.md", "<!-- floor:begin -->", "  <!-- floor:begin -->")
         self.assertRed("begin marker must be a whole line")
 
     def test_trailing_text_after_end_marker_is_red(self):
-        self.edit("agents/developer.md", "<!-- floor:end -->\n", "<!-- floor:end --> trailing\n")
+        self.edit("agents/build.md", "<!-- floor:end -->\n", "<!-- floor:end --> trailing\n")
         self.assertRed("end marker must be a whole line")
 
     def test_stray_floor_marker_text_is_red(self):
-        self.edit("agents/developer.md", "- role rule\n", "- role rule <!-- floor:begin\n")
+        self.edit("agents/build.md", "- role rule\n", "- role rule <!-- floor:begin\n")
         self.assertRed("needs exactly one marker pair")
 
     def test_style_floor_in_an_agent_is_red(self):
-        self.put("agents/developer.md", agent("developer", STYLE))
+        self.put("agents/build.md", agent("build", STYLE))
         self.assertRed("carries the style floor markers")
 
     def test_body_floor_in_a_style_is_red(self):
@@ -165,18 +165,18 @@ class CheckTest(FloorFixture):
         self.assertRed("carries the body floor markers")
 
     def test_missing_markers_pending_until_required(self):
-        self.put("agents/developer.md", agent("developer", ""))
+        self.put("agents/build.md", agent("build", ""))
         rc, out = self.run_floor("--check", "--verbose")
         self.assertEqual(0, rc, out)
-        self.assertIn("~ pending agents/developer.md: no floor markers", out)
+        self.assertIn("~ pending agents/build.md: no floor markers", out)
         self.assertIn("1 pending", out)
-        self.assertRed("agents/developer.md: no floor markers -- required", "--require")
-        self.assertRed("agents/developer.md: no floor markers -- required", require_env=True)
+        self.assertRed("agents/build.md: no floor markers -- required", "--require")
+        self.assertRed("agents/build.md: no floor markers -- required", require_env=True)
         self.put(".claude-plugin/plugin.json", '{"name": "shode-house", "version": "4.0.0"}\n')
-        self.assertRed("agents/developer.md: no floor markers -- required")
+        self.assertRed("agents/build.md: no floor markers -- required")
 
     def test_empty_marker_pair_pending_until_required(self):
-        self.put("agents/developer.md", agent("developer", "<!-- floor:begin -->\n<!-- floor:end -->\n"))
+        self.put("agents/build.md", agent("build", "<!-- floor:begin -->\n<!-- floor:end -->\n"))
         rc, out = self.run_floor("--check", "--verbose")
         self.assertEqual(0, rc, out)
         self.assertIn("text not written yet", out)
@@ -224,7 +224,7 @@ class PlacementTest(FloorFixture):
     so no fence, comment, quote or framing text can wrap the block. Red in both modes; --write refuses."""
     MSG = "begin marker must be the first non-blank line after the frontmatter"
 
-    def assertMisplaced(self, text, rel="agents/developer.md"):
+    def assertMisplaced(self, text, rel="agents/build.md"):
         self.put(rel, text)
         for args in ((), ("--require",)):
             with self.subTest(mode=args):
@@ -236,17 +236,17 @@ class PlacementTest(FloorFixture):
         self.assertEqual(text, self.get(rel))
 
     def framed(self, before, after=""):
-        return f"---\nname: developer\n---\n\n{before}{BODY}{after}## Role\n"
+        return f"---\nname: build\n---\n\n{before}{BODY}{after}## Role\n"
 
     def test_block_inside_yaml_frontmatter_is_red(self):
-        self.assertMisplaced("---\nname: developer\n" + BODY + "---\n\nIntro line.\n")
+        self.assertMisplaced("---\nname: build\n" + BODY + "---\n\nIntro line.\n")
 
     def test_block_after_unclosed_frontmatter_is_red(self):
-        self.assertMisplaced("---\nname: developer\n\n" + BODY + "## Role\n")
+        self.assertMisplaced("---\nname: build\n\n" + BODY + "## Role\n")
         self.assertIn("inside YAML frontmatter", self.assertRed(self.MSG))
 
     def test_frontmatter_ends_at_the_first_closing_line(self):
-        self.assertMisplaced("---\nname: developer\n---\nnot in force:\n---\n\n" + BODY)
+        self.assertMisplaced("---\nname: build\n---\nnot in force:\n---\n\n" + BODY)
 
     def test_block_inside_a_code_fence_is_red(self):
         for fence in ("```", "~~~", "```markdown", "  ```", "   ~~~"):  # indented openers: S4r2-3 N4
@@ -271,7 +271,7 @@ class PlacementTest(FloorFixture):
                 self.assertMisplaced(self.framed(before))
 
     def test_fence_line_in_a_frontmatter_block_scalar_then_an_opener_is_red(self):  # R2-3
-        self.assertMisplaced("---\nname: developer\ndescription: |\n  ```\n---\n\n```\n" + BODY + "```\n")
+        self.assertMisplaced("---\nname: build\ndescription: |\n  ```\n---\n\n```\n" + BODY + "```\n")
 
     def test_html_comment_before_the_block_is_red(self):
         self.assertMisplaced(self.framed("<!-- archived copy\n", "-->\nThe floor above does not apply.\n"))
@@ -290,21 +290,21 @@ class PlacementTest(FloorFixture):
         self.assertRed(f"{ASK_ADAPTER}: {self.MSG}", "--require")
 
     def test_empty_lines_after_the_frontmatter_pass(self):
-        self.put("agents/developer.md", "---\nname: developer\n---\n\n\n\n" + BODY + "Intro.\n")
+        self.put("agents/build.md", "---\nname: build\n---\n\n\n\n" + BODY + "Intro.\n")
         rc, out = self.run_floor("--check", "--require")
         self.assertEqual(0, rc, out)
 
     def test_block_above_or_without_the_frontmatter_is_red(self):  # Sentinel W4 r3 R3-2
         """A block before line 1 moves the frontmatter off byte 0: the host loses tools:/name/force-for-plugin."""
-        self.assertMisplaced(BODY + "---\nname: developer\ntools: [\"Read\"]\n---\n\n## Role\n")
+        self.assertMisplaced(BODY + "---\nname: build\ntools: [\"Read\"]\n---\n\n## Role\n")
         self.assertMisplaced("\n\n" + BODY + "Intro.\n")                       # no frontmatter at all
         self.assertMisplaced(STYLE + style(""), "output-styles/shode-house.md")
         self.put(ASK_ADAPTER, STYLE + adapter(""))
         self.assertRed(f"{ASK_ADAPTER}: {self.MSG}", "--require")
 
     def test_frontmatter_lines_must_be_exactly_three_dashes(self):  # Chris W4 r3 S4r3-1 (mutants C3 / C4)
-        self.assertMisplaced("--- \nname: developer\n---\n\n" + BODY)
-        self.assertMisplaced("---\nname: developer\n--- \n\n" + BODY)
+        self.assertMisplaced("--- \nname: build\n---\n\n" + BODY)
+        self.assertMisplaced("---\nname: build\n--- \n\n" + BODY)
 
 
 class AskAdapterAndElsewhereTest(FloorFixture):
@@ -609,8 +609,8 @@ class AskAdapterAndElsewhereTest(FloorFixture):
 
     def test_floor_text_outside_the_block_of_a_target_is_red(self):  # S4r2-5 / R2-4, both modes
         cases = {
-            "agents/developer.md": ("## Role\n", "## Safety floor (relaxed)\n- R0 (irreversible: only prod)\n## Role\n"),
-            "plugins/shode-house/agents/qa-engineer.md": ("footer\n", "footer\n- R0 (irreversible: force-push): fine\n"),
+            "agents/build.md": ("## Role\n", "## Safety floor (relaxed)\n- R0 (irreversible: only prod)\n## Role\n"),
+            "plugins/shode-house/agents/verify.md": ("footer\n", "footer\n- R0 (irreversible: force-push): fine\n"),
             "output-styles/shode-house.md": ("## Routing\n", "### safety floor (weaker)\n## Routing\n"),
             ASK_ADAPTER: ("Use the referenced", "<!--floor:style:begin-->\nUse the referenced"),
         }
@@ -625,16 +625,16 @@ class AskAdapterAndElsewhereTest(FloorFixture):
         self.assertEqual(0, self.run_floor("--check", "--require")[0])
 
     def test_floor_text_after_the_block_reports_its_own_line(self):
-        self.edit("agents/developer.md", "## Role\n", "## Role\n- R0 (irreversible: none)\n")
-        self.assertRed("agents/developer.md: floor text line 15 outside the body floor block (floor elsewhere)")
+        self.edit("agents/build.md", "## Role\n", "## Role\n- R0 (irreversible: none)\n")
+        self.assertRed("agents/build.md: floor text line 15 outside the body floor block (floor elsewhere)")
 
     def test_floor_text_in_a_target_without_markers_is_red_before_4(self):
-        self.put("agents/developer.md", agent("developer", "## Safety floor (hand-written)\n"))
-        self.assertRed("agents/developer.md: floor text line 6 outside the body floor block (floor elsewhere)")
+        self.put("agents/build.md", agent("build", "## Safety floor (hand-written)\n"))
+        self.assertRed("agents/build.md: floor text line 6 outside the body floor block (floor elsewhere)")
 
     def test_floor_text_in_frontmatter_of_a_target_is_red(self):
-        self.put("agents/developer.md", "---\nname: developer\nnote: |\n  - R0 (irreversible: none)\n---\n\n" + BODY)
-        self.assertRed("agents/developer.md: floor text line 4 outside the body floor block (floor elsewhere)")
+        self.put("agents/build.md", "---\nname: build\nnote: |\n  - R0 (irreversible: none)\n---\n\n" + BODY)
+        self.assertRed("agents/build.md: floor text line 4 outside the body floor block (floor elsewhere)")
 
     def test_floor_line_prefixes_inside_a_sentence_pass(self):
         self.put("skills/workflow/ask/SKILL.md", "---\nname: ask\n---\n\nThe ## Safety floor ( heading lives in bodies.\n"
@@ -650,22 +650,22 @@ class AskAdapterAndElsewhereTest(FloorFixture):
 
 class WriteTest(FloorFixture):
     def test_write_fills_existing_markers_only(self):
-        self.put("agents/developer.md", agent("developer", "<!-- floor:begin -->\n<!-- floor:end -->\n"))
-        self.put("agents/qa-engineer.md", agent("qa-engineer", ""))
+        self.put("agents/build.md", agent("build", "<!-- floor:begin -->\n<!-- floor:end -->\n"))
+        self.put("agents/verify.md", agent("qa-engineer", ""))
         self.put("output-styles/shode-house.md", style("<!-- floor:style:begin -->\nold\n<!-- floor:style:end -->\n"))
-        before_gen = self.get("plugins/shode-house/agents/developer.md")
-        self.put("plugins/shode-house/agents/developer.md", before_gen.replace("Redact", "Redakt"))
+        before_gen = self.get("plugins/shode-house/agents/build.md")
+        self.put("plugins/shode-house/agents/build.md", before_gen.replace("Redact", "Redakt"))
         rc, out = self.run_floor("--write")
         self.assertEqual(0, rc, out)
-        self.assertEqual(agent("developer", BODY), self.get("agents/developer.md"))
+        self.assertEqual(agent("build", BODY), self.get("agents/build.md"))
         self.assertEqual(style(STYLE), self.get("output-styles/shode-house.md"))
-        self.assertEqual(agent("qa-engineer", ""), self.get("agents/qa-engineer.md"), "markers are never inserted")
-        self.assertIn("skipped agents/qa-engineer.md", out)
-        self.assertIn("Redakt", self.get("plugins/shode-house/agents/developer.md"), "generated tree is the packer's")
+        self.assertEqual(agent("qa-engineer", ""), self.get("agents/verify.md"), "markers are never inserted")
+        self.assertIn("skipped agents/verify.md", out)
+        self.assertIn("Redakt", self.get("plugins/shode-house/agents/build.md"), "generated tree is the packer's")
         self.assertEqual([], list(self.tmp.rglob("*.floor-tmp")))
 
     def test_write_is_idempotent(self):
-        self.edit("agents/developer.md", "confirm first.", "tampered.")
+        self.edit("agents/build.md", "confirm first.", "tampered.")
         self.assertEqual(0, self.run_floor("--write")[0])
         snapshot = {p: p.read_bytes() for p in self.tmp.rglob("*.md")}
         rc, out = self.run_floor("--write")
@@ -675,20 +675,20 @@ class WriteTest(FloorFixture):
         self.assertEqual(0, self.run_floor("--check", "--require")[0])
 
     def test_write_preserves_text_outside_the_block(self):
-        self.edit("agents/developer.md", "confirm first.", "tampered.")
-        self.edit("agents/developer.md", "Intro line.", "Intro line ไทย with UTF-8.")
+        self.edit("agents/build.md", "confirm first.", "tampered.")
+        self.edit("agents/build.md", "Intro line.", "Intro line ไทย with UTF-8.")
         rc, _ = self.run_floor("--write")
         self.assertEqual(0, rc)
-        want = agent("developer", BODY).replace("Intro line.", "Intro line ไทย with UTF-8.")
-        self.assertEqual(want, self.get("agents/developer.md"))
+        want = agent("build", BODY).replace("Intro line.", "Intro line ไทย with UTF-8.")
+        self.assertEqual(want, self.get("agents/build.md"))
 
     def test_write_refuses_a_malformed_file(self):
-        bad = agent("developer", BODY + BODY)
-        self.put("agents/developer.md", bad)
+        bad = agent("build", BODY + BODY)
+        self.put("agents/build.md", bad)
         rc, out = self.run_floor("--write")
         self.assertEqual(1, rc, out)
         self.assertIn("not written", out)
-        self.assertEqual(bad, self.get("agents/developer.md"))
+        self.assertEqual(bad, self.get("agents/build.md"))
 
 
 class RealCanonicalTest(unittest.TestCase):

@@ -5,7 +5,7 @@ description: Batch-drain ready tickets with isolated workers, independent review
 
 # Drain (verified backlog → parallel worktree → serial merge → close-on-done)
 
-> **Owner**: router (route + own the run). Impl/verify: developer · code-reviewer · qa-engineer · devops-engineer · ux-ui-designer; security item → security-engineer
+> **Owner**: router (route + own the run). Impl/verify: `build` · `verify` (standards axis) · `verify` (runtime axis) · `operate` (deploy mode) · `design`; security item → `secure`
 > Before dispatch/resume, read `skills/discipline/shode-house-workflow/harness.md`. Its authority, reviewer triggers and recovery contract apply to each item. Use the project's confirmed tracker, including Markdown (harness § Source of truth); tracker verbs here are neutral — find ready / read / note / close / link — and Beads commands in `harness.md` are an example, not a prerequisite. router owns tracker writes; unavailable updates remain pending sync, never claimed CLOSED.
 > แก้ 2 failure mode: **stale-open task** · **git race / tree collision**
 
@@ -13,7 +13,7 @@ description: Batch-drain ready tickets with isolated workers, independent review
 
 - **Item interdependent** — ถ้า B ต้องใช้ output ของ A = ไม่ parallel-safe → sequence หรือรวมเป็น agent เดียว
 - **Item แตะไฟล์เดียวกัน** — รวมเป็น **1 agent** (parallel worktree แก้ไฟล์เดียวกัน → conflict ตอน cherry-pick). Group by file-locality ก่อนเสมอ
-- **Design / architecture / feature shape ใหม่** — route ไป Phase 1a/1b (`design-system`: business-analyst/solution-architect/ux-ui-designer) ก่อน; drain implement เฉพาะ item ที่ fix **concrete แล้ว** (file:line + direction)
+- **Design / architecture / feature shape ใหม่** — route ไป Phase 1a/1b (`design-system`: `plan`/`design`) ก่อน; drain implement เฉพาะ item ที่ fix **concrete แล้ว** (file:line + direction)
 - **Owner / counsel / billing decision** — agent ทำเสร็จเองไม่ได้ → เอาออกจาก run
 - **> ~20 item** — แตกเป็นรอบ (report + close ระหว่างรอบ) ห้าม fan-out ไม่จำกัด
 - **มีแค่ list/count ของ tracker เป็นหลักฐาน** — ดู § Stop and return: verify set ก่อน, list โกหกได้
@@ -77,7 +77,7 @@ Tracker command examples (Beads) → `harness.md` § Beads example.
 
 ## Step 2 — Route + group by file-locality (router)
 
-1. Map item → owner agent (`shode-house-routing`): code → developer · test/unit → code-reviewer · integration/E2E → qa-engineer · infra/CI → devops-engineer · UI → ux-ui-designer · security → security-engineer
+1. Map item → owner agent (`shode-house-routing`): code → `build` · test/unit → `verify` (standards axis) · integration/E2E → `verify` (runtime axis) · infra/CI → `operate` (deploy mode) · UI → `design` · security → `secure`
 2. **Group by file** — item ที่แตะไฟล์ชุดเดียวกัน = รวมเป็น **1 agent 1 branch**
 3. ยืนยัน disjoint จริงก่อน fan-out:
 
@@ -130,7 +130,7 @@ Close each accepted item in the confirmed tracker with reason `<verdict> <commit
 | Item ยัง abstract (ไม่มี file:line) | → `diagnose` แล้วค่อยกลับมา | ต้อง root cause ก่อน |
 | ต้องการ spec/design ก่อน | → `design-system` | — |
 | TDD discipline ต่อ item | → `dev-gate` | red-green-refactor + quality gate ภายใน agent แต่ละตัว |
-| Reviewer lens ตอน verify | → `review-checklist` | code-reviewer 7-dim / qa-engineer matrix สำหรับ item ที่ต้อง review ลึก |
+| Reviewer lens ตอน verify | → `review-checklist` | `verify` (standards axis) 7-dim / `verify` (runtime axis) matrix สำหรับ item ที่ต้อง review ลึก |
 | Definition of Done | → `shode-house-deliverable` | acceptance + authorized closure/read-back in confirmed tracker; unavailable sync remains pending, not CLOSED |
 | ปิดไม่ครบ / อ้างว่าปิดแล้ว | → `shode-house-workflow/drift.md` § M8 | Close-on-Done Guard (anti-puppet บน close step) |
 

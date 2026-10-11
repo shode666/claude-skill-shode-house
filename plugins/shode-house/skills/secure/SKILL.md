@@ -5,7 +5,7 @@ description: Threat model and review a design or change that crosses a meaningfu
 
 # Secure (STRIDE + threat-driven dev)
 
-> **Owner**: security-engineer (sole).
+> **Owner**: `secure` (sole).
 
 ## 💉 Prompt Injection / Untrusted Content (7 agent ถือ WebFetch/WebSearch)
 
@@ -27,7 +27,7 @@ When NOT to use
 - **Static doc / blog / marketing site** ไม่มี user input — ใช้ `web-q` security headers section พอ
 - **Internal dashboard เบื้องต้น** ไม่มี PII/payment/auth — STRIDE overkill
 - **POC throwaway** — รอ MVP ก่อนค่อย threat model
-- **Incident ที่กำลังเกิด** — ใช้ `shode-house:incident` skill (security-engineer จะถูกเรียกใน war room); secure skill = preventive ไม่ใช่ reactive
+- **Incident ที่กำลังเกิด** — ใช้ `shode-house:incident` skill (`secure` จะถูกเรียกใน war room); secure skill = preventive ไม่ใช่ reactive
 
 ## Inputs and decision boundaries
 
@@ -40,10 +40,10 @@ When NOT to use
 
 ไม่มีในหลักฐาน → list สิ่งที่ขาด ส่งกลับ router ห้ามสมมติเอง:
 
-- [ ] **Architecture document ครบ** (solution-architect C4 Container ขึ้นไป; ห้าม STRIDE ลอย ๆ บน Whitebox)
+- [ ] **Architecture document ครบ** (`plan` (architecture mode) C4 Container ขึ้นไป; ห้าม STRIDE ลอย ๆ บน Whitebox)
 - [ ] **Data classification ระบุ** (PII / payment / health / business confidential — ต้องรู้ว่าอะไรปกป้อง)
-- [ ] **Trust boundary list** (อย่างน้อย: internet, app tier, data tier, third-party — boundary ผิด = threat ผิด) — list ที่ derive ต้องให้ solution-architect confirm ผ่าน router ก่อน sign-off STRIDE
-- [ ] **Regulation scope confirmed** (PCI-DSS? GDPR/PDPA? HIPAA? BOT? — ดึง fintech-expert/insurance-expert ตาม domain)
+- [ ] **Trust boundary list** (อย่างน้อย: internet, app tier, data tier, third-party — boundary ผิด = threat ผิด) — list ที่ derive ต้องให้ `plan` (architecture mode) confirm ผ่าน router ก่อน sign-off STRIDE
+- [ ] **Regulation scope confirmed** (PCI-DSS? GDPR/PDPA? HIPAA? BOT? — ดึง `plan` ตาม domain)
 
 ## When NOT to use
 
@@ -53,7 +53,7 @@ When NOT to use
 
 ## หลักการ
 
-**Threat-driven design** — security AC ไหลเข้าจาก Phase 1c ก่อน developer code; ไม่ใช่ add-on ปลาย sprint
+**Threat-driven design** — security AC ไหลเข้าจาก Phase 1c ก่อน `build` code; ไม่ใช่ add-on ปลาย sprint
 
 ## STRIDE per asset (🔴 บังคับ Phase 1c)
 
@@ -70,11 +70,11 @@ When NOT to use
 
 ```markdown
 # Threat Model: <feature>
-**Author**: security-engineer  **Date**: <YYYY-MM-DD>  **bd**: <id>
+**Author**: `secure`  **Date**: <YYYY-MM-DD>  **bd**: <id>
 
 ## Asset inventory
-- Asset 1: <user PII>; sensitivity: H; owner: business-analyst/fintech-expert
-- Asset 2: <auth token>; sensitivity: H; owner: security-engineer
+- Asset 1: <user PII>; sensitivity: H; owner: `plan`
+- Asset 2: <auth token>; sensitivity: H; owner: `secure`
 
 ## Trust boundary
 - Browser ↔ API gateway (untrusted → semi-trusted)
@@ -91,7 +91,7 @@ When NOT to use
 2. Attacker as authed user wants to escalate to admin via JWT manipulation
    → Mitigation: signed RS256 + revocation list
 
-## Security AC (inject into business-analyst's AC)
+## Security AC (inject into `plan` (requirements mode)'s AC)
 - AC-S1: All PII fields encrypt-at-rest with KMS-managed key
 - AC-S2: All write endpoints require valid CSRF token
 - AC-S3: Rate-limit 10 req/s per IP (HTTP 429 over)
@@ -102,9 +102,9 @@ When NOT to use
 | ...
 
 ## Sign-off
-- security-engineer: ✅ <date>
-- solution-architect: ✅ <date> (ADR support)
-- fintech-expert/insurance-expert (if domain): ✅ <date>
+- `secure`: ✅ <date>
+- `plan` (architecture mode): ✅ <date> (ADR support)
+- `plan` (if domain): ✅ <date>
 ```
 
 ## LINDDUN (privacy threat — add when PII/PDPA/GDPR)
@@ -184,9 +184,9 @@ The chapter labels below follow ASVS 4.x and are illustrative checks, not a comp
 
 | Situation | Next skill | Reason |
 |---|---|---|
-| STRIDE done → security AC ready for dev | → `dev-gate` | developer implement security control with TDD; code-reviewer verify |
-| Threat found → exploit in production | → `incident` | sre-engineer war room + security-engineer co-lead |
-| Security headers / CSP / web-q overlap | → `web-q` | ux-ui-designer + devops-engineer + security-engineer jointly own headers |
+| STRIDE done → security AC ready for dev | → `dev-gate` | `build` implement security control with TDD; `verify` (standards axis) verify |
+| Threat found → exploit in production | → `incident` | `operate` (reliability mode) war room + `secure` co-lead |
+| Security headers / CSP / web-q overlap | → `web-q` | `design` + `operate` (deploy mode) + `secure` jointly own headers |
 | Test gap แสดงว่า security control ไม่มี test | → `automate-test` + `ui-test` | Add abuse-case test + a11y/CSP smoke in CI |
 | Pen test finding ต้อง fix | → `diagnose` → `dev-gate` | RCA + TDD-driven fix
 

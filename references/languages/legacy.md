@@ -147,4 +147,4 @@ Phase 3 (high risk)
   → Final cutover + decommission
 ```
 
-> solution-architect กำหนด strategy + devops-engineer implement infra. fintech-expert/erp-expert consult ถ้า financial/accounting impact.
+> `plan` (architecture mode) กำหนด strategy + `operate` (deploy mode) implement infra. `plan` consult ถ้า financial/accounting impact.

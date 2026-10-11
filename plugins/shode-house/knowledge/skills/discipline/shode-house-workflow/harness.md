@@ -29,7 +29,7 @@ If the selected service is unavailable, mark local Markdown updates pending sync
 do not claim the remote issue changed. Reconcile before subsequent external writes.
 
 Shared language: keep one `CONTEXT.md` (glossary only: term, meaning, where it lives
-in the code, terms to avoid) in the record home. business-analyst owns it; every role reads it
+in the code, terms to avoid) in the record home. `plan` (requirements mode) owns it; every role reads it
 when present and uses its terms in artifacts, names and reports. Create it lazily on
 the first resolved term; challenge or record a conflicting term immediately. It is
 never a spec or a scratch pad.
@@ -64,27 +64,27 @@ changes. Preserve domain/security review when triggered; do not trade it for tok
 
 ## Plan, execute, verify, triage
 
-Keep the existing software-house ownership: product-manager product; business-analyst requirements and
-spec verification; solution-architect architecture; staff-engineer cross-team depth; ux-ui-designer UI; developer code/tests;
-code-reviewer independent code review; qa-engineer integration; security-engineer security; domain experts
-business rules; devops-engineer deployment; sre-engineer operations. Assign only relevant roles,
-not all 18 for every request. Reuse approved design; design-only is not permission
+Keep the existing software-house ownership: `plan` (discover mode) product; `plan` (requirements mode) requirements and
+spec verification; `plan` (architecture mode) architecture; `build` (staff-grade brief) cross-team depth; `design` UI; `build` code/tests;
+`verify` (standards axis) independent code review; `verify` (runtime axis) integration; `secure` security; domain experts
+business rules; `operate` (deploy mode) deployment; `operate` (reliability mode) operations. Assign only relevant roles,
+not all 6 types for every request. Reuse approved design; design-only is not permission
 to implement. An authorized 'start' continues without another command.
 
 Verification depth follows risk, not habit. Bounded change (XS/S per routing, existing
-tests, no UI, no money/auth/PII/external integration, no schema or migration): developer
-implements, code-reviewer reviews; qa-engineer joins only when the change crosses a process, network
-or storage boundary; business-analyst (spec axis) is dispatched on every review round; with no spec source it returns `BLOCKED: no-spec` (never SKIP); it re-reads acceptance when acceptance changed. Standard feature:
-business-analyst and solution-architect light, developer, code-reviewer and qa-engineer. Multi-phase, cross-team, deployment or
-migration: full runbook through the router. Triggers (UI → ux-ui-designer, business rule →
-domain expert, auth/session/PII/money/external integration/webhook/file upload/AI agent → security-engineer;
+tests, no UI, no money/auth/PII/external integration, no schema or migration): `build`
+implements, `verify` (standards axis) reviews; `verify` (runtime axis) joins only when the change crosses a process, network
+or storage boundary; `plan` (requirements mode) (spec axis) is dispatched on every review round; with no spec source it returns `BLOCKED: no-spec` (never SKIP); it re-reads acceptance when acceptance changed. Standard feature:
+`plan` (requirements mode) and `plan` (architecture mode) light, `build`, `verify` (standards axis) and `verify` (runtime axis). Multi-phase, cross-team, deployment or
+migration: full runbook through the router. Triggers (UI → `design`, business rule →
+domain expert, auth/session/PII/money/external integration/webhook/file upload/AI agent → `secure`;
 canonical list = SKILL.md § Phase 1c) add roles at any tier; nothing
 removes a triggered role. Record the chosen tier and reason in the checkpoint.
 
 Pipeline phases and their evidence remain distinct. Independent assignments may
 run concurrently within actual host limits; producer/consumer dependencies must wait.
 Sequential reviewers can be independent actors; one actor changing role labels cannot.
-Code review checks invariants and proportional SOLID/application-layer design; business-analyst
+Code review checks invariants and proportional SOLID/application-layer design; `plan` (requirements mode)
 checks requirement conformity. Link overlapping findings rather than duplicate work.
 UI evidence is required for UI changes, not screenshots of pure backend operations.
 
@@ -114,7 +114,7 @@ scope or authority. Experts provide recommendations, not user permission. Bundle
 questions with options, recommendation and the affected work; use the host's popup
 when available or Markdown when not. Continue independent work while a decision is
 pending. No silence-as-approval; no repeated file-plan approval within existing scope.
-Amending an acceptance criterion is the requirements owner's call: route it to business-analyst
+Amending an acceptance criterion is the requirements owner's call: route it to `plan` (requirements mode)
 for a conformity re-check, or record it as a deviation with rationale and keep the
 task PARTIAL until it confirms. The router does not silently rewrite AC to pass review.
 In non-interactive runs, wait for dispatched workers in the foreground; never end the

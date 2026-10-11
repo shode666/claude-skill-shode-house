@@ -52,7 +52,7 @@ jobs:
           SHIP=$(jq -r '.skills[]' "$PJ" | sed -e 's:^\./skills/::' -e 's:/$::' | tr '\n' ' ')
           [ -n "${SHIP// /}" ] || { echo "FATAL: no skill buckets in $PJ"; exit 2; }
           EXCL="in-progress deprecated"
-          F5="staff-engineer solution-architect security-engineer ux-ui-designer"
+          F5="secure design"   # 4.0.1 (SEC-4): the two host-pinned fable types, nothing else
           # v4 ADR §7 W1: names and switches come from data, not from counts. PLUGIN = the namespace of a
           # preload/load (`<plugin>:<skill>`); REQ4 = 1 from plugin.json major 4 (the W10 switch commit) or
           # SHODE_REQUIRE_V4=1 (rehearsal) -> the gates wired in 3.17.x (#27) become required.
@@ -275,7 +275,7 @@ jobs:
               [ -f "$DI/$req" ] || err "design-intel: missing $req"
             done
             [ -d "$DI/data/stacks" ] || err "design-intel: missing data/stacks/"
-            grep -q 'design-intel' agents/ux-ui-designer.md || err "Uma does not reference design-intel"
+            grep -q 'design-intel' agents/design.md || err "agents/design.md does not reference design-intel"
             # v3.12: เช็คว่าไฟล์มีอยู่ไม่พอ -- gate ที่ Uma ต้องผ่านทุก Phase 1b ต้องรันได้จริง
             # (รอบก่อนหน้า pack ผ่าน #17 ทั้งที่ check_contrast block ทุก palette ในแคตตาล็อก)
             # U22: scratch files live in a per-run `mktemp -d` under $TMPDIR (removed on exit), never fixed /tmp names:
@@ -339,11 +339,9 @@ jobs:
               || err "$ref mentions AskUserQuestion without saying it is main-session only (subagents cannot call it)"
             owner=$(grep -oiE '(Oliver|Bella|Patrick|Sara|Aaron|Dave|Chris|Quinn|Uma)' "$ref" | head -1 | tr 'A-Z' 'a-z')
             case "$owner" in
-              oliver) af=agents/orchestrator.md ;; bella) af=agents/business-analyst.md ;;
-              patrick) af=agents/product-manager.md ;; sara) af=agents/solution-architect.md ;;
-              aaron) af=agents/devops-engineer.md ;; dave) af=agents/developer.md ;;
-              chris) af=agents/code-reviewer.md ;; quinn) af=agents/qa-engineer.md ;;
-              uma) af=agents/ux-ui-designer.md ;; *) continue ;;
+              oliver) af=output-styles/shode-house.md ;; bella|patrick|sara) af=agents/plan.md ;;
+              aaron) af=agents/operate.md ;; dave) af=agents/build.md ;;
+              chris|quinn) af=agents/verify.md ;; uma) af=agents/design.md ;; *) continue ;;
             esac
             :  # owner map เก็บไว้เพื่อรายงานบริบท; การบังคับอยู่ที่กฎ main-session ข้างบน
           done < <(find skills -name '*.md' -not -path '*/deprecated/*' -not -path '*/in-progress/*')
@@ -370,8 +368,8 @@ jobs:
             grep -q "^- axis=$axis: DISPATCH" "$ST" || err "$ST: Review card missing axis line 'axis=$axis'"
           done
           # standards and spec never offer SKIP ("Review has 2 axes"): one exact line each, no other line for either axis
-          SD='- axis=standards: DISPATCH `shode-house:code-reviewer`'
-          SP='- axis=spec: DISPATCH `shode-house:business-analyst` (always; no SKIP)'
+          SD='- axis=standards: DISPATCH `shode-house:verify` (name: verify-standards)'
+          SP='- axis=spec: DISPATCH `shode-house:plan` (always; no SKIP) (name: plan-spec; never the spawn that wrote or amended the AC)'
           grep -qxF -- "$SD" "$ST" || err "$ST: standards axis must be exactly: $SD"
           grep -qxF -- "$SP" "$ST" || err "$ST: spec axis must be exactly: $SP"
           ! grep -E '^- axis=(standards|spec):' "$ST" | grep -vxF -e "$SD" -e "$SP" | grep -q . \
@@ -427,7 +425,9 @@ jobs:
               case "$p" in skills/*/*/SKILL.md)
                 sk=$(echo "$p" | cut -d/ -f3)
                 c=$(grep -lE "^skills:.*\"($PLUGIN:)?$sk\"" agents/*.md 2>/dev/null | wc -l)
-                [ "$c" -ge 7 ] || err "enforcement-map: rule '$id' ประกาศ preload:true แต่มีแค่ $c agent ที่ preload '$sk'" ;;
+                # 7 of the 18 agents of 4.0.0 (39%), scaled to the roster of this tree: ceil(7 * agents / 18) (3 of 6 in 4.0.1)
+                need=$(( (7 * $(ls agents/*.md | wc -l) + 17) / 18 ))
+                [ "$c" -ge "$need" ] || err "enforcement-map: rule '$id' ประกาศ preload:true แต่มีแค่ $c agent ที่ preload '$sk' (need $need)" ;;
               esac
             done < <(jq -r '.rules[] | select(.preload==true) | [.id, .source_of_truth] | @tsv' .enforcement-map.json)
             # v3.17 FR-G-3: root_only = กฎ safety ที่ห้ามตกไป lazy tier. source ต้องเป็น ROOT file
@@ -647,7 +647,7 @@ jobs:
             if [ "$3" -eq 0 ]; then ok "$1"
             elif [ $REQ4 -eq 1 ]; then err "$1 (required from 4.0.0):"; echo "$2" | head -20
             else printf '  ~ advisory (%s required from 4.0.0): %s finding(s)\n' "$1" "$(echo "$2" | grep -c .)"; echo "$2" | head -20 | sed 's/^/      /'; fi; }
-          for t in test_agent_tools_pin test_skill_names test_shipped_text_lint test_floor test_gate27_wiring test_ci_wiring test_ux_design_runbooks test_eval_runners test_reference_toc; do   # test_floor: R45; test_ux_design_runbooks: R68/S7-1; test_reference_toc: U23-5 (always required)
+          for t in test_agent_tools_pin test_skill_names test_shipped_text_lint test_floor test_gate27_wiring test_ci_wiring test_ux_design_runbooks test_eval_runners test_reference_toc test_core_roster test_probes_401 test_battery_401; do   # test_floor: R45; test_ux_design_runbooks: R68/S7-1; test_reference_toc: U23-5; test_core_roster: 4.0.1 roster/routing/review-card/hook-key gates (always required); test_probes_401: pre-registered E19/E20 probes + no-fable-dispatch scorer
             python3 tests/$t.py >/dev/null 2>&1 || { err "tests/$t.py red (unit/mutation tests always required; from 4.0.0 also the tree):"; python3 tests/$t.py 2>&1 | grep -E '^(FAIL|ERROR)'; }
           done
           a1=$(python3 tests/test_agent_tools_pin.py --scan 2>&1); v4tree "A1 tools pin" "$a1" $?
@@ -706,6 +706,16 @@ jobs:
             if w9f=$(bash eval/scenarios/core-4.0/check-freeze.sh 2>&1); then ok "W9 $w9f"
             else err "W9 core-4.0 freeze red (bash eval/scenarios/core-4.0/check-freeze.sh):"; echo "$w9f" | head -10; fi
           else err "W9 core-4.0 freeze: eval/scenarios/core-4.0/check-freeze.sh missing -- NOT CHECKED (required in every mode)"; fi
+          # 4.0.1 (shode-house-jni): the 6-type core set, derived from the frozen 4.0 set; required in every mode like 4.0
+          if [ -f eval/scenarios/core-4.0.1/check-freeze.sh ]; then
+            if w9g=$(bash eval/scenarios/core-4.0.1/check-freeze.sh 2>&1); then ok "W9 $w9g"
+            else err "W9 core-4.0.1 freeze red (bash eval/scenarios/core-4.0.1/check-freeze.sh):"; echo "$w9g" | head -10; fi
+          else err "W9 core-4.0.1 freeze: eval/scenarios/core-4.0.1/check-freeze.sh missing -- NOT CHECKED (required in every mode)"; fi
+          # 4.0.1 routing-probe battery (P01..P47 mapped to the 6 types, additive to the frozen baseline); required in every mode
+          if [ -f eval/scenarios/battery-4.0.1/check-freeze.sh ]; then
+            if w9h=$(bash eval/scenarios/battery-4.0.1/check-freeze.sh 2>&1); then ok "W9 $w9h"
+            else err "W9 battery-4.0.1 freeze red (bash eval/scenarios/battery-4.0.1/check-freeze.sh):"; echo "$w9h" | head -10; fi
+          else err "W9 battery-4.0.1 freeze: eval/scenarios/battery-4.0.1/check-freeze.sh missing -- NOT CHECKED (required in every mode)"; fi
           w9s=""
           for d in eval/v4-security/tests eval/shadow-floor/tests; do
             if [ -d "$d" ]; then w9s="$w9s $d"; else err "W9 eval suite: $d missing -- NOT CHECKED (required in every mode)"; fi

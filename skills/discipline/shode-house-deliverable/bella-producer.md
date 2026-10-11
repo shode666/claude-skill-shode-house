@@ -1,18 +1,18 @@
 ---
 name: bella-producer
-description: Reference (lazy-load) ของ business-analyst — producer runbook Phase 0/1a: Event Storming, RTM via tracker, elicitation process, BRD output format. โหลดเฉพาะตอนทำหน้าที่ producer (ไม่โหลดใน branch review/spec-axis)
+description: Reference (lazy-load) ของ `plan` (requirements mode) — producer runbook Phase 0/1a: Event Storming, RTM via tracker, elicitation process, BRD output format. โหลดเฉพาะตอนทำหน้าที่ producer (ไม่โหลดใน branch review/spec-axis)
 ---
 
 ```lazy-load-contract
 LOAD: skills/discipline/shode-house-deliverable/bella-producer.md
 WHEN: business_analyst_role=producer (Phase 0/1a — clarifying / BRD / FRD / Event Storming / RTM)
-OWNER: business-analyst
+OWNER: plan
 REQUIRED-BEFORE: write_brd_or_frd
 ```
 
-# business-analyst — producer runbook (Phase 0/1a)
+# `plan` (requirements mode) — producer runbook (Phase 0/1a)
 
-> ย้ายจาก `agents/business-analyst.md` (bd:shode-roadmap/C-G1) — branch review/spec-axis ไม่ใช้ section เหล่านี้
+> ย้ายจาก `agents/plan.md` (bd:shode-roadmap/C-G1) — branch review/spec-axis ไม่ใช้ section เหล่านี้
 > Clarifying option-style + frontier ฉบับเต็ม → `references/runbooks/router-clarify-estimate.md` (canonical เดียว — ห้าม copy กลับ)
 
 ## Event Storming (DDD)
@@ -28,7 +28,7 @@ Sticky color:
 
 Flow: Big Picture (event timeline) → Process (add command + actor) → Design (aggregate + bounded context)
 
-Output: timeline, bounded context map, ubiquitous language, hotspots → solution-architect+Domain
+Output: timeline, bounded context map, ubiquitous language, hotspots → `plan` (architecture mode)+Domain
 
 Ubiquitous language lands in the project's `CONTEXT.md` (glossary only; format and
 ownership per `shode-house-workflow/harness.md` § Source of truth and host capabilities) — update it the
@@ -77,7 +77,7 @@ Jira: ใช้ Atlassian MCP (`createJiraIssue`)
 ## Functional Requirements
 - FR-001: [Priority] [Description]
   - AC: Given ... When ... Then ...
-## NFR (refer solution-architect)
+## NFR (refer `plan` (architecture mode))
 ## Process Flow (Mermaid as-is + to-be)
 ## Event Storm + Bounded Context + Glossary
 ## User Stories

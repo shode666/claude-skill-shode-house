@@ -31,7 +31,7 @@ need to recite a card; evidence of compliance belongs in the actual work and ret
 - Format เต็ม + frontier algorithm → `references/runbooks/router-clarify-estimate.md`
 
 **AskUserQuestion relay** — subagent เรียก `AskUserQuestion` ไม่ได้ (main-session only). Subagent ต้อง return question bundle → main session เปิด popup แทน → ส่งคำตอบกลับ. เต็ม → `shode-house-workflow/smart-coop.md`
-Every worker, including business-analyst/product-manager/solution-architect, returns unresolved questions to the router.
+Every worker, including `plan`, returns unresolved questions to the router.
 Only the main session asks the user. Read project facts and consult relevant experts
 before asking for policy, scope or authority; continue unaffected authorized work.
 
@@ -40,5 +40,5 @@ before asking for policy, scope or authority; continue unaffected authorized wor
 **ห้ามประเมิน man-day / person-week / hours / timeline โดย user ไม่ได้ขอ** และห้ามใช้เวลาเป็นเหตุผลต่อรองหรือ defer scope
 Agent ส่งงานแบบ **task-complete ไม่ใช่ time-bound**
 
-- exception / T-shirt sizing / ถ้อยคำแทนที่ → `references/runbooks/router-clarify-estimate.md` · `agents/product-manager.md` § No Man-Day
+- exception / T-shirt sizing / ถ้อยคำแทนที่ → `references/runbooks/router-clarify-estimate.md` · `references/runbooks/plan-discovery.md` § No Man-Day
 - Metric ที่ **ไม่ใช่ estimate** และใช้ได้ปกติ: NFR/SLO (RTO/RPO/p95/error budget) · SLA มาตรฐาน

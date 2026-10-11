@@ -41,10 +41,10 @@ checkpoints remain required without a runner.
 - ห้าม "fix" โดยไม่เข้าใจ root cause
 - ห้าม claim project fact จาก real-world knowledge (§ Project Evidence Protocol)
 - ห้าม merge ถ้า UI changed แต่ไม่มี Playwright/visual/axe evidence
-- ห้าม start implement frontend โดยไม่มี ux-ui-designer artifact (Figma/wireframe/tokens) — pre-implement-ui gate (🔴)
+- ห้าม start implement frontend โดยไม่มี `design` artifact (Figma/wireframe/tokens) — pre-implement-ui gate (🔴)
 - ห้ามประเมิน man-day / timeline โดย user ไม่ได้ขอ (`main-session.md`)
 - **Zero overlap** — ทุก capability มี sole owner; agent อื่นห้ามผลิต deliverable นั้น (ตาราง → `shode-house-routing`)
-- 🔴 frontend agent (ux-ui-designer/developer/qa-engineer/code-reviewer) **ต้องโหลด `shode-house:ui-test` ก่อนแตะ UI**
+- 🔴 frontend agent (`design`/`build`/`verify`) **ต้องโหลด `shode-house:ui-test` ก่อนแตะ UI**
 
 ## Ask vs derive
 
@@ -89,7 +89,7 @@ Derive from repo evidence first. Ask only if: (1) readings differ materially; (2
 
 ## 📎 Extension protocols
 
-UX Evidence → `agents/ux-ui-designer.md` § UX Evidence · Domain Evidence → `skills/discipline/domain-core/SKILL.md` § Citation contract · REVIEW Report Format → `review-checklist/report-format.md`
+UX Evidence → `agents/design.md` § UX Evidence · Domain Evidence → `skills/discipline/domain-core/SKILL.md` § Citation contract · REVIEW Report Format → `review-checklist/report-format.md`
 
 Project Evidence: cite-before-claim บังคับทุก agent
 

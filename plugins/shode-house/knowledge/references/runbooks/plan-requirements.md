@@ -1,0 +1,114 @@
+---
+name: plan-requirements
+description: Reference (lazy-load) for `plan` (requirements mode) - Phase 1a pickup and foundation, duties, best practices, AC-writing checks and routing. Load before writing BRD/FRD/AC.
+---
+
+```lazy-load-contract
+LOAD: references/runbooks/plan-requirements.md
+WHEN: phase in {0,1a} AND deliverable in {brd,frd,ac,stories}
+OWNER: plan
+REQUIRED-BEFORE: brd_or_ac_written
+```
+
+# `plan` (requirements mode) - method
+
+> Lazy reference for `plan` (requirements mode): method and catalogue moved out of the agent body (v4 W5a). It supplies method, never authority; the safety and domain rules stay in the agent body.
+
+**Contents**
+
+- [AC-writing checks](#ac-writing-checks)
+- [🤝 Phase 1a Pickup Protocol](#-phase-1a-pickup-protocol)
+- [🤝 Phase 1a Foundation (v2.8 — TRUE parallel กับ `plan` (architecture mode))](#-phase-1a-foundation-v28--true-parallel-กับ-plan-architecture-mode)
+- [หน้าที่](#หน้าที่)
+- [🧭 Does not own → who (Self-Routing)](#-does-not-own--who-self-routing)
+- [Best Practices](#best-practices)
+- [ข้อห้าม (requirements-mode specific)](#ข้อห้าม-requirements-mode-specific)
+- [Mode rules carried over from the former requirements mode](#mode-rules-carried-over-from-the-former-requirements-mode)
+
+## AC-writing checks
+
+- ห้าม reuse leading question — reframed AC = G/W/T ที่เป็นกลาง ไม่ฝังคำตอบที่คำถามเดิมชี้นำ
+- เจอ tautology AC ("user save then save") → flag + propose 2-3 alternatives
+
+## 🤝 Phase 1a Pickup Protocol
+
+When Phase 0 supplied an opportunity, record its revision and relevant decisions once. Example:
+```
+[`plan` (discover mode) ▸ `plan` (requirements mode) : Phase 1a opportunity validated (bd-<id>) ✓]
+Accepted: outputs/opportunity-<feature>.md (path)
+Validated kill criteria: <bullet list — copy from Phase 0 output>
+Validated OKR alignment: <%>
+```
+
+Reuse validated requirements. If Phase 0 is not applicable under the harness tier, record that reason; a missing pickup recital does not block BRD/AC. Missing required product decisions go to the router.
+
+## 🤝 Phase 1a Foundation (v2.8 — TRUE parallel กับ `plan` (architecture mode))
+
+`plan` (requirements mode) and `plan` (architecture mode) own independent scopes. Parallelize when supported and independent;
+sequential independent contexts are valid. Avoid copying intermediate conclusions.
+
+### Pattern (Phase 1a)
+1. Read the confirmed canonical task and evidence, Markdown fallback.
+2. `plan` (requirements mode) draft (parallel กับ `plan` (architecture mode)): § หน้าที่ 2-7 (Event Storming ถ้า complex)
+3. End of phase: **Light cross-read** (1 pass, ไม่ใช่ multi-round Coop):
+   - Check FR ขัด `plan` (architecture mode)'s ADR ไหม → ping resolve
+4. Return compact evidence to the router; update the confirmed record only with authority.
+
+### task notes format (Phase 1a — `plan` (requirements mode) section)
+```
+## BRD (`plan` (requirements mode))
+- FR: [count]; Story: [count]; AC: [count]
+- Key risk: [1-2 line]
+- Cross-ref ADR: FR-N → ADR-M aligned ✅
+- Open Q: [list]
+```
+
+## หน้าที่
+
+1. **Elicitation** — 5 Whys where useful; batch unresolved decisions, no question quota.
+2. **BRD** — business objective (SMART), stakeholder (RACI), scope, success criteria
+3. **FRD** — functional requirement testable + AC G-W-T
+4. **User Stories** — INVEST (Independent/Negotiable/Valuable/Estimable/Small/Testable)
+5. **Process Modeling** — BPMN, swim lane (as-is vs to-be) — Mermaid
+6. **Event Storming** — DDD discovery
+7. **RTM** — canonical record links (BR → FR → Design → Test → Code)
+
+## 🧭 Does not own → who (Self-Routing)
+
+| งาน | ใคร |
+|-----|-----|
+| Architecture/tech stack | → `plan` (architecture mode) |
+| Domain rule ลึก | → Domain Expert validate |
+| Implementation | → `build` |
+| Test strategy | → `verify` (runtime axis) (`plan` (requirements mode) ส่ง AC) |
+| UX flow/wireframe | → `design` |
+
+## Best Practices
+
+- **5 Whys** — ขุดถึง root cause (อย่าหยุดที่ what)
+- **MoSCoW** prioritize: Must / Should / Could / Won't
+- **Story splitting**: by workflow step / data variation / business rule / happy vs edge path
+  → แตกเป็น bd จริงเมื่อไหร่ ให้โหลด **`shode-house:decompose` skill** (tracer bullet · เกณฑ์เล็กพอหรือยัง · blocking edge ประกาศตอนสร้าง · create-then-wire 2 pass)
+- **Ubiquitous language** glossary — term เดียวทั้ง project → `CONTEXT.md`
+- **Visual > text** — Mermaid (BPMN/sequence/flowchart) ดีกว่า paragraph
+- **Empathy-driven** — persona + JTBD ก่อน feature spec
+- **Scope creep guard** — orphan FR (ไม่ link BR) = scope creep
+
+## ข้อห้าม (requirements-mode specific)
+
+- ห้าม technical jargon ใน BRD (ไป FRD)
+- ห้ามตอบ "implement ยังไง" (ไม่ใช่งาน BA)
+- ห้ามข้าม AC (testable เสมอ)
+- ห้าม orphan requirement
+- ห้ามข้าม persona/JTBD สำหรับ user-facing feature
+
+
+## Mode rules carried over from the former requirements mode
+
+Start from settled requirements; send only unresolved decisions to the router.
+
+### 🎯 Bias Discipline
+Trigger: AC copies the user's first phrasing. Unsure if it is testable → flag it and send options to the router, do not silently rewrite.
+
+### 🧰 Skill loading + lazy runbook — ของคุณ
+Read frontmatter prerequisites unless already loaded in this context. Load when used: `shode-house:decompose` (split epic → leaf once spec is stable); producer (Phase 0/1a): read `skills/discipline/shode-house-deliverable/bella-producer.md` before BRD/FRD.

@@ -20,7 +20,7 @@
 
 ## เมื่อใดต้อง post Scope Contract
 
-ก่อน **implement / refactor / scaffold / fix bug / migration / config change** — agent ที่ทำงานจริง (developer/code-reviewer/qa-engineer/devops-engineer/domain experts) บันทึก scope และตรวจ ownership/authorization ก่อน edit; scope ที่อนุญาตแล้วใช้ต่อได้โดยไม่ต้องขอ scope ซ้ำ และไม่ถือ silence เป็น approval; R0 ทุกครั้งยังต้องได้ confirm ของ user สำหรับ action นั้นตรง ๆ
+ก่อน **implement / refactor / scaffold / fix bug / migration / config change** — agent ที่ทำงานจริง (`build`/`verify`/`operate`/`plan` in domain mode) บันทึก scope และตรวจ ownership/authorization ก่อน edit; scope ที่อนุญาตแล้วใช้ต่อได้โดยไม่ต้องขอ scope ซ้ำ และไม่ถือ silence เป็น approval; R0 ทุกครั้งยังต้องได้ confirm ของ user สำหรับ action นั้นตรง ๆ
 
 ไม่ต้อง post: research / read-only analysis / answer question / clarification
 
@@ -48,7 +48,7 @@
 - file นอก Files → พัก write ของไฟล์นั้นเพื่อตรวจ ownership และบันทึก amendment; ถ้ายังอยู่ใน outcome/authority เดิมไม่ต้องขอ user อนุมัติซ้ำ
 
 **Stop** — กัน agent ทำเรื่อยเปื่อย
-- ทดสอบได้ ("smoke test pass + code-reviewer approve") ไม่ใช่ subjective ("ดีพอ")
+- ทดสอบได้ ("smoke test pass + `verify` (standards axis) approve") ไม่ใช่ subjective ("ดีพอ")
 - ถ้าทดสอบไม่ได้ = task ยังไม่ scope พอ → re-design
 
 **Echo** — กัน misinterpretation
@@ -72,33 +72,33 @@
 
 ### ตัวอย่างที่ 1 — parallel ทำงานได้
 ```
-[developer#1|state:scope|task:bd-15] Scope contract
+[`build`#1|state:scope|task:bd-15] Scope contract
 - IN: implement POST /payments/create endpoint
 - OUT: refactor existing /payments/list, add UI form
 - Files: src/payment/create_handler.py, tests/payment/test_create.py
-- Stop: smoke test pass + code-reviewer approve
+- Stop: smoke test pass + `verify` (standards axis) approve
 - Echo: เข้าใจว่าเพิ่ม endpoint ใหม่ไม่แก้ของเดิม → จะทำ POST handler + integration test
 
-[developer#2|state:scope|task:bd-16] Scope contract
+[`build`#2|state:scope|task:bd-16] Scope contract
 - IN: implement POST /payments/refund endpoint
 - OUT: ไม่แตะ /create
 - Files: src/payment/refund_handler.py, tests/payment/test_refund.py
-- Stop: smoke test pass + code-reviewer approve
+- Stop: smoke test pass + `verify` (standards axis) approve
 - Echo: เข้าใจว่า refund แยก endpoint ไม่รวมกับ create → จะทำ POST handler + test
 ```
 → Files ไม่ overlap → parallel ได้
 
 ### ตัวอย่างที่ 2 — block ที่ overlap
 ```
-[developer#3|state:scope|task:bd-17] Scope contract
-- Files: src/payment/create_handler.py  ← overlap developer#1
+[`build`#3|state:scope|task:bd-17] Scope contract
+- Files: src/payment/create_handler.py  ← overlap `build`#1
 ```
-→ router: BLOCK developer#3 จนกว่า developer#1 จะ return และ scope ของ developer#1 ถูกปล่อย (worker ไม่ปิด task เอง; the router ปิด)
+→ router: BLOCK `build`#3 จนกว่า `build`#1 จะ return และ scope ของ `build`#1 ถูกปล่อย (worker ไม่ปิด task เอง; the router ปิด)
 
 ### ตัวอย่างที่ 3 — Echo จับ misinterpretation
 User: "เพิ่ม validation ตรง edit ราคา"
 ```
-[developer|state:scope] Scope contract
+[`build`|state:scope] Scope contract
 - IN: เพิ่ม validation `price > 0` ที่ POST /products/:id/price
 - ...
 - Echo: เข้าใจว่า user ขอ validate ค่าราคา > 0 → จะทำ validation ตรง backend
@@ -109,7 +109,7 @@ User: "ไม่ใช่ ผมหมายถึง validate ที่ fronten
 ## Enforcement
 
 - router = enforcer หลัก (ดู § Flow ข้อ 3 และ § Script-checkable enforcement ด้านล่าง)
-- ทุก implementing agent (developer/code-reviewer/qa-engineer/devops-engineer/domain expert) ต้อง compliance
+- ทุก implementing agent (`build`/`verify`/`operate`/`plan` in domain mode) ต้อง compliance
 - ขัด rule = block + router แจ้ง user
 
 ## Catches (จาก realworld painpoint)
@@ -169,7 +169,7 @@ use the harness's scoped ownership, serialized writes and honest enforcement lim
 - **`--amend`**: atomic (lock + validate + atomic-rename เหมือน `workflow-state.sh`), เติมได้
   เฉพาะ `owns[]` — **ห้ามเติม `allowed_roots[]`** (self-amend ≠ self-expand)
   มี time budget 3 s ต่อการเรียกเหมือน scope check ของ hook: เกิน budget → ถูกปฏิเสธ (`scope-budget`) และ manifest ไม่เปลี่ยน
-- **bind-on-claim**: agent เห็นเฉพาะ label ของตัวเอง (`developer#1`) ไม่เห็น instance id ที่ harness
+- **bind-on-claim**: agent เห็นเฉพาะ label ของตัวเอง (`build`#1`) ไม่เห็น instance id ที่ harness
   สุ่มให้ตอน subagent spawn — agent รัน `scripts/scope-check.sh <bd> <label> --bind` เป็นก้าวแรก,
   hook (`guard-scope-write.sh`, ADAPTER ของ platform นี้) เห็นทั้ง identity fields ของ harness
   และคำสั่ง Bash พร้อมกัน จึงเป็นคนบันทึกจริง (7 กติกา ระบุด้วย instance_id + label เท่านั้น,

@@ -47,26 +47,26 @@ Pipeline (🔴 v3.3 PEV loop per bd — no sprint outer loop):
   ┌─ PEV LOOP per task ──────────────────────────────────────────┐
   │  PICK     : claim task (confirmed tracker)                   │
   │  📋 PLAN                                                     │
-  │  Phase 1a : business-analyst ∥ solution-architect (TRUE parallel)                     │
+  │  Phase 1a : `plan` (requirements mode) ∥ `plan` (architecture mode) (TRUE parallel)                     │
   │             BRD+AC ∥ ADR+risk → task notes                  │
   │             Gate: pre-spec-expand                            │
-  │  Phase 1b : ux-ui-designer + Domain (sequential, conditional)           │
-  │             ux-ui-designer* read spec → wireframe+tokens+a11y baseline  │
+  │  Phase 1b : `design` + Domain (sequential, conditional)           │
+  │             `design`* read spec → wireframe+tokens+a11y baseline  │
   │             Domain* read spec → regulation+rule              │
   │             → outputs/SPEC-<bd-id>.md                        │
-  │             Gate: pre-implement-ui (ux-ui-designer signed)              │
-  │  Phase 1c : security-engineer threat model (conditional)              │
+  │             Gate: pre-implement-ui (`design` signed)              │
+  │  Phase 1c : `secure` threat model (conditional)              │
   │  💻 EXECUTE                                                  │
-  │  Phase 2  : developer (parallel developer#1/#2 if independent)         │
+  │  Phase 2  : `build` (parallel `build`#1/#2 if independent)         │
   │             Scope Contract + code + unit                     │
   │             Gate: pre-ui-check (lint+unit+smoke green)       │
-  │  ✅ VERIFY (code-reviewer/qa-engineer adversarial — zero trust developer)       │
-  │  Phase 3a : ux-ui-designer POST (sequential gate)                       │
+  │  ✅ VERIFY (`verify` adversarial — zero trust `build`)       │
+  │  Phase 3a : `design` POST (sequential gate)                       │
   │             Screenshot diff + a11y manual + Chrome MCP       │
-  │             Gate: pre-code-review (ux-ui-designer PASS)                 │
-  │  Phase 3b : code-reviewer ∥ qa-engineer (TRUE parallel, verdict=FAIL def.) │
-  │             code-reviewer: 7-dim + mutation ≥70% + visual evidence    │
-  │             qa-engineer: integ + E2E + contract + load + Chrome    │
+  │             Gate: pre-code-review (`design` PASS)                 │
+  │  Phase 3b : `verify` (standards axis) ∥ `verify` (runtime axis) (TRUE parallel, verdict=FAIL def.) │
+  │             `verify` (standards axis): 7-dim + mutation ≥70% + visual evidence    │
+  │             `verify` (runtime axis): integ + E2E + contract + load + Chrome    │
   │             → outputs/REVIEW-<bd-id>.md                      │
   │  🚦 TRIAGE                                                   │
   │  Phase 4  : router Triage (max iter 3)                       │
@@ -75,13 +75,13 @@ Pipeline (🔴 v3.3 PEV loop per bd — no sprint outer loop):
   │             Clean → close + read back; note lesson           │
   │             Gate: pre-loop-exit                              │
   │  🚀 DEPLOY                                                   │
-  │  Phase 5  : devops-engineer continuous per ready task (or manual batch)│
+  │  Phase 5  : `operate` (deploy mode) continuous per ready task (or manual batch)│
   │             CI + canary + health check + observability       │
   │  📡 OPERATE                                                  │
-  │  Phase 6  : sre-engineer SLO watch + incident response             │
+  │  Phase 6  : `operate` (reliability mode) SLO watch + incident response             │
   └──────────────────────────────────────────────────────────────┘
 
-* = conditional (ux-ui-designer ถ้า frontend; Domain ถ้า business rule; security-engineer ถ้า auth/PII/money)
+* = conditional (`design` ถ้า frontend; Domain ถ้า business rule; `secure` ถ้า auth/PII/money)
 
 ดำเนินต่อเมื่อ existing authorization ครอบ scope; ถ้ายังไม่ครอบให้ถามเฉพาะ decision ที่ขาด
 (ห้าม "Total: ~N days"; agent ส่งงาน task-complete, ไม่ time-bound. ห้าม sprint bracket)
@@ -94,17 +94,17 @@ router maintain per-bd state (no sprint state — sprint removed):
 **Per-bd loop state**:
 ```
 | bd-id | iter | last-phase | findings           | next-phase |
-| bd-42 | 1    | 3b         | UI accept fail     | → 1b (ux-ui-designer redesign baseline) |
-| bd-42 | 2    | 3a         | code lint fail     | → 2 (developer fix) |
+| bd-42 | 1    | 3b         | UI accept fail     | → 1b (`design` redesign baseline) |
+| bd-42 | 2    | 3a         | code lint fail     | → 2 (`build` fix) |
 | bd-42 | 3    | 3b         | none               | → close + Phase 5 |
 ```
 
 **Rules**:
 - iter เริ่มที่ 1 (ครั้งแรกผ่าน 1a→3b = iter 1)
 - Loop routing **precise** ตาม finding type:
-  - **code/perf/security implementation/test coverage** → Phase 2 (developer)
-  - **UI/design adherence/visual diff/a11y manual** → Phase 1b (ux-ui-designer redesign)
-  - **spec/AC/regulation/business rule** → Phase 1a (business-analyst ∥ solution-architect revise)
+  - **code/perf/security implementation/test coverage** → Phase 2 (`build`)
+  - **UI/design adherence/visual diff/a11y manual** → Phase 1b (`design` redesign)
+  - **spec/AC/regulation/business rule** → Phase 1a (`plan` (requirements mode) ∥ `plan` (architecture mode) revise)
 - iter > 3 → **STOP** broadcast "[router] bd-N exceeded iter 3 — escalating user: re-scope / kill / split"
 - Task close = Phase 4 Triage clean (0 Critical/Major) + iter ≤ 3 + lesson note posted
 - 🔴 **M8 Close-on-Done**: เมื่อ closure ได้รับ authority close ใน confirmed tracker ด้วย reason "<verdict> <source_revision_and_diff_evidence> <test_result>" แล้ว read back ยืนยัน CLOSED (Markdown fallback). ใช้ commit SHA เมื่อมี authorized commit; ไม่สร้าง commit เพียงเพื่อให้ template ครบ. งาน PARTIAL/BLOCKED คงเปิดพร้อมเหตุผล. Batch backlog → `shode-house:drain` skill
@@ -146,9 +146,9 @@ Primary: [name] → [agent] | Secondary: ...
 | # | Risk | L | I | Mitigation |
 
 ## Tasks (bd)
-#1 business-analyst BRD       in_progress
-#2 solution-architect ADR     blocked-by:1
-#3 developer payment-api      blocked-by:2
+#1 `plan` (requirements mode) BRD       in_progress
+#2 `plan` (architecture mode) ADR     blocked-by:1
+#3 `build` payment-api      blocked-by:2
 
 ## 📦 Deliverables
 - outputs/01-brd.md
@@ -164,24 +164,24 @@ Primary: [name] → [agent] | Secondary: ...
 ## Phase 0/1c/6/7 + Drift Defense + Multi-sig Gates
 
 ### Phase 0 Discovery (NEW)
-**Owner**: 🔍 product-manager (lead) + Domain SME
-**router role**: prep — confirm bd scope blank, route product-manager + invite Domain SME(s) based on user request
-**Gate**: `pre-spec` — product-manager sign-off ก่อน Phase 1a
+**Owner**: 🔍 `plan` (discover mode) (lead) + Domain SME
+**router role**: prep — confirm bd scope blank, route `plan` (discover mode) + invite Domain SME(s) based on user request
+**Gate**: `pre-spec` — `plan` (discover mode) sign-off ก่อน Phase 1a
 
 ### Phase 1c Threat Model (NEW)
-**Owner**: ✅ security-engineer (lead) + solution-architect (context)
+**Owner**: ✅ `secure` (lead) + `plan` (architecture mode) (context)
 **Trigger**: feature touches auth | PII | money | external integration | file upload | AI agent | webhook | session
-**router role**: detect trigger ก่อน Phase 2; dispatch security-engineer (parallel-able with 1b ถ้า scope independent)
+**router role**: detect trigger ก่อน Phase 2; dispatch `shode-house:secure` (parallel-able with 1b ถ้า scope independent)
 **Gate**: `pre-implement` — STRIDE doc + security AC posted
 
 ### Phase 6 Operate (NEW — continuous)
-**Owner**: 🚀 sre-engineer (lead) + devops-engineer (infra) + router (escalation routing)
+**Owner**: 🚀 `operate` (reliability mode) (lead) + `operate` (deploy mode) (infra) + router (escalation routing)
 **Trigger**: post-deploy continuous
-**router role**: route incident-related user messages to sre-engineer; escalate error-budget < 0 to product-manager
+**router role**: route incident-related user messages to `operate` (reliability mode); escalate error-budget < 0 to `plan` (discover mode)
 
 ### ~~Phase 7 Learn (REMOVED v3.3)~~
 - Per-bd reflect captured in Phase 4 Triage (router lesson note post close)
-- Continuous OKR review (product-manager) — per-bd contribution, no sprint bracket
+- Continuous OKR review (`plan` (discover mode)) — per-bd contribution, no sprint bracket
 - ห้ามใช้ /sprint command — removed in v3.3
 
 ### Multi-sig pre-deploy-prod gate (R0)
@@ -189,19 +189,19 @@ Primary: [name] → [agent] | Secondary: ...
 ```
 ⏸️ Gate: pre-deploy-prod (bd-<id>)
 Required evidence (paths mandatory):
-  ✅ CI green               [path]   — devops-engineer
-  ✅ Image scan 0 critical  [path]   — devops-engineer
-  ✅ SLO baseline captured  [path]   — sre-engineer
-  ✅ Runbook ready          [path]   — sre-engineer
-  ✅ Rollback drill passed  [path]   — devops-engineer+sre-engineer
-  ✅ STRIDE signed-off      [path]   — security-engineer
-  ✅ Web-Q 4-axis           [path]   — ux-ui-designer+security-engineer
-  ✅ Domain regulation cite [refs]   — fintech-expert/insurance-expert (if applicable)
+  ✅ CI green               [path]   — `operate` (deploy mode)
+  ✅ Image scan 0 critical  [path]   — `operate` (deploy mode)
+  ✅ SLO baseline captured  [path]   — `operate` (reliability mode)
+  ✅ Runbook ready          [path]   — `operate` (reliability mode)
+  ✅ Rollback drill passed  [path]   — `operate` (deploy mode)+`operate` (reliability mode)
+  ✅ STRIDE signed-off      [path]   — `secure`
+  ✅ Web-Q 4-axis           [path]   — `design`+`secure`
+  ✅ Domain regulation cite [refs]   — `plan` (if applicable)
 Multi-sig approval:
-  - devops-engineer (build): ___
-  - sre-engineer (SLO):  ___
-  - security-engineer (sec):___
-  - product-manager (OKR): ___ (R0 only)
+  - `operate` (deploy mode) (build): ___
+  - `operate` (reliability mode) (SLO):  ___
+  - `secure` (sec):___
+  - `plan` (discover mode) (OKR): ___ (R0 only)
 ```
 
 ### Follow-up Classifier (router ingest ทุก user message ใน active engagement)
@@ -216,7 +216,7 @@ User message → router classify (1-line caveman):
   "เสร็จยัง"              → status  → inspect canonical record, answer briefly, continue active authorized work
 ```
 
-ห้าม developer/code-reviewer/qa-engineer/security-engineer/ux-ui-designer proceed ก่อน router classify
+ห้าม `build`/`verify`/`secure`/`design` proceed ก่อน router classify
 
 ### Canonical checkpoint (router maintain)
 
@@ -226,9 +226,9 @@ canonical record rather than create another competing state file. Example:
 ```
 Active Engagement: E-<N> "<title>"
 Active bd issues:
-  - bd-42 : state:review-pending  iter:2  last:code-reviewer-3b
-Last handoff: developer ▸ Verify (bd-42, iter:2)
-Pending gates: pre-loop-exit (bd-42) — waiting qa-engineer + security-engineer notes
+  - bd-42 : state:review-pending  iter:2  last:verify-3b
+Last handoff: `build` ▸ Verify (bd-42, iter:2)
+Pending gates: pre-loop-exit (bd-42) — waiting `verify` (runtime axis) + `secure` notes
 ```
 
 At start/resume each agent reads the accessible canonical checkpoint and assigned
@@ -239,19 +239,19 @@ state files do not block an otherwise grounded response.
 
 | งาน | Team | Lead agent |
 |-----|------|-----------|
-| Opportunity / OKR / market sizing | 🔍 Discover | product-manager |
-| Requirement / BRD / FRD / AC | 📐 Design (business-analyst) | business-analyst |
-| Architecture / ADR / NFR | 📐 Design (solution-architect) | solution-architect |
-| Cross-team tech consistency | 🧭 Lead | staff-engineer |
-| UX/UI / design system / a11y | 📐 Design (ux-ui-designer) | ux-ui-designer |
-| Domain regulation / business rule | 🎓 Domain | fintech-expert/erp-expert/sap-expert/trading-expert/insurance-expert/booking-expert/ecommerce-expert |
-| Production code | 🛠 Dev | developer |
-| Data pipeline / ML / RAG | 🛠 Dev | developer (interim; สร้าง Devon/Mason เมื่อ project ต้องการ deep) |
-| Code review + unit | ✅ Verify | code-reviewer |
-| Integration/E2E/contract/load | ✅ Verify | qa-engineer |
-| Threat model + security depth | ✅ Verify | security-engineer |
-| Docker/CI/IaC/deploy build + harness runner | 🚀 Ops | devops-engineer (app-level runner → developer) |
-| SLO/incident/runbook/on-call | 🚀 Ops | sre-engineer |
-| API docs / release notes | 📐 Design | business-analyst (interim; สร้าง Tex เมื่อต้องการ docs portal) |
+| Opportunity / OKR / market sizing | 🔍 Discover | `plan` (discover mode) |
+| Requirement / BRD / FRD / AC | 📐 Design (`plan` (requirements mode)) | `plan` (requirements mode) |
+| Architecture / ADR / NFR | 📐 Design (`plan` (architecture mode)) | `plan` (architecture mode) |
+| Cross-team tech consistency | 🧭 Lead | `build` (staff-grade brief) |
+| UX/UI / design system / a11y | 📐 Design (`design`) | `design` |
+| Domain regulation / business rule | 🎓 Domain | `plan` |
+| Production code | 🛠 Dev | `build` |
+| Data pipeline / ML / RAG | 🛠 Dev | `build` (interim; สร้าง Devon/Mason เมื่อ project ต้องการ deep) |
+| Code review + unit | ✅ Verify | `verify` (standards axis) |
+| Integration/E2E/contract/load | ✅ Verify | `verify` (runtime axis) |
+| Threat model + security depth | ✅ Verify | `secure` |
+| Docker/CI/IaC/deploy build + harness runner | 🚀 Ops | `operate` (deploy mode) (app-level runner → `build`) |
+| SLO/incident/runbook/on-call | 🚀 Ops | `operate` (reliability mode) |
+| API docs / release notes | 📐 Design | `plan` (requirements mode) (interim; สร้าง Tex เมื่อต้องการ docs portal) |
 
 ---

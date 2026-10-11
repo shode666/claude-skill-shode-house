@@ -43,7 +43,7 @@ source-of-truth mapping; Markdown is the fallback for every concern.
 **Fast path** = inspect → edit → validate → handoff, without phase banners, cards or an `outputs/` artifact — only when ALL five hold: single-file deterministic fix · clear behaviour · no architecture change · no domain decision · no security boundary. One unknown → full workflow. No router style in this session → no fast-path dispatch (§ Dispatch real specialists).
 Fast path still enforces evidence + R0/R1/R2 + Stop-and-return + the Phase 1c trigger; it never drops a triggered role or a gate.
 **Full workflow** when ANY of nine applies: new product behaviour · architecture decision · cross-domain impact · large feature · security-sensitive change (= a Phase 1c trigger) · significant UI flow · complex migration · multi-service contract · production deployment.
-Fast path floor = developer alone, targeted test as evidence; never lighter than the router style's exclusions (not restated here) and never lighter than the harness Bounded tier's, which apply in addition (UI · money/auth/PII/external integration · schema or migration): any one moves the task up to Bounded, where code-reviewer reviews. Between the two, depth follows the harness risk tier.
+Fast path floor = `build` alone, targeted test as evidence; never lighter than the router style's exclusions (not restated here) and never lighter than the harness Bounded tier's, which apply in addition (UI · money/auth/PII/external integration · schema or migration): any one moves the task up to Bounded, where `verify` (standards axis) reviews. Between the two, depth follows the harness risk tier.
 
 ## Dispatch real specialists
 
@@ -58,24 +58,12 @@ short persona summary for the role's domain knowledge. Never spawn the router as
 
 | Agent id | Role file under `../../../agents/` | Responsibility |
 |---|---|---|
-| product-manager | product-manager.md | Product discovery and outcome priorities |
-| business-analyst | business-analyst.md | Requirements, vocabulary and independent spec checks |
-| solution-architect | solution-architect.md | Architecture and system boundaries |
-| staff-engineer | staff-engineer.md | Cross-team technical depth and consistency |
-| developer | developer.md | Implementation and behavior-focused tests |
-| code-reviewer | code-reviewer.md | Independent internal correctness and proportional design |
-| qa-engineer | qa-engineer.md | Integration, contracts and user-journey verification |
-| ux-ui-designer | ux-ui-designer.md | UX, design system and affected UI evidence |
-| security-engineer | security-engineer.md | Threats, trust boundaries and security verification |
-| devops-engineer | devops-engineer.md | Delivery infrastructure and authorized deployment |
-| sre-engineer | sre-engineer.md | Reliability, incidents and operation |
-| fintech-expert | fintech-expert.md | Payments, ledger and financial rules |
-| erp-expert | erp-expert.md | Enterprise resource and accounting processes |
-| sap-expert | sap-expert.md | SAP integration and platform expertise |
-| trading-expert | trading-expert.md | Trading and market infrastructure |
-| insurance-expert | insurance-expert.md | Insurance lifecycle and claims |
-| booking-expert | booking-expert.md | Reservations, availability and cancellation |
-| ecommerce-expert | ecommerce-expert.md | Commerce, orders and promotions |
+| `plan` | plan.md | Discovery, requirements and acceptance, architecture, the spec axis; domain consult and the domain axis with the domain reference under `../../../references/domain/` (fintech, erp, sap, trading, insurance, booking, ecommerce) loaded |
+| `build` | build.md | Implementation and behavior-focused tests; staff-grade briefs (cross-team consistency, refactor strategy) |
+| `verify` | verify.md | Independent verification, one axis per spawn: standards (internal correctness, proportional design) or runtime (integration, contracts, user journeys) |
+| `operate` | operate.md | Delivery infrastructure, authorized deployment, reliability, incidents and operation |
+| `secure` | secure.md | Threats, trust boundaries and security verification |
+| `design` | design.md | UX, design system and affected UI evidence |
 
 Pass scoped outcomes, accessible artifact paths/revisions, ownership, acceptance,
 user language and unresolved decisions. Workers request other specialists through
@@ -84,14 +72,14 @@ serialize shared writes. Preserve domain and security reviews when triggered.
 Read returned artifacts, integrate and verify against acceptance. A worker's PASS
 is not automatically delivery PASS; self-review is never independent sign-off.
 
-developer implements; code-reviewer and qa-engineer independently verify code and affected integration.
-Depth follows the risk tier in the harness: a bounded change gets developer + code-reviewer, not
+`build` implements; `verify` independently verifies code (standards axis) and affected integration (runtime axis), each as its own spawn.
+Depth follows the risk tier in the harness: a bounded change gets `build` + `verify` (standards axis), not
 the whole pipeline; triggers add roles, nothing removes a triggered one.
-business-analyst owns requirements and spec verification; solution-architect owns architecture decisions.
-Reuse settled design, not stale verification. UI work needs ux-ui-designer's design before
+`plan` owns requirements, spec verification and architecture decisions; a spec check is a fresh `plan` spawn that did not write the acceptance.
+Reuse settled design, not stale verification. UI work needs `design`'s design before
 implementation and affected visual/interaction/a11y evidence. Business-rule changes
-need the relevant domain expert; auth/PII/money/external integration triggers
-security-engineer before implementation and affected verification. Before final delivery,
+need a `plan` spawn with the relevant domain reference; auth/PII/money/external integration triggers
+`secure` before implementation and affected verification. Before final delivery,
 read `../../discipline/shode-house-deliverable/definition-of-done.md`; missing
 applicable checks block completion. Before deployment, migration or destructive
 operations, read the approval gates of `shode-house:shode-house-workflow` and verify actual authorization.
@@ -107,7 +95,7 @@ before historical logs. Reuse evidence only for matching revisions/environment;
 recheck affected dependencies. Route findings to their owner rather than replaying
 every phase. Preserve approvals, dissent, blockers and UNKNOWN external effects.
 Load `../../discipline/shode-house-workflow/engineering-loop.md` for design,
-implementation or diagnosis. Do not preload all 18 roles or all skills.
+implementation or diagnosis. Do not preload all 6 role files or all skills.
 
 Return the outcome, artifacts, decisive verification and remaining limitations.
 Apply the five discipline principles without a repeated ceremonial recital.
@@ -128,9 +116,9 @@ formerly the `meeting` skill (team-meeting entry, merged v3.17): orientation sum
 | Skill | When to load | Owner |
 |---|---|---|
 | **`shode-house-discipline`** | ทุก agent, ทุก session (philosophy + safety + universal rules + clarifying) | All |
-| **`shode-house-discipline`** § Project Evidence Protocol | เมื่อ claim "ระบบทำ X" หรือ "regulation บังคับ Y" หรือ "perf p95 = Z" | All claimers, Domain experts, ux-ui-designer, code-reviewer |
+| **`shode-house-discipline`** § Project Evidence Protocol | เมื่อ claim "ระบบทำ X" หรือ "regulation บังคับ Y" หรือ "perf p95 = Z" | All claimers, Domain experts, `design`, `verify` (standards axis) |
 | **`shode-house-routing`** | เมื่อต้อง delegate / triage / T-shirt / resolve conflict | router primary |
-| **`shode-house-deliverable`** | เมื่อจะ hand-off, claim "done", เขียน postmortem, sign-off | Producers (developer/code-reviewer/qa-engineer/devops-engineer/ux-ui-designer/business-analyst/solution-architect/fintech-expert/...) |
+| **`shode-house-deliverable`** | เมื่อจะ hand-off, claim "done", เขียน postmortem, sign-off | Producers (`build`/`verify`/`operate`/`design`/`plan`/`secure`) |
 | **`shode-house-discipline`** `handoff.md` / `reporting.md` | Structured worker returns, durable handoffs and meaningful state transitions | All; conversational messages need no mandatory tag |
 | **`shode-house-workflow`** | Phase Contract + Smart Coop + hooks + gates + worktree | router primary |
 | **`shode-house-workflow`** § Workflow Drift Defense + `drift.md` | Workflow Drift Defense 7 mechanisms (M1-M7) | router enforcer |
@@ -155,14 +143,14 @@ AFK never treats silence as approval or bypasses an external-action gate.
 
 | File | When to load |
 |------|--------------|
-| `references/languages/<lang>.md` | developer เริ่ม coding ภาษาที่ระบุ |
+| `references/languages/<lang>.md` | `build` เริ่ม coding ภาษาที่ระบุ |
 | `references/patterns/general.md` | Generic pattern (OOP/FP/concurrency) |
 | `references/modern-stack.md` | Tech radar / current recommended stack |
 | `references/scope-lock.md` | Anti-scope-creep enforcement |
 
 ### 🛡️ Safety + Universal Rules (สรุป — รายละเอียดใน `shode-house-discipline`)
 
-- **Money is sacred** — multi-sig + audit + reconciliation (fintech-expert domain)
+- **Money is sacred** — multi-sig + audit + reconciliation (`plan` with the fintech domain reference domain)
 - **PII/PHI** — encryption + access log + GDPR/PDPA compliance
 - **R0 actions** = the `## Safety floor` R0 line (router style; every agent body; the floor block at the top of this skill on a host without the style), not restated here; prod deploy and data migration also keep their `pre-deploy-prod` / `pre-data-migration` gates; moving money and deleting data on a target not verified as local and disposable are irreversible and stay R0 under that line
 - **Anti-Puppet** = ห้าม claim "done" ไม่มี paste evidence (รายละเอียดใน `shode-house-deliverable`)

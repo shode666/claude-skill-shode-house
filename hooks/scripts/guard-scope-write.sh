@@ -67,7 +67,7 @@
 #      side effect) or a usage error is all that executes.
 #
 #   3. ux path set (W8; ADR iter 5 5.7 V1.2 + addendum-1 X8), Write|Edit|NotebookEdit only,
-#      when `agent_type` is exactly "shode-house:ux-ui-designer". Applies with OR without an
+#      when `agent_type` is exactly "shode-house:design". Applies with OR without an
 #      engagement (.shode-house/state), because an injected designer is a risk in any
 #      project. On the canonical path (same canon_and_check_write_target as job 1, so a
 #      symlink leaf is refused, traversal/dot-slash are normalised, a ".." that removes a
@@ -968,7 +968,12 @@ handle_bash() {
 # =============================================================================
 # Write|Edit tool_name -- scope-check the target path
 # =============================================================================
-UX_AGENT_TYPE="shode-house:ux-ui-designer"
+# AGENT-TYPE BRANCHES (SEC-1/SEC-2, v4.0.1): the one greppable list of every `agent_type` value this hook branches on. A roster
+# change updates this list and the constant below in the same commit; the maintainer roster test (CI gate #27) reads the `agent-type-branch:`
+# lines, asserts each is `shode-house:<id>` of a live agents/<id>.md, that the constant equals the ux entry, and that no other
+# `shode-house:<id>` literal is compared in hooks/scripts. A stale value would switch the ux path set OFF without a log line.
+#   agent-type-branch: shode-house:design
+UX_AGENT_TYPE="shode-house:design"
 
 # ---- ux_path_check <rel>: job 3 (see header). <rel> is canon_and_check_write_target's
 # output: project-relative and real-cased, or absolute when the target lies outside the
@@ -978,13 +983,13 @@ ux_path_check() {
   case "$rel" in
     outputs/?*|design-system/?*) : ;;
     *)
-      printf 'shode-house: DENY (ux-path-outside) -- the ux-ui-designer may write only under outputs/ or design-system/ (scope guard, ux path set; applies only where hooks execute)\n' >&2
+      printf 'shode-house: DENY (ux-path-outside) -- the design agent may write only under outputs/ or design-system/ (scope guard, ux path set; applies only where hooks execute)\n' >&2
       exit 2 ;;
   esac
   case "$rel" in
     *.md|*.json|*.png|*.jpg|*.svg|*.txt|*.log) : ;;
     *)
-      printf 'shode-house: DENY (ux-ext) -- the ux-ui-designer may write only data files (.md .json .png .jpg .svg .txt .log) under outputs/ or design-system/ (scope guard, ux path set; applies only where hooks execute)\n' >&2
+      printf 'shode-house: DENY (ux-ext) -- the design agent may write only data files (.md .json .png .jpg .svg .txt .log) under outputs/ or design-system/ (scope guard, ux path set; applies only where hooks execute)\n' >&2
       exit 2 ;;
   esac
   # W8 iter 4 (Sentinel N3) and pre-release B2: APFS folds U+017F (long s) to "s", U+212A
@@ -1001,7 +1006,7 @@ ux_path_check() {
     package-lock.json|npm-shrinkwrap.json|\
     tsconfig.json|tsconfig.*.json|jsconfig.json|jsconfig.*.json|*.config.json|\
     .*)
-      printf 'shode-house: DENY (ux-config) -- the ux-ui-designer never creates or edits a manifest, lockfile or tool config (package.json, composer.json, deno.json, project.json, package-lock.json, npm-shrinkwrap.json, tsconfig*.json, jsconfig*.json, *.config.json, or any name starting with a dot) (scope guard, ux path set; applies only where hooks execute)\n' >&2
+      printf 'shode-house: DENY (ux-config) -- the design agent never creates or edits a manifest, lockfile or tool config (package.json, composer.json, deno.json, project.json, package-lock.json, npm-shrinkwrap.json, tsconfig*.json, jsconfig*.json, *.config.json, or any name starting with a dot) (scope guard, ux path set; applies only where hooks execute)\n' >&2
       exit 2 ;;
   esac
   case "$lrel" in
@@ -1011,7 +1016,7 @@ ux_path_check() {
         seg="${rest%%/*}"
         case "$seg" in
           *design-run-order*)
-            printf 'shode-house: DENY (ux-order) -- a design-run order is written only by the router; the ux-ui-designer never writes one (scope guard, ux path set; applies only where hooks execute)\n' >&2
+            printf 'shode-house: DENY (ux-order) -- a design-run order is written only by the router; the design agent never writes one (scope guard, ux path set; applies only where hooks execute)\n' >&2
             exit 2 ;;
           design-run)
             printf 'shode-house: DENY (ux-design-run-output) -- outputs/<task>/design-run/ is written only by the design runner (scope guard, ux path set; applies only where hooks execute)\n' >&2

@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `dev-gate` — .pre-commit-config.y
 ```lazy-load-contract
 LOAD: skills/workflow/dev-gate/pre-commit-config.md
 WHEN: project_setup=true
-OWNER: devops-engineer
+OWNER: operate
 REQUIRED-BEFORE: first_commit
 ```
 

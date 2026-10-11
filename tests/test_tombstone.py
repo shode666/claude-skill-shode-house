@@ -25,6 +25,11 @@ from test_team_package import RETIRED  # noqa: E402  (the single retired-names l
 # from the skill keys only; the persona/agent tombstone is A6 (tests/test_skill_names.py), and every key -- skill
 # or not -- must still be absent with its replacement present (test_retired_dirs_are_gone_and_replacements_exist).
 SKILL_RETIRED = {k: v for k, v in RETIRED.items() if k.startswith("skills/")}
+# v4.0.1 (shode-house-jni): the 18 agent ids retired by the 6-type consolidation. No stub file, no manifest entry, and no spawn
+# or path form of an old id anywhere on the scanned surface; the old ids may be named only as data (the Formerly table of
+# ownership.md, README/CHANGELOG, the retired-names ledger and the plain role names tests use as fixtures).
+AGENT_RETIRED = {pathlib.PurePosixPath(k).stem: v for k, v in RETIRED.items()
+                 if k.startswith("agents/") and k != "agents/orchestrator.md"}
 
 SCAN = (
     "agents", "commands", "output-styles", "skills/workflow", "skills/ops", "skills/ui", "skills/style",
@@ -47,6 +52,18 @@ def pattern(retired=SKILL_RETIRED):
         if name.startswith("shode-house-"):  # a prefixed name is unambiguous even when bare
             parts.append(rf"(?<![A-Za-z0-9_/.-]){n}(?![a-z0-9-])")
     return re.compile("|".join(parts))
+
+
+# Not shipped and not a spawn surface: the recorded eval transcripts/scenarios and the maintainer scorers that read them
+# (history of 3.x/4.0.0 runs, partly hash-frozen), the tests (they name plain role words as fixtures) and the maintainer
+# enforcement-map doc.
+AGENT_SCAN_SKIP = ("eval/", "tests/", "scripts/eval-", "scripts/team-run-check.py", "docs/enforcement-map.md")
+
+
+def agent_pattern(ids):
+    """`shode-house:<old-id>` (a spawn target) or `agents/<old-id>.md` (a role file path) of a retired agent id."""
+    alt = "|".join(re.escape(i) for i in sorted(ids, key=len, reverse=True))
+    return re.compile(rf"shode-house:(?:{alt})(?![A-Za-z0-9-])|agents/(?:{alt})\.md")
 
 
 def frozen(root):
@@ -77,6 +94,32 @@ def scan(root=ROOT, retired=SKILL_RETIRED):
     return hits
 
 
+def scan_agents(root=ROOT, ids=None):
+    """Lines that spawn or point at a retired agent id. Not scanned: the frozen eval files, CHANGELOG.md, outputs/, plugins
+    copies of other trees, and lines carrying the tombstone-allow marker or a `formerly ` directly before the name."""
+    ids = ids if ids is not None else AGENT_RETIRED
+    pat, skip, hits = agent_pattern(ids), frozen(root), []
+    for entry in SCAN:
+        base = root / entry
+        files = [base] if base.is_file() else sorted(p for p in base.rglob("*") if p.is_file()) if base.is_dir() else []
+        for f in files:
+            rel = f.relative_to(root).as_posix()
+            if rel in skip or "__pycache__" in f.parts or rel.startswith(AGENT_SCAN_SKIP):
+                continue
+            try:
+                text = f.read_text()
+            except (UnicodeDecodeError, OSError):
+                continue
+            if rel == ".rule-migrations.json":
+                data = json.loads(text)
+                for item in data.get("migrations", []):
+                    item.pop("source", None); item.pop("old_fragment", None)
+                text = json.dumps(data, ensure_ascii=False, indent=1)
+            hits += [f"{rel}:{i}: {line.strip()[:120]}" for i, line in enumerate(text.splitlines(), 1)
+                     if MARKER not in line and any(not FORMERLY.search(line[:m.start()]) for m in pat.finditer(line))]
+    return hits
+
+
 class TombstoneTest(unittest.TestCase):
     def test_retired_dirs_are_gone_and_replacements_exist(self):
         for old, new in RETIRED.items():
@@ -89,6 +132,40 @@ class TombstoneTest(unittest.TestCase):
 
     def test_no_retired_name_on_the_scanned_surface(self):
         self.assertEqual([], scan())
+
+    def test_retired_agent_ids_have_no_file_no_manifest_entry_and_no_spawn_form(self):
+        """AC-1.4 / AC-8.1 / SEC-6: the 18 retired ids resolve to nothing; the mapping answer lives in ownership.md only."""
+        self.assertEqual(18, len(AGENT_RETIRED))
+        live = {p.stem for p in (ROOT / "agents").glob("*.md")}
+        manifest = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
+        listed = [pathlib.PurePosixPath(x).stem for x in manifest.get("agents", [])]
+        for old, new in sorted(AGENT_RETIRED.items()):
+            with self.subTest(old=old):
+                self.assertFalse((ROOT / "agents" / f"{old}.md").exists(), f"retired agent file is back: {old}")
+                self.assertNotIn(old, live)
+                self.assertNotIn(old, listed, "a retired id is listed in the manifest")
+                self.assertTrue((ROOT / new).is_file())
+        self.assertEqual([], scan_agents())
+
+    def test_formerly_table_names_every_retired_id_once(self):
+        """AC-8.2: one table (ownership.md § Formerly) maps all 18 old ids; it is where the old ids may be named."""
+        text = (ROOT / "skills/discipline/shode-house-routing/ownership.md").read_text()
+        formerly = text.split("## Formerly", 1)[1].split("### Add agent", 1)[0]
+        for old, new in sorted(AGENT_RETIRED.items()):
+            rows = [l for l in formerly.splitlines() if l.startswith("|") and re.search(rf"\| {re.escape(old)} \|", l)]
+            self.assertEqual(1, len(rows), f"{old}: expected exactly one Formerly row, got {rows}")
+            self.assertIn(f"`{pathlib.PurePosixPath(new).stem}`", rows[0], f"{old} must map to `{new}`")
+
+    def test_negative_a_retired_agent_spawn_or_path_is_caught(self):
+        ids = sorted(AGENT_RETIRED)
+        with tempfile.TemporaryDirectory() as d:
+            root = pathlib.Path(d); (root / "agents").mkdir()
+            lines = [f"dispatch `shode-house:{i}` now" for i in ids] + [f"read agents/{i}.md first" for i in ids]
+            (root / "agents" / "x.md").write_text("\n".join(lines) + "\n")
+            self.assertEqual(len(lines), len(scan_agents(root)))
+            ok = [f"formerly shode-house:{ids[0]}", f"agents/{ids[1]}.md  # tombstone-allow", "the developer role", "shode-house:developers-guide"]
+            (root / "agents" / "x.md").write_text("\n".join(ok) + "\n")
+            self.assertEqual([], scan_agents(root), "formerly / tombstone-allow / a plain role word / a longer name are not spawns")
 
     def test_negative_each_retired_name_is_caught(self):
         names = [p.split("/")[2] for p in SKILL_RETIRED]

@@ -257,7 +257,7 @@
       "old_fragment": "- 🔴 frontend agent (Uma/Dave/Quinn/Chris) **ต้องโหลด `ui-test` ก่อนแตะ UI** — token/8-pt grid/contrast/focus/touch target/7 state อยู่ที่นั่น",
       "replacement": "skills/discipline/shode-house-discipline/SKILL.md",
       "requires": [
-        "frontend agent (ux-ui-designer/developer/qa-engineer/code-reviewer) **ต้องโหลด `shode-house:ui-test` ก่อนแตะ UI**"
+        "frontend agent (`design`/`build`/`verify`) **ต้องโหลด `shode-house:ui-test`"
       ],
       "reason": "P5 byte payment: the load rule is kept verbatim; only the trailing description of what ui-test contains was dropped."
     },
@@ -443,7 +443,7 @@
     {
       "source": "agents/ux-ui-designer.md",
       "old_fragment": "**Primary bias**: Pattern-bias (Material vs HIG vs Tailwind tribal) + Position bias",
-      "replacement": "references/runbooks/ux-ui-designer-catalogue.md",
+      "replacement": "references/runbooks/design-catalogue.md",
       "requires": [
         "เลือก pattern/library (Material vs HIG vs Tailwind) → cite platform + brand evidence ก่อนเสนอ ไม่เลือกตามความเคยชินหรือ option แรก; ไม่แน่ใจ → หยุด ส่ง options + recommendation ให้ the router"
       ],
@@ -452,16 +452,16 @@
     {
       "source": "agents/developer.md",
       "old_fragment": "ความสัมพันธ์ adversarial = healthy gate, ไม่ใช่ conflict",
-      "replacement": "references/runbooks/developer-method.md",
+      "replacement": "references/runbooks/build-method.md",
       "requires": [
-        "code-reviewer + qa-engineer ทำงาน **adversarial ต่อ developer**"
+        "`verify` (standards axis) + `verify` (runtime axis) ทำงาน **adversarial ต่อ `build`**"
       ],
       "reason": "8ss.31 P6: persona flavour (no instruction); the adversarial-review relationship and Dave's duties stay in § Adversary-Aware Hand-off. [v4 W5b S2: requires line moved to the W5b lazy reference; persona -> agent id (UD R9/R50)]"
     },
     {
       "source": "agents/developer.md",
       "old_fragment": "**Primary bias**: Sycophancy (user push \"skip test / just try\") + Defensive over-validation",
-      "replacement": "agents/developer.md",
+      "replacement": "agents/build.md",
       "requires": [
         "User pushes \"skip test / just try\" → explain demonstrated shortcut risks"
       ],
@@ -470,7 +470,7 @@
     {
       "source": "agents/developer.md",
       "old_fragment": "$ pnpm test src/payments/refund.test.ts",
-      "replacement": "references/runbooks/developer-method.md",
+      "replacement": "references/runbooks/build-method.md",
       "requires": [
         "### Verify (Philosophy 2) — commands run + real output"
       ],
@@ -479,7 +479,7 @@
     {
       "source": "agents/developer.md",
       "old_fragment": "$ curl -X POST localhost:3000/payments/refund -d '{\"id\":\"abc\"}'",
-      "replacement": "references/runbooks/developer-method.md",
+      "replacement": "references/runbooks/build-method.md",
       "requires": [
         "### Verify (Philosophy 2) — commands run + real output"
       ],
@@ -488,7 +488,7 @@
     {
       "source": "agents/developer.md",
       "old_fragment": "- ห้ามบอก \"เสร็จ\" โดยไม่ verify (Philosophy 2)",
-      "replacement": "agents/developer.md",
+      "replacement": "references/runbooks/build-method.md",
       "requires": [
         "never claim done without evidence"
       ],
@@ -497,7 +497,7 @@
     {
       "source": "agents/security-engineer.md",
       "old_fragment": "**Primary bias**: Sycophancy (\"low risk feature\" yielding)",
-      "replacement": "agents/security-engineer.md",
+      "replacement": "agents/secure.md",
       "requires": [
         "ห้าม yield to user \"low risk skip threat model\" — auto-trigger Phase 1c if PII/money/auth/external",
         "ก่อน accept \"low risk\" claim → demand evidence + STRIDE quick pass; ถ้าผ่านจริง = explicit document"
@@ -516,7 +516,7 @@
     {
       "source": "agents/code-reviewer.md",
       "old_fragment": "- **Small PR > big** — < 400 บรรทัด (defect rate ต่ำกว่า 50%)",
-      "replacement": "references/runbooks/code-reviewer-method.md",
+      "replacement": "references/runbooks/verify-standards.md",
       "requires": [
         "- **Small PR > big** — < 400 บรรทัด"
       ],
@@ -525,7 +525,7 @@
     {
       "source": "agents/code-reviewer.md",
       "old_fragment": "- **Test the test** — mutation testing บอกว่า test จับ bug ได้จริง",
-      "replacement": "references/runbooks/code-reviewer-method.md",
+      "replacement": "references/runbooks/verify-standards.md",
       "requires": [
         "mutate code random → test ต้อง fail (ถ้าไม่ fail = test ไม่จับ bug)",
         "inspect surviving meaningful mutants"
@@ -535,7 +535,7 @@
     {
       "source": "agents/booking-expert.md",
       "old_fragment": "**Primary bias**: Channel mono-culture (OTA-only default, ignore direct)",
-      "replacement": "references/runbooks/booking-expert-catalogue.md",
+      "replacement": "references/domain/booking.md",
       "requires": [
         "- ห้าม accept \"OTA-only\" plan ถ้ามี loyalty program / brand presence / direct demand potential"
       ],
@@ -544,7 +544,7 @@
     {
       "source": "agents/ecommerce-expert.md",
       "old_fragment": "**Primary bias**: Platform bias (Shopify default regardless of B2B/B2C complexity)",
-      "replacement": "references/runbooks/ecommerce-expert-catalogue.md",
+      "replacement": "references/domain/ecommerce.md",
       "requires": [
         "- ห้าม default Shopify ถ้า B2B + tiered pricing + ERP integration + quote flow"
       ],
@@ -553,7 +553,7 @@
     {
       "source": "agents/erp-expert.md",
       "old_fragment": "**Primary bias**: Costing method anchor (FIFO default regardless of context)",
-      "replacement": "references/runbooks/erp-expert-catalogue.md",
+      "replacement": "references/domain/erp.md",
       "requires": [
         "- ห้าม default FIFO ถ้า industry = perishable / lot-traceable"
       ],
@@ -562,7 +562,7 @@
     {
       "source": "agents/fintech-expert.md",
       "old_fragment": "**Primary bias**: Pattern-bias (Stripe default) + Anchoring on user's stated PSP",
-      "replacement": "agents/fintech-expert.md",
+      "replacement": "skills/discipline/domain-core/SKILL.md",
       "requires": [
         "Verify a stated PSP's fit and risks; compare alternatives (2C2P, Omise, TrueMoney, PromptPay) when selection is unresolved"
       ],
@@ -571,7 +571,7 @@
     {
       "source": "agents/insurance-expert.md",
       "old_fragment": "**Primary bias**: Sycophancy on OIC interpretation (defer to user's regulation reading)",
-      "replacement": "agents/insurance-expert.md",
+      "replacement": "skills/discipline/domain-core/SKILL.md",
       "requires": [
         "- ห้าม yield to user \"OIC ไม่ได้บังคับ X\" — verify cite OIC notice + version"
       ],
@@ -580,7 +580,7 @@
     {
       "source": "agents/sap-expert.md",
       "old_fragment": "**Primary bias**: Std-vs-custom bias (default Z-program, skip standard CDS/BAdI)",
-      "replacement": "references/runbooks/sap-expert-catalogue.md",
+      "replacement": "references/domain/sap.md",
       "requires": [
         "- ห้าม default Z-program — explore standard first"
       ],
@@ -589,7 +589,7 @@
     {
       "source": "agents/trading-expert.md",
       "old_fragment": "**Primary bias**: Vendor bias (Bloomberg/FIX default) + Anchoring on user's stated tech",
-      "replacement": "agents/trading-expert.md",
+      "replacement": "skills/discipline/domain-core/SKILL.md",
       "requires": [
         "- ห้าม blindly accept Bloomberg + FIX 4.4 ถ้า latency tolerance > 50ms / single-venue / retail broker"
       ],
@@ -608,9 +608,9 @@
     {
       "source": "agents/devops-engineer.md",
       "old_fragment": "**Primary bias**: Pattern-bias (cloud vendor mono-culture, AWS default)",
-      "replacement": "agents/devops-engineer.md",
+      "replacement": "agents/operate.md",
       "requires": [
-        "Fit ไม่ชัด → ไม่ default ตาม vendor เดิม; เสนอทางเลือกพร้อม cite แล้ว escalate → solution-architect (ผ่าน the router)",
+        "Fit unclear → do not default to the incumbent vendor; offer cited options and escalate to `plan` (architecture) via the router",
         "ห้าม blindly accept user \"ใช้ AWS อยู่แล้ว\""
       ],
       "reason": "8ss.37 P6-C3: psychology label (Table 5 #21, not an instruction) replaced by an observable trigger + default direction + escalation target; the three observable bullets stay verbatim. [v4 W5b S2: persona -> agent id (UD R9/R50), same clause]"
@@ -618,18 +618,18 @@
     {
       "source": "agents/devops-engineer.md",
       "old_fragment": "→ Quinn เปิด `tests/e2e/` เขียน test ทันที ไม่เสีย 1-2 hr setup toolchain",
-      "replacement": "agents/devops-engineer.md",
+      "replacement": "references/runbooks/operate-deploy.md",
       "requires": [
-        "Authorized web scaffold: reuse/prepare UI checks with qa-engineer"
+        "Authorized web scaffold: reuse/prepare UI checks with `verify` (runtime axis)"
       ],
       "reason": "8ss.37: rationale/flavour sentence (no rule); the scaffold duty and the Quinn hand-off stay in the section lead line. [v4 W5b S2: persona -> agent id (UD R9/R50), same clause]"
     },
     {
       "source": "agents/sre-engineer.md",
       "old_fragment": "**Primary bias**: Alert dismissal (normalize repeated alerts) + Sycophancy",
-      "replacement": "agents/sre-engineer.md",
+      "replacement": "agents/operate.md",
       "requires": [
-        "คำขอไม่ใช่ evidence — ไม่แน่ใจ → ไม่ mute ไม่ปิด; investigate ตาม incident criteria; ขัดแย้ง → the router",
+        "A request is not evidence: unsure about an alert → do not mute or close it, investigate under the incident criteria, conflicts → the router",
         "ห้าม dismiss recurring alert as \"false positive\""
       ],
       "reason": "8ss.37 P6-C3: psychology label (Table 5 #69, not an instruction) replaced by an observable trigger + default direction (do not mute/close) + escalation target; the three observable bullets stay verbatim. [v4 W5b S2: persona -> agent id (UD R9/R50), same clause]"
@@ -637,7 +637,7 @@
     {
       "source": "agents/product-manager.md",
       "old_fragment": "- **Why**: Patrick narrate Domain SME เอง = single-voice synthesis = sycophancy + self-preference risk (bias discipline embedded per-agent, v3.3)",
-      "replacement": "agents/product-manager.md",
+      "replacement": "references/runbooks/plan-discovery.md",
       "requires": [
         "- **Why**: domain claims must come from the expert's own return (cite its path); a synthesised SME voice cannot be verified",
         "- Never invent SME voices"
@@ -647,7 +647,7 @@
     {
       "source": "agents/product-manager.md",
       "old_fragment": "**Primary bias**: Anchoring on stated OKR + Sunk-cost on committed feature",
-      "replacement": "references/runbooks/product-manager-discovery.md",
+      "replacement": "references/runbooks/plan-discovery.md",
       "requires": [
         "RICE recalc with current data only",
         "ห้าม anchor บน original OKR ถ้า context เปลี่ยน"
@@ -657,9 +657,9 @@
     {
       "source": "agents/staff-engineer.md",
       "old_fragment": "**Primary bias**: Convergence bias (force one stack tribally) + Pattern-bias",
-      "replacement": "agents/staff-engineer.md",
+      "replacement": "agents/build.md",
       "requires": [
-        "Unsure → accept divergence, document it",
+        "accept divergence, document it",
         "refuse without explicit \"accept divergence\" doc"
       ],
       "reason": "8ss.38 P6-C3 / SPEC §56: psychology label dropped (not an instruction); the operational bullets incl. protected bias-stan-divergence-needs-doc stay verbatim. [v4 W5b S2: staff-engineer.md:69 dropped (W1b DROP, contradicts :118 \"no universal six-month wait\"); the divergence default is the Bias Discipline trigger line]"
@@ -667,16 +667,16 @@
     {
       "source": "agents/staff-engineer.md",
       "old_fragment": "เริ่มงาน: \"Stan (Staff) รับงาน cross-team review ครับ\"",
-      "replacement": "agents/staff-engineer.md",
+      "replacement": "agents/build.md",
       "requires": [
-        "You are `staff-engineer`: owner ของ cross-team technical depth"
+        "Staff-grade briefs (cross-team consistency, tech radar, polyglot judgment, refactor strategy)"
       ],
       "reason": "8ss.38 persona flavour (greeting line) removed per P6 brief; no rule — worker return format is owned by preloaded shode-house-discipline § Structured worker return. [v4 W5b S2: identity line reworded; persona -> agent id (UD R9/R50)]"
     },
     {
       "source": "agents/business-analyst.md",
       "old_fragment": "**Primary bias**: Anchoring บน user's first phrasing → AC become tautology",
-      "replacement": "references/runbooks/business-analyst-method.md",
+      "replacement": "references/runbooks/plan-requirements.md",
       "requires": [
         "เจอ tautology AC",
         "ห้าม reuse leading question"
@@ -686,9 +686,8 @@
     {
       "source": "agents/solution-architect.md",
       "old_fragment": "**Primary bias**: Pattern-bias (microservices/REST default) + Anchoring on user's stated stack",
-      "replacement": "agents/solution-architect.md",
+      "replacement": "references/runbooks/plan-architecture.md",
       "requires": [
-        "ห้าม default microservices เมื่อ team < 5 / no prior experience / no HA need → consider modular monolith",
         "ห้าม REST default ถ้า use case = streaming / real-time / event-driven",
         "Verify chosen stack fit/risks; compare unresolved choices, never reopen settled constraints by quota"
       ],
@@ -702,7 +701,7 @@
         "architecture · format · imports · unused · lint · type · complexity ≤10 · naming · test + coverage ≥ threshold · security · doc/comment \"why\"",
         "ผ่าน YAGNI ladder (Step 0) ก่อนทุกครั้ง"
       ],
-      "reason": "P6 integration: checklist re-aligned with the Gate 0-10 table; YAGNI stays as Step 0; observability moved to agents/developer.md Process 6 (anchor dave-observable-implement)."
+      "reason": "P6 integration: checklist re-aligned with the Gate 0-10 table; YAGNI stays as Step 0; observability moved to agents/build.md Process (4.0.1 build type) (anchor dave-observable-implement)."
     },
     {
       "source": "skills/discipline/shode-house-workflow/SKILL.md",
@@ -738,18 +737,18 @@
     {
       "source": "agents/devops-engineer.md",
       "old_fragment": "เริ่มงาน: \"Aaron (DevOps) รับงาน setup/deploy ครับ\"",
-      "replacement": "agents/devops-engineer.md",
+      "replacement": "agents/operate.md",
       "requires": [
-        "You are `devops-engineer`"
+        "You are `operate`: senior DevOps/platform engineer (**Docker-first**)"
       ],
       "reason": "P7 ceremony (FR-P7-1 / SPEC §66 agent introductions): mandatory greeting line removed, same treatment as the P6 Stan greeting; the action half (where one existed) stays verbatim; worker return format is owned by preloaded shode-house-discipline § Structured worker return. [v4 W5b S2: identity line reworded; persona -> agent id (UD R9/R50)]"
     },
     {
       "source": "agents/sre-engineer.md",
       "old_fragment": "เริ่มงาน: \"Reggie (SRE) รับงาน reliability ครับ\"",
-      "replacement": "agents/sre-engineer.md",
+      "replacement": "agents/operate.md",
       "requires": [
-        "You are `sre-engineer`"
+        "and site reliability engineer"
       ],
       "reason": "P7 ceremony (FR-P7-1 / SPEC §66 agent introductions): mandatory greeting line removed, same treatment as the P6 Stan greeting; the action half (where one existed) stays verbatim; worker return format is owned by preloaded shode-house-discipline § Structured worker return. [v4 W5b S2: identity line reworded; persona -> agent id (UD R9/R50)]"
     },
@@ -765,7 +764,7 @@
     {
       "source": "agents/security-engineer.md",
       "old_fragment": "เริ่มงาน: \"Sentinel (SEC) รับงาน security ครับ\" → read task + classify scope",
-      "replacement": "agents/security-engineer.md",
+      "replacement": "agents/secure.md",
       "requires": [
         "Start: read the task and classify scope"
       ],
@@ -774,7 +773,7 @@
     {
       "source": "agents/security-engineer.md",
       "old_fragment": "เริ่มงาน: \"Sentinel (SEC) รับงาน security ครับ\" → bd show + classify scope",
-      "replacement": "agents/security-engineer.md",
+      "replacement": "agents/secure.md",
       "requires": [
         "Start: read the task and classify scope"
       ],
@@ -855,8 +854,8 @@
       "old_fragment": "schema or migration) move the task up, and the edit still gets independent review (Dave implements, Chris reviews)",
       "replacement": "skills/workflow/ask/SKILL.md",
       "requires": [
-        "Fast path floor = developer alone, targeted test as evidence",
-        "any one moves the task up to Bounded, where code-reviewer reviews"
+        "Fast path floor = `build` alone, targeted test as evidence",
+        "any one moves the task up to Bounded, where `verify` (standards axis) reviews"
       ],
       "reason": "User decision 2026-09-21 (outputs/shode-house-8ss/00-oliver-decisions.md): fast path floor = Dave alone, 1 spawn, targeted test as evidence; Chris joins from the harness Bounded tier upward. The P7 wording demanded Dave + Chris on the fast path, contradicting SPEC §47 and the frozen max_spawns: 1 of E01/P17/P18/P20/P37. The Bounded-tier exclusions (UI, money/auth/PII/external integration, schema or migration) still move a task up out of the fast path, where independent review applies; this is a deliberate, recorded scope change of the review duty, not a silent deletion."
     },
@@ -865,7 +864,7 @@
       "old_fragment": "- \"ERP บน SAP\" → Sam + Elena",
       "replacement": "skills/discipline/shode-house-routing/SKILL.md",
       "requires": [
-        "\"ERP บน SAP\" → sap-expert + erp-expert"
+        "\"ERP บน SAP\" → `plan` with the sap domain reference + `plan` with the erp domain reference"
       ],
       "reason": "v4 persona rename (ADR iter5 §5.3, UD R9): persona -> agent id; resolve 3.x names via ownership.md § Formerly"
     },
@@ -874,7 +873,7 @@
       "old_fragment": "intra-bd มี parallel แล้ว (Dave#N, Chris∥Quinn)",
       "replacement": "skills/discipline/shode-house-routing/orchestration.md",
       "requires": [
-        "intra-bd มี parallel แล้ว (developer#N, code-reviewer∥qa-engineer)"
+        "intra-bd มี parallel แล้ว (`build`#N, `verify` (standards axis)∥`verify` (runtime axis))"
       ],
       "reason": "v4 persona rename (ADR iter5 §5.3, UD R9): persona -> agent id; resolve 3.x names via ownership.md § Formerly"
     },
@@ -902,7 +901,7 @@
       "old_fragment": "Phase 1b Uma/Domain ต้องอ่าน 1a spec ที่รวมแล้วก่อน design/validate",
       "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
       "requires": [
-        "Phase 1b ux-ui-designer/domain read the merged 1a spec before designing or validating"
+        "Phase 1b `design`/domain read the merged 1a spec before designing or validating"
       ],
       "reason": "W3 router: Thai -> English rewrite paid the orchestrator preload / style byte cap; same rule, same file; v4 persona rename (ADR iter5 §5.3, UD R9): persona -> agent id; resolve 3.x names via ownership.md § Formerly"
     },
@@ -939,7 +938,7 @@
       "old_fragment": "business rules; Aaron deployment; Reggie operations",
       "replacement": "skills/discipline/shode-house-workflow/harness.md",
       "requires": [
-        "business rules; devops-engineer deployment; sre-engineer operations"
+        "business rules; `operate` (deploy mode) deployment; `operate` (reliability mode) operations"
       ],
       "reason": "v4 persona rename (ADR iter5 §5.3, UD R9): persona -> agent id; resolve 3.x names via ownership.md § Formerly"
     },
@@ -949,7 +948,7 @@
       "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
       "requires": [
         "## ⏸️ Approval Gates",
-        "| Pre-spec-expand | 1a → 1b | business-analyst + solution-architect sign-off",
+        "| Pre-spec-expand | 1a → 1b | `plan` (requirements mode) + `plan` (architecture mode) sign-off",
         "| Pre-merge-ui | merge UI change | Adopted UI checks pass + visual evidence approved"
       ],
       "reason": "gate summary line replaced by the single gate table moved from orchestrator.md:72-89 into the workflow root (ADR iter5 §5.10, approval-gates)"
@@ -1004,7 +1003,7 @@
       "old_fragment": "intra-bd มี parallel แล้ว (Dave#N, Chris∥Quinn)",
       "replacement": "skills/discipline/shode-house-routing/orchestration.md",
       "requires": [
-        "intra-bd มี parallel แล้ว (developer#N, code-reviewer∥qa-engineer)"
+        "intra-bd มี parallel แล้ว (`build`#N, `verify` (standards axis)∥`verify` (runtime axis))"
       ],
       "reason": "v4 persona rename (ADR iter5 §5.3, UD R9): persona -> agent id; resolve 3.x names via ownership.md § Formerly (pre-split source)"
     },
@@ -1031,7 +1030,7 @@
       "old_fragment": "domain expert, auth/PII/money/external → Sentinel) add roles at any tier; nothing",
       "replacement": "skills/discipline/shode-house-workflow/harness.md",
       "requires": [
-        "auth/session/PII/money/external integration/webhook/file upload/AI agent → security-engineer",
+        "auth/session/PII/money/external integration/webhook/file upload/AI agent → `secure`",
         "nothing removes a triggered role"
       ],
       "reason": "v4 persona rename (ADR iter5 §5.3, UD R9): persona -> agent id; resolve 3.x names via ownership.md § Formerly (pre-list-expansion source)"
@@ -1041,14 +1040,14 @@
       "old_fragment": "ทีม software house — ERP, Booking, Trading, Fintech, Insurance, E-commerce, SAP, UX/UI",
       "replacement": "skills/discipline/shode-house-routing/ownership.md",
       "requires": [
-        "fintech-expert · erp-expert · sap-expert · trading-expert · insurance-expert · booking-expert · ecommerce-expert"
+        "fintech · erp · sap · trading · insurance · booking · ecommerce"
       ],
       "reason": "pin-only historical fragment of a skill retired in v3.17; roster now by agent id"
     },
     {
       "source": "agents/booking-expert.md",
       "old_fragment": "- **Idempotency key** ทุก write",
-      "replacement": "agents/booking-expert.md",
+      "replacement": "references/domain/booking.md",
       "requires": [
         "ห้าม skip idempotency key"
       ],
@@ -1057,7 +1056,7 @@
     {
       "source": "agents/booking-expert.md",
       "old_fragment": "- **Idempotency key required** ทุก booking write (UUID จาก client)",
-      "replacement": "agents/booking-expert.md",
+      "replacement": "references/domain/booking.md",
       "requires": [
         "ห้าม skip idempotency key"
       ],
@@ -1066,25 +1065,25 @@
     {
       "source": "agents/business-analyst.md",
       "old_fragment": "คุณคือ **Bella** (เบลล่า) — Senior BA",
-      "replacement": "agents/business-analyst.md",
+      "replacement": "agents/plan.md",
       "requires": [
-        "You are `business-analyst`: senior BA, owner of requirements"
+        "You are `plan`: owner of Why + What"
       ],
       "reason": "identity line reworded to English; persona name -> agent id (UD R9) (W1b §4.2 :16 BODY kept)"
     },
     {
       "source": "agents/business-analyst.md",
       "old_fragment": "คุณคือ **Bella** (เบลล่า) — Senior BA: owner ของ requirements",
-      "replacement": "agents/business-analyst.md",
+      "replacement": "agents/plan.md",
       "requires": [
-        "You are `business-analyst`: senior BA, owner of requirements"
+        "You are `plan`: owner of Why + What"
       ],
       "reason": "identity line reworded to English; persona name -> agent id (UD R9) (W1b §4.2 :16 BODY kept)"
     },
     {
       "source": "agents/business-analyst.md",
       "old_fragment": "AC (testable G/W/T) + AC amendment (Oliver route มา — Oliver ไม่แก้ AC เอง)",
-      "replacement": "agents/business-analyst.md",
+      "replacement": "agents/plan.md",
       "requires": [
         "AC (testable G/W/T) + AC amendments (routed by the router; the router does not edit AC itself)"
       ],
@@ -1093,10 +1092,11 @@
     {
       "source": "agents/business-analyst.md",
       "old_fragment": "- If preserved wording is not testable, explain the ambiguity and propose a testable interpretation through Oliver; do not override the user's wording preference",
-      "replacement": "agents/business-analyst.md",
+      "replacement": "agents/plan.md",
       "requires": [
-        "Unsure if it is testable → flag it and send options to the router, do not silently rewrite",
-        "Preserve the user's requirement and already testable AC"
+        "requirements: AC copies the user's first phrasing",
+        "Preserve the user's requirement and already testable AC",
+        "add a G/W/T interpretation where needed without silently changing its meaning"
       ],
       "reason": "W1b §4.2 :27 DROP: duplicate of :22 + :24, both kept in the body (v4 W5a)"
     },
@@ -1112,7 +1112,7 @@
     {
       "source": "agents/business-analyst.md",
       "old_fragment": "โหลดเพิ่มเมื่อจะใช้จริง: `decompose` (แตก epic → leaf ตอน spec นิ่งแล้ว)",
-      "replacement": "agents/business-analyst.md",
+      "replacement": "references/runbooks/plan-requirements.md",
       "requires": [
         "Load when used: `shode-house:decompose` (split epic → leaf once spec is stable)"
       ],
@@ -1121,7 +1121,7 @@
     {
       "source": "agents/business-analyst.md",
       "old_fragment": "BRD format) — ยังไม่ได้อ่าน = ห้ามเริ่มเขียน",
-      "replacement": "agents/business-analyst.md",
+      "replacement": "references/runbooks/plan-requirements.md",
       "requires": [
         "producer (Phase 0/1a): read `skills/discipline/shode-house-deliverable/bella-producer.md` before BRD/FRD"
       ],
@@ -1130,16 +1130,16 @@
     {
       "source": "agents/ecommerce-expert.md",
       "old_fragment": "คุณคือ **Emma** (เอ็มม่า) — E-commerce/Retail Expert",
-      "replacement": "agents/ecommerce-expert.md",
+      "replacement": "references/domain/ecommerce.md",
       "requires": [
-        "You are `ecommerce-expert`: e-commerce/retail expert"
+        "Persona: e-commerce/retail expert"
       ],
       "reason": "identity line reworded to English; persona name -> agent id (UD R9)"
     },
     {
       "source": "agents/ecommerce-expert.md",
       "old_fragment": "- **Flow**: Authorize → Capture (ห้าม capture ก่อน ship physical) → partial capture for split shipment",
-      "replacement": "agents/ecommerce-expert.md",
+      "replacement": "references/domain/ecommerce.md",
       "requires": [
         "ห้าม capture ก่อน ship physical"
       ],
@@ -1148,7 +1148,7 @@
     {
       "source": "agents/ecommerce-expert.md",
       "old_fragment": "- **Idempotent order placement** — `idempotency_key` from client (UUID)",
-      "replacement": "agents/ecommerce-expert.md",
+      "replacement": "references/domain/ecommerce.md",
       "requires": [
         "ห้าม skip idempotency สำหรับ payment/order"
       ],
@@ -1157,25 +1157,25 @@
     {
       "source": "agents/product-manager.md",
       "old_fragment": "คุณคือ **Patrick** (แพทริค) — Product Manager",
-      "replacement": "agents/product-manager.md",
+      "replacement": "agents/plan.md",
       "requires": [
-        "You are `product-manager`: owner of Why + What"
+        "You are `plan`: owner of Why + What"
       ],
       "reason": "identity line reworded to English; persona name -> agent id (UD R9) (W1b §4.1 :16 BODY kept)"
     },
     {
       "source": "agents/product-manager.md",
       "old_fragment": "คุณคือ **Patrick** (แพทริค) — Product Manager: owner ของ Why + What (outcome/OKR",
-      "replacement": "agents/product-manager.md",
+      "replacement": "agents/plan.md",
       "requires": [
-        "You are `product-manager`: owner of Why + What"
+        "You are `plan`: owner of Why + What"
       ],
       "reason": "identity line reworded to English; persona name -> agent id (UD R9) (W1b §4.1 :16 BODY kept)"
     },
     {
       "source": "agents/product-manager.md",
       "old_fragment": "- Never invent SME voices; Oliver dispatches Felix/Iris/Sam/Tara/Elena/Brooke/Emma from Patrick's question/context",
-      "replacement": "agents/product-manager.md",
+      "replacement": "references/runbooks/plan-discovery.md",
       "requires": [
         "Never invent SME voices; the router dispatches the domain experts from your question/context"
       ],
@@ -1194,7 +1194,7 @@
     {
       "source": "agents/product-manager.md",
       "old_fragment": "- Strategic ambiguity → Oliver requests the stakeholder/sponsor decision",
-      "replacement": "agents/product-manager.md",
+      "replacement": "references/runbooks/plan-discovery.md",
       "requires": [
         "Evaluate stakeholder requests with rationale; unresolved scope/preferences → the router"
       ],
@@ -1221,7 +1221,7 @@
     {
       "source": "agents/product-manager.md",
       "old_fragment": "- Below adopted target → evidence-backed kill/pivot recommendation, not unilateral scope change",
-      "replacement": "agents/product-manager.md",
+      "replacement": "references/runbooks/plan-discovery.md",
       "requires": [
         "Recommend kill/pivot with evidence; scope changes require delegated authority or user decision via the router"
       ],
@@ -1248,7 +1248,7 @@
     {
       "source": "agents/sap-expert.md",
       "old_fragment": "เริ่มจาก version + module ใน project evidence; ถ้ายังไม่ทราบและจำเป็นกับคำตอบ ให้ส่งคำถามผ่าน Oliver (Philosophy 1)",
-      "replacement": "references/runbooks/sap-expert-catalogue.md",
+      "replacement": "references/domain/sap.md",
       "requires": [
         "Verify version-dependent claims from recorded evidence; ask through the router only when the relevant ECC/S/4/Cloud version remains unknown"
       ],
@@ -1257,7 +1257,7 @@
     {
       "source": "agents/sap-expert.md",
       "old_fragment": "- Released APIs only, OData v2/v4 binding",
-      "replacement": "references/runbooks/sap-expert-catalogue.md",
+      "replacement": "references/domain/sap.md",
       "requires": [
         "ห้ามใช้ internal API ใน S/4 Cloud / ABAP Cloud"
       ],
@@ -1266,7 +1266,7 @@
     {
       "source": "agents/sap-expert.md",
       "old_fragment": "- **AUTHORITY-CHECK** ทุก custom report",
-      "replacement": "agents/sap-expert.md",
+      "replacement": "references/domain/sap.md",
       "requires": [
         "ห้าม skip AUTHORITY-CHECK"
       ],
@@ -1275,7 +1275,7 @@
     {
       "source": "agents/ux-ui-designer.md",
       "old_fragment": "เริ่มจาก scope และ approved design ที่มี; ส่ง unresolved preference/scope ให้ Oliver พร้อม options + recommendation",
-      "replacement": "agents/ux-ui-designer.md",
+      "replacement": "agents/design.md",
       "requires": [
         "Start from the existing scope and approved design; send unresolved preference/scope to the router with options + recommendation"
       ],
@@ -1284,9 +1284,9 @@
     {
       "source": "agents/ux-ui-designer.md",
       "old_fragment": "- ห้ามใช้ authority ผลิต deliverable ของคนอื่น (ยัง zero-overlap — แนะนำ/veto ได้ แต่ Dave เขียน code, Bella เขียน spec)",
-      "replacement": "agents/ux-ui-designer.md",
+      "replacement": "agents/design.md",
       "requires": [
-        "Never use authority to produce another role's deliverable (still zero-overlap — advise/veto, but `developer` writes code, `business-analyst` writes spec)"
+        "Never use authority to produce another role's deliverable (still zero-overlap — advise/veto, but `build` writes code, `plan` writes spec)"
       ],
       "reason": "reworded to English; persona name -> agent id (UD R9) (W1b §4.3 :35 BODY kept)"
     },
@@ -1302,9 +1302,9 @@
     {
       "source": "agents/ux-ui-designer.md",
       "old_fragment": "คุณคือ **Uma** (อูมา) — Senior UX/UI Designer + Design System Lead + **Design Authority** — research-driven, a11y-first",
-      "replacement": "agents/ux-ui-designer.md",
+      "replacement": "agents/design.md",
       "requires": [
-        "You are `ux-ui-designer`: UX/UI designer + design system lead + **design authority**"
+        "You are `design`: UX/UI designer + design system lead + **design authority**"
       ],
       "reason": "identity line (baseline-3.17 wording) reworded to English; persona name -> agent id (UD R9)"
     },
@@ -1313,7 +1313,7 @@
       "old_fragment": "- \"e-com + PromptPay\" → Emma + Felix",
       "replacement": "skills/discipline/shode-house-routing/SKILL.md",
       "requires": [
-        "- \"e-com + PromptPay\" → ecommerce-expert + fintech-expert"
+        "- \"e-com + PromptPay\" → `plan` with the ecommerce domain reference + `plan` with the fintech domain reference"
       ],
       "reason": "persona rename (UD R9) of a W3-owned routing line; it passed only through persona tokens in the 3.x domain/PM bodies, which W5a removes"
     },
@@ -1322,7 +1322,7 @@
       "old_fragment": "- **Domain (7, pluggable)**: Felix (fintech)",
       "replacement": "skills/discipline/shode-house-routing/ownership.md",
       "requires": [
-        "- **Domain (7, pluggable)**: fintech-expert · erp-expert · sap-expert · trading-expert · insurance-expert · booking-expert · ecommerce-expert"
+        "fintech · erp · sap · trading · insurance · booking · ecommerce"
       ],
       "reason": "persona rename (UD R9) of a W3-owned routing line; it passed only through persona tokens in the 3.x domain/PM bodies, which W5a removes"
     },
@@ -1331,7 +1331,7 @@
       "old_fragment": "- **Domain (7, pluggable)**: Felix (fintech)",
       "replacement": "skills/discipline/shode-house-routing/ownership.md",
       "requires": [
-        "- **Domain (7, pluggable)**: fintech-expert · erp-expert · sap-expert · trading-expert · insurance-expert · booking-expert · ecommerce-expert"
+        "fintech · erp · sap · trading · insurance · booking · ecommerce"
       ],
       "reason": "persona rename (UD R9) of a W3-owned routing line; it passed only through persona tokens in the 3.x domain/PM bodies, which W5a removes (baseline-3.17 location, before the 3.17 split into ownership.md)"
     },
@@ -1358,28 +1358,27 @@
     {
       "source": "agents/developer.md",
       "old_fragment": "- Sara เสนอการแตกงานให้ Oliver dispatch (Dave ไม่ self-spawn)",
-      "replacement": "references/runbooks/developer-method.md",
+      "replacement": "references/runbooks/build-method.md",
       "requires": [
-        "solution-architect เสนอการแตกงานให้ the router dispatch (developer ไม่ self-spawn)"
+        "`plan` (architecture mode) เสนอการแตกงานให้ the router dispatch (`shode-house:build` ไม่ self-spawn)"
       ],
       "reason": "W1b §4.7 :34 DROP (tool restriction host-enforced: no Task/Agent, A1); kept verbatim in the lazy reference with persona -> agent id (UD R9/R50) (v4 W5b)"
     },
     {
       "source": "agents/developer.md",
       "old_fragment": "- UI: apply the precondition above; preserve Uma POST verification",
-      "replacement": "agents/developer.md",
+      "replacement": "agents/build.md",
       "requires": [
-        "**UI Precondition** — reuse approved ux-ui-designer design/tokens/state/a11y criteria",
-        "→ ux-ui-designer (Phase 3a sequential GATE before 3b)"
+        "UI precondition → reuse the approved `design` artifacts"
       ],
       "reason": "W1b §4.7 :172 DROP: duplicate of :140 (UI Precondition) + :78 (Phase 3a gate row), both kept in the body with persona -> agent id (v4 W5b)"
     },
     {
       "source": "agents/devops-engineer.md",
       "old_fragment": "โหลด `data-migration` ก่อนเตรียม/รัน migration (authorization + gate `pre-data-migration` อยู่ที่นั่น)",
-      "replacement": "agents/devops-engineer.md",
+      "replacement": "agents/operate.md",
       "requires": [
-        "Load `shode-house:data-migration` before preparing or running a migration; a prod run needs R0 authority + backup verified + expand-contract + dry-run",
+        "DB migration in prod: load `shode-house:data-migration` first; a prod run needs R0 authority + backup verified + expand-contract + dry-run",
         "Never drop/rename in one deploy."
       ],
       "reason": "W1b §8 M-R14 (+ SAC-9 r2 N3: R0 authority named): :205 gate conditions inline in English, namespaced load; online-DDL/backfill method moved to the lazy reference (v4 W5b)"
@@ -1387,16 +1386,16 @@
     {
       "source": "agents/devops-engineer.md",
       "old_fragment": "Dave ระบุ + Aaron expose",
-      "replacement": "references/runbooks/devops-engineer-method.md",
+      "replacement": "references/runbooks/operate-deploy.md",
       "requires": [
-        "developer ระบุ + devops-engineer expose"
+        "`build` ระบุ + `operate` (deploy mode) expose"
       ],
       "reason": "W1b §4.10 :238 SKILL routing row moved verbatim to the lazy reference with persona -> agent id (UD R9/R50) (v4 W5b)"
     },
     {
       "source": "agents/devops-engineer.md",
       "old_fragment": "- ห้าม container root โดยไม่จำเป็น",
-      "replacement": "agents/devops-engineer.md",
+      "replacement": "agents/operate.md",
       "requires": [
         "No root container unless required; build secrets via `--secret`, never ARG/ENV or an image layer."
       ],
@@ -1405,7 +1404,7 @@
     {
       "source": "agents/devops-engineer.md",
       "old_fragment": "- ห้ามใช้ `:latest` ใน prod (Philosophy 1)",
-      "replacement": "agents/devops-engineer.md",
+      "replacement": "agents/operate.md",
       "requires": [
         "No `:latest`; pin base images and lock files."
       ],
@@ -1414,17 +1413,17 @@
     {
       "source": "agents/qa-engineer.md",
       "old_fragment": "คุณคือ **Quinn** (ควินน์) — Senior QA Engineer (integration/E2E + security pen test)",
-      "replacement": "agents/qa-engineer.md",
+      "replacement": "agents/verify.md",
       "requires": [
-        "You are `qa-engineer`: senior QA engineer, owner of the runtime axis",
-        "Pen testing belongs to security-engineer"
+        "You are `verify`: senior reviewer and QA engineer",
+        "pen test → **secure Phase 3b parallel**"
       ],
       "reason": "W1b §4.9 :10 BODY reworded per SAC-9 ruling (W1b §7.3 item 2): identity without the \"security pen test\" claim (security-engineer is sole owner); persona -> agent id (v4 W5b)"
     },
     {
       "source": "agents/qa-engineer.md",
       "old_fragment": "- Categories (A01-A10): Access Control, Crypto, Injection, Insecure Design, Misconfig, Vulnerable Deps, AuthN, Integrity, Logging, SSRF",
-      "replacement": "agents/security-engineer.md",
+      "replacement": "agents/secure.md",
       "requires": [
         "Pen test against critical flow (OWASP ASVS)",
         "SAST run + finding triage (Semgrep/Bandit/gosec)"
@@ -1434,7 +1433,7 @@
     {
       "source": "agents/qa-engineer.md",
       "old_fragment": "- Tools: SAST (Semgrep/CodeQL/Bandit/gosec), DAST (ZAP/Burp), SCA (Trivy/Grype/Snyk), Secret (gitleaks/trufflehog)",
-      "replacement": "agents/security-engineer.md",
+      "replacement": "agents/secure.md",
       "requires": [
         "Pen test against critical flow (OWASP ASVS)",
         "SAST run + finding triage (Semgrep/Bandit/gosec)"
@@ -1444,7 +1443,7 @@
     {
       "source": "agents/qa-engineer.md",
       "old_fragment": "- Output: finding by CVSS (Critical/High/Medium/Low/Info) + remediation",
-      "replacement": "agents/security-engineer.md",
+      "replacement": "agents/secure.md",
       "requires": [
         "Pen test against critical flow (OWASP ASVS)",
         "SAST run + finding triage (Semgrep/Bandit/gosec)"
@@ -1454,7 +1453,7 @@
     {
       "source": "agents/qa-engineer.md",
       "old_fragment": "**Pen Test Report**: scope + findings ตาม severity (OWASP cat + CVSS + location + evidence + impact + remediation)",
-      "replacement": "agents/security-engineer.md",
+      "replacement": "agents/secure.md",
       "requires": [
         "Pen test against critical flow (OWASP ASVS)",
         "SAST run + finding triage (Semgrep/Bandit/gosec)"
@@ -1464,16 +1463,16 @@
     {
       "source": "agents/security-engineer.md",
       "old_fragment": "คุณคือ **Sentinel** (เซ็นทิเนล) — Senior Security Engineer",
-      "replacement": "agents/security-engineer.md",
+      "replacement": "agents/secure.md",
       "requires": [
-        "You are `security-engineer`: senior security engineer, sole owner of threat modeling"
+        "You are `secure`: senior security engineer, sole owner of threat modeling"
       ],
       "reason": "identity line reworded to English; persona -> agent id (UD R9/R50) (v4 W5b)"
     },
     {
       "source": "agents/security-engineer.md",
       "old_fragment": "- Block merge ถ้า pen test critical finding ไม่ fix",
-      "replacement": "agents/security-engineer.md",
+      "replacement": "agents/secure.md",
       "requires": [
         "Block merge on an unfixed critical pen-test finding; pen-test minimum OWASP ASVS L2."
       ],
@@ -1482,25 +1481,25 @@
     {
       "source": "agents/security-engineer.md",
       "old_fragment": "(Felix/Iris/Sara joint)",
-      "replacement": "references/runbooks/security-engineer-method.md",
+      "replacement": "references/runbooks/secure-method.md",
       "requires": [
-        "(fintech-expert/insurance-expert/solution-architect joint)"
+        "(`plan` joint)"
       ],
       "reason": "stack-standard table moved verbatim to the lazy reference with persona -> agent id (UD R9/R50) (v4 W5b)"
     },
     {
       "source": "agents/solution-architect.md",
       "old_fragment": "คุณคือ **Sara** (ซาร่า) — Senior Solution Architect",
-      "replacement": "agents/solution-architect.md",
+      "replacement": "agents/plan.md",
       "requires": [
-        "You are `solution-architect`: senior solution architect"
+        "You are `plan`: owner of Why + What"
       ],
       "reason": "W1b §4.4 :16 DROP (persona line; identity carried by :18); English identity with agent id (v4 W5b)"
     },
     {
       "source": "agents/solution-architect.md",
       "old_fragment": "Universal policy → `shode-house-discipline` (preloaded).",
-      "replacement": "agents/solution-architect.md",
+      "replacement": "agents/plan.md",
       "requires": [
         "\"shode-house:shode-house-discipline\""
       ],
@@ -1509,73 +1508,72 @@
     {
       "source": "agents/solution-architect.md",
       "old_fragment": "**Threat Model support** — identify trust boundaries and support Sentinel's mitigations/ADR review when triggered, including regulated domains",
-      "replacement": "agents/solution-architect.md",
+      "replacement": "references/runbooks/plan-architecture.md",
       "requires": [
-        "Threat modeling (STRIDE/LINDDUN/abuse/security AC) → **security-engineer Phase 1c"
+        "Threat modeling (STRIDE/LINDDUN/abuse/security AC) → **`secure` Phase 1c"
       ],
       "reason": "W1b §4.4 :91 DROP: duplicate of :109 (kept in the body, persona -> agent id) (v4 W5b)"
     },
     {
       "source": "agents/sre-engineer.md",
       "old_fragment": "คุณคือ **Reggie** (เร็กกี้) — Site Reliability Engineer",
-      "replacement": "agents/sre-engineer.md",
+      "replacement": "agents/operate.md",
       "requires": [
-        "You are `sre-engineer`: site reliability engineer"
+        "and site reliability engineer"
       ],
       "reason": "identity line reworded to English; persona -> agent id (UD R9/R50) (v4 W5b)"
     },
     {
       "source": "agents/staff-engineer.md",
       "old_fragment": "คุณคือ **Stan** (สแตน) — Staff Engineer: owner ของ cross-team technical depth (tech radar",
-      "replacement": "agents/staff-engineer.md",
+      "replacement": "agents/build.md",
       "requires": [
-        "You are `staff-engineer`: owner ของ cross-team technical depth (tech radar · polyglot consistency · refactor strategy)"
+        "Staff-grade briefs (cross-team consistency, tech radar, polyglot judgment, refactor strategy)"
       ],
       "reason": "W1b §4.5 :16 BODY: persona -> agent id (UD R9/R50); ownership clause verbatim (v4 W5b)"
     },
     {
       "source": "agents/staff-engineer.md",
       "old_fragment": "- ห้าม push convergence ถ้า team A + B ไม่ share code 6+ months — accept divergence default",
-      "replacement": "agents/staff-engineer.md",
+      "replacement": "references/runbooks/build-staff.md",
       "requires": [
-        "No adoption without required evidence; no universal six-month wait",
-        "Unsure → accept divergence, document it"
+        "No adoption without required evidence; no universal six-month wait"
       ],
       "reason": "W1b §4.5 :69 DROP (SAC-9 overrule): contradicts the BODY line :118 \"no universal six-month wait\"; the divergence default stays in the Bias Discipline trigger (v4 W5b)"
     },
     {
       "source": "skills/discipline/shode-house-routing/SKILL.md",
       "old_fragment": "**Aaron** (build) + **Reggie** (SLO)",
-      "replacement": "references/runbooks/devops-engineer-method.md",
+      "replacement": "references/runbooks/operate-deploy.md",
       "requires": [
-        "devops-engineer = \"build the road\"; sre-engineer = \"keep cars running\""
+        "`operate` (deploy mode) = \"build the road\"; `operate` (reliability mode) = \"keep cars running\""
       ],
       "reason": "W3-owned routing line that matched only devops-engineer.md:48 (persona tokens); W5b moves :48 verbatim to the lazy reference with persona -> agent id (v4 W5b)"
     },
     {
       "source": "agents/developer.md",
       "old_fragment": "Sara/Oliver เรียกหลาย Dave พร้อมกันเมื่อ independent:",
-      "replacement": "references/runbooks/developer-method.md",
+      "replacement": "references/runbooks/build-method.md",
       "requires": [
-        "solution-architect/the router เรียกหลาย developer พร้อมกันเมื่อ independent"
+        "`plan` (architecture)/the router เรียกหลาย `build` พร้อมกันเมื่อ independent"
       ],
       "reason": "pre-v3.17 spelling of the Minion-style lead line (pinned base 3d595f6); moved verbatim to the lazy reference with persona -> agent id (UD R9/R50) (v4 W5b)"
     },
     {
       "source": "agents/staff-engineer.md",
       "old_fragment": "คุณคือ **Stan** (สแตน) — Staff Engineer (cross-team technical depth)",
-      "replacement": "agents/staff-engineer.md",
+      "replacement": "agents/build.md",
       "requires": [
-        "You are `staff-engineer`: owner ของ cross-team technical depth (tech radar · polyglot consistency · refactor strategy)"
+        "Staff-grade briefs (cross-team consistency, tech radar, polyglot judgment, refactor strategy)"
       ],
       "reason": "pre-v3.17 spelling of the identity line (pinned base 3d595f6); persona -> agent id (UD R9/R50), ownership clause kept (v4 W5b)"
     },
     {
       "source": "agents/developer.md",
       "old_fragment": "- ห้าม edit migration ที่ apply prod แล้ว → migration ใหม่",
-      "replacement": "agents/developer.md",
+      "replacement": "agents/build.md",
       "requires": [
-        "Never edit a migration already applied to prod; write a new migration."
+        "never edit a migration already applied to prod (write a new one)"
       ],
       "reason": "W1b §8 M-R1 (SAC-9 R1, Medium): :175 reworded to English with the same force and the same safe path (new migration); at S2 the Thai line still matched the discipline R0 list, which W4 S3 replaces with the English floor, so the entry is needed from S3 on (v4 W5b)"
     },
@@ -1703,7 +1701,7 @@
       "old_fragment": "→ Domain Expert (ดู sd routing table)",
       "replacement": "output-styles/shode-house.md",
       "requires": [
-        "dispatch the matching domain type and wait for its return before any implementer"
+        "dispatch `shode-house:plan` with the matching domain reference and wait for its return before any implementer"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4); superseded by F-1"
     },
@@ -1712,8 +1710,8 @@
       "old_fragment": "**Self-check**: agent ตรง expertise ไหม? dependency block? parallel-able? high-stakes (security/money/legal)? → require Domain + Chris sign-off",
       "replacement": "output-styles/shode-house.md",
       "requires": [
-        "dispatch the matching domain type and wait for its return before any implementer",
-        "Else → developer + standards review at minimum"
+        "dispatch `shode-house:plan` with the matching domain reference and wait for its return before any implementer",
+        "Else → `build` + standards review at minimum"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4); superseded by F-1 (ADR iter5 §4)"
     },
@@ -1731,7 +1729,7 @@
       "old_fragment": "- **Oliver ใน main session เป็นผู้ dispatch ทุกทีม รวม Domain Expert**; Bella/Sara ส่งโจทย์และ context ที่ต้องให้ expert ตรวจกลับมา ไม่ต้องมี nested Task tool",
       "replacement": "output-styles/shode-house.md",
       "requires": [
-        "every team, domain included, is dispatched from here (workers never spawn)"
+        "every type, domain mode included, is dispatched from here (workers never spawn)"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4)"
     },
@@ -1740,7 +1738,7 @@
       "old_fragment": "- **Design ที่แตะ business rule ต้องมี Domain ที่เกี่ยวข้อง** — Bella gather, Sara integrate, Domain validate โดย Oliver เรียกแยกจริง ไม่ role-play เป็น expert",
       "replacement": "output-styles/shode-house.md",
       "requires": [
-        "dispatch the matching domain type",
+        "dispatch `shode-house:plan` with the matching domain reference",
         "Never role-play a domain"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4); F-1"
@@ -1786,7 +1784,7 @@
       "old_fragment": "- 🔴 v2.6.1 — ห้าม design ข้าม Uma สำหรับ feature ที่มี frontend/UI; ห้าม delegate Dave implement FE โดยไม่มี Uma artifact (pre-implement-ui gate)",
       "replacement": "output-styles/shode-house.md",
       "requires": [
-        "never developer alone, after an approved design artifact"
+        "never `build` alone, after an approved design artifact"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4); pre-implement-ui row stays in the workflow root gate table"
     },
@@ -1813,7 +1811,7 @@
       "old_fragment": "- 🔴 ห้าม allow verbal spec change → Dave fix ตรง; ต้อง Bella revision (M5)",
       "replacement": "output-styles/shode-house.md",
       "requires": [
-        "Spec change: `shode-house:business-analyst` revises acceptance (M5), never a direct fix"
+        "Spec change: `shode-house:plan` revises acceptance (M5), never a direct fix"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4)"
     },
@@ -1822,7 +1820,7 @@
       "old_fragment": "- Phase 1b waits for its Phase 1a inputs; Uma and Domain may run concurrently only when their assigned scopes are independent",
       "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
       "requires": [
-        "Phase 1b ux-ui-designer/domain read the merged 1a spec before designing or validating"
+        "Phase 1b `design`/domain read the merged 1a spec before designing or validating"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4); SKILL class (W1b) -> workflow root"
     },
@@ -1939,7 +1937,7 @@
       "old_fragment": "**M5** spec change → Bella revise the confirmed requirement record and re-check affected acceptance; retain its canonical ID and history",
       "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
       "requires": [
-        "business-analyst → revise canonical acceptance record, preserve prior revision/history"
+        "`plan` (requirements mode) → revise canonical acceptance record, preserve prior revision/history"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4)"
     },
@@ -1957,7 +1955,7 @@
       "old_fragment": "payment / ledger / KYC-AML / BOT-SEC-PCI",
       "replacement": "output-styles/shode-house.md",
       "requires": [
-        "payment, ledger, KYC/AML|fintech-expert"
+        "payment, ledger, KYC/AML|`plan` (domain `fintech`)"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4); routing keywords only (regulator names stay in the domain bodies)"
     },
@@ -1984,14 +1982,14 @@
       "old_fragment": "UI file (html/css/js view) → Dave + `ui-test`/Uma, never Dave alone",
       "replacement": "output-styles/shode-house.md",
       "requires": [
-        "UI file → developer + `shode-house:ux-ui-designer`, never developer alone"
+        "UI file → `shode-house:build` + `shode-house:design`, never `build` alone"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4); ui-test load stays mandatory in discipline/bodies"
     },
     {
       "source": "output-styles/oliver.md",
       "old_fragment": "- Dave reports implementation/smoke status; reviewers report their actual verdicts",
-      "replacement": "agents/developer.md",
+      "replacement": "agents/build.md",
       "requires": [
         "Do not approve your own implementation"
       ],
@@ -2146,7 +2144,7 @@
       "old_fragment": "**M5** spec change → Bella revise the confirmed requirement record and re-check affected acceptance; retain its canonical ID and history, not a mandatory new Beads issue",
       "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
       "requires": [
-        "business-analyst → revise canonical acceptance record, preserve prior revision/history"
+        "`plan` (requirements mode) → revise canonical acceptance record, preserve prior revision/history"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4)"
     },
@@ -2155,7 +2153,7 @@
       "old_fragment": "implement feature code (polyglot)",
       "replacement": "output-styles/shode-house.md",
       "requires": [
-        "implement, fix code/config|developer"
+        "implement, fix code/config|`build`"
       ],
       "reason": "v4 switch: orchestrator.md/oliver.md retire; the rule lives in the router style (ADR iter5 §5.4)"
     },
@@ -2311,7 +2309,7 @@
       "old_fragment": "Stan, Domain SME, Patrick",
       "replacement": "skills/discipline/shode-house-routing/SKILL.md",
       "requires": [
-        "staff-engineer, Domain SME, product-manager"
+        "`build` (staff-grade brief), Domain SME, `plan` (discover mode)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): the same owners by agent id; W7's persona renames removed the corpus copy that credited the 3.x spelling"
     },
@@ -2320,7 +2318,7 @@
       "old_fragment": "Uma + Aaron + Sentinel jointly own headers",
       "replacement": "skills/ops/secure/SKILL.md",
       "requires": [
-        "ux-ui-designer + devops-engineer + security-engineer jointly own headers"
+        "`design` + `operate` (deploy mode) + `secure` jointly own headers"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9, W7): same joint ownership of security headers, agent ids"
     },
@@ -2329,7 +2327,7 @@
       "old_fragment": "Uma + Aaron + Sentinel jointly own headers (web-q = measurement; secure = policy)",
       "replacement": "skills/ops/secure/SKILL.md",
       "requires": [
-        "ux-ui-designer + devops-engineer + security-engineer jointly own headers"
+        "`design` + `operate` (deploy mode) + `secure` jointly own headers"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9, W7): pre-3.17 spelling of the same joint-ownership line, agent ids"
     },
@@ -2348,7 +2346,7 @@
       "old_fragment": "Owner: the assigned Dave, Chris or Quinn.",
       "replacement": "skills/workflow/diagnose/full-investigation.md",
       "requires": [
-        "Owner: the assigned developer, code-reviewer or qa-engineer."
+        "Owner: the assigned `build`, `verify` (standards axis) or `verify` (runtime axis)."
       ],
       "reason": "v4 S3 persona -> agent id (UD R9, W7): same owners, agent ids"
     },
@@ -2357,70 +2355,70 @@
       "old_fragment": "Owner: Dave/Chris/Quinn handling diagnosis",
       "replacement": "skills/workflow/diagnose/SKILL.md",
       "requires": [
-        "**Owner**: code-reviewer (review) + qa-engineer (test) + developer (implement)"
+        "**Owner**: `verify` (standards axis) (review) + `verify` (runtime axis) (test) + `build` (implement)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9, W7): the pre-3.17 owner line; the current owner line names the same three roles by agent id"
     },
     {
       "source": "agents/code-reviewer.md",
       "old_fragment": "→ **Quinn Phase 3b** (Chris ไม่ตรวจ)",
-      "replacement": "agents/code-reviewer.md",
+      "replacement": "references/runbooks/verify-standards.md",
       "requires": [
-        "→ **qa-engineer Phase 3b** (code-reviewer ไม่ตรวจ)"
+        "→ **`verify` (runtime axis) Phase 3b** (`verify` (standards axis) ไม่ตรวจ)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same handoff row by agent id; the 3.x spelling was credited only through a copy in a deleted file"
     },
     {
       "source": "agents/devops-engineer.md",
       "old_fragment": "→ Quinn+Chris ส่ง test, Aaron wire",
-      "replacement": "references/runbooks/devops-engineer-method.md",
+      "replacement": "references/runbooks/operate-deploy.md",
       "requires": [
-        "→ qa-engineer+code-reviewer ส่ง test, devops-engineer wire"
+        "→ `verify` (runtime axis)+`verify` (standards axis) ส่ง test, `operate` (deploy mode) wire"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): the self-routing row moved to the devops-engineer method runbook (W5b) with agent ids"
     },
     {
       "source": "agents/product-manager.md",
       "old_fragment": "**Pain validation** with Domain SME (Felix/Elena/Sam/Tara/Iris/Brooke/Emma):",
-      "replacement": "references/runbooks/product-manager-discovery.md",
+      "replacement": "references/runbooks/plan-discovery.md",
       "requires": [
-        "**Pain validation** with Domain SME (fintech-expert/erp-expert/sap-expert/trading-expert/insurance-expert/booking-expert/ecommerce-expert):"
+        "**Pain validation** with Domain SME (`plan`"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): discovery step moved to the product-manager discovery runbook (W5a) with agent ids"
     },
     {
       "source": "agents/qa-engineer.md",
       "old_fragment": "→ Dave fix + Quinn regression",
-      "replacement": "references/runbooks/qa-engineer-method.md",
+      "replacement": "references/runbooks/verify-runtime.md",
       "requires": [
-        "→ developer fix + qa-engineer regression"
+        "→ `build` fix + `verify` (runtime axis) regression"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): self-routing row moved to the qa-engineer method runbook (W5b) with agent ids"
     },
     {
       "source": "agents/ux-ui-designer.md",
       "old_fragment": "Uma spec + Dave implement",
-      "replacement": "references/runbooks/ux-ui-designer-catalogue.md",
+      "replacement": "references/runbooks/design-catalogue.md",
       "requires": [
-        "ux-ui-designer spec + developer implement"
+        "`design` spec + `build` implement"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): self-routing row moved to the ux-ui-designer catalogue runbook (W5a) with agent ids"
     },
     {
       "source": "agents/security-engineer.md",
       "old_fragment": "Parallel กับ Chris (CR) ∥ Quinn (test) ∥ Aaron (CI)",
-      "replacement": "references/runbooks/security-engineer-method.md",
+      "replacement": "references/runbooks/secure-method.md",
       "requires": [
-        "## Phase 3b — parallel with code-reviewer (CR) ∥ qa-engineer (test) ∥ devops-engineer (CI)"
+        "## Phase 3b — parallel with `verify` (standards axis) (CR) ∥ `verify` (runtime axis) (test) ∥ `operate` (deploy mode) (CI)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): Phase 3b parallel line moved to the security-engineer method runbook (W5b) with agent ids"
     },
     {
       "source": "agents/developer.md",
       "old_fragment": "- Dave = **builder**; Chris/Quinn = **gatekeeper**",
-      "replacement": "agents/developer.md",
+      "replacement": "references/runbooks/build-method.md",
       "requires": [
-        "code-reviewer and qa-engineer review adversarially (zero-trust)"
+        "`verify` (standards axis) and `verify` (runtime axis) review adversarially (zero-trust)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same adversarial-gate relation in the developer body (§ Adversary-Aware Hand-off) by agent id"
     },
@@ -2429,7 +2427,7 @@
       "old_fragment": "Phase 1a (Bella ∥ Sara revise)",
       "replacement": "skills/discipline/review-checklist/report-format.md",
       "requires": [
-        "Phase 1a (business-analyst ∥ solution-architect revise)"
+        "Phase 1a (`plan` (requirements mode) ∥ `plan` (architecture mode) revise)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same triage row by agent id"
     },
@@ -2438,7 +2436,7 @@
       "old_fragment": "- \"ประกันรถ + ชำระบัตร\" → Iris + Felix + Emma",
       "replacement": "skills/discipline/shode-house-routing/SKILL.md",
       "requires": [
-        "- \"ประกันรถ + ชำระบัตร\" → insurance-expert + fintech-expert + ecommerce-expert"
+        "- \"ประกันรถ + ชำระบัตร\" → `plan` with the insurance domain reference + `plan` with the fintech domain reference + `plan` with the ecommerce domain reference"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same routing example by agent id"
     },
@@ -2447,7 +2445,7 @@
       "old_fragment": "Sara, Chris, Quinn (handoff)",
       "replacement": "skills/discipline/shode-house-routing/SKILL.md",
       "requires": [
-        "solution-architect, code-reviewer, qa-engineer (handoff)"
+        "`plan` (architecture mode), `verify` (standards axis), `verify` (runtime axis) (handoff)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same ownership row by agent id"
     },
@@ -2456,7 +2454,7 @@
       "old_fragment": "Chris, Quinn, Sentinel, Aaron",
       "replacement": "skills/discipline/shode-house-routing/SKILL.md",
       "requires": [
-        "code-reviewer, qa-engineer, security-engineer, devops-engineer"
+        "`verify` (standards axis), `verify` (runtime axis), `secure`, `operate` (deploy mode)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same RACI row by agent id"
     },
@@ -2465,7 +2463,7 @@
       "old_fragment": "Felix/Elena/Sam/Tara/Iris/Brooke/Emma",
       "replacement": "skills/discipline/shode-house-routing/ownership.md",
       "requires": [
-        "fintech-expert/erp-expert/sap-expert/trading-expert/insurance-expert/booking-expert/ecommerce-expert"
+        "fintech · erp · sap · trading · insurance · booking · ecommerce"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): domain row (pre-3.17 routing root) lives in ownership.md by agent id"
     },
@@ -2474,7 +2472,7 @@
       "old_fragment": "Chris/Quinn verdict default?",
       "replacement": "skills/discipline/shode-house-routing/orchestration.md",
       "requires": [
-        "code-reviewer/qa-engineer verdict default?"
+        "`verify` verdict default?"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): pessimistic-verdict row (pre-3.17 routing root) lives in orchestration.md by agent id"
     },
@@ -2483,7 +2481,7 @@
       "old_fragment": "Chris/Quinn verdict default?",
       "replacement": "skills/discipline/shode-house-routing/orchestration.md",
       "requires": [
-        "code-reviewer/qa-engineer verdict default?"
+        "`verify` verdict default?"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same pessimistic-verdict row by agent id"
     },
@@ -2492,7 +2490,7 @@
       "old_fragment": "Felix/Elena/Sam/Tara/Iris/Brooke/Emma",
       "replacement": "skills/discipline/shode-house-routing/ownership.md",
       "requires": [
-        "fintech-expert/erp-expert/sap-expert/trading-expert/insurance-expert/booking-expert/ecommerce-expert"
+        "fintech · erp · sap · trading · insurance · booking · ecommerce"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same domain row by agent id"
     },
@@ -2501,7 +2499,7 @@
       "old_fragment": "Bella and Sara light, Dave, Chris and Quinn",
       "replacement": "skills/discipline/shode-house-workflow/harness.md",
       "requires": [
-        "business-analyst and solution-architect light, developer, code-reviewer and qa-engineer"
+        "`plan` (requirements mode) and `plan` (architecture mode) light, `build`, `verify` (standards axis) and `verify` (runtime axis)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same Standard-feature team by agent id"
     },
@@ -2510,7 +2508,7 @@
       "old_fragment": "Bella+Sara → Uma (Phase 1a → 1b)",
       "replacement": "skills/discipline/shode-house-workflow/smart-coop.md",
       "requires": [
-        "business-analyst+solution-architect → ux-ui-designer (Phase 1a → 1b)"
+        "`plan` (requirements mode)+`plan` (architecture mode) → `design` (Phase 1a → 1b)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same sequential-gate row by agent id"
     },
@@ -2519,7 +2517,7 @@
       "old_fragment": "Bella+Sara → Domain (Phase 1a → 1b)",
       "replacement": "skills/discipline/shode-house-workflow/smart-coop.md",
       "requires": [
-        "business-analyst+solution-architect → Domain (Phase 1a → 1b)"
+        "`plan` (requirements mode)+`plan` (architecture mode) → Domain (Phase 1a → 1b)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same sequential-gate row by agent id"
     },
@@ -2528,7 +2526,7 @@
       "old_fragment": "Uma POST → Chris+Quinn (Phase 3a → 3b)",
       "replacement": "skills/discipline/shode-house-workflow/smart-coop.md",
       "requires": [
-        "ux-ui-designer POST → code-reviewer+qa-engineer (Phase 3a → 3b)"
+        "`design` POST → `verify` (standards axis)+`verify` (runtime axis) (Phase 3a → 3b)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same sequential-gate row by agent id"
     },
@@ -2537,7 +2535,7 @@
       "old_fragment": "When Domain SME (Felix/Iris/Sam/Tara/Elena/Brooke/Emma) flags scope gap in Phase 0:",
       "replacement": "skills/discipline/shode-house-workflow/smart-coop.md",
       "requires": [
-        "When Domain SME (fintech-expert/insurance-expert/sap-expert/trading-expert/erp-expert/booking-expert/ecommerce-expert) flags scope gap in Phase 0:"
+        "When Domain SME (`plan`) flags scope gap in Phase 0"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same Phase 0 scope-gap rule by agent id"
     },
@@ -2546,7 +2544,7 @@
       "old_fragment": "Quinn (เขียน) + Dave (test id)",
       "replacement": "skills/ui/ui-test/SKILL.md",
       "requires": [
-        "qa-engineer (เขียน) + developer (test id)"
+        "`verify` (runtime axis) (เขียน) + `build` (test id)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same WCAG 2.2 test ownership by agent id"
     },
@@ -2555,7 +2553,7 @@
       "old_fragment": "Producers (Dave/Chris/Quinn/Aaron/Uma/Bella/Sara/Felix/...)",
       "replacement": "skills/workflow/ask/SKILL.md",
       "requires": [
-        "Producers (developer/code-reviewer/qa-engineer/devops-engineer/ux-ui-designer/business-analyst/solution-architect/fintech-expert/...)"
+        "Producers (`build`/`verify`/`operate`/`design`/`plan`/`secure`)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same deliverable-skill users by agent id"
     },
@@ -2564,7 +2562,7 @@
       "old_fragment": "Producers (Dave/Chris/Quinn/Aaron/Uma/Bella/Sara/Felix/...)",
       "replacement": "skills/workflow/ask/SKILL.md",
       "requires": [
-        "Producers (developer/code-reviewer/qa-engineer/devops-engineer/ux-ui-designer/business-analyst/solution-architect/fintech-expert/...)"
+        "Producers (`build`/`verify`/`operate`/`design`/`plan`/`secure`)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): the retired 3.x entry skill's row (merged into ask in v3.17) lives in ask by agent id"
     },
@@ -2573,7 +2571,7 @@
       "old_fragment": "Felix/Elena/Sam/Tara/Iris/Brooke/Emma",
       "replacement": "skills/discipline/shode-house-routing/ownership.md",
       "requires": [
-        "fintech-expert/erp-expert/sap-expert/trading-expert/insurance-expert/booking-expert/ecommerce-expert"
+        "fintech · erp · sap · trading · insurance · booking · ecommerce"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): the retired 3.x entry skill's domain row lives in ownership.md by agent id"
     },
@@ -2582,7 +2580,7 @@
       "old_fragment": "Foundation (parallel Bella + Sara)",
       "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
       "requires": [
-        "Phase 1a business-analyst and solution-architect work in independent contexts; parallel when the host supports it and nothing depends, otherwise sequential"
+        "Phase 1a `plan` (requirements mode) and `plan` (architecture mode) work in independent contexts; parallel when the host supports it and nothing depends, otherwise sequential"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): the retired 3.x entry skill's Phase 1a row: the workflow root keeps 1a business-analyst + solution-architect in independent contexts, parallel when possible"
     },
@@ -2600,7 +2598,7 @@
       "old_fragment": "🟠 (Dave judge; Chris verify)",
       "replacement": "skills/workflow/dev-gate/SKILL.md",
       "requires": [
-        "🟠 (developer judge; code-reviewer verify)"
+        "🟠 (`build` judge; `verify` (standards axis) verify)"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same architecture self-check owners by agent id"
     },
@@ -2609,7 +2607,7 @@
       "old_fragment": "- Phase 1a Bella/Sara ใช้ independent context; parallel เมื่อ host รองรับและไม่มี dependency มิฉะนั้น sequential ได้",
       "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
       "requires": [
-        "Phase 1a business-analyst and solution-architect work in independent contexts; parallel when the host supports it and nothing depends, otherwise sequential"
+        "Phase 1a `plan` (requirements mode) and `plan` (architecture mode) work in independent contexts; parallel when the host supports it and nothing depends, otherwise sequential"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same Phase 1a rule in English with agent ids"
     },
@@ -2618,7 +2616,7 @@
       "old_fragment": "ห้าม Dave/Chris/Quinn proceed ก่อน Oliver classify",
       "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
       "requires": [
-        "ห้าม developer/code-reviewer/qa-engineer proceed ก่อน router classify"
+        "ห้าม `build`/`verify` proceed ก่อน router classify"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): same M-rule by agent id (drift-detection anchor)"
     },
@@ -2627,7 +2625,7 @@
       "old_fragment": "ห้าม Dave/Chris/Quinn proceed ก่อน Oliver classify",
       "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
       "requires": [
-        "ห้าม developer/code-reviewer/qa-engineer proceed ก่อน router classify"
+        "ห้าม `build`/`verify` proceed ก่อน router classify"
       ],
       "reason": "v4 S3 persona -> agent id (UD R9): the retired drift skill's M-rule lives in the workflow root by agent id"
     },
@@ -2645,7 +2643,7 @@
       "old_fragment": "- Phase 1a Bella/Sara ใช้ independent context; parallel ถ้า host รองรับ หรือ sequential โดยไม่คัดลอกข้อสรุปกัน",
       "replacement": "skills/discipline/shode-house-workflow/SKILL.md",
       "requires": [
-        "Phase 1a business-analyst and solution-architect work in independent contexts; parallel when the host supports it and nothing depends, otherwise sequential"
+        "Phase 1a `plan` (requirements mode) and `plan` (architecture mode) work in independent contexts; parallel when the host supports it and nothing depends, otherwise sequential"
       ],
       "reason": "v4 S3 (W10b): agents/orchestrator.md is deleted (ADR §5.2, retired type; router = output style). Phase 1a independence lives in the workflow root (independent contexts; sequential when not parallel)."
     },
@@ -2741,7 +2739,7 @@
       "old_fragment": "requirement / BRD / user story / AC",
       "replacement": "output-styles/shode-house.md",
       "requires": [
-        "requirements, AC|business-analyst"
+        "requirements, AC|`plan` (requirements)"
       ],
       "reason": "v4 S3 (W10b): output-styles/oliver.md is deleted (ADR §5.3, replaced by the router style output-styles/shode-house.md). Same routing row in the style's routing table by agent id."
     },
@@ -2759,7 +2757,7 @@
       "old_fragment": "everything else → Dave + Chris review",
       "replacement": "output-styles/shode-house.md",
       "requires": [
-        "Else → developer + standards review at minimum."
+        "Else → `build` + standards review at minimum."
       ],
       "reason": "v4 S3 (W10b): output-styles/oliver.md is deleted (ADR §5.3, replaced by the router style output-styles/shode-house.md). Same fast-path fallback in the style's dispatch floor by agent id."
     },
@@ -2768,7 +2766,7 @@
       "old_fragment": "or storage boundary; Bella re-checks spec only if acceptance changed",
       "replacement": "skills/discipline/shode-house-workflow/harness.md",
       "requires": [
-        "business-analyst (spec axis) is dispatched on every review round; with no spec source it returns `BLOCKED: no-spec` (never SKIP); it re-reads acceptance when acceptance changed"
+        "`plan` (requirements mode) (spec axis) is dispatched on every review round; with no spec source it returns `BLOCKED: no-spec` (never SKIP); it re-reads acceptance when acceptance changed"
       ],
       "reason": "UD R57/R62 (ADR F-2, erratum 3 §1.13 alignment list): the spec axis is always dispatched; no spec -> BLOCKED: no-spec (stricter than 're-checks spec only if acceptance changed')."
     },
@@ -2813,7 +2811,7 @@
     {
       "source": "agents/developer.md",
       "old_fragment": "**Return** — ส่ง artifact/tests/findings ให้ Oliver; ยังไม่ปิด task ก่อน independent review",
-      "replacement": "agents/developer.md",
+      "replacement": "references/runbooks/build-method.md",
       "requires": [
         "ไม่ปิด task เอง (the router ปิดหลัง independent review)"
       ],
@@ -2878,18 +2876,369 @@
       "old_fragment": "Oliver records `[REVIEW DISPATCH CARD]` in the checkpoint/report: Bella = DISPATCH or an",
       "replacement": "skills/discipline/review-checklist/spec-axis.md",
       "requires": [
-        "The router records `[REVIEW DISPATCH CARD]` in the checkpoint/report: business-analyst = DISPATCH, always (no SKIP)"
+        "The router records `[REVIEW DISPATCH CARD]` in the checkpoint/report: `shode-house:plan` (spec axis) = DISPATCH, always"
       ],
       "reason": "UD R57/R62 + R9: the card line names the router and allows no evidenced SKIP of the spec axis (stricter; W6 CI #19 literal)."
     },
     {
       "source": "agents/fintech-expert.md",
       "old_fragment": "- Money movement R0 needs authority for the exact action; reuse valid scoped authorization, reconcile uncertain results before retry, and send missing authority to Oliver",
-      "replacement": "agents/fintech-expert.md",
+      "replacement": "skills/discipline/domain-core/SKILL.md",
       "requires": [
         "Money movement is R0: return for the user's confirm of that exact action; reconcile uncertain results before retry, and send missing authority to the router"
       ],
       "reason": "Final fix-up (UD R90; Sentinel W10b pins review Info I-2): the reuse clause next to R0 is dropped; money movement stays R0 and returns for the user's confirm of that exact action, so a scoped authorization is reused only within the safety floor's confirm rule. Root-only anchor bias-felix-money-r0 follows the new text."
+    },
+    {
+      "source": "agents/devops-engineer.md",
+      "old_fragment": "devops-engineer; app-level → security-engineer (code fix → developer)",
+      "replacement": "references/runbooks/operate-deploy.md",
+      "requires": [
+        "app-level → `secure` (code fix → `build`)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): identity/persona line of a retired agent type folded into its 4.0.1 type; the rule content stays at the replacement"
+    },
+    {
+      "source": "agents/ecommerce-expert.md",
+      "old_fragment": "You are `ecommerce-expert`: e-commerce/retail expert",
+      "replacement": "references/domain/ecommerce.md",
+      "requires": [
+        "Persona: e-commerce/retail expert"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): identity/persona line of a retired agent type folded into its 4.0.1 type; the rule content stays at the replacement"
+    },
+    {
+      "source": "agents/solution-architect.md",
+      "old_fragment": "You are `solution-architect`: senior solution architect",
+      "replacement": "agents/plan.md",
+      "requires": [
+        "You are `plan`: owner of Why + What"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): identity/persona line of a retired agent type folded into its 4.0.1 type; the rule content stays at the replacement"
+    },
+    {
+      "source": "agents/staff-engineer.md",
+      "old_fragment": "You are `staff-engineer`: owner ของ cross-team technical depth (tech radar",
+      "replacement": "agents/build.md",
+      "requires": [
+        "Staff-grade briefs (cross-team consistency, tech radar, polyglot judgment, refactor strategy)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): identity/persona line of a retired agent type folded into its 4.0.1 type; the rule content stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/review-checklist/report-format.md",
+      "old_fragment": "Phase 1a (business-analyst ∥ solution-architect revise)",
+      "replacement": "skills/discipline/review-checklist/report-format.md",
+      "requires": [
+        "Phase 1a (`plan` (requirements mode) ∥ `plan` (architecture mode) revise)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-routing/SKILL.md",
+      "old_fragment": "- \"e-com + PromptPay\" → ecommerce-expert + fintech-expert",
+      "replacement": "skills/discipline/shode-house-routing/SKILL.md",
+      "requires": [
+        "- \"e-com + PromptPay\" → `plan` with the ecommerce domain reference + `plan` with the fintech domain reference"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-routing/SKILL.md",
+      "old_fragment": "- \"ERP บน SAP\" → sap-expert + erp-expert",
+      "replacement": "skills/discipline/shode-house-routing/SKILL.md",
+      "requires": [
+        "- \"ERP บน SAP\" → `plan` with the sap domain reference + `plan` with the erp domain reference"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-routing/SKILL.md",
+      "old_fragment": "- \"ประกันรถ + ชำระบัตร\" → insurance-expert + fintech-expert + ecommerce-expert",
+      "replacement": "skills/discipline/shode-house-routing/SKILL.md",
+      "requires": [
+        "- \"ประกันรถ + ชำระบัตร\" → `plan` with the insurance domain reference + `plan` with the fintech domain reference + `plan` with the ecommerce domain reference"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-routing/SKILL.md",
+      "old_fragment": "solution-architect, code-reviewer, qa-engineer (handoff)",
+      "replacement": "skills/discipline/shode-house-routing/SKILL.md",
+      "requires": [
+        "`plan` (architecture mode), `verify` (standards axis), `verify` (runtime axis) (handoff)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-routing/SKILL.md",
+      "old_fragment": "staff-engineer, Domain SME, product-manager",
+      "replacement": "skills/discipline/shode-house-routing/SKILL.md",
+      "requires": [
+        "`build` (staff-grade brief), Domain SME, `plan` (discover mode)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-routing/SKILL.md",
+      "old_fragment": "code-reviewer, qa-engineer, security-engineer, devops-engineer",
+      "replacement": "skills/discipline/shode-house-routing/SKILL.md",
+      "requires": [
+        "`verify` (standards axis), `verify` (runtime axis), `secure`, `operate` (deploy mode)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-routing/SKILL.md",
+      "old_fragment": "**devops-engineer** (build) + **sre-engineer** (SLO)",
+      "replacement": "skills/discipline/shode-house-routing/SKILL.md",
+      "requires": [
+        "**`operate` (deploy mode)** (build) + **`operate` (reliability mode)** (SLO)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-routing/orchestration.md",
+      "old_fragment": "intra-bd มี parallel แล้ว (developer#N, code-reviewer∥qa-engineer)",
+      "replacement": "skills/discipline/shode-house-routing/orchestration.md",
+      "requires": [
+        "intra-bd มี parallel แล้ว (`build`#N, `verify` (standards axis)∥`verify` (runtime axis))"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-routing/orchestration.md",
+      "old_fragment": "code-reviewer/qa-engineer verdict default?",
+      "replacement": "skills/discipline/shode-house-routing/orchestration.md",
+      "requires": [
+        "`verify` verdict default?"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-routing/ownership.md",
+      "old_fragment": "fintech-expert/erp-expert/sap-expert/trading-expert/insurance-expert/booking-expert/ecommerce-expert",
+      "replacement": "skills/discipline/shode-house-routing/ownership.md",
+      "requires": [
+        "fintech · erp · sap · trading · insurance · booking · ecommerce"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/harness.md",
+      "old_fragment": "business rules; devops-engineer deployment; sre-engineer operations",
+      "replacement": "skills/discipline/shode-house-workflow/harness.md",
+      "requires": [
+        "business rules; `operate` (deploy mode) deployment; `operate` (reliability mode) operations"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/harness.md",
+      "old_fragment": "business-analyst and solution-architect light, developer, code-reviewer and qa-engineer",
+      "replacement": "skills/discipline/shode-house-workflow/harness.md",
+      "requires": [
+        "`plan` (requirements mode) and `plan` (architecture mode) light, `build`, `verify` (standards axis) and `verify` (runtime axis)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "old_fragment": "- [Loop with Exit (developer/qa-engineer)](#loop-with-exit-developerqa-engineer)",
+      "replacement": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "requires": [
+        "Loop with Exit (`build`/`verify`)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "old_fragment": "business-analyst+solution-architect → ux-ui-designer (Phase 1a → 1b)",
+      "replacement": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "requires": [
+        "`plan` (requirements mode)+`plan` (architecture mode) → `design` (Phase 1a → 1b)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "old_fragment": "business-analyst+solution-architect → Domain (Phase 1a → 1b)",
+      "replacement": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "requires": [
+        "`plan` (requirements mode)+`plan` (architecture mode) → Domain (Phase 1a → 1b)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "old_fragment": "ux-ui-designer POST → code-reviewer+qa-engineer (Phase 3a → 3b)",
+      "replacement": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "requires": [
+        "`design` POST → `verify` (standards axis)+`verify` (runtime axis) (Phase 3a → 3b)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "old_fragment": "When Domain SME (fintech-expert/insurance-expert/sap-expert/trading-expert/erp-expert/booking-expert/ecommerce-expert) flags scope gap in Phase 0:",
+      "replacement": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "requires": [
+        "When Domain SME (`plan`) flags scope gap in Phase 0:"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "old_fragment": "product-manager + Domain SME (dispatched separately, no product-manager role-play)",
+      "replacement": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "requires": [
+        "`shode-house:plan` (discover mode) + Domain SME (a separate spawn, no discover-mode role-play)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/ops/secure/SKILL.md",
+      "old_fragment": "ux-ui-designer + devops-engineer + security-engineer jointly own headers",
+      "replacement": "skills/ops/secure/SKILL.md",
+      "requires": [
+        "`design` + `operate` (deploy mode) + `secure` jointly own headers"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/ui/ui-test/SKILL.md",
+      "old_fragment": "qa-engineer (เขียน) + developer (test id)",
+      "replacement": "skills/ui/ui-test/SKILL.md",
+      "requires": [
+        "`verify` (runtime axis) (เขียน) + `build` (test id)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/ui/ui-test/automation-patterns.md",
+      "old_fragment": "- [CI Integration (devops-engineer wire)](#ci-integration-devops-engineer-wire)",
+      "replacement": "skills/ui/ui-test/automation-patterns.md",
+      "requires": [
+        "CI Integration (`operate` (deploy mode) wire)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/workflow/ask/SKILL.md",
+      "old_fragment": "Product discovery and outcome priorities",
+      "replacement": "skills/workflow/ask/SKILL.md",
+      "requires": [
+        "Discovery, requirements and acceptance, architecture, the spec axis"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/workflow/ask/SKILL.md",
+      "old_fragment": "Cross-team technical depth and consistency",
+      "replacement": "skills/workflow/ask/SKILL.md",
+      "requires": [
+        "staff-grade briefs (cross-team consistency, refactor strategy)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/workflow/ask/SKILL.md",
+      "old_fragment": "Payments, ledger and financial rules",
+      "replacement": "skills/workflow/ask/SKILL.md",
+      "requires": [
+        "domain consult and the domain axis with"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/workflow/ask/SKILL.md",
+      "old_fragment": "Enterprise resource and accounting processes",
+      "replacement": "skills/workflow/ask/SKILL.md",
+      "requires": [
+        "domain consult and the domain axis with"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/workflow/ask/SKILL.md",
+      "old_fragment": "SAP integration and platform expertise",
+      "replacement": "skills/workflow/ask/SKILL.md",
+      "requires": [
+        "domain consult and the domain axis with"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/workflow/ask/SKILL.md",
+      "old_fragment": "Producers (developer/code-reviewer/qa-engineer/devops-engineer/ux-ui-designer/business-analyst/solution-architect/fintech-expert/...)",
+      "replacement": "skills/workflow/ask/SKILL.md",
+      "requires": [
+        "Producers (`build`/`verify`/`operate`/`design`/`plan`/`secure`)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/workflow/dev-gate/SKILL.md",
+      "old_fragment": "🟠 (developer judge; code-reviewer verify)",
+      "replacement": "skills/workflow/dev-gate/SKILL.md",
+      "requires": [
+        "🟠 (`build` judge; `verify` (standards axis) verify)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "skills/workflow/diagnose/full-investigation.md",
+      "old_fragment": "Owner: the assigned developer, code-reviewer or qa-engineer.",
+      "replacement": "skills/workflow/diagnose/full-investigation.md",
+      "requires": [
+        "Owner: the assigned `build`, `verify` (standards axis) or `verify` (runtime axis)."
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
+    },
+    {
+      "source": "agents/code-reviewer.md",
+      "old_fragment": "คุณคือ **Chris** (คริส) — Senior Code Reviewer + Unit Test Engineer",
+      "replacement": "agents/verify.md",
+      "requires": [
+        "You are `verify`: senior reviewer and QA engineer"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): identity/persona line of a retired agent type folded into its 4.0.1 type; the rule content stays at the replacement"
+    },
+    {
+      "source": "agents/developer.md",
+      "old_fragment": "คุณคือ **Dave** (เดฟ) — Senior Polyglot Full-stack Developer",
+      "replacement": "agents/build.md",
+      "requires": [
+        "You are `build`: senior polyglot full-stack engineer"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): identity/persona line of a retired agent type folded into its 4.0.1 type; the rule content stays at the replacement"
+    },
+    {
+      "source": "agents/product-manager.md",
+      "old_fragment": "- ❌ ถ้า Domain SME unavailable / not dispatched → flag `PENDING domain validation` ใน Phase 0 output (ห้าม guess)",
+      "replacement": "agents/plan.md",
+      "requires": [
+        "not dispatched → flag `PENDING domain validation`"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): identity/persona line of a retired agent type folded into its 4.0.1 type; the rule content stays at the replacement"
+    },
+    {
+      "source": "agents/security-engineer.md",
+      "old_fragment": "(was Quinn pen test)",
+      "replacement": "agents/secure.md",
+      "requires": [
+        "Pen test against critical flow (OWASP ASVS)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): identity/persona line of a retired agent type folded into its 4.0.1 type; the rule content stays at the replacement"
+    },
+    {
+      "source": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "old_fragment": "Patrick + Domain SME (dispatched separately, no Patrick role-play)",
+      "replacement": "skills/discipline/shode-house-workflow/smart-coop.md",
+      "requires": [
+        "`shode-house:plan` (discover mode) + Domain SME (a separate spawn, no discover-mode role-play)"
+      ],
+      "reason": "4.0.1 core-agent consolidation (18 types -> 6; shode-house-jni): retired-role list/persona line reworded to the 4.0.1 type names; the rule it carried stays at the replacement"
     }
   ]
 }

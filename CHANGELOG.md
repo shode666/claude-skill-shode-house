@@ -5,7 +5,62 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ## [Unreleased]
 
-## [4.0.0] — unreleased (switch commit; release pending the review pack, the Cowork manual test (U7), the W11 live eval and the user's release decision)
+## [4.0.1] — unreleased (consolidation implemented; release pending the independent Standards / Spec / Security review on one fixed point, the local `.plugin` build, the Cowork drag-drop test, the re-run of the routing probes and the 4.0.1 scenarios, and the user's release decision)
+
+### Breaking — 18 agent types become 6; the old ids no longer resolve
+
+The 4.0.1 number was fixed by the maintainer. Removing public spawn targets is a breaking change under SemVer (the requirements record asks for a MAJOR bump in that case): anyone who spawns `shode-house:<old-id>` gets a failed spawn, not an alias. There are no stub agent files and the host documents no alias mechanism.
+
+| 4.0.0 id | 4.0.1 |
+|---|---|
+| product-manager | `plan`, discover mode |
+| business-analyst | `plan`, requirements mode; the spec axis is a fresh `plan` spawn that did not write the acceptance |
+| solution-architect | `plan`, architecture mode, router-passed `model: "fable"` |
+| staff-engineer | `build`, staff-grade brief, router-passed `model: "fable"` (no network on `build`; radar research is a `plan` brief) |
+| developer | `build` |
+| ux-ui-designer | `design` |
+| code-reviewer | `verify`, standards axis |
+| qa-engineer | `verify`, runtime axis |
+| security-engineer | `secure` |
+| devops-engineer | `operate`, deploy mode |
+| sre-engineer | `operate`, reliability mode |
+| fintech-expert, sap-expert, trading-expert, insurance-expert | `plan` + `references/domain/<domain>.md` loaded through `domain-core`, router-passed `model: "opus"` |
+| erp-expert, booking-expert, ecommerce-expert | the same `plan` + reference at the type default (sonnet); router-passed `model: "opus"` only for high-stakes work, reason recorded in the dispatch |
+
+The one table is `skills/discipline/shode-house-routing/ownership.md` § Formerly (3.x persona and 4.0.0 id → 4.0.1 type); the router answers a retired id from it and never spawns it or retries it as a bare name. `scripts/permission-check.sh` answers UNKNOWN (exit 2) for each retired id. Collision-scan does not guard retired ids: documented, not covered.
+
+### Changed
+
+- **6 agent types** `plan`, `build`, `verify`, `operate`, `secure`, `design` replace the 18 (`agents/*.md`); tools never exceed the widest replaced role (`plan` no Bash, `build`/`verify`/`operate` no network, `design` no Bash; `secure` keeps WebSearch). `secure` and `design` keep `model: claude-fable-5` (host-pinned); `plan` and `build` get `fable` / `opus` per dispatch from the router, which records requested and served model in the artifact (a domain or security axis return without it is BLOCKED). Role detail moved to the lazy runbooks (renamed `plan-*`, `build-*`, `verify-*`, `operate-*`, `secure-method`, `design-*` under `references/runbooks/`).
+- **Domain experts are references**, not agents or skills: `references/domain/{fintech,erp,sap,trading,insurance,booking,ecommerce}.md` (the former catalogues plus the former body rules), loaded by a `plan` spawn through `domain-core`; the vendor/regulation red lines that are root-only rules moved to `skills/discipline/domain-core/SKILL.md` § Domain red lines. The skill count stays 20.
+- **Router style**: 6-type routing table (every 4.0.0 outcome is still a row), review card with six axis lines (`verify` serves standards and runtime, `plan` serves spec and domain, each a separate named spawn; the spec spawn is never the one that wrote the AC), Phase 1c → `shode-house:secure`, business rule → domain-loaded `plan` before any implementer, served-model evidence, no bare-name fallback, Formerly pointer. Floor block and R0 / pre-deploy text unchanged.
+- **Hook**: `hooks/scripts/guard-scope-write.sh` keys the ux path set on `shode-house:design`; every agent-type value it branches on is listed once (`# agent-type-branch:`) and CI asserts each is a live type (SEC-1/SEC-2); a test shows a stale constant switches the control off.
+- **Registries** (`references/security/*.json`, `references/registry/*.json`) regenerated to the 6 ids; owners/requires may read `plan:<domain>`. `operate` carries a recorded `_widening` (the sre reliability work now sits in a type whose policy grants deploy, deploy_prod and write_code; the `pre-deploy-*` gates and the R0 floor line are unchanged); `build` records the staff-engineer write_code widening. Accepted with conditions (user decision U30): R0 still needs the user's confirmation of the specific action, `pre-deploy-*` is unchanged, a reliability (SRE) brief may use deploy or prod actions only when its delegation explicitly authorises them (`agents/operate.md`, pinned by `tests/test_core_roster.py`), both `_widening` records and their regression tests stay, and no further widening this round.
+- **Version 4.0.1** in `plugin.json`, `marketplace.json`, the `AGENTS.md` Repo Invariants heading and the README; the `## [4.0.0]` heading now carries its release date.
+
+### Added — gates
+
+- `tests/test_core_roster.py` (CI #27 always-required loop, `make validate`): roster == the 6 approved types, models, floor in every body and the style, registries name only live types, `permission-check.sh` UNKNOWN for each retired id, every 4.0.0 routing outcome and non-table capability maps to a live type (`tests/fixtures/routing_inventory.json`), the review card has the six axes as separate spawns, hook-key liveness with a behavioural DENY test, the served-model / no-bare-fallback sentences.
+- `tests/test_agent_tools_pin.py`: per-type tool ceilings against the 4.0.0 roles; `tests/test_tombstone.py` + `tests/test_skill_names.py`: the 18 retired ids have no file, no manifest entry and no spawn form anywhere in shipped text.
+- `eval/scenarios/core-4.0.1/` (frozen core set for the 6 types, derived from the frozen `core-4.0` by one stated rule, its own manifest) and `routing-4.0.1.json` (E16 domain rule before build, E17 retired id named by the user, E18 review axes stay separate, E19 served-model record for an upward `model` override, E20 spec-axis seeded violations) with `probes-4.0.1.json` + `check-probes.py` (thresholds pre-registered and pinned before any run); `eval/core-set.sh` selects the 4.0.1 set from 4.0.1 on; 4.0.0 keeps `core-4.0`; `core-4.0/FREEZE.sha256`, `eval/FREEZE.sha256` and `eval/shape-baseline/FREEZE.sha256` are untouched. CI #27 runs the new freeze check.
+- `eval/scenarios/battery-4.0.1/` + `eval/run-battery-4.0.1.sh`: the P01..P47 routing probes mapped to the 6 types (expected type and mode per probe, same prompts), additive to the unchanged baseline battery; derived from the frozen `golden.json` by one stated rule, frozen with its own manifest before any run (CI #27 `eval/scenarios/battery-4.0.1/check-freeze.sh`, `tests/test_battery_401.py`), `check-domain.py` for the 7 single-domain probes (the `plan` spawn names its own reference and follows the model tier; report-only). Dropped, because `plan` is one type: the per-mode negatives of P40 and the six other-expert negatives of the 7 domain probes (listed per probe in `dropped_4_0_1`). The runner writes owner-only (`umask 077`, a loose out-dir is tightened or refused) and redacts the derived files like `eval/run-core.sh`. Same prompt, model (Sonnet) and N (5) as the baseline; not run.
+- CI #21's preload:true threshold is scaled to the roster (7 of 18 → ceil(7 × agents / 18) = 3 of 6); `scripts/rule-conservation.py` counts `references/domain/` as a rule-hosting directory (the former domain catalogues were runbooks).
+
+### Budgets (only down)
+
+- `.preload-budget`: 18 keys → 6 (plan 13,271 · build 13,271 · verify 15,349 · operate 13,271 · secure 15,349 · design 13,271 B). `build` preloads `shode-house-discipline` and `shode-house-deliverable` (the developer shape; measured 13,271 B, below the developer key 13,310 and above the staff-engineer key 10,199): a preload is host-injected, a load-before-return sentence in the body is not, and `build` is the main code producer. This is the one key set above a replaced role's strictest key, recorded here.
+- `.agent-core-budget`: 18 keys → 6, each at the measured body (plan 6,666 · build 6,235 · verify 8,443 · operate 6,599 · secure 6,432 · design 9,241 B).
+- `.workflow-scenario-budget`: scenarios re-defined per spawn (a type listed twice is two spawns) and re-measured, all at or below the 4.0.0 values; the five scenarios that spawn `build` (implement-be, implement-ui, diagnose-fast, diagnose-full, full-fanout) rose against the first 4.0.1 draft when `build` gained its second preloaded skill, and stay below 4.0.0; `.skill-metadata-budget` unchanged or lower.
+- **Not like-for-like with 4.0.0.** The comparison above is numeric only: the domain rule bodies that `.agent-core-budget` counted per domain agent now sit in `references/domain/*.md`, which no scenario budget counts (the former catalogues were not counted either), and the scenarios were re-defined per spawn. The lazy domain reference load (6-8 KB per domain spawn) is unmeasured.
+
+### Known limitations
+
+- **Designed, not measured.** No model has run the new routing: the routing probes, W11 and the 4.0.1 scenarios must be re-run (same N, Sonnet) before any release decision and reported next to the 4.0.0 baseline; the fable/opus tiers and the per-dispatch `model` override have no run on this plugin. Spec-axis catch rate on seeded violations (same type wrote and reviews acceptance) is a pre-release measurement: E19/E20 are authored with thresholds pre-registered in `eval/scenarios/core-4.0.1/probes-4.0.1.json` (E20: catch rate >= 0.80 over 5 runs of 4 seeded violations, not below the 4.0.0 `business-analyst` baseline; E19: 5 of 5 runs) and have not been run. E20 is a structured text scorer with human adjudication: the reviewer prompt requires one `AC-n: MET` or `AC-n: VIOLATED` line per criterion, `check-probes.py` reads only those lines, and a run lacking one for every criterion (any other wording, a table, a duplicate or conflicting line) is UNSCORABLE (exit 2) for a human to adjudicate. The verdict lines are read only from the spec reviewer's own spawn result (the `tool_result` of its `plan` spawn); the router's final text can only corroborate them, so a different verdict there is UNSCORABLE and a line missing from the reviewer's reply is UNSCORABLE even if the router's text has it. The natural-language heuristic was removed and the scorer re-pinned before any run (thresholds unchanged, the pinned `probes-4.0.1.json` records the revision). Fallback, the user's decision and never applied by an agent: if E20 fails, the spec axis moves from `plan` to `verify`; if E19 fails, domain, architecture and staff-grade briefs run at the type default and report BLOCKED until the user decides. The staff-engineer negative on ordinary work (no over-dispatch of the staff-grade tier) is restated as `post_checks: no-fable-dispatch` in the 4.0.1 derivation.
+- Domain model mapping (user decision U30): `opus` for fintech, sap, trading and insurance (the 4.0.0 mapping); erp, booking and ecommerce stay at the type default (sonnet, as in 4.0.0) and get a per-dispatch `model: "opus"` only for high-stakes work, with the reason recorded in the dispatch. This replaces the earlier draft that put all seven on `opus`.
+- `build` loses the staff-engineer's WebSearch; research for a radar is a `plan` brief.
+- Hooks, `skills:` preload and the per-dispatch `model` override are unverified in Cowork; drag-drop of the built `.plugin` is required before release.
+
+## [4.0.0] — 2026-10-09 (released: tag v4.0.0 at 3f45a22)
 
 ### Changed — the router is an output style; 18 agents; agent ids
 

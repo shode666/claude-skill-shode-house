@@ -1,10 +1,10 @@
-# design-intel — UI/UX lookup layer (ux-ui-designer)
+# design-intel — UI/UX lookup layer (`design`)
 
 Vendored subset ของ [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) (MIT © Next Level Builder) + `check_contrast.py` ของ shode-house
 
 ## ทำไมถึงมี
 
-ux-ui-designer Phase 1b สั่งให้ผลิต design token (primitive → semantic → component) แต่เดิม **ไม่มีแหล่งว่าค่าอะไร** → ux-ui-designer เสกสี/ฟอนต์/สเกลจากหัว model ทุกครั้ง = ผลลัพธ์แปรผันตาม model และ reproduce ไม่ได้
+`design` Phase 1b สั่งให้ผลิต design token (primitive → semantic → component) แต่เดิม **ไม่มีแหล่งว่าค่าอะไร** → `design` เสกสี/ฟอนต์/สเกลจากหัว model ทุกครั้ง = ผลลัพธ์แปรผันตาม model และ reproduce ไม่ได้
 pack นี้ทำให้ส่วนนั้นเป็น **retrieval** แทน **recall** — และ **ข้อมูลไม่เข้า context** เข้าเฉพาะผลลัพธ์ของ query (preload cost = 0 tok)
 
 ## กฎเหล็ก — catalog ≠ evidence (🔴)
@@ -25,11 +25,11 @@ pack นี้ทำให้ส่วนนั้นเป็น **retrieval** 
 > **สองชั้นของ gate (v3.12)** — WCAG 1.4.11 บังคับ 3:1 เฉพาะ non-text ที่ *สื่อความหมาย*:
 > - **text + `Ring` (focus indicator)** = hard block เสมอ แก้สีสถานเดียว
 > - **`Border`** = block จนกว่าจะ **ตัดสินแล้วบันทึก** — ขอบของ input/select/checkbox/selected state ต้องถึง 3:1; เส้นคั่น section หรือขอบการ์ดที่มี elevation แล้ว ผ่านได้ด้วย `--border-decorative "<เหตุผล>"` แล้ว paste บรรทัด `ACK` ลง bd
-> (เวอร์ชันแรกทำ Border เป็น hard block → block ทุก palette ในแคตตาล็อก = ux-ui-designer ทำงานไม่ได้เลย)
+> (เวอร์ชันแรกทำ Border เป็น hard block → block ทุก palette ในแคตตาล็อก = `design` ทำงานไม่ได้เลย)
 
 ## ใช้ยังไง
 
-คำสั่งข้างล่างอธิบายสิ่งที่ runner รันให้ (templates `design-search` · `contrast-check` · `contrast-check-decorative` · `design-query-domain` · `design-query-stack`): ux-ui-designer ไม่รันเอง — เขียน design-run request ตาม § Design runner
+คำสั่งข้างล่างอธิบายสิ่งที่ runner รันให้ (templates `design-search` · `contrast-check` · `contrast-check-decorative` · `design-query-domain` · `design-query-stack`): `design` ไม่รันเอง — เขียน design-run request ตาม § Design runner
 
 ```bash
 ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT not set}/references/design-intel"   # root ไม่ถูกตั้ง -> shell หยุดทันที (ห้าม fallback ไปที่ project)

@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `shode-house-deliverable` — ต�
 ```lazy-load-contract
 LOAD: skills/discipline/shode-house-deliverable/anti-puppet.md
 WHEN: evidence_form_uncertain=true OR anti_puppet_violation_reported=true
-OWNER: developer
+OWNER: build
 REQUIRED-BEFORE: claim_done
 ```
 

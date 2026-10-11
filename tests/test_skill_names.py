@@ -24,7 +24,7 @@ Not seen (limits): a name only in a table cell or prose without a load verb; "`<
 Sentinel") or through a variable (`agentType: it.type`).
 From 4.0.0 (plugin.json major >= 4, or SHODE_REQUIRE_V4=1) every preload and load must ALSO be
 namespaced, and the check is REQUIRED. Before that it is wired, not required (ADR §7 W1): the tree test
-reports its findings as a skip -- on 3.17.2 it finds `code-index` (agents/developer.md, staff-engineer.md).
+reports its findings as a skip -- on 3.17.2 it finds `code-index` (agents/build.md, staff-engineer.md).
 Run: python3 tests/test_skill_names.py           unit + mutation tests (CI gate #27)
      python3 tests/test_skill_names.py --scan    findings (--v4: 4.0.0 rules); exit 1 when any
 """
@@ -197,10 +197,10 @@ class SkillNamesTest(unittest.TestCase):
             self.skipTest(f"A8 advisory until 4.0.0 (ADR §7 W1), {len(found)} finding(s): " + " | ".join(found))
 
     def test_todays_dangling_code_index_is_found_while_present(self):
-        dev = ROOT / "agents/developer.md"
+        dev = ROOT / "agents/build.md"
         if "`code-index`" not in dev.read_text():
-            self.skipTest("code-index already removed from agents/developer.md")
-        self.assertTrue(any(f.startswith("agents/developer.md:") and "'code-index'" in f for f in scan()))
+            self.skipTest("code-index already removed from agents/build.md")
+        self.assertTrue(any(f.startswith("agents/build.md:") and "'code-index'" in f for f in scan()))
 
     # --- mutations: a planted dangling name / bare spawn must be red ---
     def test_planted_dangling_load_is_found(self):
@@ -219,9 +219,9 @@ class SkillNamesTest(unittest.TestCase):
         self.assertEqual([], self.find("load `ghost-skill` <!-- tombstone-allow -->"))
 
     def test_spawn_after_a_load_is_not_a_load(self):
-        found = self.find("bug → load `diagnose` first, then dispatch `developer` · review", "output-styles/s.md")
+        found = self.find("bug → load `diagnose` first, then dispatch `build` · review", "output-styles/s.md")
         self.assertEqual(1, len(found), found)
-        self.assertIn("spawn by bare type 'developer'", found[0])
+        self.assertIn("spawn by bare type 'build'", found[0])
 
     def test_parenthesised_and_next_clause_names_are_not_loads(self):
         self.assertEqual([], self.find("โหลด `data-migration` ก่อน (gate `pre-data-migration` อยู่ที่นั่น). Online DDL: `pt-online-schema-change`"))
@@ -240,14 +240,14 @@ class SkillNamesTest(unittest.TestCase):
         self.assertEqual([], self.find(f"load `{self.p}:dev-gate` now", v4=True))
 
     def test_planted_bare_spawn_is_found_in_style_commands_skills_only(self):
-        line = "Then dispatch `developer` with the task path."
+        line = "Then dispatch `build` with the task path."
         for rel in ("output-styles/s.md", "commands/c.md", "skills/workflow/ask/SKILL.md", "references/runbooks/r.md"):
-            self.assertEqual([f"{rel}:1: spawn by bare type 'developer' (use '{self.p}:developer'; a bare name is served by a project agent)"],
+            self.assertEqual([f"{rel}:1: spawn by bare type 'build' (use '{self.p}:build'; a bare name is served by a project agent)"],
                              self.find(line, rel))
         self.assertEqual([], self.find(line, "agents/x.md"))                 # agents/: no spawn tool from 4.0.0 (A1)
-        self.assertEqual([], self.find(line.replace("`developer`", f"`{self.p}:developer`"), "commands/c.md"))
+        self.assertEqual([], self.find(line.replace("`build`", f"`{self.p}:build`"), "commands/c.md"))
         self.assertTrue(self.find('subagent_type: "code-reviewer"', "commands/c.md"))
-        self.assertTrue(self.find("agent(prompt, { agentType: 'qa-engineer' })", "skills/ops/drain/x.js"))
+        self.assertTrue(self.find("agent(prompt, { agentType: 'verify' })", "skills/ops/drain/x.js"))
         self.assertEqual([], self.find("agent(prompt, { agentType: it.type })", "skills/ops/drain/x.js"))
 
     def test_spawn_of_a_non_agent_or_retired_name_is_found(self):
@@ -255,11 +255,24 @@ class SkillNamesTest(unittest.TestCase):
         self.assertEqual(['commands/c.md:1: subagent_type/agentType \'ghost-agent\' names no agent'],
                          self.find('subagent_type: "ghost-agent"', "commands/c.md"))
         self.assertTrue(self.find(f"agent(p, {{ agentType: '{self.p}:ghost-agent' }})", "skills/ops/drain/x.js"))
-        self.assertEqual([], self.find(f'subagent_type: "{self.p}:developer"', "commands/c.md"))
+        self.assertEqual([], self.find(f'subagent_type: "{self.p}:build"', "commands/c.md"))
         ctx = Context()
         ctx.retired = {"orchestrator"}                                      # what W10's RETIRED entry will add
         for text in ("dispatch `orchestrator` now", f"dispatch `{self.p}:orchestrator` now"):
             self.assertTrue(any("retired agent type" in f for f in text_findings(ctx, "commands/c.md", text, False)), text)
+
+    def test_every_retired_4_0_0_agent_id_is_red_in_a_spawn_form(self):
+        """4.0.1 (SEC-6): a spawn of any of the 18 retired ids, bare or namespaced, is a finding; a live type is not."""
+        ctx = Context()
+        retired = sorted(ctx.retired - {"orchestrator"})
+        self.assertEqual(18, len(retired), retired)
+        for old in retired:
+            for target in (old, f"{self.p}:{old}"):
+                with self.subTest(target=target):
+                    found = text_findings(ctx, "commands/c.md", f"dispatch `{target}` now", False)
+                    self.assertTrue(any("retired agent type" in f for f in found), found)
+        for live in sorted(ctx.agents):
+            self.assertEqual([], text_findings(ctx, "commands/c.md", f"dispatch `{self.p}:{live}` now", False))
 
     def test_retired_agents_come_from_the_ledger(self):
         from test_team_package import RETIRED

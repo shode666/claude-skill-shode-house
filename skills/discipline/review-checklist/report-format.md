@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `review-checklist` — REVIEW repor
 ```lazy-load-contract
 LOAD: skills/discipline/review-checklist/report-format.md
 WHEN: review_report_write=true
-OWNER: code-reviewer
+OWNER: verify
 REQUIRED-BEFORE: review_report_post
 ```
 
@@ -21,12 +21,12 @@ REQUIRED-BEFORE: review_report_post
 
 ### Compact task summary (Beads example)
 ```
-[code-reviewer|qa-engineer|security-engineer review bd-42] verdict: FAIL
+[`verify` (standards axis)|`verify` (runtime axis)|`secure` review bd-42] verdict: FAIL
 - 🔴 1: <file:line> <issue>
 - 🟠 2: <count + summary>
 - 🟡 5: <count, see md fallback>
 Coverage: unit 78% → 81% target hit; mutation 72%
-UX: ux-ui-designer POST PASS (separate)
+UX: `design` POST PASS (separate)
 Loop route: code → Phase 2
 ```
 
@@ -56,14 +56,14 @@ local-only path that the remote reader cannot open.
 
 ## Loop Routing Recommendation (Phase 4 input)
 
-code-reviewer/qa-engineer/security-engineer **must recommend** loop route ใน report:
+`verify`/`secure` **must recommend** loop route ใน report:
 
 | Finding type | Route → |
 |---|---|
-| Code logic / SOLID / perf | Phase 2 (developer fix) |
-| UI / visual / a11y manual | implementation ไม่ตรง approved design → Phase 2; baseline/design ผิด → Phase 1b (ux-ui-designer) |
-| Spec / AC / regulation gap | Phase 1a (business-analyst ∥ solution-architect revise) |
-| Test gap | Phase 2 (developer) + invoke `shode-house:automate-test` skill (qa-engineer) |
+| Code logic / SOLID / perf | Phase 2 (`build` fix) |
+| UI / visual / a11y manual | implementation ไม่ตรง approved design → Phase 2; baseline/design ผิด → Phase 1b (`design`) |
+| Spec / AC / regulation gap | Phase 1a (`plan` (requirements mode) ∥ `plan` (architecture mode) revise) |
+| Test gap | Phase 2 (`build`) + invoke `shode-house:automate-test` skill (`verify` (runtime axis)) |
 | Security finding | implementation gap → Phase 2; threat model/security acceptance gap → Phase 1c ก่อนแก้ affected implementation |
 | Multi-route | router triage (don't recommend; defer) |
 
@@ -77,13 +77,13 @@ Trigger ตาม code path:
 
 | Keyword in changed code | Domain Expert |
 |---|---|
-| payment / ledger / money / settle | → **fintech-expert** |
-| accounting / journal / inventory (generic) | → **erp-expert** |
-| SAP / ABAP / Fiori / BAPI / IDoc / S4HANA | → **sap-expert** |
-| order / market / matching / FIX | → **trading-expert** |
-| policy / claim / premium / actuarial | → **insurance-expert** |
-| booking / rate / yield (hotel/airline) | → **booking-expert** |
-| cart / checkout / promotion / catalog | → **ecommerce-expert** |
+| payment / ledger / money / settle | → **`plan` with the fintech domain reference** |
+| accounting / journal / inventory (generic) | → **`plan` with the erp domain reference** |
+| SAP / ABAP / Fiori / BAPI / IDoc / S4HANA | → **`plan` with the sap domain reference** |
+| order / market / matching / FIX | → **`plan` with the trading domain reference** |
+| policy / claim / premium / actuarial | → **`plan` with the insurance domain reference** |
+| booking / rate / yield (hotel/airline) | → **`plan` with the booking domain reference** |
+| cart / checkout / promotion / catalog | → **`plan` with the ecommerce domain reference** |
 
 Domain Expert verify: regulation cite (`shode-house-discipline` § Project Evidence Protocol) + business rule + edge case ที่เฉพาะ domain. ห้าม skip ถ้า domain-sensitive
 

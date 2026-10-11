@@ -26,14 +26,14 @@ Every mode: **R0 (irreversible) always asks first.**
 
 ## 🚦 Phase orchestration (🔴 the router enforces)
 
-- Phase 1a business-analyst and solution-architect work in independent contexts; parallel when the host supports it and nothing depends, otherwise sequential. Phase 1b ux-ui-designer/domain read the merged 1a spec before designing or validating.
-- UI changed → never skip the Phase 3a ux-ui-designer POST gate. Pure backend → record not-applicable with diff evidence, then 3b.
+- Phase 1a `plan` (requirements mode) and `plan` (architecture mode) work in independent contexts; parallel when the host supports it and nothing depends, otherwise sequential. Phase 1b `design`/domain read the merged 1a spec before designing or validating.
+- UI changed → never skip the Phase 3a `design` POST gate. Pure backend → record not-applicable with diff evidence, then 3b.
 - Phase 3b reviewers check separate scopes with independent verdicts; parallel when possible, or sequential in separate contexts, never copying a verdict.
 - 🔴 ห้าม skip Phase 4 Triage routing. Review fail → loop to the phase the finding belongs to (code→2, UI→1b, spec→1a); never "half pass" into Deploy.
 - Never close Phase 3 (3a/3b) before the review report is in the confirmed evidence home; the task record keeps a link, not a copy. Use the REVIEW Report Format.
 
 ## 🛡️ Phase 1c — Threat Model (🔴 canonical trigger list — single source)
-- **Owner**: ✅ security-engineer (lead) + solution-architect (architecture context)
+- **Owner**: ✅ `secure` (lead) + `plan` (architecture mode) (architecture context)
 - **Trigger**: feature touching auth / session / PII / money / external integration / webhook / file upload / AI agent
 - **Output**: STRIDE + abuse case + security AC injected into Phase 1a
 - **Gate**: `pre-implement` — may block Phase 2 until it passes
@@ -47,16 +47,16 @@ Single table for every phase gate and R0 action; the router checks each gate bef
 
 | Gate | Before | Check |
 |---|---|---|
-| Pre-spec-expand | 1a → 1b | business-analyst + solution-architect sign-off (task notes posted); light cross-read complete; no FR-ADR conflict unresolved |
-| Pre-implement-ui | 1b → 2 (frontend) | Applicable approved ux-ui-designer design + tokens/state/a11y criteria; reuse existing artifacts, Figma optional |
+| Pre-spec-expand | 1a → 1b | `plan` (requirements mode) + `plan` (architecture mode) sign-off (task notes posted); light cross-read complete; no FR-ADR conflict unresolved |
+| Pre-implement-ui | 1b → 2 (frontend) | Applicable approved `design` design + tokens/state/a11y criteria; reuse existing artifacts, Figma optional |
 | Pre-ui-check | 2 → 3a | lint clean + unit green + smoke pass + Scope Contract closed |
-| Pre-code-review | 3a → 3b | UI changed: ux-ui-designer POST PASS (visual/a11y/own AC); backend-only: explicit not-applicable with diff evidence |
-| Pre-merge | merge to main | code-reviewer approve + required project checks; qa-engineer and other axes pass when selected by harness tier/triggers |
+| Pre-code-review | 3a → 3b | UI changed: `design` POST PASS (visual/a11y/own AC); backend-only: explicit not-applicable with diff evidence |
+| Pre-merge | merge to main | `verify` (standards axis) approve + required project checks; `verify` (runtime axis) and other axes pass when selected by harness tier/triggers |
 | Pre-merge-ui | merge UI change | Adopted UI checks pass + visual evidence approved + applicable accessibility criteria verified |
 | Pre-loop-exit | 4 Triage → 5 Deploy | Applicable review axes complete, no unresolved Critical/High, iteration policy met; canonical review/evidence saved and task status verified. Deployment remains separately authorized |
 | Pre-deploy-staging | staging deploy | Build + image scan pass |
 | Pre-deploy-uat | uat deploy | Staging E2E pass + QA sign-off |
-| Pre-deploy-prod | prod deploy | UAT business sign-off + change ticket + rollback plan; multi-sig devops-engineer + sre-engineer + security-engineer (+ product-manager for R0) |
+| Pre-deploy-prod | prod deploy | UAT business sign-off + change ticket + rollback plan; multi-sig `operate` (deploy mode) + `operate` (reliability mode) + `secure` (+ `plan` (discover mode) for R0) |
 | Pre-data-migration | run migration prod | Backup verified + expand-contract + dry-run |
 | Pre-destructive | DROP/DELETE/rm -rf prod | User confirms this exact action + impact + rollback |
 
@@ -92,9 +92,9 @@ Single table for every phase gate and R0 action; the router checks each gate bef
 > Task-complete, not time-bound; no man-day negotiation. Deploy only when ready and authorized, not batched by sprint.
 
 ```
-PICK bd claim → PLAN 0 Discover* / 1a business-analyst∥solution-architect / 1b ux-ui-designer*+domain* / 1c security-engineer*
-  → EXECUTE 2 developer → VERIFY 3a ux-ui-designer* → 3b selected review axes → TRIAGE 4 router
-  → DEPLOY 5 devops-engineer (continuous per bd) → OPERATE 6 sre-engineer          (* = conditional)
+PICK bd claim → PLAN 0 Discover* / 1a `plan` (requirements mode)∥`plan` (architecture mode) / 1b `design`*+domain* / 1c `secure`*
+  → EXECUTE 2 `build` → VERIFY 3a `design`* → 3b selected review axes → TRIAGE 4 router
+  → DEPLOY 5 `operate` (deploy mode) (continuous per bd) → OPERATE 6 `operate` (reliability mode)          (* = conditional)
 
 Triage routing: code/perf/security→2 · UI/design→1b · spec/AC/regulation→1a
 Clean + closure authority → tracker close + read-back (M8); unresolved at third review/fix iteration → STOP, checkpoint and escalate
@@ -107,14 +107,14 @@ Clean + closure authority → tracker close + read-back (M8); unresolved at thir
 ```
 User message → router classify (one line):
   "retry / not working" → inspect evidence → route affected owner/phase, track iteration; no blind retry
-  "change X" → assess acceptance delta → business-analyst/solution-architect where affected, not full replay
+  "change X" → assess acceptance delta → `plan` where affected, not full replay
   "why Y" → quest → answer, no phase change
   "OK / approve" → approve → closure gate check
   "add Z" → new → create child task
   "done yet?" → status → read task record, no action
 ```
 
-ห้าม developer/code-reviewer/qa-engineer proceed ก่อน router classify
+ห้าม `build`/`verify` proceed ก่อน router classify
 
 ### M4 — User feedback invalidates the affected claim
 
@@ -126,17 +126,17 @@ Inspect feedback against acceptance and evidence:
   unresolved finding → hold closure; no automatic PASS after a worker's claim
 ```
 
-ห้าม developer "OK เพิ่มให้ครับ" → fix ตรง ๆ โดยไม่ผ่าน iter counter
+ห้าม `build` "OK เพิ่มให้ครับ" → fix ตรง ๆ โดยไม่ผ่าน iter counter
 
 ### M5 — Spec change = recorded acceptance revision
 
 ```
 User: "make amount a decimal"
-  ❌ WRONG: developer fixes the code directly
+  ❌ WRONG: `build` fixes the code directly
   ✅ RIGHT:
-     router ▸ business-analyst : spec change request
-     business-analyst → revise canonical acceptance record, preserve prior revision/history
-     business-analyst ∥ solution-architect : Phase 1a redo (delta only — light)
+     router ▸ `plan` (requirements mode) : spec change request
+     `plan` (requirements mode) → revise canonical acceptance record, preserve prior revision/history
+     `plan` (requirements mode) ∥ `plan` (architecture mode) : Phase 1a redo (delta only — light)
      Gate: pre-spec-expand
      Revalidate affected phases/dependencies only; preserve unchanged approvals/evidence
 ```
@@ -165,4 +165,4 @@ M1 → `shode-house-discipline` § M1 — Ingress Guard; เมื่อ drift �
 | `shode-house:shode-house-discipline` → `handoff.md` · `reporting.md` | router: handoff schema · `▸` broadcast · report and risk templates |
 | `shode-house:shode-house-routing` → `orchestration.md` · `ownership.md` | router: orchestration detail · ownership tables |
 | `shode-house:drain` → `execution.md` | router: batch-drain execution (isolated workers, serial merge, evidenced closure) |
-| `references/patterns/durable-agent-runtime.md` | devops-engineer/solution-architect generate a runner that needs retry/checkpoint/journal |
+| `references/patterns/durable-agent-runtime.md` | `operate`/`plan` generate a runner that needs retry/checkpoint/journal |

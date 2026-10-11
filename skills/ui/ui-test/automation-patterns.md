@@ -6,7 +6,7 @@ description: Reference (lazy-load) ของ `ui-test` — tool stack, test patt
 ```lazy-load-contract
 LOAD: skills/ui/ui-test/automation-patterns.md
 WHEN: writing_or_maintaining_ui_test_automation=true
-OWNER: qa-engineer
+OWNER: verify
 REQUIRED-BEFORE: ui_test_code_commit
 ```
 
@@ -19,7 +19,7 @@ REQUIRED-BEFORE: ui_test_code_commit
 - [Visual Regression](#visual-regression)
 - [Accessibility Test (axe-core)](#accessibility-test-axe-core)
 - [Mobile/Responsive Test](#mobileresponsive-test)
-- [CI Integration (devops-engineer wire)](#ci-integration-devops-engineer-wire)
+- [CI Integration (`operate` (deploy mode) wire)](#ci-integration-operate-deploy-mode-wire)
 - [Storybook + Test Discipline](#storybook--test-discipline)
 
 > Reference material; กฎบังคับ (universal UI rules, a11y gate, evidence ladder, selector/wait, ห้าม) อยู่ที่ root `SKILL.md` และยังมีผลเสมอ
@@ -80,7 +80,7 @@ test('should apply coupon and reduce total when valid code entered', async ({pag
 - Storybook stories ครอบทุก component state (default/hover/disabled/loading/error/empty/dark)
 - Chromatic / Percy snapshot baseline ทุก story
 - Diff threshold: 0.1% pixel (config per story)
-- Review workflow: design (ux-ui-designer) approve diff ก่อน merge
+- Review workflow: design (`design`) approve diff ก่อน merge
 
 ### Coverage
 - Component (atomic): button, input, card... (Storybook)
@@ -122,7 +122,7 @@ projects: [
 - Orientation change (portrait/landscape)
 - Network throttling (slow 3G)
 
-## CI Integration (devops-engineer wire)
+## CI Integration (`operate` (deploy mode) wire)
 
 ```yaml
 e2e:

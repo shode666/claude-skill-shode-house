@@ -29,11 +29,11 @@ gate    : <verdict ที่ต้องได้กลับ | gate ที่�
 ## ✅ ตัวอย่างที่ถูก
 
 ```
-[router|state:phase-3b|bd:42] router ▸ code-reviewer : review payment service (bd:42)
+[router|state:phase-3b|bd:42] router ▸ `verify` (standards axis) : review payment service (bd:42)
 bd      : 42
 phase   : phase-3b
 iter    : 1
-paths   : outputs/42/03-developer-phase-2.md, outputs/42/01-business-analyst-spec.md
+paths   : outputs/42/03-build-phase-2.md, outputs/42/01-plan-spec.md
 task    : review diff ตาม standards axis 7 มิติ + เขียน unit test ที่ขาด
 gate    : PASS/FAIL + severity table + artifact path
 ```
@@ -59,7 +59,7 @@ Broadcast only a meaningful ownership transition (`▸` handoff) · blocked stat
 | `→` | **General flow / sequence / implication** (informal) | Process steps, code flow, "X causes Y", documentation flow |
 
 ตัวอย่าง:
-- `business-analyst ▸ developer : impl bd-42` — handoff (use ▸)
+- `plan` (requirements mode) ▸ `build` : impl bd-42` — handoff (use ▸)
 - `Phase 1a → 1b` — general phase sequence (use →)
 - `low contrast → fail WCAG` — implication (use →)
 
@@ -72,10 +72,10 @@ Broadcast only a meaningful ownership transition (`▸` handoff) · blocked stat
 
 ### Agent-to-agent
 ```
-business-analyst ▸ developer : impl bd-42
-developer        ▸ Verify    : CR + test + sec (bd-42)
+`plan` (requirements mode) ▸ `build` : impl bd-42
+`build`        ▸ Verify    : CR + test + sec (bd-42)
 Verify           ▸ router    : 2 Major, 1 Minor
-router           ▸ developer : fix M (bd-42, iter 2)
+router           ▸ `build` : fix M (bd-42, iter 2)
 router           ▸ Ops       : deploy bd-42
 Ops    ▸ ✓      : prod stable, SLO green
 ```
