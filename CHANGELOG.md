@@ -5,7 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [Semver](http
 
 ## [Unreleased]
 
-## [4.0.1] — unreleased (consolidation implemented; release pending the independent Standards / Spec / Security review on one fixed point, the local `.plugin` build, the Cowork drag-drop test, the re-run of the routing probes and the 4.0.1 scenarios, and the user's release decision)
+## [4.0.1] — 2026-10-11 (released by the maintainer after the Standards / Spec / Security review on one fixed point; the Cowork drag-drop test, W11, the routing-probe battery and the 4.0.1 scenarios have not been run — see Known limitations)
 
 ### Breaking — 18 agent types become 6; the old ids no longer resolve
 
